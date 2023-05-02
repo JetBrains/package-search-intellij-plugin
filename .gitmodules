@@ -1,0 +1,4 @@
+[submodule "jewel"]
+	path = jewel
+	url = https://github.com/JetBrains/jewel.git
+
