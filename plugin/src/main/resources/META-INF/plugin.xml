@@ -1,0 +1,13 @@
+<idea-plugin implementation-detail="false">
+    <id>org.jetbrains.packagesearch</id>
+    <name>package Search</name>
+    <vendor>JetBrains</vendor>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="PackageSearch"
+                    anchor="bottom"
+                    secondary="false"
+                    canCloseContents="true"
+                    factoryClass="org.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
+    </extensions>
+</idea-plugin>
