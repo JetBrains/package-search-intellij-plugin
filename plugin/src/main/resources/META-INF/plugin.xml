@@ -1,7 +1,19 @@
 <idea-plugin implementation-detail="false">
-    <id>org.jetbrains.packagesearch</id>
-    <name>package Search</name>
+    <id>org.jetbrains.packagesearch.v2</id>
+    <name>Package Search</name>
     <vendor>JetBrains</vendor>
+
+<!--    <content>-->
+<!--        <module name="intellij.packageSearch.v2.maven"/>-->
+<!--    </content>-->
+
+    <extensionPoints>
+        <extensionPoint name="org.jetbrains.packagesearch.moduleTransformer"
+                        interface="org.jetbrains.packagesearch.plugin.extensions.PackageSearchModuleTransformer"
+                        dynamic="true"
+        />
+
+    </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="PackageSearch"
@@ -9,5 +21,9 @@
                     secondary="false"
                     canCloseContents="true"
                     factoryClass="org.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
+    </extensions>
+    <extensions defaultExtensionNs="org.jetbrains.packagesearch">
+        <moduleTransformer implementation="org.jetbrains.packagesearch.plugin.maven.MavenModuleTransformer"/>
+        <moduleTransformer implementation="org.jetbrains.packagesearch.plugin.gradle.GradleModuleTransformer"/>
     </extensions>
 </idea-plugin>

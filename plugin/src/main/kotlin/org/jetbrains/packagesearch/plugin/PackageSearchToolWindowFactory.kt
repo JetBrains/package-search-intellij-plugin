@@ -6,7 +6,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        TODO("Not yet implemented")
+
     }
 }
 
