@@ -3,6 +3,7 @@
 package org.jetbrains.packagesearch.plugin.utils
 
 import com.intellij.ProjectTopics
+import com.intellij.buildsystem.model.DeclaredDependency
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.AreaInstance
 import com.intellij.openapi.extensions.ExtensionPointListener
@@ -21,7 +22,6 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.Function
-import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import org.dizitart.no2.objects.filters.ObjectFilters
 import org.jetbrains.packagesearch.api.v3.ApiRepository
+import org.jetbrains.packagesearch.client.PackageSearchRemoteApiClient
 import org.jetbrains.packagesearch.plugin.PackageSearchProjectService
 import org.jetbrains.packagesearch.plugin.data.PackageSearchDeclaredDependency
 import org.jetbrains.packagesearch.plugin.data.PackageSearchModule
@@ -41,7 +42,6 @@ import org.jetbrains.packagesearch.plugin.nitrite.ApiRepositoryCacheEntry
 import org.jetbrains.packagesearch.plugin.nitrite.CoroutineObjectRepository
 import org.jetbrains.packagesearch.plugin.nitrite.asEntry
 import org.jetbrains.packagesearch.plugin.nitrite.insert
-import org.jetbrains.packagesearch.plugin.remote.PackageSearchApiClient
 import java.nio.file.Path
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -94,16 +94,16 @@ val Project.filesChangedEventFlow: Flow<MutableList<out VFileEvent>>
         }
     }
 
-context(ProjectContext) suspend fun PackageSearchModuleTransformer.updateDependency(
+suspend fun PackageSearchModuleTransformer.updateDependency(
+    context: ProjectContext,
     module: PackageSearchModule,
     installedPackage: PackageSearchDeclaredDependency,
     knownRepositories: List<ApiRepository>,
-) = updateDependencies(module, listOf(installedPackage), knownRepositories)
+    onlyStable: Boolean
+) = updateDependencies(context, module, listOf(installedPackage), knownRepositories, onlyStable)
 
-context(ProjectContext)
-val PackageSearchModule.nativeModule
-    get() = project.modules.find { it.moduleFile?.path == projectDirPath }
-        ?: error("Could not find native module for PackageSearchModule $name of type ${this::class.simpleName}")
+fun PackageSearchModule.getNativeModule(context: ProjectContext) = context.project.modules.find { it.moduleFile?.path == projectDirPath }
+    ?: error("Could not find native module for PackageSearchModule $name of type ${this::class.simpleName}")
 
 internal fun Project.asContext() =
     SimpleProjectContext(this)
@@ -127,7 +127,7 @@ fun <T> interval(
 
 suspend fun getRepositories(
     repoCache: CoroutineObjectRepository<ApiRepositoryCacheEntry>,
-    apiClient: PackageSearchApiClient,
+    apiClient: PackageSearchRemoteApiClient,
     expireDuration: Duration = 14.days,
 ) =
     repoCache.find(ObjectFilters.eq("_id", "knownRepositories"))
@@ -175,7 +175,7 @@ val Project.packageSearchProjectService
 fun <T> Flow<T>.mapUnit(): Flow<Unit> =
     map {}
 
-internal fun StringBuilder.appendEscaped(text: String) =
+fun StringBuilder.appendEscaped(text: String) =
     StringUtil.escapeToRegexp(text, this)
 
 
@@ -206,3 +206,6 @@ fun <T : Any> ExtensionPointName<T>.extensionsFlow(
         }
         awaitClose { removeExtensionPointListener(listener) }
     }
+
+val DeclaredDependency.packageId: String
+    get() = "maven:${coordinates.groupId}:${coordinates.artifactId}"

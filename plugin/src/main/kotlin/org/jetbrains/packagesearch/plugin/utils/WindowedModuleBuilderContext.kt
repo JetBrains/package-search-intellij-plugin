@@ -16,14 +16,14 @@ suspend fun <T> windowedBuilderContext(
     project: Project,
     knownRepositories: Map<String, ApiRepository>,
     packagesCache: ApiPackageCache,
-    action: suspend context(PackageSearchModuleBuilderContext) CoroutineScope.() -> T,
+    action: suspend CoroutineScope.(context: PackageSearchModuleBuilderContext) -> T,
 ): T = coroutineScope {
     windowedBuilderContext(
         project = project,
         knownRepositories = knownRepositories,
         packagesCache = packagesCache
     ) {
-        action(this, this@coroutineScope)
+        action(this@coroutineScope, this)
     }
 }
 

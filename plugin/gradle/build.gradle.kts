@@ -8,7 +8,7 @@ plugins {
 
 intellij {
     version.set("2023.1.1")
-    plugins.addAll("org.jetbrains.idea.maven")
+    plugins.addAll("org.jetbrains.plugins.gradle")
 }
 
 java {
@@ -40,5 +40,6 @@ kotlin {
 }
 
 dependencies {
+    implementation(projects.plugin.gradle.tooling)
     implementation(projects.plugin)
 }

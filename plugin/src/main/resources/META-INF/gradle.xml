@@ -1,10 +1,6 @@
-<idea-plugin implementation-detail="false">
-    <id>org.jetbrains.packagesearch.v2</id>
-    <name>Package Search</name>
-    <vendor>JetBrains</vendor>
+<idea-plugin implementation-detail="true">
 
-    <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
-    <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>
+
 
     <extensionPoints>
         <extensionPoint name="org.jetbrains.packagesearch.moduleTransformer"
@@ -20,5 +16,9 @@
                     secondary="false"
                     canCloseContents="true"
                     factoryClass="org.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
+    </extensions>
+    <extensions defaultExtensionNs="org.jetbrains.packagesearch">
+        <moduleTransformer implementation="org.jetbrains.packagesearch.plugin.maven.MavenModuleTransformer"/>
+        <moduleTransformer implementation="org.jetbrains.packagesearch.plugin.gradle.GradleModuleTransformer"/>
     </extensions>
 </idea-plugin>

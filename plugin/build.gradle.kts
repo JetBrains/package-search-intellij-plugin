@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+
 plugins {
     kotlin("jvm")
     id("org.jetbrains.intellij")
@@ -6,11 +8,7 @@ plugins {
 }
 
 intellij {
-    version.set("2023.1")
-    plugins.addAll(
-        "org.jetbrains.idea.maven",
-        "org.jetbrains.plugins.gradle"
-    )
+    version.set("2023.1.1")
 }
 
 java {
@@ -21,9 +19,6 @@ java {
 kotlin {
     target {
         compilations.all {
-            compilerOptions.configure {
-                freeCompilerArgs.add("-Xcontext-receivers")
-            }
             kotlinOptions {
                 jvmTarget = "17"
             }
@@ -42,14 +37,16 @@ kotlin {
 }
 
 dependencies {
+    implementation(projects.packageSearchApiClient)
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${getKotlinPluginVersion()}")
     implementation("org.gradle:gradle-tooling-api:8.1.1")
     implementation("org.jetbrains.jewel:foundation") {
         exclude(group = "org.jetbrains.kotlinx")
     }
-    implementation("org.jetbrains.packagesearch:package-search-api-models")
-    implementation("org.jetbrains.packagesearch:package-search-version-utils")
+    api("org.jetbrains.packagesearch:package-search-api-models")
+    api("org.jetbrains.packagesearch:package-search-version-utils")
     implementation("io.ktor:ktor-client-cio:2.3.0")
-    implementation("org.dizitart:nitrite:3.4.4") {
+    api("org.dizitart:nitrite:3.4.4") {
         exclude(group = "com.fasterxml.jackson.core")
         exclude(group = "com.squareup.okhttp3")
         exclude(group = "org.slf4j")

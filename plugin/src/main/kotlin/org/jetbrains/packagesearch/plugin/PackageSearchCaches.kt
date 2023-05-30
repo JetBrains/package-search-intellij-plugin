@@ -15,10 +15,10 @@ import org.dizitart.no2.IndexOptions
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.Nitrite
 import org.jetbrains.annotations.ApiStatus.Internal
-import org.jetbrains.packagesearch.plugin.nitrite.*
-import org.jetbrains.packagesearch.plugin.remote.PackageSearchApiClient
-import org.jetbrains.packagesearch.plugin.utils.ApiPackageCache
+import org.jetbrains.packagesearch.client.PackageSearchRemoteApiClient
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersionWeakCache
+import org.jetbrains.packagesearch.plugin.nitrite.*
+import org.jetbrains.packagesearch.plugin.utils.ApiPackageCache
 import kotlin.io.path.absolutePathString
 
 @RequiresOptIn("This API is internal and you should not use it.")
@@ -64,7 +64,7 @@ class PackageSearchCaches(coroutineScope: CoroutineScope) {
 
     suspend fun getApiPackageCache() = getRepository<ApiPackageCacheEntry>("packages")
         .also { it.createIndex("data.idHash", IndexOptions.indexOptions(IndexType.Unique)) }
-        .let { ApiPackageCache(it, application.service<PackageSearchApiClient>()) }
+        .let { ApiPackageCache(it, application.service<PackageSearchRemoteApiClient>()) }
 
     suspend fun getRepositoryCache() =
             getRepository<ApiRepositoryCacheEntry>("repositories")

@@ -15,7 +15,13 @@ pluginManagement {
     }
 }
 
-include(":plugin")
+include(
+    ":plugin",
+    ":plugin:maven",
+    ":plugin:gradle",
+    ":plugin:gradle:tooling",
+    "package-search-api-client"
+)
 
 includeBuild("jewel") {
     dependencySubstitution {

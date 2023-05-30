@@ -4,16 +4,16 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.client.PackageSearchRemoteApiClient
 import org.jetbrains.packagesearch.plugin.extensions.PackageSearchApiPackagesProvider
 import org.jetbrains.packagesearch.plugin.nitrite.*
-import org.jetbrains.packagesearch.plugin.remote.PackageSearchApiClient
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
 class ApiPackageCache(
     private val fileCache: CoroutineObjectRepository<ApiPackageCacheEntry>,
-    private val apiClient: PackageSearchApiClient,
+    private val apiClient: PackageSearchRemoteApiClient,
     val maxAge: Duration = 1.days,
 ) : PackageSearchApiPackagesProvider {
 

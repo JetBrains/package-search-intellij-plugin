@@ -2,13 +2,7 @@ import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 plugins {
     kotlin("jvm")
-    id("org.jetbrains.intellij")
     kotlin("plugin.serialization")
-}
-
-intellij {
-    version.set("2023.1.1")
-    plugins.addAll("org.jetbrains.idea.maven")
 }
 
 java {
@@ -19,9 +13,6 @@ java {
 kotlin {
     target {
         compilations.all {
-            compilerOptions.configure {
-                freeCompilerArgs.add("-Xcontext-receivers")
-            }
             kotlinOptions {
                 jvmTarget = "17"
             }
@@ -40,5 +31,10 @@ kotlin {
 }
 
 dependencies {
-    implementation(projects.plugin)
+    api("org.jetbrains.packagesearch:package-search-api-models")
+    api("io.ktor:ktor-client-cio:2.3.0")
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    api("io.ktor:ktor-client-content-negotiation:2.3.0")
+    api("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
+    api("io.ktor:ktor-client-mock:2.3.0")
 }
