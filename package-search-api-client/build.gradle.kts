@@ -36,5 +36,4 @@ dependencies {
     api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     api("io.ktor:ktor-client-content-negotiation:2.3.0")
     api("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
-    api("io.ktor:ktor-client-mock:2.3.0")
 }

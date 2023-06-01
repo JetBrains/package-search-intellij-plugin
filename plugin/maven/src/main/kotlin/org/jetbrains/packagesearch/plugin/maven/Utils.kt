@@ -6,20 +6,13 @@ import com.intellij.buildsystem.model.DeclaredDependency
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFileEvent
-import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlText
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import org.jetbrains.idea.maven.project.MavenProject
 import org.jetbrains.idea.maven.project.MavenProjectsManager
-import org.jetbrains.packagesearch.plugin.extensions.DependencyDeclarationIndexes
-import java.nio.file.Path
+import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 suspend fun Project.findMavenProjectFor(module: Module): MavenProject? =
     MavenProjectsManager.getInstance(this).let { readAction { it.findProject(module) } }

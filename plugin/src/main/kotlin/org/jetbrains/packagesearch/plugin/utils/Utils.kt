@@ -3,57 +3,39 @@
 package org.jetbrains.packagesearch.plugin.utils
 
 import com.intellij.ProjectTopics
-import com.intellij.buildsystem.model.DeclaredDependency
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
-import com.intellij.openapi.extensions.AreaInstance
-import com.intellij.openapi.extensions.ExtensionPointListener
-import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.extensions.PluginDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.util.registry.RegistryManager
+import com.intellij.openapi.util.registry.RegistryValue
+import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFileEvent
-import com.intellij.openapi.vfs.VirtualFileListener
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.newvfs.BulkFileListener
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.Function
-import com.intellij.util.messages.MessageBus
-import com.intellij.util.messages.Topic
+import com.intellij.util.application
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.ProducerScope
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import org.dizitart.no2.objects.filters.ObjectFilters
-import org.jetbrains.packagesearch.api.v3.ApiRepository
-import org.jetbrains.packagesearch.client.PackageSearchRemoteApiClient
+import org.jetbrains.packagesearch.client.PackageSearchApiClient
+import org.jetbrains.packagesearch.plugin.PackageSearchApiClientService
+import org.jetbrains.packagesearch.plugin.PackageSearchApiEndpointsService
+import org.jetbrains.packagesearch.plugin.core.nitrite.PackageSearchCaches
 import org.jetbrains.packagesearch.plugin.PackageSearchProjectService
-import org.jetbrains.packagesearch.plugin.data.PackageSearchDeclaredDependency
-import org.jetbrains.packagesearch.plugin.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.extensions.PackageSearchModuleTransformer
-import org.jetbrains.packagesearch.plugin.extensions.ProjectContext
-import org.jetbrains.packagesearch.plugin.nitrite.ApiRepositoryCacheEntry
-import org.jetbrains.packagesearch.plugin.nitrite.CoroutineObjectRepository
-import org.jetbrains.packagesearch.plugin.nitrite.asEntry
-import org.jetbrains.packagesearch.plugin.nitrite.insert
-import java.nio.file.Path
+import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import org.jetbrains.packagesearch.plugin.core.utils.flow
+import org.jetbrains.packagesearch.plugin.core.nitrite.ApiRepositoryCacheEntry
+import org.jetbrains.packagesearch.plugin.core.nitrite.CoroutineObjectRepository
+import org.jetbrains.packagesearch.plugin.core.nitrite.asEntry
+import org.jetbrains.packagesearch.plugin.core.nitrite.insert
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
-fun <T : Any, R> MessageBus.flow(
-    topic: Topic<T>,
-    listener: ProducerScope<R>.() -> T,
-) = callbackFlow {
-    val connection = simpleConnect()
-    connection.subscribe(topic, listener())
-    awaitClose { connection.disconnect() }
-}
+
 
 
 internal val Project.nativeModules
@@ -85,25 +67,7 @@ internal val Project.nativeModulesFlow: Flow<NativeModules>
         }
     }
 
-val Project.filesChangedEventFlow: Flow<MutableList<out VFileEvent>>
-    get() = messageBus.flow(VirtualFileManager.VFS_CHANGES) {
-        object : BulkFileListener {
-            override fun after(events: MutableList<out VFileEvent>) {
-                trySend(events)
-            }
-        }
-    }
 
-suspend fun PackageSearchModuleTransformer.updateDependency(
-    context: ProjectContext,
-    module: PackageSearchModule,
-    installedPackage: PackageSearchDeclaredDependency,
-    knownRepositories: List<ApiRepository>,
-    onlyStable: Boolean
-) = updateDependencies(context, module, listOf(installedPackage), knownRepositories, onlyStable)
-
-fun PackageSearchModule.getNativeModule(context: ProjectContext) = context.project.modules.find { it.moduleFile?.path == projectDirPath }
-    ?: error("Could not find native module for PackageSearchModule $name of type ${this::class.simpleName}")
 
 internal fun Project.asContext() =
     SimpleProjectContext(this)
@@ -127,7 +91,7 @@ fun <T> interval(
 
 suspend fun getRepositories(
     repoCache: CoroutineObjectRepository<ApiRepositoryCacheEntry>,
-    apiClient: PackageSearchRemoteApiClient,
+    apiClient: PackageSearchApiClient,
     expireDuration: Duration = 14.days,
 ) =
     repoCache.find(ObjectFilters.eq("_id", "knownRepositories"))
@@ -141,71 +105,29 @@ suspend fun getRepositories(
 
 typealias NativeModules = List<Module>
 
-fun VirtualFileListener(action: (VirtualFileEvent) -> Unit) =
-    object : VirtualFileListener {
-        override fun contentsChanged(event: VirtualFileEvent) {
-            action(event)
-        }
-    }
 
-fun LocalFileSystem.addVirtualFileListener(action: (VirtualFileEvent) -> Unit) =
-    VirtualFileListener(action).also { addVirtualFileListener(it) }
 
-fun watchFileChanges(path: Path): Flow<Unit> {
-    val fileSystem = LocalFileSystem.getInstance()
-    return callbackFlow {
-        val watchRequest =
-            fileSystem.addRootToWatch(path.parent.toString(), false)
-                ?: return@callbackFlow
-        val listener = fileSystem.addVirtualFileListener {
-            if (it.file.path == path.toString()) {
-                trySend(Unit)
-            }
-        }
-        awaitClose {
-            fileSystem.removeVirtualFileListener(listener)
-            fileSystem.removeWatchedRoot(watchRequest)
-        }
-    }
-}
-
-val Project.packageSearchProjectService
+val Project.PackageSearchService
     get() = service<PackageSearchProjectService>()
 
-fun <T> Flow<T>.mapUnit(): Flow<Unit> =
-    map {}
 
-fun StringBuilder.appendEscaped(text: String) =
-    StringUtil.escapeToRegexp(text, this)
-
-
-fun <T> ExtensionPointListener(onChange: (T, PluginDescriptor, Boolean) -> Unit) =
-    object : ExtensionPointListener<T> {
-        override fun extensionAdded(extension: T, pluginDescriptor: PluginDescriptor) {
-            onChange(extension, pluginDescriptor, true)
+fun Application.registryStateFlow(scope: CoroutineScope, key: String, defaultValue: Boolean = false) =
+    messageBus.flow(RegistryManager.TOPIC) {
+        object : RegistryValueListener {
+            override fun afterValueChanged(value: RegistryValue) {
+                if (value.key == key) trySend(Registry.`is`(key, defaultValue))
+            }
         }
+    }.stateIn(scope, SharingStarted.WhileSubscribed(), Registry.`is`(key, defaultValue))
 
-        override fun extensionRemoved(extension: T, pluginDescriptor: PluginDescriptor) {
-            onChange(extension, pluginDescriptor, false)
-        }
-    }
+val IntelliJApplication
+    get() = application
 
-fun <T : Any> ExtensionPointName<T>.extensionsFlow(
-    areaInstance: AreaInstance? = null,
-    initial: Boolean = true
-) =
-    channelFlow {
-        if (initial) send(extensionList)
-        val listener = ExtensionPointListener<T> { _, _, _ ->
-            trySend(extensionList)
-        }
-        if (areaInstance != null) {
-            addExtensionPointListener(areaInstance, listener)
-        } else {
-            addExtensionPointListener(listener)
-        }
-        awaitClose { removeExtensionPointListener(listener) }
-    }
+val Application.PackageSearchCachesService
+    get() = service<PackageSearchCaches>()
 
-val DeclaredDependency.packageId: String
-    get() = "maven:${coordinates.groupId}:${coordinates.artifactId}"
+val Application.PackageSearchApiEndpointsService
+    get() = service<PackageSearchApiEndpointsService>()
+
+val Application.PackageSearchApiClientService
+    get()= service<PackageSearchApiClientService>()

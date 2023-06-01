@@ -11,10 +11,9 @@ import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjec
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.packagesearch.plugin.PackageSearchCaches
-import org.jetbrains.packagesearch.plugin.nitrite.CacheEntry
-import org.jetbrains.packagesearch.plugin.nitrite.insert
-import org.jetbrains.packagesearch.plugin.utils.packageSearchProjectService
+import org.jetbrains.packagesearch.plugin.core.nitrite.CacheEntry
+import org.jetbrains.packagesearch.plugin.core.nitrite.PackageSearchCaches
+import org.jetbrains.packagesearch.plugin.core.nitrite.insert
 
 class PackageSearchGradleModelNodeProcessor :
     AbstractProjectDataService<PackageSearchGradleModel, Unit>() {

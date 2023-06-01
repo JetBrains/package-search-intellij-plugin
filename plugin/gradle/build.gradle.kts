@@ -19,9 +19,6 @@ java {
 kotlin {
     target {
         compilations.all {
-            compilerOptions.configure {
-                freeCompilerArgs.add("-Xcontext-receivers")
-            }
             kotlinOptions {
                 jvmTarget = "17"
             }
@@ -40,6 +37,7 @@ kotlin {
 }
 
 dependencies {
+
     implementation(projects.plugin.gradle.tooling)
-    implementation(projects.plugin)
+    implementation(projects.plugin.core)
 }

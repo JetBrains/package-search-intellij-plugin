@@ -37,7 +37,6 @@ kotlin {
 }
 
 dependencies {
-    implementation(projects.packageSearchApiClient)
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${getKotlinPluginVersion()}")
     implementation("org.gradle:gradle-tooling-api:8.1.1")
     implementation("org.jetbrains.jewel:foundation") {
@@ -46,9 +45,6 @@ dependencies {
     api("org.jetbrains.packagesearch:package-search-api-models")
     api("org.jetbrains.packagesearch:package-search-version-utils")
     implementation("io.ktor:ktor-client-cio:2.3.0")
-    api("org.dizitart:nitrite:3.4.4") {
-        exclude(group = "com.fasterxml.jackson.core")
-        exclude(group = "com.squareup.okhttp3")
-        exclude(group = "org.slf4j")
-    }
+    implementation(projects.plugin.maven)
+    implementation(projects.plugin.core)
 }

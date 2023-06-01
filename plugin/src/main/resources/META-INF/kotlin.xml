@@ -1,3 +1,0 @@
-<idea-plugin implementation-detail="true">
-    <depends optional="true" config-file="gradle.xml">com.intellij.gradle</depends>
-</idea-plugin>

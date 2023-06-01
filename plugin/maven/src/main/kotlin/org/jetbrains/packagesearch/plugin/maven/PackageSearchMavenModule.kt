@@ -6,10 +6,10 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
-import org.jetbrains.packagesearch.plugin.data.PackageSearchDeclaredDependency
-import org.jetbrains.packagesearch.plugin.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.data.WithIcon
-import org.jetbrains.packagesearch.plugin.data.WithIcon.PathSourceType.ClasspathResources
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import org.jetbrains.packagesearch.plugin.core.data.WithIcon
+import org.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType.ClasspathResources
 
 @Serializable
 @SerialName("maven")

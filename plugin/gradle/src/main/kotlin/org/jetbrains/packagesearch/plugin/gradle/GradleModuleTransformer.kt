@@ -12,28 +12,33 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.modules.PolymorphicModuleBuilder
+import kotlinx.serialization.modules.subclass
 import org.dizitart.no2.objects.filters.ObjectFilters
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
-import org.jetbrains.packagesearch.api.v3.search.*
+import org.jetbrains.packagesearch.api.v3.search.buildPackagesType
+import org.jetbrains.packagesearch.api.v3.search.javaApi
+import org.jetbrains.packagesearch.api.v3.search.javaRuntime
+import org.jetbrains.packagesearch.api.v3.search.libraryElements
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.data.PackageSearchDeclaredDependency
-import org.jetbrains.packagesearch.plugin.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.data.WithIcon.PathSourceType.ClasspathResources
-import org.jetbrains.packagesearch.plugin.extensions.DependencyDeclarationIndexes
-import org.jetbrains.packagesearch.plugin.extensions.PackageSearchModuleBuilderContext
-import org.jetbrains.packagesearch.plugin.extensions.PackageSearchModuleTransformer
-import org.jetbrains.packagesearch.plugin.extensions.ProjectContext
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import org.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType.ClasspathResources
+import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
+import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
+import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import org.jetbrains.packagesearch.plugin.core.utils.*
 import org.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor.Companion.getGradleModelRepository
-import org.jetbrains.packagesearch.plugin.utils.*
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import com.intellij.openapi.module.Module as NativeModule
 
 
-class GradleModuleTransformer : PackageSearchModuleTransformer {
+class GradleModuleTransformer : PackageSearchModuleTransformer.Base {
 
     companion object Utils {
 
@@ -142,11 +147,13 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
         }
     }
 
-    override val moduleSerializer
-        get() = PackageSearchGradleModule.serializer()
+    override fun PolymorphicModuleBuilder<PackageSearchModule.Base>.registerModuleSerializer() {
+        subclass(PackageSearchGradleModule.serializer())
+    }
 
-    override val versionSerializer
-        get() = PackageSearchDeclaredGradleDependency.serializer()
+    override fun PolymorphicModuleBuilder<PackageSearchDeclaredDependency>.registerVersionSerializer() {
+        subclass(PackageSearchDeclaredGradleDependency.serializer())
+    }
 
     private suspend fun getModuleChangesFlow(
         context: ProjectContext,
@@ -171,7 +178,7 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
 
     private suspend fun Module.toPackageSearch(
         context: PackageSearchModuleBuilderContext,
-        gradleProject: ExternalProject
+        gradleProject: ExternalProject,
     ): PackageSearchGradleModule? {
         val packageSearchGradleModel =
             getGradleModelRepository(project).find(ObjectFilters.eq("_id", gradleProject.projectDir.absolutePath))
@@ -276,10 +283,17 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
             PackageSearchDeclaredGradleDependency(
                 id = packageId,
                 declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
-                latestStableVersion = remoteInfo[packageId]?.versions?.latest?.normalized?.takeIf { it.isStable }
-                    ?: remoteInfo[packageId]?.versions?.all?.find { it.normalized.isStable }?.normalized
+                latestStableVersion = remoteInfo[packageId]?.versions
+                    ?.asSequence()
+                    ?.map { it.normalized }
+                    ?.filter { it.isStable }
+                    ?.maxOrNull()
                     ?: NormalizedVersion.Missing,
-                latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized ?: NormalizedVersion.Missing,
+                latestVersion = remoteInfo[packageId]?.versions
+                    ?.asSequence()
+                    ?.map { it.normalized }
+                    ?.maxOrNull()
+                    ?: NormalizedVersion.Missing,
                 remoteInfo = remoteInfo[packageId],
                 icon = ClasspathResources("icons/maven.svg"),
                 module = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
@@ -293,7 +307,7 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
     }
 
     private suspend fun NativeModule.getDeclaredKnownRepositories(
-        context: PackageSearchModuleBuilderContext
+        context: PackageSearchModuleBuilderContext,
     ): Map<String, ApiRepository> {
         val declaredDependencies = readAction {
             DependencyModifierService.getInstance(project).declaredRepositories(this)

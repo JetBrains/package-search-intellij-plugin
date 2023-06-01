@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.merge
+import kotlinx.serialization.modules.PolymorphicModuleBuilder
+import kotlinx.serialization.modules.subclass
 import org.jetbrains.idea.maven.project.MavenProject
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -20,16 +22,16 @@ import org.jetbrains.packagesearch.api.v3.search.buildPackagesType
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.data.PackageSearchDeclaredDependency
-import org.jetbrains.packagesearch.plugin.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.extensions.PackageSearchModuleBuilderContext
-import org.jetbrains.packagesearch.plugin.extensions.PackageSearchModuleTransformer
-import org.jetbrains.packagesearch.plugin.extensions.ProjectContext
-import org.jetbrains.packagesearch.plugin.utils.*
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
+import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import org.jetbrains.packagesearch.plugin.core.utils.*
 import com.intellij.openapi.module.Module as NativeModule
 
 
-class MavenModuleTransformer : PackageSearchModuleTransformer {
+class MavenModuleTransformer : PackageSearchModuleTransformer.Base {
 
     companion object {
         val mavenSettingsFilePath
@@ -38,11 +40,13 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
                 ?: System.getProperty("user.home").plus("/.m2/settings.xml").toNioPath()
     }
 
-    override val moduleSerializer
-        get() = PackageSearchMavenModule.serializer()
+    override fun PolymorphicModuleBuilder<PackageSearchModule.Base>.registerModuleSerializer() {
+        subclass(PackageSearchMavenModule.serializer())
+    }
 
-    override val versionSerializer
-        get() = PackageSearchDeclaredMavenDependency.serializer()
+    override fun PolymorphicModuleBuilder<PackageSearchDeclaredDependency>.registerVersionSerializer() {
+        subclass(PackageSearchDeclaredMavenDependency.serializer())
+    }
 
     private fun getModuleChangesFlow(context: ProjectContext, pomPath: String): Flow<Unit> = merge(
         watchFileChanges(mavenSettingsFilePath),
@@ -107,18 +111,17 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
                 PackageSearchDeclaredMavenDependency(
                     id = packageId,
                     declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
-                    latestStableVersion = remoteInfo[packageId]
-                        ?.versions
-                        ?.latest
-                        ?.normalized
-                        ?.takeIf { it.isStable }
-                        ?: remoteInfo[packageId]
-                            ?.versions
-                            ?.all
-                            ?.find { it.normalized.isStable }
-                            ?.normalized
+                    latestStableVersion = remoteInfo[packageId]?.versions
+                        ?.asSequence()
+                        ?.map { it.normalized }
+                        ?.filter { it.isStable }
+                        ?.maxOrNull()
                         ?: NormalizedVersion.Missing,
-                    latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized ?: NormalizedVersion.Missing,
+                    latestVersion = remoteInfo[packageId]?.versions
+                        ?.asSequence()
+                        ?.map { it.normalized }
+                        ?.maxOrNull()
+                        ?: NormalizedVersion.Missing,
                     remoteInfo = remoteInfo[packageId],
                     groupId = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
                     artifactId = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,
