@@ -7,10 +7,12 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import org.dizitart.no2.Document
 
-fun NitriteDocument(builderAction: SerializersModuleBuilder.() -> Unit) =
-    NitriteDocument(SerializersModule(builderAction))
+fun NitriteDocumentSerializer(builderAction: SerializersModuleBuilder.() -> Unit) =
+    NitriteDocumentSerializer(SerializersModule(builderAction))
 
-class NitriteDocument(val serializersModule: SerializersModule = EmptySerializersModule()) {
+class NitriteDocumentSerializer(
+    val serializersModule: SerializersModule = EmptySerializersModule()
+) {
     fun <T> encodeToDocument(serializer: SerializationStrategy<T>, element: T): Document {
         val encoder = DocumentEncoder(serializersModule)
         encoder.encodeSerializableValue(serializer, element)

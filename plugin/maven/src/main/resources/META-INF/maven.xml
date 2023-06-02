@@ -1,5 +1,0 @@
-<idea-plugin implementation-detail="true">
-    <extensions>
-        <org.jetbrains.packagesearch.moduleTransformer implementation="org.jetbrains.packagesearch.plugin.maven.MavenModuleTransformer"/>
-    </extensions>
-</idea-plugin>

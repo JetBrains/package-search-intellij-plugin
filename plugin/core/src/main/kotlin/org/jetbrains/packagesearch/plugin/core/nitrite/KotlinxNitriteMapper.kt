@@ -6,23 +6,24 @@ import org.dizitart.no2.Document
 import org.dizitart.no2.mapper.NitriteMapper
 
 fun KotlinxNitriteMapper(builderAction: SerializersModuleBuilder.() -> Unit) =
-    KotlinxNitriteMapper(NitriteDocument(builderAction))
+    KotlinxNitriteMapper(NitriteDocumentSerializer(builderAction))
 
-class KotlinxNitriteMapper(private val nitriteDocument: NitriteDocument = NitriteDocument()) : NitriteMapper {
+
+class KotlinxNitriteMapper(private val nitriteDocumentSerializer: NitriteDocumentSerializer = NitriteDocumentSerializer()) : NitriteMapper {
     override fun <T : Any> asDocument(`object`: T): Document =
-        nitriteDocument.encodeToDocument(
-            serializer = nitriteDocument.serializersModule.serializer(`object`.javaClass),
+        nitriteDocumentSerializer.encodeToDocument(
+            serializer = nitriteDocumentSerializer.serializersModule.serializer(`object`.javaClass),
             element = `object`
         )
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> asObject(document: Document, type: Class<T>): T =
-        nitriteDocument.decodeFromDocument(
-            serializer = nitriteDocument.serializersModule.serializer(type),
+        nitriteDocumentSerializer.decodeFromDocument(
+            serializer = nitriteDocumentSerializer.serializersModule.serializer(type),
             document = document
         ) as T
 
-    override fun isValueType(`object`: Any?) = false
+    override fun isValueType(`object`: Any?) = true
 
     override fun asValue(`object`: Any?) = `object`
 

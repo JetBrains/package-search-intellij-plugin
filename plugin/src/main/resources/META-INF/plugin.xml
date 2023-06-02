@@ -1,13 +1,13 @@
 <idea-plugin>
-    <id>v2.org.jetbrains.packagesearch</id>
+    <id>org.jetbrains.packagesearch.v2</id>
     <name>Package Search</name>
     <vendor>JetBrains</vendor>
 
-<!--    <depends optional="true" config-file="META-INF/maven.xml">org.jetbrains.idea.maven</depends>-->
+    <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
 <!--    <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>-->
 
     <extensionPoints>
-        <extensionPoint name="org.jetbrains.packagesearch.moduleTransformer"
+        <extensionPoint name="moduleTransformer"
                         interface="org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer"
                         dynamic="true"/>
     </extensionPoints>
@@ -18,7 +18,8 @@
                     secondary="false"
                     canCloseContents="true"
                     factoryClass="org.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
-        <registryKey defaultValue="false" description="Uses localhost as host in Package Search"
+        <registryKey defaultValue="false"
+                     description="Uses localhost as host in Package Search"
                      key="org.jetbrains.packagesearch.localhost"
                      restartRequired="false"/>
     </extensions>

@@ -40,4 +40,5 @@ dependencies {
     api("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
     api(projects.gradleMetadataSchema)
     api("ch.qos.logback:logback-classic:1.4.6")
+    implementation("io.ktor:ktor-server-call-logging-jvm:2.3.0")
 }

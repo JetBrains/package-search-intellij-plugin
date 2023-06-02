@@ -35,7 +35,7 @@ class PackageSearchApiPackageCache(
         if (missingIds.isNotEmpty()) {
             val networkResults = apiClient.getPackageInfoByIds(missingIds)
                 .associateBy { it.id }
-            fileCache.insert(networkResults.values.map { it.asEntry() })
+            fileCache.insert(networkResults.values.map { it.asNewCacheEntry() })
             weakIdCache.putAll(networkResults)
             cachesResult + networkResults
         } else cachesResult
@@ -44,7 +44,7 @@ class PackageSearchApiPackageCache(
     override suspend fun getPackageInfoByIdHashes(packageIdHashes: Set<String>): Map<String, ApiPackage> = cachesMutex.withLock {
         val cached = weakHashCache.filterKeys { it in packageIdHashes }
         var missingHashes = packageIdHashes - cached.keys
-        val databaseResults = fileCache.find(inFilter("packageInfo.idHash", missingHashes))
+        val databaseResults = fileCache.find(inFilter("data.idHash", missingHashes))
             .filter { it.lastUpdate + maxAge < Clock.System.now() }
             .map { it.data }
             .toList()
@@ -55,7 +55,7 @@ class PackageSearchApiPackageCache(
         if (missingHashes.isNotEmpty()) {
             val networkResults = apiClient.getPackageInfoByIdHashes(missingHashes)
                 .associateBy { it.id }
-            fileCache.insert(networkResults.values.map { it.asEntry() })
+            fileCache.insert(networkResults.values.map { it.asNewCacheEntry() })
             weakHashCache.putAll(networkResults)
             cachesResult + networkResults
         } else cachesResult

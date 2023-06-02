@@ -33,12 +33,15 @@ inline fun <T> CoroutineScope.windowedBuilderContext(
     knownRepositories: Map<String, ApiRepository>,
     packagesCache: PackageSearchApiPackageCache,
     action: PackageSearchModuleBuilderContext.() -> T,
-) = WindowedModuleBuilderContext(
-    project = project,
-    knownRepositories = knownRepositories,
-    packagesCache = packagesCache,
-    coroutineScope = this,
-).run(action)
+): T {
+    val context = WindowedModuleBuilderContext(
+        project = project,
+        knownRepositories = knownRepositories,
+        packagesCache = packagesCache,
+        coroutineScope = this,
+    )
+    return context.action()
+}
 
 class WindowedModuleBuilderContext(
     override val project: Project,

@@ -9,14 +9,15 @@ import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import org.jetbrains.packagesearch.plugin.core.utils.PackageSearchApiClientService
 import org.jetbrains.packagesearch.plugin.utils.*
 import kotlin.time.Duration.Companion.days
-import org.jetbrains.packagesearch.plugin.utils.windowedBuilderContext
 
 @Service(Level.PROJECT)
 class PackageSearchProjectService(
-    private val  project: Project,
-    val coroutineScope: CoroutineScope,
+    private val project: Project,
+    val coroutineScope: CoroutineScope
 ) {
 
     val knownRepositoriesStateFlow =
@@ -28,18 +29,30 @@ class PackageSearchProjectService(
         }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
 
-    val modules = project
-        .getNativeModulesStateFlow(coroutineScope)
-        .zip(PackageSearchModuleBaseTransformerUtils.extensionsFlow) { nativeModules, transformerExtensions ->
-            windowedBuilderContext { context ->
-                transformerExtensions.flatMap { transformer ->
-                    nativeModules.map { module ->
-                        transformer.buildModule(context, module)
-                    }
-                }
+    val contextFlow = knownRepositoriesStateFlow
+        .map {
+            WindowedModuleBuilderContext(
+                project = project,
+                knownRepositories = it,
+                packagesCache = IntelliJApplication.PackageSearchCachesService.getApiPackageCache(),
+                coroutineScope = coroutineScope,
+            )
+        }
+
+    val modules = combine(
+        project.getNativeModulesStateFlow(coroutineScope),
+        PackageSearchModuleBaseTransformerUtils.extensionsFlow,
+        contextFlow
+    ) { nativeModules, transformerExtensions, context ->
+        transformerExtensions.flatMap { transformer ->
+            nativeModules.map { module ->
+                transformer.buildModule(context, module)
             }
         }
-        .flatMapLatest { combine(it) { it.filterNotNull() } }
+    }
+        .flatMapLatest {
+            combine(it) { it.filterNotNull() }
+        }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private suspend fun <T> windowedBuilderContext(

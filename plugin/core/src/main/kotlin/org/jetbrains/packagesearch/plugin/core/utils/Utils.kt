@@ -3,12 +3,18 @@
 package org.jetbrains.packagesearch.plugin.core.utils
 
 import com.intellij.buildsystem.model.DeclaredDependency
+import com.intellij.openapi.application.Application
+import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.AreaInstance
 import com.intellij.openapi.extensions.ExtensionPointListener
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.util.registry.RegistryManager
+import com.intellij.openapi.util.registry.RegistryValue
+import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -16,16 +22,18 @@ import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
+import org.jetbrains.packagesearch.plugin.core.PackageSearchApiClientService
+import org.jetbrains.packagesearch.plugin.core.PackageSearchApiEndpointsService
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import java.io.File
 import java.nio.file.Path
 
 fun <T : Any, R> MessageBus.flow(
@@ -58,6 +66,7 @@ fun LocalFileSystem.addVirtualFileListener(action: (VirtualFileEvent) -> Unit) =
 
 fun watchFileChanges(path: Path): Flow<Unit> {
     val fileSystem = LocalFileSystem.getInstance()
+    path.parent.toFile().mkdirs()
     return callbackFlow {
         val watchRequest =
             fileSystem.addRootToWatch(path.parent.toString(), false)
@@ -113,3 +122,21 @@ fun <T> ExtensionPointListener(onChange: (T, PluginDescriptor, Boolean) -> Unit)
 
 fun StringBuilder.appendEscaped(text: String) =
     StringUtil.escapeToRegexp(text, this)
+
+val IntelliJApplication
+    get() = application
+
+val Application.PackageSearchApiEndpointsService
+    get() = service<PackageSearchApiEndpointsService>()
+
+val Application.PackageSearchApiClientService
+    get()= service<PackageSearchApiClientService>()
+
+fun Application.registryStateFlow(scope: CoroutineScope, key: String, defaultValue: Boolean = false) =
+    messageBus.flow(RegistryManager.TOPIC) {
+        object : RegistryValueListener {
+            override fun afterValueChanged(value: RegistryValue) {
+                if (value.key == key) trySend(Registry.`is`(key, defaultValue))
+            }
+        }
+    }.stateIn(scope, SharingStarted.WhileSubscribed(), Registry.`is`(key, defaultValue))

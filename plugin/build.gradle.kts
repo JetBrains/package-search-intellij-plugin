@@ -8,7 +8,7 @@ plugins {
 }
 
 intellij {
-    version.set("2023.1.1")
+    version.set("LATEST-EAP-SNAPSHOT")
 }
 
 java {
@@ -38,13 +38,56 @@ kotlin {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${getKotlinPluginVersion()}")
-    implementation("org.gradle:gradle-tooling-api:8.1.1")
+    implementation("org.gradle:gradle-tooling-api:8.1.1") {
+        exclude(group = "org.jetbrains.kotlinx")
+    }
     implementation("org.jetbrains.jewel:foundation") {
         exclude(group = "org.jetbrains.kotlinx")
     }
-    api("org.jetbrains.packagesearch:package-search-api-models")
-    api("org.jetbrains.packagesearch:package-search-version-utils")
-    implementation("io.ktor:ktor-client-cio:2.3.0")
-    implementation(projects.plugin.maven)
-    implementation(projects.plugin.core)
+    api("org.jetbrains.packagesearch:package-search-api-models") {
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    api("org.jetbrains.packagesearch:package-search-version-utils") {
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    implementation("io.ktor:ktor-client-cio:2.3.0") {
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    implementation(projects.plugin.maven) {
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    implementation(projects.plugin.core) {
+        exclude(group = "org.jetbrains.kotlinx")
+    }
 }
+
+val toDelete = listOf(
+    "kotlinx-coroutines",
+    "kotlin-stdlib",
+    "kotlinx-serialization",
+    "slf4j-api"
+)
+
+tasks {
+    val removePlatformLibs by registering(Sync::class) {
+        from(prepareSandbox) {
+            include { !it.name.containsAny(toDelete) }
+        }
+        into(
+            prepareSandbox
+                .flatMap { it.defaultDestinationDir }
+                .map {
+                    it.toPath()
+                        .parent
+                        .resolve("filtered-plugins")
+                }
+        )
+    }
+    runIde {
+        dependsOn(removePlatformLibs)
+        pluginsDir.set(removePlatformLibs.get().destinationDir)
+    }
+}
+
+fun String.containsAny(toDelete: List<String>) =
+    toDelete.any { it in this }

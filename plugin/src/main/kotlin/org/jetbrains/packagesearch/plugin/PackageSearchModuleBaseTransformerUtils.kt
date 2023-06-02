@@ -7,7 +7,7 @@ import org.jetbrains.packagesearch.plugin.core.utils.extensionsFlow
 object PackageSearchModuleBaseTransformerUtils {
 
     val extensionPointName =
-        ExtensionPointName.create<PackageSearchModuleTransformer>("org.jetbrains.packagesearch.moduleTransformer")
+        ExtensionPointName.create<PackageSearchModuleTransformer>("org.jetbrains.packagesearch.v2.moduleTransformer")
 
     val extensionsFlow
         get() = extensionPointName.extensionsFlow()

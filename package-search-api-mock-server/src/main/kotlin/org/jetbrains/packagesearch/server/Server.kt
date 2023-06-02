@@ -7,20 +7,22 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
+import io.ktor.server.plugins.callloging.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.datetime.Clock
-import org.jetbrains.packagesearch.api.v3.ApiGradlePackage
+import org.jetbrains.packagesearch.api.v3.*
+import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithAvailableAt
 import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithAvailableAt.AvailableAt
 import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithFiles
 import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.GradleVersion
-import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.api.v3.Vulnerability
 import org.jetbrains.packagesearch.gradlemetadata.File
 import org.jetbrains.packagesearch.gradlemetadata.GradleMetadata
 import org.jetbrains.packagesearch.gradlemetadata.Variant
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import org.slf4j.event.*
 import io.ktor.client.engine.cio.CIO as CIOClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ContentNegotiationClient
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ContentNegotiationServer
@@ -47,15 +49,46 @@ fun Application.PackageSearchMockServer() {
     install(ContentNegotiationServer) {
         json()
     }
+    install(CallLogging) {
+        level = Level.INFO
+    }
 
     routing {
-        get("/api/v3/search-packages") {
-            call.respond<List<ApiPackage>>(
-                searchUrls
-                    .map { client.get("$it.module").body<GradleMetadata>() }
-                    .map { it.toGradleApiPackage() }
-            )
+        route("api/v3") {
+            get("search-packages") {
+                call.respond<List<ApiPackage>>(
+                    searchUrls
+                        .map { client.get("$it.module").body<GradleMetadata>() }
+                        .map { it.toGradleApiPackage() }
+                )
+            }
+            get("package-info-by-id-hashes") {
+                call.respond<List<ApiPackage>>(
+                    searchUrls
+                        .map { client.get("$it.module").body<GradleMetadata>() }
+                        .map { it.toGradleApiPackage() }
+                )
+            }
+            get("known-repositories") {
+                call.respond(
+                    listOf<ApiRepository>(
+                        ApiMavenRepository(
+                            id = "maven-central",
+                            lastChecked = Clock.System.now(),
+                            url = "https://repo.maven.apache.org/maven2",
+                            alternateUrls = emptyList(),
+                            friendlyName = "Maven Central",
+                            userFacingUrl = null,
+                            packageCount = 0,
+                            artifactCount = 0,
+                            namedLinks = null
+                        )
+                    )
+                )
+            }
         }
+
+
     }
 }
 
@@ -88,13 +121,15 @@ private fun GradleMetadata.toGradleApiPackage(): ApiPackage = ApiGradlePackage(
 
 
 fun Variant.toApiModel(): ApiGradlePackage.ApiVariant = when {
-    availableAt != null -> AvailableAt(
-        url = availableAt!!.url,
-        group = availableAt!!.group,
-        module = availableAt!!.module,
-        version = availableAt!!.version,
+    availableAt != null -> WithAvailableAt(
         name = name,
-        attributes = attributes ?: emptyMap()
+        attributes = attributes ?: emptyMap(),
+        availableAt = AvailableAt(
+            url = availableAt!!.url,
+            group = availableAt!!.group,
+            module = availableAt!!.module,
+            version = availableAt!!.version
+        )
     )
 
     else -> WithFiles(

@@ -25,7 +25,7 @@ import kotlin.concurrent.thread
 inline fun <T> Iterable<T>.applyOnEach(action: T.() -> Unit) =
     forEach { it.action() }
 
-class PackageSearchToolWindowFactory : ToolWindowFactory, ProjectActivity {
+class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         project.PackageSearchService.coroutineScope.launch {
             val jsonFLow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
@@ -57,10 +57,6 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, ProjectActivity {
                     }
                 }
         }
-    }
-
-    override suspend fun execute(project: Project) {
-
     }
 }
 

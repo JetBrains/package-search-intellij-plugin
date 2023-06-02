@@ -1,12 +1,12 @@
-package org.jetbrains.packagesearch.plugin
+package org.jetbrains.packagesearch.plugin.core
 
 import com.intellij.openapi.components.Service
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.packagesearch.client.PackageSearchEndpoints
 import org.jetbrains.packagesearch.client.buildUrl
-import org.jetbrains.packagesearch.plugin.utils.IntelliJApplication
-import org.jetbrains.packagesearch.plugin.utils.registryStateFlow
+import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import org.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 
 @Service(Service.Level.APP)
 class PackageSearchApiEndpointsService(scope: CoroutineScope) {

@@ -4,7 +4,6 @@ package org.jetbrains.packagesearch.plugin.core.nitrite
 
 import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.util.application
 import io.ktor.util.*
 import kotlinx.coroutines.CoroutineScope
@@ -17,8 +16,10 @@ import org.dizitart.no2.IndexOptions
 import org.dizitart.no2.IndexType
 import org.dizitart.no2.Nitrite
 import org.jetbrains.annotations.ApiStatus.Internal
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersionWeakCache
 import org.jetbrains.packagesearch.plugin.core.nitrite.*
+import org.jetbrains.packagesearch.plugin.core.utils.PackageSearchApiClientService
 import kotlin.io.path.absolutePathString
 
 @RequiresOptIn("This API is internal and you should not use it.")
@@ -40,7 +41,13 @@ class PackageSearchCaches(coroutineScope: CoroutineScope) {
             .kotlinxNitriteMapper {
                 contextual(NormalizedVersionWeakCache)
             }
-            .filePath(appSystemDir.resolve("packagesearch/cache.db").absolutePathString())
+            .filePath(
+                appSystemDir
+                    .resolve("packagesearch/cache.db")
+                    .apply { parent.toFile().mkdirs() }
+                    .absolutePathString()
+                    .also { println(it) }
+            )
             .compressed()
             .openOrCreate()
             .asCoroutine(coroutineScope)
@@ -64,13 +71,24 @@ class PackageSearchCaches(coroutineScope: CoroutineScope) {
 
     private val apiPackageCache = coroutineScope.async {
         getRepository<ApiPackageCacheEntry>("packages")
-            .also { it.createIndex("data.idHash", IndexOptions.indexOptions(IndexType.Unique)) }
-            .let { PackageSearchApiPackageCache(it, application.service<org.jetbrains.packagesearch.client.PackageSearchApiClient>()) }
+            .also {
+                it.createIndex(
+                    IndexOptions.indexOptions(IndexType.Unique),
+                    ApiPackageCacheEntry::data,
+                    ApiPackage::id
+                )
+                it.createIndex(
+                    IndexOptions.indexOptions(IndexType.Unique),
+                    ApiPackageCacheEntry::data,
+                    ApiPackage::idHash
+                )
+            }
+            .let { PackageSearchApiPackageCache(it, application.PackageSearchApiClientService.client) }
     }
 
     suspend fun getApiPackageCache() = apiPackageCache.await()
 
     suspend fun getRepositoryCache() =
-            getRepository<ApiRepositoryCacheEntry>("repositories")
+        getRepository<ApiRepositoryCacheEntry>("repositories")
 
 }

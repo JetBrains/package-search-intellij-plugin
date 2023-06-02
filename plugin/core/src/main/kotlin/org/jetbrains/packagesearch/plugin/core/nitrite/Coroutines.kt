@@ -6,10 +6,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
 import org.dizitart.no2.*
 import org.dizitart.no2.objects.ObjectFilter
 import org.dizitart.no2.objects.ObjectRepository
+import org.dizitart.no2.objects.filters.ObjectFilters
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 abstract class CoroutineWrapper {
     protected abstract val dispatcher: CoroutineDispatcher
@@ -21,16 +24,16 @@ abstract class CoroutineWrapper {
 class CoroutineNitrite(
     val synchronous: Nitrite,
     val coroutineScope: CoroutineScope,
-    override val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    override val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : CoroutineWrapper() {
-    suspend inline fun <reified T: Any> getRepository(key: String): CoroutineObjectRepository<T> =
+    suspend inline fun <reified T : Any> getRepository(key: String): CoroutineObjectRepository<T> =
         dispatch { synchronous.getRepository(key, T::class.java).coroutine(coroutineScope) }
 }
 
 inline fun <reified T : Any> CoroutineObjectRepository(
     synchronous: ObjectRepository<T>,
     coroutineScope: CoroutineScope,
-    dispatcher: CoroutineDispatcher = Dispatchers.IO
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) = CoroutineObjectRepository(synchronous, T::class, coroutineScope, dispatcher)
 
 class CoroutineObjectRepository<T : Any>(
@@ -68,11 +71,29 @@ class CoroutineObjectRepository<T : Any>(
         return result
     }
 
-    suspend fun createIndex(field: String, indexOptions: IndexOptions) =
-        dispatch { synchronous.createIndex(field, indexOptions) }
+    suspend fun createIndex(
+        indexOptions: IndexOptions,
+        path1: KProperty<*>,
+        vararg path: KProperty<*>,
+    ) {
+        val field = buildPath(path1, path)
+        dispatch { if (!synchronous.hasIndex(field)) synchronous.createIndex(field, indexOptions) }
+    }
 
 }
 
+private fun buildPath(path1: KProperty<*>, path: Array<out KProperty<*>>) = buildString {
+    append(path1.getSerializableName())
+    path.forEach {
+        append(".${it.getSerializableName()}")
+    }
+}
+
+private fun KProperty<*>.getSerializableName() =
+    annotations.filterIsInstance<SerialName>()
+        .firstOrNull()
+        ?.value
+        ?: name
 
 class CoroutineNitriteCollection(
     val synchronous: NitriteCollection,
@@ -83,4 +104,11 @@ class CoroutineNitriteCollection(
         synchronous.createIndex(field, indexOptions)
     }
 
+}
+
+object NitriteFilters {
+    object Object {
+        fun eq(value: Any, path1: KProperty<*>, vararg path: KProperty<*>): ObjectFilter =
+            ObjectFilters.eq(buildPath(path1, path), value)
+    }
 }

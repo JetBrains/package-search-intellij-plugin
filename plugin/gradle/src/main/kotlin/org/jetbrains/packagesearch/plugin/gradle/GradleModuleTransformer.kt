@@ -31,6 +31,7 @@ import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationI
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import org.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import org.jetbrains.packagesearch.plugin.core.utils.*
 import org.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor.Companion.getGradleModelRepository
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -171,8 +172,7 @@ class GradleModuleTransformer : PackageSearchModuleTransformer.Base {
         } ?: emptyFlow()
         return merge(
             watchFileChanges(globalGradlePropertiesPath),
-            buildFileChanges,
-            getGradleModelRepository(context.project).changes(ObjectFilters.eq("_id", projectDir)).mapUnit()
+            buildFileChanges
         )
     }
 
@@ -181,8 +181,16 @@ class GradleModuleTransformer : PackageSearchModuleTransformer.Base {
         gradleProject: ExternalProject,
     ): PackageSearchGradleModule? {
         val packageSearchGradleModel =
-            getGradleModelRepository(project).find(ObjectFilters.eq("_id", gradleProject.projectDir.absolutePath))
-                .find { it.id == gradleProject.projectDir.absolutePath }?.data?.takeIf { !it.isKotlinMultiplatformApplied }
+            getGradleModelRepository(project)
+                .find(
+                    filter = NitriteFilters.Object.eq(
+                        value = gradleProject.projectDir.absolutePath,
+                        GradleModelCacheEntry::data, PackageSearchGradleModel::projectDir,
+                    )
+                )
+                .single()
+                ?.data
+                ?.takeIf { !it.isKotlinMultiplatformApplied }
                 ?: return null
 
         val availableKnownRepositories =

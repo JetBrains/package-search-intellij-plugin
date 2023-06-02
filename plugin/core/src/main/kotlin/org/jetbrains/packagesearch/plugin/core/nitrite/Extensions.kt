@@ -16,14 +16,18 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 @Serializable
-data class CacheEntry<T>(
-    val data: T,
-    @SerialName("_id") val id: String,
+data class ApiPackageCacheEntry(
+    val data: ApiPackage,
+    @SerialName("_id") var id: Long? = null,
     val lastUpdate: Instant = Clock.System.now()
 )
 
-typealias ApiPackageCacheEntry = CacheEntry<ApiPackage>
-typealias ApiRepositoryCacheEntry = CacheEntry<List<ApiRepository>>
+@Serializable
+data class ApiRepositoryCacheEntry(
+    val data: List<ApiRepository>,
+    @SerialName("_id") var id: Long? = null,
+    val lastUpdate: Instant = Clock.System.now()
+)
 
 inline fun <reified T : Any> ObjectRepository<T>.coroutine(coroutineScope: CoroutineScope) =
     CoroutineObjectRepository(this, coroutineScope)
@@ -34,13 +38,13 @@ suspend inline fun <reified T : Any> CoroutineObjectRepository<T>.insert(items: 
 suspend inline fun <reified T : Any> CoroutineObjectRepository<T>.insert(item: T): WriteResult =
     insert(arrayOf(item))
 
-fun ApiPackage.asEntry() = CacheEntry(this, id)
-fun List<ApiRepository>.asEntry() = CacheEntry(this, "knownRepositories")
+fun ApiPackage.asNewCacheEntry() = ApiPackageCacheEntry(this)
+fun List<ApiRepository>.asNewCacheEntry() = ApiRepositoryCacheEntry(this)
 
 fun inFilter(field: String, ids: Collection<String>): ObjectFilter = ObjectFilters.`in`(field, *ids.toTypedArray())
 
 fun Nitrite.asCoroutine(coroutineScope: CoroutineScope) =
     CoroutineNitrite(this, coroutineScope)
 
-fun NitriteBuilder.kotlinxNitriteMapper(function: SerializersModuleBuilder.() -> Unit): NitriteBuilder =
+fun NitriteBuilder.kotlinxNitriteMapper(function: SerializersModuleBuilder.() -> Unit = {}): NitriteBuilder =
     nitriteMapper(KotlinxNitriteMapper(function))

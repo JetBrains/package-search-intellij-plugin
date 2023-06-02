@@ -16,16 +16,32 @@ class DocumentEncoder(override val serializersModule: SerializersModule) : Abstr
     private val resultStack = mutableListOf<Document>()
 
     // A variable to hold the current key (property name) being serialized
-    private var currentName: String by Delegates.notNull()
+    // Initialize it with a default value to avoid "should be initialized before get" error
+    private var currentName: String? = null
 
     // This method is called to encode primitive values
     override fun encodeValue(value: Any) {
-        // If the resultStack is empty, we're at the top level, so add the value to the result map
-        if (resultStack.isEmpty()) {
-            result[currentName] = value
-        } else {
-            // Otherwise, we're in a nested map, so add the value to the last (current) map in the stack
-            resultStack.last()[currentName] = value
+        currentName?.let { name ->
+            // If the resultStack is empty, we're at the top level, so add the value to the result map
+            if (resultStack.isEmpty()) {
+                result[name] = value
+            } else {
+                // Otherwise, we're in a nested map, so add the value to the last (current) map in the stack
+                resultStack.last()[name] = value
+            }
+        }
+    }
+
+    override fun encodeNull() {
+        if (currentName == "_id") return
+        currentName?.let { name ->
+            // If the resultStack is empty, we're at the top level, so add the value to the result map
+            if (resultStack.isEmpty()) {
+                result[name] = null
+            } else {
+                // Otherwise, we're in a nested map, so add the value to the last (current) map in the stack
+                resultStack.last()[name] = null
+            }
         }
     }
 
@@ -38,19 +54,21 @@ class DocumentEncoder(override val serializersModule: SerializersModule) : Abstr
 
     // This method is called when a nested structure (e.g., map, list, or another data class) is encountered
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        // Create a new nested result map for the nested structure
-        val nestedResult = Document()
+        currentName?.let { name ->
+            // Create a new nested result map for the nested structure
+            val nestedResult = Document()
 
-        // If the resultStack is empty, we're at the top level, so add the nested map to the result map
-        if (resultStack.isEmpty()) {
-            result[currentName] = nestedResult
-        } else {
-            // Otherwise, we're in a nested map, so add the nested map to the last (current) map in the stack
-            resultStack.last()[currentName] = nestedResult
+            // If the resultStack is empty, we're at the top level, so add the nested map to the result map
+            if (resultStack.isEmpty()) {
+                result[name] = nestedResult
+            } else {
+                // Otherwise, we're in a nested map, so add the nested map to the last (current) map in the stack
+                resultStack.last()[name] = nestedResult
+            }
+
+            // Push the new nested map onto the resultStack
+            resultStack.add(nestedResult)
         }
-
-        // Push the new nested map onto the resultStack
-        resultStack.add(nestedResult)
         return this
     }
 
@@ -61,4 +79,6 @@ class DocumentEncoder(override val serializersModule: SerializersModule) : Abstr
             resultStack.removeLast()
         }
     }
+
+
 }

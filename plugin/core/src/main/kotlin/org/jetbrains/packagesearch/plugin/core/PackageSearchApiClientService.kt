@@ -1,9 +1,9 @@
-package org.jetbrains.packagesearch.plugin
+package org.jetbrains.packagesearch.plugin.core
 
 import com.intellij.openapi.components.Service
 import org.jetbrains.packagesearch.client.PackageSearchApiClient
-import org.jetbrains.packagesearch.plugin.utils.IntelliJApplication
-import org.jetbrains.packagesearch.plugin.utils.PackageSearchApiEndpointsService
+import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import org.jetbrains.packagesearch.plugin.core.utils.PackageSearchApiEndpointsService
 
 @Service(Service.Level.APP)
 class PackageSearchApiClientService {

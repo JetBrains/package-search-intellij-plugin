@@ -5,6 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
@@ -22,28 +23,35 @@ class PackageSearchApiClient(val endpoints: PackageSearchEndpoints) {
         }
     }
 
+    private suspend inline fun <reified T, reified R> defaultRequest(url: Url, body: T) =
+        httpClient.get(url) {
+            setBody(body)
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            header(HttpHeaders.Accept, ContentType.Application.Json)
+        }.body<R>()
+
+    private suspend inline fun <reified R> defaultRequest(url: Url) =
+        httpClient.get(url) {
+            header(HttpHeaders.Accept, ContentType.Application.Json)
+        }.body<R>()
+
     suspend fun getKnownRepositories(): List<ApiRepository> =
-        httpClient.get(endpoints.knownRepositories).body()
+        defaultRequest(endpoints.knownRepositories)
 
     suspend fun getPackageInfoByIds(ids: Set<String>): List<ApiPackage> =
-        httpClient.get(endpoints.packageInfoByIds) { setBody(GetPackageInfoRequest(ids)) }
-            .body()
+        defaultRequest(endpoints.packageInfoByIds, GetPackageInfoRequest(ids))
 
     suspend fun getPackageInfoByIdHashes(ids: Set<String>): List<ApiPackage> =
-        httpClient.get(endpoints.packageInfoByIdHashes) { setBody(GetPackageInfoRequest(ids)) }
-            .body()
+        defaultRequest(endpoints.packageInfoByIdHashes, GetPackageInfoRequest(ids))
 
     suspend fun searchPackages(searchParameters: SearchParameters): List<ApiPackage> =
-        httpClient.get(endpoints.searchPackages) { setBody(searchParameters) }
-            .body()
+        defaultRequest(endpoints.searchPackages, searchParameters)
 
     suspend fun getMavenPackageInfoByFileHash(request: MavenHashLookupRequest): MavenHashLookupResponse =
-        httpClient.get(endpoints.mavenPackageInfoByFileHash) { setBody(request) }
-            .body()
+        defaultRequest(endpoints.mavenPackageInfoByFileHash, request)
 
     suspend fun getScmByUrl(request: GetScmByUrlRequest): String? =
-        httpClient.get(endpoints.getScmsByUrl) { setBody(request) }
-            .body()
+        defaultRequest(endpoints.getScmsByUrl, request)
 
 }
 

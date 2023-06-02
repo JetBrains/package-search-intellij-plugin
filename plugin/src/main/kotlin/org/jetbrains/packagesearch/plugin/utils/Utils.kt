@@ -9,28 +9,20 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.util.registry.RegistryManager
-import com.intellij.openapi.util.registry.RegistryValue
-import com.intellij.openapi.util.registry.RegistryValueListener
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.Function
-import com.intellij.util.application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
 import org.dizitart.no2.objects.filters.ObjectFilters
 import org.jetbrains.packagesearch.client.PackageSearchApiClient
-import org.jetbrains.packagesearch.plugin.PackageSearchApiClientService
-import org.jetbrains.packagesearch.plugin.PackageSearchApiEndpointsService
 import org.jetbrains.packagesearch.plugin.core.nitrite.PackageSearchCaches
 import org.jetbrains.packagesearch.plugin.PackageSearchProjectService
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.utils.flow
 import org.jetbrains.packagesearch.plugin.core.nitrite.ApiRepositoryCacheEntry
 import org.jetbrains.packagesearch.plugin.core.nitrite.CoroutineObjectRepository
-import org.jetbrains.packagesearch.plugin.core.nitrite.asEntry
+import org.jetbrains.packagesearch.plugin.core.nitrite.asNewCacheEntry
 import org.jetbrains.packagesearch.plugin.core.nitrite.insert
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -100,34 +92,14 @@ suspend fun getRepositories(
         .firstOrNull()
         ?.associateBy { it.id }
         ?: apiClient.getKnownRepositories()
-            .also { repoCache.insert(it.asEntry()) }
+            .also { repoCache.insert(it.asNewCacheEntry()) }
             .associateBy { it.id }
 
 typealias NativeModules = List<Module>
-
-
 
 val Project.PackageSearchService
     get() = service<PackageSearchProjectService>()
 
 
-fun Application.registryStateFlow(scope: CoroutineScope, key: String, defaultValue: Boolean = false) =
-    messageBus.flow(RegistryManager.TOPIC) {
-        object : RegistryValueListener {
-            override fun afterValueChanged(value: RegistryValue) {
-                if (value.key == key) trySend(Registry.`is`(key, defaultValue))
-            }
-        }
-    }.stateIn(scope, SharingStarted.WhileSubscribed(), Registry.`is`(key, defaultValue))
-
-val IntelliJApplication
-    get() = application
-
 val Application.PackageSearchCachesService
     get() = service<PackageSearchCaches>()
-
-val Application.PackageSearchApiEndpointsService
-    get() = service<PackageSearchApiEndpointsService>()
-
-val Application.PackageSearchApiClientService
-    get()= service<PackageSearchApiClientService>()

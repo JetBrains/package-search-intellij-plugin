@@ -7,7 +7,7 @@ plugins {
 }
 
 intellij {
-    version.set("2023.1.1")
+    version.set("LATEST-EAP-SNAPSHOT")
     plugins.addAll("org.jetbrains.idea.maven")
 }
 

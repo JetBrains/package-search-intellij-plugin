@@ -11,7 +11,12 @@ import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjec
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.packagesearch.plugin.core.nitrite.CacheEntry
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import org.dizitart.no2.IndexOptions
+import org.dizitart.no2.IndexType
 import org.jetbrains.packagesearch.plugin.core.nitrite.PackageSearchCaches
 import org.jetbrains.packagesearch.plugin.core.nitrite.insert
 
@@ -32,7 +37,14 @@ class PackageSearchGradleModelNodeProcessor :
     class Cache(private val project: Project, internal val coroutineScope: CoroutineScope) {
         suspend fun getGradleModelRepository() =
             project.service<PackageSearchCaches>()
-                .getRepository<CacheEntry<PackageSearchGradleModel>>("gradle")
+                .getRepository<GradleModelCacheEntry>("gradle")
+                .also {
+                    it.createIndex(
+                        IndexOptions.indexOptions(IndexType.Unique),
+                        GradleModelCacheEntry::data,
+                        PackageSearchGradleModel::projectDir
+                    )
+                }
     }
 
     override fun getTargetDataKey() = ESM_REPORTS_KEY
@@ -45,9 +57,16 @@ class PackageSearchGradleModelNodeProcessor :
     ) {
         project.service<Cache>().coroutineScope.launch {
             getGradleModelRepository(project)
-                .insert(toImport.map { CacheEntry(it.data, it.data.projectDir) })
+                .insert(toImport.map { GradleModelCacheEntry(it.data) })
         }
         super.importData(toImport, projectData, project, modelsProvider)
     }
 }
 
+
+@Serializable
+data class GradleModelCacheEntry(
+    val data: PackageSearchGradleModel,
+    @SerialName("_id") val id: Long? = null,
+    val lastUpdate: Instant = Clock.System.now(),
+)
