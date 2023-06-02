@@ -8,8 +8,10 @@ import org.dizitart.no2.mapper.NitriteMapper
 fun KotlinxNitriteMapper(builderAction: SerializersModuleBuilder.() -> Unit) =
     KotlinxNitriteMapper(NitriteDocumentSerializer(builderAction))
 
+class KotlinxNitriteMapper(
+    private val nitriteDocumentSerializer: NitriteDocumentSerializer = NitriteDocumentSerializer()
+) : NitriteMapper {
 
-class KotlinxNitriteMapper(private val nitriteDocumentSerializer: NitriteDocumentSerializer = NitriteDocumentSerializer()) : NitriteMapper {
     override fun <T : Any> asDocument(`object`: T): Document =
         nitriteDocumentSerializer.encodeToDocument(
             serializer = nitriteDocumentSerializer.serializersModule.serializer(`object`.javaClass),
@@ -23,8 +25,13 @@ class KotlinxNitriteMapper(private val nitriteDocumentSerializer: NitriteDocumen
             document = document
         ) as T
 
-    override fun isValueType(`object`: Any?) = true
+    fun <T> asObject(document: Document, type: java.lang.reflect.Type): T =
+        nitriteDocumentSerializer.decodeFromDocument(
+            serializer = nitriteDocumentSerializer.serializersModule.serializer(type),
+            document = document
+        ) as T
 
+    override fun isValueType(`object`: Any?) = true
     override fun asValue(`object`: Any?) = `object`
 
 }

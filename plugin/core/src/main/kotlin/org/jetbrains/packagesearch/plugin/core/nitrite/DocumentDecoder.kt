@@ -6,70 +6,74 @@ import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.SerializersModule
 import org.dizitart.no2.Document
-import kotlin.properties.Delegates
 
-class DocumentDecoder(
-    private val document: Document,
+internal sealed interface Deserializable {
+    fun keysIterator(): Iterator<String>
+    operator fun get(i: String): Any?
+    @JvmInline
+    value class Doc(val document: Document) : Deserializable {
+        override fun keysIterator() = document.keys.iterator()
+        override fun get(i: String): Any? = document[i]
+    }
+    @JvmInline
+    value class List(val list: kotlin.collections.List<*>) : Deserializable {
+        override fun keysIterator() =
+            list.indices.map { it.toString() }.iterator()
+
+        override fun get(i: String) = list[i.toInt()]
+    }
+}
+
+internal class DocumentDecoder(
+    private val deserializable: Deserializable,
     override val serializersModule: SerializersModule
 ) : AbstractDecoder() {
-    // Keep track of nested documents during deserialization
-    private val documentStack = mutableListOf<Document>()
 
-    // A variable to hold the current key (property name) being deserialized
+    private val keysIterator: Iterator<String> = deserializable.keysIterator()
     private var currentKey: String? = null
 
-    // Iterator to go through the keys of the current document
-    private var keysIterator: Iterator<String> = document.keys.iterator()
+    override fun decodeValue() =
+        currentKey?.let { deserializable[it] } ?: throw SerializationException("currentKey is null")
 
-    // This method is called to determine the next element index to decode
+    override fun decodeNotNullMark() =
+        currentKey?.let { deserializable[it] } != null
+
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        // Check if there are no more keys left in the iterator
         if (!keysIterator.hasNext()) return CompositeDecoder.DECODE_DONE
-
-        // Set the current key to the next key in the iterator
         currentKey = keysIterator.next()
-
-        // Return the index of the current key in the descriptor
-        // If currentKey is null, return unknown index
         return currentKey?.let { descriptor.getElementIndex(it) } ?: CompositeDecoder.UNKNOWN_NAME
     }
 
-    // This method is called to decode a primitive value
-    override fun decodeValue(): Any {
-        // Get the value corresponding to the current key from the current document
-        // If currentKey is null, throw an exception
-        return currentKey?.let { document[it] } ?: throw SerializationException("currentKey is null")
-    }
-
-    // This method is called when a nested structure (e.g., document, list, or another data class) is encountered
+    /**
+     * `{A: 42, C: {D}}`
+     *
+     * ```
+     * val d1 = d1.beginStructure(A)
+     *      d1.decodeElementIndex() -> 0
+     *      val x = d1.decodeValue -> 42
+     *      d1.decodeElementIndex() -> 1
+     *      val y = DSerializer.deserialize(d1)
+     *          val d2 = d1.beginStructure(D.serializer().serialDescriptor)
+     *          d2.decodeElementIndex
+     *          ...
+     *          d2.endStructure
+     *      d1.decodeElementIndex() -> DECODE_DONE
+     *      d1.endStructure
+     * ```
+     */
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
-        // If the currentKey hasn't been set yet, try to get it from the iterator
-        if (currentKey == null && keysIterator.hasNext()) {
-            currentKey = keysIterator.next()
+        if (currentKey == null) {
+            return this
         }
 
-        // Get the nested document corresponding to the current key
-        // If currentKey is null, throw an exception
-        val nestedDocument = currentKey?.let { document[it] as? Document }
-            ?: throw SerializationException("currentKey is null or the value is not a Document")
+        val nestedElement = currentKey?.let {
+            when (val element = deserializable[it]) {
+                is List<*> -> Deserializable.List(element)
+                is Document -> Deserializable.Doc(element)
+                else -> error("Wrong type, document or list expected")
+            }
+        } ?: throw SerializationException("currentKey is null or the value is not a Document")
 
-        // Push the current document onto the documentStack and set the nested document as the new current document
-        documentStack.add(document)
-        keysIterator = nestedDocument.keys.iterator()
-        return DocumentDecoder(nestedDocument, serializersModule)
-    }
-
-    // This method is called when the end of a nested structure is reached
-    override fun endStructure(descriptor: SerialDescriptor) {
-        // Pop the last (parent) document off the documentStack, as we're done deserializing the nested structure
-        if (documentStack.isNotEmpty()) {
-            documentStack.removeLast()
-        }
-
-        // Reset the current key and the keys iterator for the next level of the document
-        if (documentStack.isNotEmpty()) {
-            keysIterator = documentStack.last().keys.iterator()
-            currentKey = null
-        }
+        return DocumentDecoder(nestedElement, serializersModule)
     }
 }

@@ -8,7 +8,9 @@ import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,26 +30,8 @@ inline fun <T> Iterable<T>.applyOnEach(action: T.() -> Unit) =
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         project.PackageSearchService.coroutineScope.launch {
-            val jsonFLow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
-                .map { transformers ->
-                    Json {
-                        serializersModule = SerializersModule {
-                            polymorphic(PackageSearchModule.WithVariants::class) {
-                                transformers.filterIsInstance<PackageSearchModuleTransformer.WithVariants>()
-                                    .applyOnEach { registerModuleSerializer() }
-                            }
-                            polymorphic(PackageSearchModule.Base::class) {
-                                transformers.filterIsInstance<PackageSearchModuleTransformer.Base>()
-                                    .applyOnEach { registerModuleSerializer() }
-                            }
-                            polymorphic(PackageSearchDeclaredDependency::class) {
-                                transformers.applyOnEach { registerVersionSerializer() }
-                            }
-                        }
-                    }
-                }
             project.PackageSearchService.modules
-                .zip(jsonFLow) { modules, json ->
+                .combine(project.PackageSearchService.jsonFLow) { modules, json ->
                     json.encodeToString(modules)
                 }
                 .collect { text ->

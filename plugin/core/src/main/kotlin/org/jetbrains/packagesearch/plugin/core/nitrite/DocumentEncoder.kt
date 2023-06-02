@@ -1,6 +1,6 @@
 package org.jetbrains.packagesearch.plugin.core.nitrite
 
-import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
@@ -13,7 +13,7 @@ class DocumentEncoder(override val serializersModule: SerializersModule) : Abstr
     val result = Document()
 
     // A stack to keep track of nested maps during serialization
-    private val resultStack = mutableListOf<Document>()
+    private val resultStack = mutableListOf<Any>()
 
     // A variable to hold the current key (property name) being serialized
     // Initialize it with a default value to avoid "should be initialized before get" error
@@ -27,7 +27,14 @@ class DocumentEncoder(override val serializersModule: SerializersModule) : Abstr
                 result[name] = value
             } else {
                 // Otherwise, we're in a nested map, so add the value to the last (current) map in the stack
-                resultStack.last()[name] = value
+                when(val last = resultStack.last()) {
+                    is MutableList<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        (last as MutableList<Any>).add(value)
+                    }
+                    is Document -> last[name] = value
+                    else -> error("Encoding stack contains error")
+                }
             }
         }
     }
@@ -40,7 +47,14 @@ class DocumentEncoder(override val serializersModule: SerializersModule) : Abstr
                 result[name] = null
             } else {
                 // Otherwise, we're in a nested map, so add the value to the last (current) map in the stack
-                resultStack.last()[name] = null
+                when(val last = resultStack.last()) {
+                    is MutableList<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        (last as MutableList<Any?>).add(null)
+                    }
+                    is Document -> last[name] = null
+                    else -> error("Encoding stack contains error")
+                }
             }
         }
     }
@@ -55,15 +69,26 @@ class DocumentEncoder(override val serializersModule: SerializersModule) : Abstr
     // This method is called when a nested structure (e.g., map, list, or another data class) is encountered
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         currentName?.let { name ->
+
             // Create a new nested result map for the nested structure
-            val nestedResult = Document()
+            val nestedResult = when (descriptor.kind) {
+                StructureKind.LIST -> mutableListOf<Any>()
+                else -> Document()
+            }
 
             // If the resultStack is empty, we're at the top level, so add the nested map to the result map
             if (resultStack.isEmpty()) {
                 result[name] = nestedResult
             } else {
                 // Otherwise, we're in a nested map, so add the nested map to the last (current) map in the stack
-                resultStack.last()[name] = nestedResult
+                when(val last = resultStack.last()) {
+                    is MutableList<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        (last as MutableList<Any?>).add(nestedResult)
+                    }
+                    is Document -> last[name] = nestedResult
+                    else -> error("Encoding stack contains error")
+                }
             }
 
             // Push the new nested map onto the resultStack

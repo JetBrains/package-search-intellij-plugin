@@ -44,4 +44,15 @@ dependencies {
         exclude(group = "com.squareup.okhttp3")
         exclude(group = "org.slf4j")
     }
+    implementation("io.ktor:ktor-client-cio-jvm:2.3.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-api:5.9.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+    testImplementation(kotlin("test-junit5"))
 }
+
+tasks {
+    withType<Test> {
+        useJUnitPlatform()
+    }
+}
+

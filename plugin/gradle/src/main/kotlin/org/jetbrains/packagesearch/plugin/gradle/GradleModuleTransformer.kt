@@ -39,7 +39,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import com.intellij.openapi.module.Module as NativeModule
 
 
-class GradleModuleTransformer : PackageSearchModuleTransformer.Base {
+class GradleModuleTransformer : PackageSearchModuleTransformer {
 
     companion object Utils {
 
@@ -148,7 +148,7 @@ class GradleModuleTransformer : PackageSearchModuleTransformer.Base {
         }
     }
 
-    override fun PolymorphicModuleBuilder<PackageSearchModule.Base>.registerModuleSerializer() {
+    override fun PolymorphicModuleBuilder<PackageSearchModule>.registerModuleSerializer() {
         subclass(PackageSearchGradleModule.serializer())
     }
 

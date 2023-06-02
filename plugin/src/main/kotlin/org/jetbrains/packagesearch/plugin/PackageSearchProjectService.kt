@@ -8,6 +8,13 @@ import com.intellij.openapi.project.Project
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
+import kotlinx.serialization.modules.polymorphic
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersionWeakCache
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import org.jetbrains.packagesearch.plugin.core.utils.PackageSearchApiClientService
@@ -39,6 +46,23 @@ class PackageSearchProjectService(
             )
         }
 
+    val jsonFLow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
+        .map { transformers ->
+            Json {
+                prettyPrint = true
+                serializersModule = SerializersModule {
+                    contextual(NormalizedVersionWeakCache)
+                    polymorphic(PackageSearchModule::class) {
+                        transformers.applyOnEach { registerModuleSerializer() }
+                    }
+                    polymorphic(PackageSearchDeclaredDependency::class) {
+                        transformers.applyOnEach { registerVersionSerializer() }
+                    }
+                }
+            }
+        }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Json)
+
     val modules = combine(
         project.getNativeModulesStateFlow(coroutineScope),
         PackageSearchModuleBaseTransformerUtils.extensionsFlow,
@@ -50,18 +74,8 @@ class PackageSearchProjectService(
             }
         }
     }
-        .flatMapLatest {
-            combine(it) { it.filterNotNull() }
-        }
+        .flatMapLatest { combine(it) { it.filterNotNull() } }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    private suspend fun <T> windowedBuilderContext(
-        action: suspend CoroutineScope.(context: PackageSearchModuleBuilderContext) -> T,
-    ): T = windowedBuilderContext(
-        project = project,
-        knownRepositories = knownRepositoriesStateFlow.value,
-        packagesCache = IntelliJApplication.PackageSearchCachesService.getApiPackageCache(),
-        action = action
-    )
 }
 

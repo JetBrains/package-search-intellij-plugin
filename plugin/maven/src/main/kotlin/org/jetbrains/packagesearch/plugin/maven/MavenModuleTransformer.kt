@@ -31,7 +31,7 @@ import org.jetbrains.packagesearch.plugin.core.utils.*
 import com.intellij.openapi.module.Module as NativeModule
 
 
-class MavenModuleTransformer : PackageSearchModuleTransformer.Base {
+class MavenModuleTransformer : PackageSearchModuleTransformer {
 
     companion object {
         val mavenSettingsFilePath
@@ -40,7 +40,7 @@ class MavenModuleTransformer : PackageSearchModuleTransformer.Base {
                 ?: System.getProperty("user.home").plus("/.m2/settings.xml").toNioPath()
     }
 
-    override fun PolymorphicModuleBuilder<PackageSearchModule.Base>.registerModuleSerializer() {
+    override fun PolymorphicModuleBuilder<PackageSearchModule>.registerModuleSerializer() {
         subclass(PackageSearchMavenModule.serializer())
     }
 
@@ -58,7 +58,7 @@ class MavenModuleTransformer : PackageSearchModuleTransformer.Base {
     private suspend fun Module.toPackageSearch(context: PackageSearchModuleBuilderContext, mavenProject: MavenProject) =
         PackageSearchMavenModule(
             name = mavenProject.name ?: name,
-            projectDirPath = mavenProject.path,
+            projectDirPath = mavenProject.path.removeSuffix("/pom.xml"),
             buildFilePath = mavenProject.file.path,
             declaredKnownRepositories = getDeclaredKnownRepositories(context),
             declaredDependencies = getDeclaredDependencies(context),

@@ -8,15 +8,9 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 
-sealed interface PackageSearchModuleTransformer {
+interface PackageSearchModuleTransformer {
 
-    interface Base : PackageSearchModuleTransformer {
-        fun PolymorphicModuleBuilder<PackageSearchModule.Base>.registerModuleSerializer()
-    }
-
-    interface WithVariants : PackageSearchModuleTransformer {
-        fun PolymorphicModuleBuilder<PackageSearchModule.WithVariants>.registerModuleSerializer()
-    }
+    fun PolymorphicModuleBuilder<PackageSearchModule>.registerModuleSerializer()
 
     fun buildModule(context: PackageSearchModuleBuilderContext, nativeModule: Module): Flow<PackageSearchModule?>
 
