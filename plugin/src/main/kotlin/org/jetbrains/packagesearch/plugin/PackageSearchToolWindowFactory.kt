@@ -1,37 +1,31 @@
 package org.jetbrains.packagesearch.plugin;
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.awt.ComposePanel
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.*
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
-import org.jetbrains.packagesearch.plugin.utils.PackageSearchService
+import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import java.io.File
-import kotlin.concurrent.thread
 
 inline fun <T> Iterable<T>.applyOnEach(action: T.() -> Unit) =
     forEach { it.action() }
 
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        project.PackageSearchService.coroutineScope.launch {
-            project.PackageSearchService.modules
-                .combine(project.PackageSearchService.jsonFLow) { modules, json ->
+        val service = project.PackageSearchProjectService
+        service.coroutineScope.launch {
+            service.modules
+                .combine(service.jsonFLow) { modules, json ->
                     json.encodeToString(modules)
                 }
                 .collect { text ->
@@ -40,6 +34,13 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
                             .writeText(text)
                     }
                 }
+        }
+
+        toolWindow.addComposeTab("stocazzo") {
+            val modules by project.PackageSearchProjectService.modules
+                .collectAsState()
+
+
         }
     }
 }

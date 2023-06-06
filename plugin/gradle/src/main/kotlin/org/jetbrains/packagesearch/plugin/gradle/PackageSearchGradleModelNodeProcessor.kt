@@ -1,3 +1,5 @@
+@file:Suppress("CompanionObjectInExtension")
+
 package org.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.components.Service
@@ -10,6 +12,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -17,8 +20,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dizitart.no2.IndexOptions
 import org.dizitart.no2.IndexType
-import org.jetbrains.packagesearch.plugin.core.nitrite.PackageSearchCaches
-import org.jetbrains.packagesearch.plugin.core.nitrite.insert
+import org.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
+import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
+import org.jetbrains.packagesearch.plugin.core.nitrite.div
+import org.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
+
 
 class PackageSearchGradleModelNodeProcessor :
     AbstractProjectDataService<PackageSearchGradleModel, Unit>() {
@@ -28,23 +34,34 @@ class PackageSearchGradleModelNodeProcessor :
         internal val ESM_REPORTS_KEY: Key<PackageSearchGradleModel> =
             Key.create(PackageSearchGradleModel::class.java, 100)
 
-        suspend fun getGradleModelRepository(project: Project) =
-            project.service<Cache>().getGradleModelRepository()
-
     }
 
     @Service(PROJECT)
-    class Cache(private val project: Project, internal val coroutineScope: CoroutineScope) {
-        suspend fun getGradleModelRepository() =
-            project.service<PackageSearchCaches>()
+    private class Cache(private val project: Project, private val coroutineScope: CoroutineScope) {
+        private val gradleModelRepository = coroutineScope.async {
+            project.PackageSearchProjectCachesService
                 .getRepository<GradleModelCacheEntry>("gradle")
                 .also {
                     it.createIndex(
-                        IndexOptions.indexOptions(IndexType.Unique),
-                        GradleModelCacheEntry::data,
-                        PackageSearchGradleModel::projectDir
+                        indexOptions = IndexOptions.indexOptions(IndexType.Unique),
+                        path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath
                     )
                 }
+        }
+        fun update(items: List<GradleModelCacheEntry>) {
+            coroutineScope.launch {
+                items.forEach { cacheEntry ->
+                    gradleModelRepository.await().update(
+                        filter = NitriteFilters.Object.eq(
+                            path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath,
+                            value = cacheEntry.data.projectIdentityPath
+                        ),
+                        update = cacheEntry,
+                        upsert = true
+                    )
+                }
+            }
+        }
     }
 
     override fun getTargetDataKey() = ESM_REPORTS_KEY
@@ -55,14 +72,13 @@ class PackageSearchGradleModelNodeProcessor :
         project: Project,
         modelsProvider: IdeModifiableModelsProvider,
     ) {
-        project.service<Cache>().coroutineScope.launch {
-            getGradleModelRepository(project)
-                .insert(toImport.map { GradleModelCacheEntry(it.data) })
-        }
+        project.service<Cache>().update(toImport.map { it.data.toCacheEntry() })
         super.importData(toImport, projectData, project, modelsProvider)
     }
 }
 
+private fun PackageSearchGradleModel.toCacheEntry() =
+    GradleModelCacheEntry(this)
 
 @Serializable
 data class GradleModelCacheEntry(

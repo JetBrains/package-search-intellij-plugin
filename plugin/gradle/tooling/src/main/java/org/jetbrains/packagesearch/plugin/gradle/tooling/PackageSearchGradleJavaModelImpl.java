@@ -8,25 +8,31 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
     private final List<Configuration> configurations;
 
     private final List<String> repositories;
+    private final String projectIdentityPath;
 
     boolean isKotlinJvmApplied;
     boolean isKotlinMultiplatformApplied;
     boolean isKotlinAndroidApplied;
+    private String projectName;
 
     public PackageSearchGradleJavaModelImpl(
             String projectDir,
+            String projectName,
+            String projectIdentityPath,
             List<Configuration> configurations,
             List<String> repositoryUrls,
             boolean isKotlinJvmApplied,
             boolean isKotlinAndroidApplied,
             boolean isKotlinMultiplatformApplied
     ) {
+        this.projectIdentityPath = projectIdentityPath;
         this.projectDir = projectDir;
         this.configurations = configurations;
         this.repositories = repositoryUrls;
         this.isKotlinJvmApplied = isKotlinJvmApplied;
         this.isKotlinAndroidApplied = isKotlinAndroidApplied;
         this.isKotlinMultiplatformApplied = isKotlinMultiplatformApplied;
+        this.projectName = projectName;
     }
 
     @Override
@@ -56,6 +62,16 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
     @Override
     public boolean isKotlinMultiplatformApplied() {
         return isKotlinMultiplatformApplied;
+    }
+
+    @Override
+    public String getProjectIdentityPath() {
+        return projectIdentityPath;
+    }
+
+    @Override
+    public String getProjectName() {
+        return projectName;
     }
 
     static public class DependencyImpl implements Dependency {

@@ -1,7 +1,7 @@
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.serializer
 import org.dizitart.no2.Document
-import org.jetbrains.packagesearch.plugin.core.nitrite.KotlinxNitriteMapper
-import org.jetbrains.packagesearch.plugin.core.nitrite.NitriteDocumentSerializer
+import org.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -24,7 +24,7 @@ class Tests {
         )
     )
 
-    val nd = NitriteDocumentSerializer()
+    val nd = NitriteDocumentFormat()
 
     @Test
     fun encoding() {
@@ -41,6 +41,10 @@ class Tests {
         assertEquals(example, decoded)
     }
 
+    @Test
+    fun encodeValue() {
+        val doc = nd.encodeToDocument(String.serializer(), "42")
+    }
 
 }
 

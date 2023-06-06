@@ -1,35 +1,33 @@
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    alias(packageSearchCatalog.plugins.kotlin.multiplatform)
+    alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
 }
 
 kotlin {
-    jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
-        }
+    jvm()
+    js(IR) {
+        nodejs()
+        browser()
     }
+    androidNativeArm32()
+    androidNativeArm64()
+    androidNativeX86()
+    androidNativeX64()
+    ios()
+    watchos()
+    tvos()
+    linuxArm64()
+    linuxX64()
+    macosArm64()
+    macosX64()
+    mingwX64()
+
     sourceSets {
         commonMain {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-            }
-        }
-        all {
-            languageSettings {
-                optIn("kotlinx.serialization.ExperimentalSerializationApi")
-                optIn("kotlinx.serialization.InternalSerializationApi")
-                optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
-                optIn("org.jetbrains.packagesearch.plugin.InternalAPI")
+                api(packageSearchCatalog.kotlinx.serialization.core)
             }
         }
     }

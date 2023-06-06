@@ -9,7 +9,7 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesProvider
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import org.jetbrains.packagesearch.plugin.core.nitrite.PackageSearchApiPackageCache
+import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -17,12 +17,16 @@ suspend fun <T> windowedBuilderContext(
     project: Project,
     knownRepositories: Map<String, ApiRepository>,
     packagesCache: PackageSearchApiPackageCache,
+    projectCaches: CoroutineNitrite,
+    applicationCaches: CoroutineNitrite,
     action: suspend CoroutineScope.(context: PackageSearchModuleBuilderContext) -> T,
 ): T = coroutineScope {
     windowedBuilderContext(
         project = project,
         knownRepositories = knownRepositories,
-        packagesCache = packagesCache
+        projectCaches = projectCaches,
+        applicationCaches = applicationCaches,
+        packagesCache = packagesCache,
     ) {
         action(this@coroutineScope, this)
     }
@@ -32,6 +36,8 @@ inline fun <T> CoroutineScope.windowedBuilderContext(
     project: Project,
     knownRepositories: Map<String, ApiRepository>,
     packagesCache: PackageSearchApiPackageCache,
+    projectCaches: CoroutineNitrite,
+    applicationCaches: CoroutineNitrite,
     action: PackageSearchModuleBuilderContext.() -> T,
 ): T {
     val context = WindowedModuleBuilderContext(
@@ -39,6 +45,8 @@ inline fun <T> CoroutineScope.windowedBuilderContext(
         knownRepositories = knownRepositories,
         packagesCache = packagesCache,
         coroutineScope = this,
+        projectCaches = projectCaches,
+        applicationCaches = applicationCaches,
     )
     return context.action()
 }
@@ -48,6 +56,8 @@ class WindowedModuleBuilderContext(
     override val knownRepositories: Map<String, ApiRepository>,
     private val packagesCache: PackageSearchApiPackagesProvider,
     coroutineScope: CoroutineScope,
+    override val projectCaches: CoroutineNitrite,
+    override val applicationCaches: CoroutineNitrite,
 ) : PackageSearchModuleBuilderContext {
 
     private val idRequestsChannel = Channel<Request>()
@@ -61,16 +71,16 @@ class WindowedModuleBuilderContext(
 
     override suspend fun getPackageInfoByIds(
         packageIds: Set<String>,
-    ): Map<String, ApiPackage> = awaitResponse(packageIds, idRequestsChannel, idResultsFlow)
+    ) = idResultsFlow.awaitResponse(packageIds, idRequestsChannel)
 
     override suspend fun getPackageInfoByIdHashes(
         packageIdHashes: Set<String>,
-    ) = awaitResponse(packageIdHashes, hashRequestsChannel, hashResultsFlow)
+    ) = hashResultsFlow.awaitResponse(packageIdHashes, hashRequestsChannel)
 
     private fun Channel<Request>.responseFlow(
         coroutineScope: CoroutineScope,
         retrieveFunction: suspend (Set<String>) -> Map<String, ApiPackage>,
-    ) = consumeAsFlow()
+    ) = receiveAsFlow()
         .debounceBatch(1.seconds)
         .map { requests ->
             Response(
@@ -80,15 +90,13 @@ class WindowedModuleBuilderContext(
         }
         .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
 
-    private suspend fun awaitResponse(
+    private suspend fun Flow<Response>.awaitResponse(
         packageIds: Set<String>,
         requestChannel: Channel<Request>,
-        responseSharedFlow: Flow<Response>,
     ): Map<String, ApiPackage> = coroutineScope {
         val id = UUID.randomUUID().toString()
         val res = async(start = CoroutineStart.UNDISPATCHED) {
-            responseSharedFlow
-                .filter { id in it.ids }
+            filter { id in it.ids }
                 .map { it.packages }
                 .first()
         }

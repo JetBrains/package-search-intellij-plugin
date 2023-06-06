@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.core.nitrite
+package org.jetbrains.packagesearch.plugin.core.nitrite.serialization
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -7,26 +7,10 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.SerializersModule
 import org.dizitart.no2.Document
 
-internal sealed interface Deserializable {
-    fun keysIterator(): Iterator<String>
-    operator fun get(i: String): Any?
-    @JvmInline
-    value class Doc(val document: Document) : Deserializable {
-        override fun keysIterator() = document.keys.iterator()
-        override fun get(i: String): Any? = document[i]
-    }
-    @JvmInline
-    value class List(val list: kotlin.collections.List<*>) : Deserializable {
-        override fun keysIterator() =
-            list.indices.map { it.toString() }.iterator()
-
-        override fun get(i: String) = list[i.toInt()]
-    }
-}
-
 internal class DocumentDecoder(
     private val deserializable: Deserializable,
-    override val serializersModule: SerializersModule
+    override val serializersModule: SerializersModule,
+    private val ignoreUnknownKeys: Boolean
 ) : AbstractDecoder() {
 
     private val keysIterator: Iterator<String> = deserializable.keysIterator()
@@ -39,9 +23,16 @@ internal class DocumentDecoder(
         currentKey?.let { deserializable[it] } != null
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        if (!keysIterator.hasNext()) return CompositeDecoder.DECODE_DONE
-        currentKey = keysIterator.next()
-        return currentKey?.let { descriptor.getElementIndex(it) } ?: CompositeDecoder.UNKNOWN_NAME
+        while (true) {
+            if (!keysIterator.hasNext()) return CompositeDecoder.DECODE_DONE
+            val nextKey = keysIterator.next()
+            val index = descriptor.getElementIndex(nextKey)
+            if (index == CompositeDecoder.UNKNOWN_NAME && ignoreUnknownKeys) continue
+            else {
+                currentKey = nextKey
+                return index
+            }
+        }
     }
 
     /**
@@ -74,6 +65,6 @@ internal class DocumentDecoder(
             }
         } ?: throw SerializationException("currentKey is null or the value is not a Document")
 
-        return DocumentDecoder(nestedElement, serializersModule)
+        return DocumentDecoder(nestedElement, serializersModule, ignoreUnknownKeys)
     }
 }

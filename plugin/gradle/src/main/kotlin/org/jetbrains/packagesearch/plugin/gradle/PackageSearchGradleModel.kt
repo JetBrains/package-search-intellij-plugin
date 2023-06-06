@@ -9,7 +9,9 @@ data class PackageSearchGradleModel(
     val repositories: List<String>,
     val isKotlinJvmApplied: Boolean,
     val isKotlinAndroidApplied: Boolean,
-    val isKotlinMultiplatformApplied: Boolean
+    val isKotlinMultiplatformApplied: Boolean,
+    val projectIdentityPath: String,
+    val projectName: String
 ) {
 
     @Serializable

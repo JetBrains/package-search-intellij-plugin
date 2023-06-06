@@ -7,6 +7,7 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon
+import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType.ClasspathResources
 
 @Serializable
@@ -23,5 +24,5 @@ data class PackageSearchDeclaredMavenDependency(
     val scope: String? = null
 ) : PackageSearchDeclaredDependency {
     override val icon
-        get() = ClasspathResources("icons/maven.svg")
+        get() = Icons.MAVEN
 }

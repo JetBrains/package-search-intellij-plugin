@@ -1,19 +1,14 @@
 @file:Suppress("UnstableApiUsage")
 
-rootProject.name = "pkgs-v2"
+rootProject.name = "packagesearch-intellij-plugin"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-pluginManagement {
-    plugins {
-        val kotlinVersion = "1.8.20"
-        kotlin("jvm") version kotlinVersion
-        kotlin("multiplatform") version kotlinVersion
-        kotlin("plugin.serialization") version kotlinVersion
-        id("org.jetbrains.intellij") version "1.13.3"
-        id("org.jetbrains.compose") version "1.4.0"
-        id("com.google.devtools.ksp") version "1.8.20-1.0.11"
-        id("org.gradlex.java-ecosystem-capabilities") version "1.1"
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("packageSearchCatalog") {
+            from(files("/gradle/packagesearch.versions.toml"))
+        }
     }
 }
 
@@ -27,6 +22,7 @@ include(
     ":package-search-api-mock-server",
     ":gradle-metadata-schema"
 )
+includeBuild("build-config")
 
 includeBuild("jewel") {
     dependencySubstitution {

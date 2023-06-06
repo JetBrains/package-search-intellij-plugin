@@ -8,10 +8,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.subclass
 import org.jetbrains.idea.maven.project.MavenProject
@@ -49,9 +46,13 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
     }
 
     private fun getModuleChangesFlow(context: ProjectContext, pomPath: String): Flow<Unit> = merge(
-        watchFileChanges(mavenSettingsFilePath),
+        watchExternalFileChanges(mavenSettingsFilePath),
         context.project.filesChangedEventFlow
-            .filter { it.any { it.path == pomPath } }
+            .flatMapLatest { it.map { it.path }.asFlow() }
+            .filter {
+                val r = it == pomPath
+                r
+            }
             .mapUnit()
     )
 
@@ -78,7 +79,10 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
             },
         )
 
-    override fun buildModule(context: PackageSearchModuleBuilderContext, nativeModule: NativeModule): Flow<PackageSearchModule?> =
+    override fun buildModule(
+        context: PackageSearchModuleBuilderContext,
+        nativeModule: NativeModule,
+    ): Flow<PackageSearchModule?> =
         flow {
             val mavenProject = context.project.findMavenProjectFor(nativeModule)
             if (mavenProject == null) {

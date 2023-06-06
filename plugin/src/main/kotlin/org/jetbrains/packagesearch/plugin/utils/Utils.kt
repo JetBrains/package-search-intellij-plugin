@@ -3,8 +3,6 @@
 package org.jetbrains.packagesearch.plugin.utils
 
 import com.intellij.ProjectTopics
-import com.intellij.openapi.application.Application
-import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
@@ -12,22 +10,26 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.Function
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Clock
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.modules.PolymorphicModuleBuilder
+import kotlinx.serialization.modules.SerializersModuleBuilder
+import kotlinx.serialization.modules.polymorphic
 import org.dizitart.no2.objects.filters.ObjectFilters
 import org.jetbrains.packagesearch.client.PackageSearchApiClient
-import org.jetbrains.packagesearch.plugin.core.nitrite.PackageSearchCaches
-import org.jetbrains.packagesearch.plugin.PackageSearchProjectService
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
-import org.jetbrains.packagesearch.plugin.core.utils.flow
 import org.jetbrains.packagesearch.plugin.core.nitrite.ApiRepositoryCacheEntry
-import org.jetbrains.packagesearch.plugin.core.nitrite.CoroutineObjectRepository
-import org.jetbrains.packagesearch.plugin.core.nitrite.asNewCacheEntry
+import org.jetbrains.packagesearch.plugin.core.nitrite.asCacheEntry
+import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import org.jetbrains.packagesearch.plugin.core.nitrite.insert
+import org.jetbrains.packagesearch.plugin.core.utils.collectIn
+import org.jetbrains.packagesearch.plugin.core.utils.flow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
-
-
 
 
 internal val Project.nativeModules
@@ -58,8 +60,6 @@ internal val Project.nativeModulesFlow: Flow<NativeModules>
             }
         }
     }
-
-
 
 internal fun Project.asContext() =
     SimpleProjectContext(this)
@@ -92,14 +92,18 @@ suspend fun getRepositories(
         .firstOrNull()
         ?.associateBy { it.id }
         ?: apiClient.getKnownRepositories()
-            .also { repoCache.insert(it.asNewCacheEntry()) }
+            .also { repoCache.insert(it.asCacheEntry()) }
             .associateBy { it.id }
 
 typealias NativeModules = List<Module>
+typealias NativeModule = Module
 
-val Project.PackageSearchService
-    get() = service<PackageSearchProjectService>()
+inline fun <reified T : Any> SerializersModuleBuilder.polymorphic(
+    baseSerializer: KSerializer<T>? = null,
+    builderAction: PolymorphicModuleBuilder<T>.() -> Unit,
+) = polymorphic(T::class, baseSerializer, builderAction)
 
-
-val Application.PackageSearchCachesService
-    get() = service<PackageSearchCaches>()
+fun <T> Flow<T>.startWithNull() = flow {
+    emit(null)
+    collectIn(this)
+}

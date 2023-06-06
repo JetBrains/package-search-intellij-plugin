@@ -8,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.plugins.callloging.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.coroutineScope
@@ -22,7 +21,7 @@ import org.jetbrains.packagesearch.gradlemetadata.File
 import org.jetbrains.packagesearch.gradlemetadata.GradleMetadata
 import org.jetbrains.packagesearch.gradlemetadata.Variant
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.slf4j.event.*
+import org.slf4j.event.Level
 import io.ktor.client.engine.cio.CIO as CIOClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ContentNegotiationClient
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ContentNegotiationServer

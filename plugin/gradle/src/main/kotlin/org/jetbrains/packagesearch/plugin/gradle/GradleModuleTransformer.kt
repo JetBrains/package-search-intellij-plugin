@@ -2,19 +2,18 @@
 
 package org.jetbrains.packagesearch.plugin.gradle
 
-import com.intellij.buildsystem.model.DeclaredDependency
 import com.intellij.buildsystem.model.unified.UnifiedDependency
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.writeAction
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.toNioPath
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.subclass
-import org.dizitart.no2.objects.filters.ObjectFilters
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -26,16 +25,21 @@ import org.jetbrains.packagesearch.api.v3.search.libraryElements
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType.ClasspathResources
-import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
+import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
+import org.jetbrains.packagesearch.plugin.core.nitrite.div
 import org.jetbrains.packagesearch.plugin.core.utils.*
-import org.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor.Companion.getGradleModelRepository
-import org.jetbrains.plugins.gradle.model.ExternalProject
-import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.packagesearch.plugin.gradle.utils.evaluateDeclaredIndexes
+import org.jetbrains.packagesearch.plugin.gradle.utils.getGradleModelRepository
+import org.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
+import org.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.exists
+import kotlin.io.path.extension
 import com.intellij.openapi.module.Module as NativeModule
 
 
@@ -55,97 +59,6 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
         val knownGradleAncillaryFilesFiles
             get() = listOf("gradle.properties", "local.properties", "gradle/libs.versions.toml")
 
-        fun DeclaredDependency.evaluateDeclaredIndexes(isKts: Boolean): DependencyDeclarationIndexes? {
-            val artifactId = coordinates.artifactId ?: return null
-            val groupId = coordinates.groupId ?: return null
-            val configuration = unifiedDependency.scope ?: return null
-            var currentPsi = psiElement ?: return null
-            val isKotlinDependencyInKts = isKts && artifactId.startsWith("kotlin-")
-            val version = coordinates.version?.takeIf { it.isNotEmpty() && it.isNotBlank() }
-
-            val regexText = buildString {
-                when {
-                    isKotlinDependencyInKts -> {
-                        // configuration\(kotlin\("(name)", "(version)"\)\)
-                        append("$configuration(\"kotlin\\(\"(")
-                        appendEscaped(artifactId.removePrefix("kotlin-"))
-                        append(")")
-                        if (version != null) {
-                            append(", \"(")
-                            appendEscaped(version)
-                            append(")\"")
-                        }
-                        append("\\)\\)")
-                    }
-
-                    else -> {
-                        // configuration[\s\(]+["'](groupId:artifactId):(version)["']\)?
-                        append("$configuration[\\s\\(]+[\"'](")
-                        appendEscaped("$groupId:$artifactId")
-                        append(")")
-                        if (version != null) {
-                            append(":(")
-                            appendEscaped(version)
-                            append(")")
-                        }
-                        append("[\"']\\)?")
-                    }
-                }
-            }
-            var attempts = 0
-            val compiledRegex = Regex(regexText)
-
-            // why 5? usually it's 3 parents up, maybe 2, sometimes 4. 5 is a safe bet.
-            while (attempts < 5) {
-                val groups = compiledRegex.find(currentPsi.text)?.groups
-                if (!groups.isNullOrEmpty()) {
-                    val coordinatesStartIndex = groups[1]?.range?.start?.let { currentPsi.textOffset + it } ?: error(
-                        "Cannot find coordinatesStartIndex for dependency $coordinates " + "in ${currentPsi.containingFile.virtualFile.path}"
-                    )
-                    return DependencyDeclarationIndexes(wholeDeclarationStartIndex = currentPsi.textOffset,
-                        coordinatesStartIndex = coordinatesStartIndex,
-                        versionStartIndex = groups[2]?.range?.start?.let { currentPsi.textOffset + it })
-                }
-                currentPsi = kotlin.runCatching { currentPsi.parent }.getOrNull() ?: break
-                attempts++
-            }
-            return null
-        }
-
-        /**
-         * This function takes a module as input and returns its associated [ExternalProject] if one exists
-         */
-        fun Module.findExternalProject(): ExternalProject? {
-            // Check if the module is associated with an external system (in this case, Gradle)
-            if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, this)) {
-                // Get the system ID of the module
-                val moduleId = ExternalSystemModulePropertyManager.getInstance(this).getExternalSystemId()
-
-                // Check if the module is a "fake" module representing a source set
-                if (moduleId != GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY) {
-                    // Get the path to the associated Gradle project
-                    val projectPath = ExternalSystemApiUtil.getExternalProjectPath(this)
-
-                    // If the project path is not null, the module is associated with a Gradle project
-                    if (projectPath != null) {
-                        // Get the ExternalProjectInfo object for the Gradle project
-                        val projectInfo = ExternalSystemApiUtil.findProjectInfo(/* project = */ project,/* systemId = */
-                            GradleConstants.SYSTEM_ID,/* projectPath = */
-                            projectPath
-                        )
-
-                        // If the ExternalProjectInfo object is not null, retrieve the ExternalProject
-                        if (projectInfo != null) {
-                            // Depending on the structure of projectInfo.externalProjectStructure, you may need to navigate this data structure differently
-                            return projectInfo.externalProjectStructure?.let { it.data as? ExternalProject }
-                        }
-                    }
-                }
-            }
-
-            // If the module is not associated with a Gradle project or represents a source set, return null
-            return null
-        }
     }
 
     override fun PolymorphicModuleBuilder<PackageSearchModule>.registerModuleSerializer() {
@@ -156,77 +69,63 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
         subclass(PackageSearchDeclaredGradleDependency.serializer())
     }
 
-    private suspend fun getModuleChangesFlow(
+    private fun getModuleChangesFlow(
         context: ProjectContext,
         buildFile: String?,
-        projectDir: String,
     ): Flow<Unit> {
         val allFiles = if (buildFile != null) {
             knownGradleAncillaryFilesFiles + buildFile
         } else {
             knownGradleAncillaryFilesFiles
         }
-        val buildFileChanges = buildFile?.let { buildFile ->
-            context.project.filesChangedEventFlow.flatMapLatest { it.map { it.path }.asFlow() }
-                .filter { filePath -> allFiles.any { filePath.endsWith(it) } }.mapUnit()
-        } ?: emptyFlow()
+        val buildFileChanges = context
+            .project
+            .filesChangedEventFlow
+            .flatMapLatest { it.map { it.path }.asFlow() }
+            .filter { filePath -> allFiles.any { filePath.endsWith(it) } }
+            .mapUnit()
         return merge(
-            watchFileChanges(globalGradlePropertiesPath),
+            watchExternalFileChanges(globalGradlePropertiesPath),
             buildFileChanges
         )
     }
 
     private suspend fun Module.toPackageSearch(
         context: PackageSearchModuleBuilderContext,
-        gradleProject: ExternalProject,
-    ): PackageSearchGradleModule? {
-        val packageSearchGradleModel =
-            getGradleModelRepository(project)
-                .find(
-                    filter = NitriteFilters.Object.eq(
-                        value = gradleProject.projectDir.absolutePath,
-                        GradleModelCacheEntry::data, PackageSearchGradleModel::projectDir,
-                    )
-                )
-                .single()
-                ?.data
-                ?.takeIf { !it.isKotlinMultiplatformApplied }
-                ?: return null
-
+        model: PackageSearchGradleModel,
+        buildFile: Path?,
+    ): PackageSearchGradleModule {
         val availableKnownRepositories =
-            packageSearchGradleModel.repositories.toSet().let { availableGradleRepositories ->
+            model.repositories.toSet().let { availableGradleRepositories ->
                 context.knownRepositories.filterValues {
                     it is ApiMavenRepository && it.alternateUrls.intersect(availableGradleRepositories).isNotEmpty()
                 }
             }
 
-        val isKts = gradleProject.buildFile?.extension == "kts"
+        val isKts = buildFile?.extension == "kts"
 
         return PackageSearchGradleModule(
-            name = gradleProject.name,
-            projectDirPath = gradleProject.projectDir.absolutePath,
-            buildFilePath = gradleProject.buildFile?.absolutePath,
+            name = model.projectName,
+            projectDirPath = model.projectDir,
+            buildFilePath = buildFile?.absolutePathString(),
             declaredKnownRepositories = getDeclaredKnownRepositories(context),
             declaredDependencies = getDeclaredDependencies(context, isKts),
             availableKnownRepositories = availableKnownRepositories,
-            packageSearchModel = packageSearchGradleModel,
+            packageSearchModel = model,
             compatiblePackageTypes = buildPackagesType {
+                mavenPackages()
                 when {
-                    packageSearchGradleModel.isKotlinJvmApplied -> {
-                        mavenPackages()
-                        gradlePackages {
-                            mustBeRootPublication = true
-                            variant {
-                                mustHaveFilesAttribute = false
-                                javaApi()
-                                javaRuntime()
-                                libraryElements("jar")
-                            }
+                    model.isKotlinJvmApplied -> gradlePackages {
+                        mustBeRootPublication = true
+                        variant {
+                            mustHaveFilesAttribute = false
+                            javaApi()
+                            javaRuntime()
+                            libraryElements("jar")
                         }
                     }
 
-                    packageSearchGradleModel.isKotlinAndroidApplied -> {
-                        mavenPackages()
+                    model.isKotlinAndroidApplied -> {
                         gradlePackages {
                             mustBeRootPublication = true
                             variant {
@@ -247,11 +146,8 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
                         }
                     }
 
-                    else -> {
-                        mavenPackages()
-                        gradlePackages {
-                            mustBeRootPublication = true
-                        }
+                    else -> gradlePackages {
+                        mustBeRootPublication = true
                     }
                 }
             }
@@ -261,19 +157,56 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
     override fun buildModule(
         context: PackageSearchModuleBuilderContext,
         nativeModule: NativeModule,
-    ): Flow<PackageSearchModule?> = flow {
-        val gradleProject = nativeModule.findExternalProject()
-        if (gradleProject == null) {
-            emit(null)
-            return@flow
-        }
-        emit(nativeModule.toPackageSearch(context, gradleProject))
-        getModuleChangesFlow(
-            context,
-            gradleProject.buildFile?.absolutePath,
-            gradleProject.projectDir.absolutePath
-        ).collect { emit(nativeModule.toPackageSearch(context, gradleProject)) }
+    ): Flow<PackageSearchModule?> = when {
+        nativeModule.isGradleSourceSet -> flowOf(null)
+        else -> merge(
+            flowOf(Unit),
+            context.project.dumbModeStateFlow
+                .filterNot { it }
+                .mapUnit(),
+            context.project.gradleSyncNotifierFlow
+        )
+            .mapNotNull { nativeModule.gradleIdentityPathOrNull }
+            .flatMapLatest {
+                flow {
+                    context.getGradleModelRepository()
+                        .find(
+                            NitriteFilters.Object.eq(
+                                path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath,
+                                value = it
+                            )
+                        )
+                        .singleOrNull()
+                        ?.data
+                        ?.let { emit(it) }
+                    context.getGradleModelRepository()
+                        .changes()
+                        .flatMapLatest { it.changedItems.asFlow().map { it.item.data } }
+                        .collectIn(this)
+                }
+            }
+            .filter { it.projectIdentityPath == nativeModule.gradleIdentityPathOrNull }
+            .map { model ->
+                val basePath = model.projectDir.toNioPath()
+                val buildFile = basePath.resolve("build.gradle")
+                    .takeIf { it.exists() }
+                    ?: basePath.resolve("build.gradle.kts")
+                        .takeIf { it.exists() }
+                model to buildFile
+            }
+            .flatMapLatest { data ->
+                flow {
+                    emit(data)
+                    getModuleChangesFlow(context, data.second?.toAbsolutePath()?.toString())
+                        .map { data }
+                        .collectIn(this)
+                }
+            }
+            .map { (model, buildFile) ->
+                nativeModule.toPackageSearch(context, model, buildFile)
+            }
     }
+
 
     private suspend fun Module.getDeclaredDependencies(
         context: PackageSearchModuleBuilderContext,
@@ -303,7 +236,7 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
                     ?.maxOrNull()
                     ?: NormalizedVersion.Missing,
                 remoteInfo = remoteInfo[packageId],
-                icon = ClasspathResources("icons/maven.svg"),
+                icon = Icons.GRADLE,
                 module = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
                 name = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,
                 configuration = declaredDependency.unifiedDependency.scope ?: error(
@@ -397,3 +330,25 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
         }
     }
 }
+
+val Project.gradleSyncNotifierFlow
+    get() = messageBus.flow(ProjectDataImportListener.TOPIC) {
+        object : ProjectDataImportListener {
+            override fun onImportFinished(projectPath: String?) {
+                trySend(Unit)
+            }
+        }
+    }
+
+val Project.dumbModeStateFlow
+    get() = messageBus.flow(DumbService.DUMB_MODE) {
+        object : DumbService.DumbModeListener {
+            override fun enteredDumbMode() {
+                trySend(true)
+            }
+
+            override fun exitDumbMode() {
+                trySend(false)
+            }
+        }
+    }

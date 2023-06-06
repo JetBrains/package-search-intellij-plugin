@@ -29,12 +29,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import org.jetbrains.packagesearch.plugin.core.PackageSearchApiClientService
-import org.jetbrains.packagesearch.plugin.core.PackageSearchApiEndpointsService
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
-import java.io.File
+import org.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import java.nio.file.Path
+
+@RequiresOptIn("This API is internal and you should not use it.")
+annotation class PKGSInternalAPI
 
 fun <T : Any, R> MessageBus.flow(
     topic: Topic<T>,
@@ -64,7 +65,7 @@ fun VirtualFileListener(action: (VirtualFileEvent) -> Unit) =
 fun LocalFileSystem.addVirtualFileListener(action: (VirtualFileEvent) -> Unit) =
     VirtualFileListener(action).also { addVirtualFileListener(it) }
 
-fun watchFileChanges(path: Path): Flow<Unit> {
+fun watchExternalFileChanges(path: Path): Flow<Unit> {
     val fileSystem = LocalFileSystem.getInstance()
     path.parent.toFile().mkdirs()
     return callbackFlow {
@@ -126,12 +127,6 @@ fun StringBuilder.appendEscaped(text: String) =
 val IntelliJApplication
     get() = application
 
-val Application.PackageSearchApiEndpointsService
-    get() = service<PackageSearchApiEndpointsService>()
-
-val Application.PackageSearchApiClientService
-    get()= service<PackageSearchApiClientService>()
-
 fun Application.registryStateFlow(scope: CoroutineScope, key: String, defaultValue: Boolean = false) =
     messageBus.flow(RegistryManager.TOPIC) {
         object : RegistryValueListener {
@@ -140,3 +135,9 @@ fun Application.registryStateFlow(scope: CoroutineScope, key: String, defaultVal
             }
         }
     }.stateIn(scope, SharingStarted.WhileSubscribed(), Registry.`is`(key, defaultValue))
+
+suspend fun <T> Flow<T>.collectIn(flowCollector: FlowCollector<T>) =
+    collect { flowCollector.emit(it) }
+
+val Project.PackageSearchProjectCachesService
+    get() = service<PackageSearchProjectCachesService>()

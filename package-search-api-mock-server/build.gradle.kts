@@ -1,44 +1,21 @@
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-kotlin {
-    target {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
-            }
-        }
-    }
-    sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlinx.serialization.ExperimentalSerializationApi")
-                optIn("kotlinx.serialization.InternalSerializationApi")
-                optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
-                optIn("org.jetbrains.packagesearch.plugin.InternalAPI")
-            }
-        }
-    }
+    alias(packageSearchCatalog.plugins.kotlin.jvm)
+    alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
+    id("packagesearch")
 }
 
 dependencies {
-    api("org.jetbrains.packagesearch:package-search-api-models")
-    api("io.ktor:ktor-server-cio:2.3.0")
-    api("io.ktor:ktor-client-cio:2.3.0")
-    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-    api("io.ktor:ktor-server-content-negotiation:2.3.0")
-    api("io.ktor:ktor-client-content-negotiation:2.3.0")
-    api("io.ktor:ktor-serialization-kotlinx-json:2.3.0")
+    api(packageSearchCatalog.kotlinx.datetime)
+    api(packageSearchCatalog.kotlinx.serialization.json)
+    api(packageSearchCatalog.ktor.client.cio)
+    api(packageSearchCatalog.ktor.client.content.negotiation)
+    api(packageSearchCatalog.ktor.serialization.kotlinx.json)
+    api(packageSearchCatalog.ktor.server.call.logging)
+    api(packageSearchCatalog.ktor.server.cio)
+    api(packageSearchCatalog.ktor.server.content.negotiation)
+    api(packageSearchCatalog.logback.classic)
+    api(packageSearchCatalog.packagesearch.api.models)
     api(projects.gradleMetadataSchema)
-    api("ch.qos.logback:logback-classic:1.4.6")
-    implementation("io.ktor:ktor-server-call-logging-jvm:2.3.0")
 }

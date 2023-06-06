@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.core
+package org.jetbrains.packagesearch.plugin.services
 
 import com.intellij.openapi.components.Service
 import io.ktor.http.*

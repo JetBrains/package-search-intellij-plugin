@@ -29,6 +29,8 @@ class PackageSearchProjectResolverExtension : AbstractProjectResolverExtension()
 
 internal fun PackageSearchGradleJavaModel.toKotlin() = PackageSearchGradleModel(
     projectDir = projectDir,
+    projectName = projectName,
+    projectIdentityPath = projectIdentityPath,
     configurations = configurations.map {
         Configuration(
             it.name,

@@ -9,6 +9,8 @@ import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon
+import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import org.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType.ClasspathResources
 
 @Serializable
 @SerialName("gradle")
@@ -24,7 +26,7 @@ data class PackageSearchGradleModule(
     val availableKnownRepositories: Map<String, ApiRepository>
 ) : PackageSearchModule.Base {
     override val icon
-        get() = WithIcon.PathSourceType.ClasspathResources("icons/gradle.svg")
+        get() = Icons.GRADLE
 
     val defaultConfiguration
         get() = defaultScope

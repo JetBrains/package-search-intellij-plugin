@@ -1,23 +1,23 @@
 @file:Suppress("UnstableApiUsage")
-
-package org.jetbrains.packagesearch.plugin
+package org.jetbrains.packagesearch.plugin.services
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
-import kotlinx.serialization.modules.polymorphic
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersionWeakCache
+import org.jetbrains.packagesearch.plugin.PackageSearchModuleBaseTransformerUtils
+import org.jetbrains.packagesearch.plugin.applyOnEach
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
-import org.jetbrains.packagesearch.plugin.core.utils.PackageSearchApiClientService
+import org.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import org.jetbrains.packagesearch.plugin.utils.*
 import kotlin.time.Duration.Companion.days
 
@@ -30,21 +30,24 @@ class PackageSearchProjectService(
     val knownRepositoriesStateFlow =
         interval(1.days) {
             getRepositories(
-                repoCache = IntelliJApplication.PackageSearchCachesService.getRepositoryCache(),
+                repoCache = IntelliJApplication.PackageSearchApplicationCachesService.getRepositoryCache(),
                 apiClient = IntelliJApplication.PackageSearchApiClientService.client
             )
         }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
 
-    val contextFlow = knownRepositoriesStateFlow
-        .map {
-            WindowedModuleBuilderContext(
-                project = project,
-                knownRepositories = it,
-                packagesCache = IntelliJApplication.PackageSearchCachesService.getApiPackageCache(),
-                coroutineScope = coroutineScope,
-            )
-        }
+    private val contextFlow= knownRepositoriesStateFlow
+            .map {
+                WindowedModuleBuilderContext(
+                    project = project,
+                    knownRepositories = it,
+                    packagesCache = IntelliJApplication.PackageSearchApplicationCachesService.getApiPackageCache(),
+                    coroutineScope = coroutineScope,
+                    projectCaches = project.PackageSearchProjectCachesService.cache.await(),
+                    applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache.await(),
+                )
+            }
+            .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
     val jsonFLow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
         .map { transformers ->
@@ -52,10 +55,10 @@ class PackageSearchProjectService(
                 prettyPrint = true
                 serializersModule = SerializersModule {
                     contextual(NormalizedVersionWeakCache)
-                    polymorphic(PackageSearchModule::class) {
+                    polymorphic<PackageSearchModule> {
                         transformers.applyOnEach { registerModuleSerializer() }
                     }
-                    polymorphic(PackageSearchDeclaredDependency::class) {
+                    polymorphic<PackageSearchDeclaredDependency> {
                         transformers.applyOnEach { registerVersionSerializer() }
                     }
                 }
@@ -71,6 +74,7 @@ class PackageSearchProjectService(
         transformerExtensions.flatMap { transformer ->
             nativeModules.map { module ->
                 transformer.buildModule(context, module)
+                    .startWithNull()
             }
         }
     }
@@ -78,4 +82,3 @@ class PackageSearchProjectService(
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
 }
-

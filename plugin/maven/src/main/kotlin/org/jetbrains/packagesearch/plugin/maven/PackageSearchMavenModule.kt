@@ -9,6 +9,7 @@ import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon
+import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType.ClasspathResources
 
 @Serializable
@@ -23,5 +24,5 @@ data class PackageSearchMavenModule(
     override val compatiblePackageTypes: List<PackagesType>
 ) : PackageSearchModule.Base {
     override val icon
-        get() = ClasspathResources("icons/maven.svg")
+        get() = Icons.MAVEN
 }

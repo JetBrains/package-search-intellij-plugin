@@ -11,4 +11,5 @@ object PackageSearchModuleBaseTransformerUtils {
 
     val extensionsFlow
         get() = extensionPointName.extensionsFlow()
+
 }

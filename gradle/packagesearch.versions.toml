@@ -1,0 +1,66 @@
+[versions]
+assertk = "0.26.1"
+caffeine = "3.1.6"
+composeCompilerPlugin = "1.4.7"
+composeDesktop = "1.4.0"
+coroutines = "1.7.1"
+detekt = "1.23.0"
+dokka = "1.8.20"
+idea = "2023.1.2"
+ideaGradlePlugin = "1.14.0"
+junit = "5.9.2"
+kotlin = "1.8.20"
+kotlinterGradlePlugin = "3.12.0"
+kotlinxDatetime = "0.4.0"
+kotlinxSerialization = "1.5.1"
+ktor = "2.3.0"
+logback = "1.4.7"
+nitrite = "3.4.4"
+
+[libraries]
+assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+compose-desktop-components-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "composeDesktop" }
+ij-platform-core-ui = { module = "com.jetbrains.intellij.platform:core-ui", version.ref = "idea" }
+ij-platform-ide-core = { module = "com.jetbrains.intellij.platform:ide-core", version.ref = "idea" }
+ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", version.ref = "idea" }
+jewel-core = { module = "org.jetbrains.jewel:core" }
+jewel-foundation = { module = "org.jetbrains.jewel:foundation" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+nitrite = { module = "org.dizitart:nitrite", version.ref = "nitrite" }
+packagesearch-api-models = { module = "org.jetbrains.packagesearch:package-search-api-models" }
+packagesearch-version-utils = { module = "org.jetbrains.packagesearch:package-search-version-utils" }
+gradle-intellij-platform-plugin = { module = "org.jetbrains.intellij.plugins:gradle-intellij-plugin", version.ref = "ideaGradlePlugin" }
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+
+# Plugin libraries for build-logic's convention plugins to use to resolve the types/tasks coming from these plugins
+detekt-gradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlinter-gradlePlugin = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinterGradlePlugin" }
+
+[bundles]
+idea = ["ij-platform-ide-core", "ij-platform-ide-impl", "ij-platform-core-ui"]
+
+[plugins]
+compose-desktop = { id = "org.jetbrains.compose", version.ref = "composeDesktop" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+idea-gradle-plugin = { id = "org.jetbrains.intellij", version.ref = "ideaGradlePlugin" }
+kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinterGradlePlugin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

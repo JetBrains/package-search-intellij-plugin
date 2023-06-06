@@ -1,11 +1,10 @@
-package org.jetbrains.packagesearch.plugin.core.nitrite
+package org.jetbrains.packagesearch.plugin.core.nitrite.serialization
 
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
 import org.dizitart.no2.Document
-import kotlin.properties.Delegates
 
 class DocumentEncoder(override val serializersModule: SerializersModule) : AbstractEncoder() {
 

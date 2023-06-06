@@ -5,6 +5,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.tooling.AbstractModelBuilderService;
 import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder;
@@ -16,7 +18,11 @@ import java.util.List;
 public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService {
 
     @Override
-    public PackageSearchGradleJavaModel buildAll(@NotNull String modelName, Project project, @NotNull ModelBuilderContext context) {
+    public PackageSearchGradleJavaModel buildAll(
+            @NotNull String modelName,
+            @NotNull Project project,
+            @NotNull ModelBuilderContext context
+    ) {
 
         List<PackageSearchGradleJavaModel.Configuration> configurations =
                 new ArrayList<PackageSearchGradleJavaModel.Configuration>(project.getConfigurations().size());
@@ -47,8 +53,13 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
             }
         }
 
+        String projectIdentityPath = GradleVersion.current().compareTo(GradleVersion.version("3.3")) >= 0 ?
+                ((ProjectInternal) project).getIdentityPath().getPath() : project.getPath();
+
         return new PackageSearchGradleJavaModelImpl(
                 project.getProjectDir().getAbsolutePath(),
+                project.getName(),
+                projectIdentityPath,
                 configurations,
                 repositories,
                 project.getPluginManager().hasPlugin("org.jetbrains.kotlin.jvm"),

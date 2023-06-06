@@ -3,12 +3,14 @@ package org.jetbrains.packagesearch.plugin.core.extensions
 import com.intellij.openapi.project.Project
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
+import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
 
 interface PackageSearchKnownRepositoriesProvider {
     val knownRepositories: Map<String, ApiRepository>
 }
 
 interface PackageSearchApiPackagesProvider {
+
     /**
      * Collect first all usages across every module, then call this function.
      *
@@ -19,8 +21,11 @@ interface PackageSearchApiPackagesProvider {
     suspend fun getPackageInfoByIdHashes(packageIdHashes: Set<String>): Map<String, ApiPackage>
 }
 
-interface PackageSearchModuleBuilderContext : ProjectContext, PackageSearchKnownRepositoriesProvider,
-    PackageSearchApiPackagesProvider
+interface PackageSearchModuleBuilderContext :
+    ProjectContext, PackageSearchKnownRepositoriesProvider, PackageSearchApiPackagesProvider {
+        val projectCaches: CoroutineNitrite
+        val applicationCaches: CoroutineNitrite
+    }
 
 interface ProjectContext {
     val project: Project

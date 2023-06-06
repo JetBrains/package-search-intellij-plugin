@@ -6,6 +6,8 @@ import java.util.List;
 public interface PackageSearchGradleJavaModel extends Serializable {
 
     String getProjectDir();
+    String getProjectIdentityPath();
+    String getProjectName();
     List<Configuration> getConfigurations();
 
     List<String> getRepositoryUrls();

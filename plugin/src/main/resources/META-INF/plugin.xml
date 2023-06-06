@@ -4,7 +4,7 @@
     <vendor>JetBrains</vendor>
 
     <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
-<!--    <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>-->
+    <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>
 
     <extensionPoints>
         <extensionPoint name="moduleTransformer"

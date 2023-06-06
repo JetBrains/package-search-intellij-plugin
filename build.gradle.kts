@@ -1,5 +1,8 @@
 plugins {
-    kotlin("multiplatform") apply false
+    alias(packageSearchCatalog.plugins.kotlin.jvm) apply false
+    alias(packageSearchCatalog.plugins.kotlin.multiplatform) apply false
+    `version-catalog`
+    `maven-publish`
 }
 
 allprojects {
@@ -9,5 +12,13 @@ allprojects {
     repositories {
         mavenCentral()
         maven("https://repo.gradle.org/gradle/libs-releases")
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("packageSearchVersionCatalog") {
+            from(components["versionCatalog"])
+        }
     }
 }
