@@ -13,9 +13,12 @@ class PackageSearchApiEndpointsService(scope: CoroutineScope) {
     val endpoints = object : PackageSearchEndpoints {
 
         fun buildPkgsUrl(path: String) = buildUrl {
-            val isLocal = IntelliJApplication
-                .registryStateFlow(scope, "org.jetbrains.packagesearch.localhost")
-                .value
+            val isLocal =
+                System.getenv("USE_LOCAL_MOCKS")
+                    ?.let { it == "true" }
+                    ?: IntelliJApplication
+                        .registryStateFlow(scope, "org.jetbrains.packagesearch.localhost")
+                        .value
             protocol = if (isLocal) URLProtocol.HTTP else URLProtocol.HTTPS
             host = if (isLocal) "localhost" else "packagesearch.jetbrains.com"
             encodedPath = "/api/v3/$path"

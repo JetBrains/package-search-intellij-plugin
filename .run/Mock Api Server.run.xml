@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Mock Api Server" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="org.jetbrains.packagesearch.server.ServerKt" />
+    <module name="packagesearch-intellij-plugin.package-search-api-mock-server.main" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

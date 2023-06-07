@@ -5,6 +5,7 @@ import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.publish.maven.MavenPom
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.property
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -29,8 +30,10 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
 
     val jvmTarget = project.objects.property<JvmTarget>()
         .convention(JvmTarget.JVM_17)
-    val javaVersion = project.objects.property<JavaVersion>()
-        .convention(JavaVersion.VERSION_17)
+
+    val javaVersion = project.objects.property<JavaLanguageVersion>()
+        .convention(JavaLanguageVersion.of(17))
+
     val optIns = project.objects.listProperty<String>()
         .apply {
             set(
@@ -42,7 +45,18 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
                 )
             )
         }
+
     val librariesToDelete = project.objects.listProperty<String>()
+        .apply {
+            addAll(
+                "kotlin-stdlib",
+                "ktor-",
+                "slf4j",
+                "kotlin-reflect",
+                "kotlinx-"
+            )
+        }
+
     val intellijVersion = project.objects.property<String>()
         .convention("LATEST-EAP-SNAPSHOT")
 

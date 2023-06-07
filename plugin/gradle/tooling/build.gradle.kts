@@ -1,14 +1,15 @@
+import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
+
 plugins {
     java
-    kotlin("jvm") apply false
-    id("org.jetbrains.intellij")
+    alias(packageSearchCatalog.plugins.idea.gradle.plugin)
     id("packagesearch")
 }
 
 packagesearch {
-    javaVersion.set(JavaVersion.VERSION_1_8)
+    javaVersion.set(JavaLanguageVersion.of(8))
 }
 
 intellij {
-    plugins.addAll("org.jetbrains.plugins.gradle")
+    plugins.add("org.jetbrains.plugins.gradle")
 }

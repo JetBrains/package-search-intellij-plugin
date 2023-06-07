@@ -8,6 +8,7 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.intellij.IntelliJPluginExtension
@@ -59,9 +60,9 @@ fun Project.configureKotlinJvmPlugin(packageSearchExtension: PackageSearchExtens
 fun Project.configureJavaPlugin(packageSearchExtension: PackageSearchExtension) {
     plugins.withId("org.gradle.java") {
         extensions.withType<JavaPluginExtension> {
-            afterEvaluate {
-                sourceCompatibility = packageSearchExtension.javaVersion.get()
-                targetCompatibility = packageSearchExtension.javaVersion.get()
+            toolchain {
+                languageVersion.set(packageSearchExtension.javaVersion)
+                vendor.set(JvmVendorSpec.ADOPTIUM)
             }
         }
     }

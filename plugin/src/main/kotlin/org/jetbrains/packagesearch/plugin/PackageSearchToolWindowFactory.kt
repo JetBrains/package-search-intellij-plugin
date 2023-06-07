@@ -10,10 +10,13 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.plugin.services.ModulesState
 import org.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import java.io.File
 
@@ -25,6 +28,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
         val service = project.PackageSearchProjectService
         service.coroutineScope.launch {
             service.modules
+                .filterIsInstance<ModulesState.Ready>()
                 .combine(service.jsonFLow) { modules, json ->
                     json.encodeToString(modules)
                 }
@@ -34,13 +38,6 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
                             .writeText(text)
                     }
                 }
-        }
-
-        toolWindow.addComposeTab("stocazzo") {
-            val modules by project.PackageSearchProjectService.modules
-                .collectAsState()
-
-
         }
     }
 }

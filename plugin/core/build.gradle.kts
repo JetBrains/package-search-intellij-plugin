@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 plugins {
-    kotlin("jvm")
-    id("org.jetbrains.intellij")
-    kotlin("plugin.serialization")
+    alias(packageSearchCatalog.plugins.kotlin.jvm)
+    alias(packageSearchCatalog.plugins.idea.gradle.plugin)
+    alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     id("packagesearch")
     `maven-publish`
 }
@@ -23,4 +23,5 @@ dependencies {
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.api)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
     testImplementation(kotlin("test-junit5"))
+    compileOnly(packageSearchCatalog.kotlinx.serialization.core)
 }

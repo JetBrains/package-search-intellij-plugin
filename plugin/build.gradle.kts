@@ -8,8 +8,9 @@ plugins {
 
 dependencies {
     implementation(packageSearchCatalog.jewel.foundation)
-    api(packageSearchCatalog.packagesearch.api.models)
-    api(packageSearchCatalog.packagesearch.version.utils)
+    implementation(packageSearchCatalog.packagesearch.api.models)
+    implementation(packageSearchCatalog.packagesearch.version.utils)
+    compileOnly(packageSearchCatalog.kotlinx.serialization.core)
     implementation(projects.plugin.maven)
     implementation(projects.plugin.gradle)
     implementation(projects.plugin.core)

@@ -22,11 +22,23 @@ include(
     ":package-search-api-mock-server",
     ":gradle-metadata-schema"
 )
+
+val isSubmoduleNotInit = sequenceOf("jewel", "package-search-api-models", "package-search-version-utils")
+    .map { file(it) }
+    .any { !it.isDirectory || it.listFiles()?.isEmpty() ?: true }
+
+if (isSubmoduleNotInit) {
+    logger.info("git submodules not check out. Initializing them...")
+    exec { commandLine("git", "submodule", "init") }
+    exec { commandLine("git", "submodule", "update") }
+}
+
 includeBuild("build-config")
 
 includeBuild("jewel") {
     dependencySubstitution {
         substitute(module("org.jetbrains.jewel:foundation")).using(project(":foundation"))
+        substitute(module("org.jetbrains.jewel:core")).using(project(":core"))
     }
 }
 
@@ -41,3 +53,4 @@ includeBuild("package-search-version-utils") {
         substitute(module("org.jetbrains.packagesearch:package-search-version-utils")).using(project(":"))
     }
 }
+

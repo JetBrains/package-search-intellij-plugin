@@ -1,3 +1,5 @@
+rootProject.name = "build-config"
+
 dependencyResolutionManagement {
     versionCatalogs {
         create("packageSearchCatalog") {

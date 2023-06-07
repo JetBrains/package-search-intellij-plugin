@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
@@ -73,12 +74,21 @@ class PackageSearchProjectService(
     ) { nativeModules, transformerExtensions, context ->
         transformerExtensions.flatMap { transformer ->
             nativeModules.map { module ->
-                transformer.buildModule(context, module)
-                    .startWithNull()
+                transformer.buildModule(context, module).startWithNull()
             }
         }
     }
         .flatMapLatest { combine(it) { it.filterNotNull() } }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+        .filter { it.isNotEmpty() }
+        .map { ModulesState.Ready(it) }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), ModulesState.Loading)
 
+}
+
+@Serializable
+sealed interface ModulesState {
+    @Serializable
+    object Loading : ModulesState
+    @Serializable
+    data class Ready(val modules: List<PackageSearchModule>) : ModulesState
 }
