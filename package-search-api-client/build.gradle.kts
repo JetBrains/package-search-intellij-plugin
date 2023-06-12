@@ -8,6 +8,8 @@ plugins {
     `maven-publish`
 }
 
+
+
 dependencies {
     api(packageSearchCatalog.packagesearch.api.models)
     implementation(packageSearchCatalog.ktor.client.cio)

@@ -17,7 +17,8 @@ gradlePlugin {
 }
 
 dependencies {
-    implementation(packageSearchCatalog.kotlin.gradlePlugin)
+    implementation(packageSearchCatalog.kotlin.gradle.plugin)
     implementation(packageSearchCatalog.gradle.intellij.platform.plugin)
     implementation(packageSearchCatalog.dokka.gradle.plugin)
+    implementation(packageSearchCatalog.foojay.resolver.gradle.plugin)
 }

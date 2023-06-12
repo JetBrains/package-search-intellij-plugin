@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package org.jetbrains.packagesearch.gradle
 
 import org.gradle.api.Project
@@ -57,14 +59,15 @@ fun Project.configureKotlinJvmPlugin(packageSearchExtension: PackageSearchExtens
     }
 }
 
-fun Project.configureJavaPlugin(packageSearchExtension: PackageSearchExtension) {
+fun Project.configureJavaPlugin(extension: PackageSearchExtension.JavaToolchain) {
     plugins.withId("org.gradle.java") {
         extensions.withType<JavaPluginExtension> {
             toolchain {
-                languageVersion.set(packageSearchExtension.javaVersion)
-                vendor.set(JvmVendorSpec.ADOPTIUM)
+                languageVersion.set(extension.languageVersion)
+                vendor.set(extension.vendor)
             }
         }
+
     }
 }
 

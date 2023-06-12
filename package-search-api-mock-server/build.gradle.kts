@@ -4,6 +4,11 @@ plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     id("packagesearch")
+    application
+}
+
+application {
+    mainClass.set("org.jetbrains.packagesearch.server.ServerKt")
 }
 
 dependencies {

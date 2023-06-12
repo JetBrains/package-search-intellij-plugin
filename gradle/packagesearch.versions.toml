@@ -16,6 +16,7 @@ kotlinxSerialization = "1.5.1"
 ktor = "2.3.0"
 logback = "1.4.7"
 nitrite = "3.4.4"
+foojay = "0.5.0"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
@@ -46,11 +47,12 @@ packagesearch-version-utils = { module = "org.jetbrains.packagesearch:package-se
 gradle-intellij-platform-plugin = { module = "org.jetbrains.intellij.plugins:gradle-intellij-plugin", version.ref = "ideaGradlePlugin" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+foojay-resolver-gradle-plugin = { module = "org.gradle.toolchains:foojay-resolver", version.ref = "foojay" }
 
 # Plugin libraries for build-logic's convention plugins to use to resolve the types/tasks coming from these plugins
-detekt-gradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
-kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlinter-gradlePlugin = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinterGradlePlugin" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlinter-gradle-plugin = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinterGradlePlugin" }
 
 [bundles]
 idea = ["ij-platform-ide-core", "ij-platform-ide-impl", "ij-platform-core-ui"]
@@ -64,3 +66,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+foojay-resolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay" }

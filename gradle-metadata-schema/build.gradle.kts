@@ -1,8 +1,9 @@
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
-
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.multiplatform)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
+    alias(packageSearchCatalog.plugins.dokka)
+    id("packagesearch")
+    `maven-publish`
 }
 
 kotlin {

@@ -9,7 +9,9 @@ plugins {
 }
 
 packagesearch {
-//    publicationArtifactId.set("packagesearch-plugin-core")
+    publication {
+        artifactId.set("packagesearch-plugin-core")
+    }
 }
 
 dependencies {

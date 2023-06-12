@@ -7,7 +7,9 @@ plugins {
 }
 
 packagesearch {
-    javaVersion.set(JavaLanguageVersion.of(8))
+    java {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 intellij {

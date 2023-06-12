@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package org.jetbrains.packagesearch.gradle
 
 import org.gradle.api.Plugin
@@ -11,7 +13,10 @@ class PackageSearchPlugin : Plugin<Project> {
         val packageSearchPublicationExtension =
             packageSearchExtension.extensions
                 .create<PackageSearchExtension.Publication>("publication", project)
-        configureJavaPlugin(packageSearchExtension)
+        val packageSearchJavaExtension =
+            packageSearchExtension.extensions
+                .create<PackageSearchExtension.JavaToolchain>("java", project.objects)
+        configureJavaPlugin(packageSearchJavaExtension)
         configureKotlinJvmPlugin(packageSearchExtension)
         configureGradleIntellijPlugin(packageSearchExtension)
         configurePublishPlugin(packageSearchPublicationExtension)

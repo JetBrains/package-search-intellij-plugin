@@ -12,7 +12,7 @@ intellij {
 }
 
 dependencies {
-    implementation(projects.plugin.gradle.tooling)
+//    implementation(projects.plugin.gradle.tooling)
     implementation(projects.plugin.core)
     compileOnly(packageSearchCatalog.kotlinx.serialization.core)
 }

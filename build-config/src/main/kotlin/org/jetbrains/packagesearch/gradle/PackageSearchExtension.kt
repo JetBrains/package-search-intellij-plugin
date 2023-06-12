@@ -5,7 +5,9 @@ import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.publish.maven.MavenPom
+import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.property
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -28,11 +30,15 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
         }
     }
 
+    abstract class JavaToolchain(objectFactory: ObjectFactory) : ExtensionAware {
+        val languageVersion = objectFactory.property<JavaLanguageVersion>()
+            .convention(JavaLanguageVersion.of(17))
+        val vendor = objectFactory.property<JvmVendorSpec>()
+            .convention(JvmVendorSpec.AZUL)
+    }
+
     val jvmTarget = project.objects.property<JvmTarget>()
         .convention(JvmTarget.JVM_17)
-
-    val javaVersion = project.objects.property<JavaLanguageVersion>()
-        .convention(JavaLanguageVersion.of(17))
 
     val optIns = project.objects.listProperty<String>()
         .apply {
