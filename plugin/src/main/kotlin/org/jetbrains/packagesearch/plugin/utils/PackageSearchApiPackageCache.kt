@@ -7,14 +7,12 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import org.dizitart.no2.objects.ObjectFilter
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.client.PackageSearchApiClient
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesProvider
 import org.jetbrains.packagesearch.plugin.core.nitrite.*
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
-import org.jetbrains.packagesearch.plugin.gradle.GradleModelCacheEntry
-import org.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 
 class PackageSearchApiPackageCache(
     private val fileCache: CoroutineObjectRepository<ApiPackageCacheEntry>,

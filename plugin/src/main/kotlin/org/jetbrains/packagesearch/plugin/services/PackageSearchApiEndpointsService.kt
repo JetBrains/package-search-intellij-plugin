@@ -3,8 +3,8 @@ package org.jetbrains.packagesearch.plugin.services
 import com.intellij.openapi.components.Service
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.packagesearch.client.PackageSearchEndpoints
-import org.jetbrains.packagesearch.client.buildUrl
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpoints
+import org.jetbrains.packagesearch.api.v3.http.buildUrl
 import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import org.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 

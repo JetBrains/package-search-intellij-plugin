@@ -17,15 +17,15 @@ import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithAvaila
 import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithAvailableAt.AvailableAt
 import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithFiles
 import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.GradleVersion
-import org.jetbrains.packagesearch.gradlemetadata.File
-import org.jetbrains.packagesearch.gradlemetadata.GradleMetadata
-import org.jetbrains.packagesearch.gradlemetadata.Variant
+import org.jetbrains.packagesearch.gradle.File
+import org.jetbrains.packagesearch.gradle.GradleMetadata
+import org.jetbrains.packagesearch.gradle.Variant
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import org.slf4j.event.Level
 import io.ktor.client.engine.cio.CIO as CIOClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ContentNegotiationClient
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ContentNegotiationServer
-import org.jetbrains.packagesearch.gradlemetadata.Dependency as GradleMetadataDependency
+import org.jetbrains.packagesearch.gradle.Dependency as GradleMetadataDependency
 
 suspend fun main(): Unit = coroutineScope {
     embeddedServer(CIO, port = 8081, module = Application::PackageSearchMockServer).start()

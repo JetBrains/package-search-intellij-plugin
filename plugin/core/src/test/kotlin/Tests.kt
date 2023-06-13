@@ -41,11 +41,6 @@ class Tests {
         assertEquals(example, decoded)
     }
 
-    @Test
-    fun encodeValue() {
-        val doc = nd.encodeToDocument(String.serializer(), "42")
-    }
-
 }
 
 fun Document.getDocument(key: String) =

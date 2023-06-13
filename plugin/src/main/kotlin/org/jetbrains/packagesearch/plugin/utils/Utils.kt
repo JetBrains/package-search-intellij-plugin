@@ -20,7 +20,6 @@ import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.modules.polymorphic
 import org.dizitart.no2.objects.filters.ObjectFilters
-import org.jetbrains.packagesearch.client.PackageSearchApiClient
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.ApiRepositoryCacheEntry
 import org.jetbrains.packagesearch.plugin.core.nitrite.asCacheEntry
@@ -30,6 +29,7 @@ import org.jetbrains.packagesearch.plugin.core.utils.collectIn
 import org.jetbrains.packagesearch.plugin.core.utils.flow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 
 
 internal val Project.nativeModules

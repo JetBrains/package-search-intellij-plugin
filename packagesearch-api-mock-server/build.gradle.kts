@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
-    alias(packageSearchCatalog.plugins.packagesearch.build.config)
+    id("build-config")
     application
 }
 
@@ -22,5 +22,4 @@ dependencies {
     api(packageSearchCatalog.ktor.server.content.negotiation)
     api(packageSearchCatalog.logback.classic)
     api(packageSearchCatalog.packagesearch.api.models)
-    api(projects.gradleMetadataSchema)
 }

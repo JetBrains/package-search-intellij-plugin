@@ -4,7 +4,7 @@ plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.idea.gradle.plugin)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
-    alias(packageSearchCatalog.plugins.packagesearch.build.config)
+    id("build-config")
 }
 
 intellij {
