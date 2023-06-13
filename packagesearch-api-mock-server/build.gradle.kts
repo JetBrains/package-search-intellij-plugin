@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
-    id("packagesearch")
+    alias(packageSearchCatalog.plugins.packagesearch.build.config)
     application
 }
 

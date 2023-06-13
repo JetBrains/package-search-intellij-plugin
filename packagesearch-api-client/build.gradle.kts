@@ -4,7 +4,7 @@ plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     alias(packageSearchCatalog.plugins.dokka)
-    id("packagesearch")
+    alias(packageSearchCatalog.plugins.packagesearch.build.config)
     `maven-publish`
 }
 

@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.plugin.kotlinToolingVersion
 plugins {
     java
     alias(packageSearchCatalog.plugins.idea.gradle.plugin)
-    id("packagesearch")
+    alias(packageSearchCatalog.plugins.packagesearch.build.config)
 }
 
 packagesearch {

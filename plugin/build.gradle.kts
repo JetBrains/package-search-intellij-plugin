@@ -3,7 +3,7 @@ plugins {
     alias(packageSearchCatalog.plugins.idea.gradle.plugin)
     alias(packageSearchCatalog.plugins.compose.desktop)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
-    id("packagesearch")
+    alias(packageSearchCatalog.plugins.packagesearch.build.config)
 }
 
 dependencies {

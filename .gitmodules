@@ -7,3 +7,9 @@
 [submodule "package-search-version-utils"]
 	path = package-search-version-utils
 	url = https://github.com/JetBrains/package-search-version-utils.git
+[submodule "packagesearch-version-catalog"]
+	path = packagesearch-version-catalog
+	url = https://github.com/lamba92/packagesearch-version-catalog
+[submodule "packagesearch-build-config"]
+	path = packagesearch-build-config
+	url = https://github.com/lamba92/packagesearch-build-config.git

@@ -4,7 +4,7 @@ plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.idea.gradle.plugin)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
-    id("packagesearch")
+    alias(packageSearchCatalog.plugins.packagesearch.build.config)
     `maven-publish`
 }
 
@@ -15,7 +15,7 @@ packagesearch {
 }
 
 dependencies {
-    api(projects.packageSearchApiClient)
+    api(projects.packagesearchApiClient)
     api(packageSearchCatalog.packagesearch.api.models)
     api(packageSearchCatalog.nitrite) {
         exclude(group = "com.fasterxml.jackson.core")
