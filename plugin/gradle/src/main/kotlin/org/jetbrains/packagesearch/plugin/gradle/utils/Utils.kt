@@ -1,16 +1,17 @@
 package org.jetbrains.packagesearch.plugin.gradle.utils
 
 import com.intellij.buildsystem.model.DeclaredDependency
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
 import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import org.jetbrains.packagesearch.plugin.core.utils.appendEscaped
+import org.jetbrains.packagesearch.plugin.core.utils.flow
 import org.jetbrains.packagesearch.plugin.gradle.GradleModelCacheEntry
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -87,3 +88,25 @@ suspend fun DeclaredDependency.evaluateDeclaredIndexes(isKts: Boolean): Dependen
 
 suspend fun PackageSearchModuleBuilderContext.getGradleModelRepository(): CoroutineObjectRepository<GradleModelCacheEntry> =
     projectCaches.getRepository<GradleModelCacheEntry>("gradle")
+
+val Project.gradleSyncNotifierFlow
+    get() = messageBus.flow(ProjectDataImportListener.TOPIC) {
+        object : ProjectDataImportListener {
+            override fun onImportFinished(projectPath: String?) {
+                trySend(Unit)
+            }
+        }
+    }
+
+val Project.dumbModeStateFlow
+    get() = messageBus.flow(DumbService.DUMB_MODE) {
+        object : DumbService.DumbModeListener {
+            override fun enteredDumbMode() {
+                trySend(true)
+            }
+
+            override fun exitDumbMode() {
+                trySend(false)
+            }
+        }
+    }

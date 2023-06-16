@@ -2,19 +2,13 @@
 
 package org.jetbrains.packagesearch.plugin.gradle
 
-import com.intellij.buildsystem.model.unified.UnifiedDependency
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.writeAction
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.toNioPath
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.subclass
-import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
@@ -256,99 +250,4 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
         return context.knownRepositories.filterKeys { it in declaredDependencies }
     }
 
-    override suspend fun updateDependencies(
-        context: ProjectContext,
-        module: PackageSearchModule,
-        installedPackages: List<PackageSearchDeclaredDependency>,
-        knownRepositories: List<ApiRepository>,
-        onlyStable: Boolean,
-    ) {
-        val updates = installedPackages
-            .filterIsInstance<PackageSearchDeclaredGradleDependency>()
-            .filter { it.declaredVersion < if (onlyStable) it.latestStableVersion else it.latestVersion }
-            .map {
-                val oldDescriptor = UnifiedDependency(
-                    groupId = it.module,
-                    artifactId = it.name,
-                    version = it.declaredVersion.versionName,
-                    configuration = it.configuration
-                )
-                val newDescriptor = UnifiedDependency(
-                    groupId = it.module,
-                    artifactId = it.name,
-                    version = if (onlyStable) it.latestStableVersion.versionName else it.latestVersion.versionName,
-                    configuration = it.configuration
-                )
-                oldDescriptor to newDescriptor
-            }
-
-        updates.forEach { (oldDescriptor, newDescriptor) ->
-            writeAction {
-                DependencyModifierService.getInstance(context.project)
-                    .updateDependency(module.getNativeModule(context), oldDescriptor, newDescriptor)
-            }
-        }
-    }
-
-    override suspend fun installDependency(
-        context: ProjectContext,
-        module: PackageSearchModule,
-        apiPackage: ApiPackage,
-        selectedVersion: String,
-    ) {
-        val mavenApiPackage = apiPackage as? ApiMavenPackage ?: return
-
-        val descriptor = UnifiedDependency(
-            groupId = mavenApiPackage.groupId,
-            artifactId = mavenApiPackage.artifactId,
-            version = selectedVersion,
-            configuration = null
-        )
-        writeAction {
-            DependencyModifierService.getInstance(context.project)
-                .addDependency(module.getNativeModule(context), descriptor)
-        }
-    }
-
-    override suspend fun removeDependency(
-        context: ProjectContext,
-        module: PackageSearchModule,
-        installedPackage: PackageSearchDeclaredDependency,
-    ) {
-        val gradleDependency = installedPackage as? PackageSearchDeclaredGradleDependency ?: return
-
-        val descriptor = UnifiedDependency(
-            groupId = gradleDependency.module,
-            artifactId = gradleDependency.name,
-            version = gradleDependency.declaredVersion.versionName,
-            configuration = gradleDependency.configuration
-        )
-
-        writeAction {
-            DependencyModifierService.getInstance(context.project)
-                .removeDependency(module.getNativeModule(context), descriptor)
-        }
-    }
 }
-
-val Project.gradleSyncNotifierFlow
-    get() = messageBus.flow(ProjectDataImportListener.TOPIC) {
-        object : ProjectDataImportListener {
-            override fun onImportFinished(projectPath: String?) {
-                trySend(Unit)
-            }
-        }
-    }
-
-val Project.dumbModeStateFlow
-    get() = messageBus.flow(DumbService.DUMB_MODE) {
-        object : DumbService.DumbModeListener {
-            override fun enteredDumbMode() {
-                trySend(true)
-            }
-
-            override fun exitDumbMode() {
-                trySend(false)
-            }
-        }
-    }

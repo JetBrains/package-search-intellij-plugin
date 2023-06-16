@@ -14,7 +14,7 @@ plugins {
 
 allprojects {
     group = "org.jetbrains.packagesearch"
-    version = "1.0.0"
+    version = "1.0.0-SNAPSHOT"
 
     repositories {
         mavenCentral()
@@ -33,7 +33,7 @@ catalog {
 
 publishing {
     repositories {
-        pkgsSpace()
+        pkgsSpace(project)
     }
     publications {
         create<MavenPublication>("versionCatalog") {

@@ -1,10 +1,14 @@
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
-
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     id("build-config")
     application
+}
+
+packagesearch {
+    publication {
+        isEnabled.set(false)
+    }
 }
 
 application {
@@ -22,4 +26,5 @@ dependencies {
     api(packageSearchCatalog.ktor.server.content.negotiation)
     api(packageSearchCatalog.logback.classic)
     api(packageSearchCatalog.packagesearch.api.models)
+    api(packageSearchCatalog.packagesearch.build.systems.models)
 }

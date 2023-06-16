@@ -9,14 +9,13 @@ import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.property
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.utils.provider
 
 abstract class PackageSearchExtension(project: Project) : ExtensionAware {
 
     abstract class Publication(project: Project) : ExtensionAware {
 
         val isEnabled = project.objects.property<Boolean>()
-            .convention(true)
+            .convention(false)
 
         val artifactId = project.objects.property<String>()
             .convention(project.name)

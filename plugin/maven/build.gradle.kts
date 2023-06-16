@@ -1,10 +1,17 @@
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
-
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.idea.gradle.plugin)
+    alias(packageSearchCatalog.plugins.dokka)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     id("build-config")
+    `maven-publish`
+}
+
+packagesearch {
+    publication {
+        isEnabled.set(true)
+        artifactId.set("packagesearch-plugin-maven")
+    }
 }
 
 intellij {

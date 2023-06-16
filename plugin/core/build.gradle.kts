@@ -1,7 +1,6 @@
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
-
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
+    alias(packageSearchCatalog.plugins.dokka)
     alias(packageSearchCatalog.plugins.idea.gradle.plugin)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     id("build-config")
@@ -10,12 +9,13 @@ plugins {
 
 packagesearch {
     publication {
+        isEnabled.set(true)
         artifactId.set("packagesearch-plugin-core")
     }
 }
 
 dependencies {
-    api(packageSearchCatalog.packagesearch.api.models)
+    api(packageSearchCatalog.packagesearch.api.client)
     api(packageSearchCatalog.nitrite) {
         exclude(group = "com.fasterxml.jackson.core")
         exclude(group = "com.squareup.okhttp3")
