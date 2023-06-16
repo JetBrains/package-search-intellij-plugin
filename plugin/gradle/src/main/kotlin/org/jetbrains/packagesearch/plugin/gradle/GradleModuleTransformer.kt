@@ -26,10 +26,7 @@ import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import org.jetbrains.packagesearch.plugin.core.nitrite.div
 import org.jetbrains.packagesearch.plugin.core.utils.*
-import org.jetbrains.packagesearch.plugin.gradle.utils.evaluateDeclaredIndexes
-import org.jetbrains.packagesearch.plugin.gradle.utils.getGradleModelRepository
-import org.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
-import org.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
+import org.jetbrains.packagesearch.plugin.gradle.utils.*
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
