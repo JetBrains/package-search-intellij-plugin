@@ -1,2 +1,4 @@
 GET http://localhost:8081/api/v3/search-packages
+Accept: application/json
+
 
