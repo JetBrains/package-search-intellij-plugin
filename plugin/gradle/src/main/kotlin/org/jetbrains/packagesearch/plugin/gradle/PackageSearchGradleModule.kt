@@ -11,11 +11,19 @@ import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import org.jetbrains.packagesearch.plugin.core.data.PackageUpdate
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.utils.getNativeModule
+
+data class GradlePackageUpdate(
+    override val installedPackage: PackageSearchDeclaredGradlePackage,
+    override val version: String?,
+    val configuration: String
+) : PackageUpdate
 
 @Serializable
 @SerialName("gradle")
@@ -24,7 +32,7 @@ data class PackageSearchGradleModule(
     override val projectDirPath: String,
     override val buildFilePath: String?,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
-    override val declaredDependencies: List<PackageSearchDeclaredDependency>,
+    override val declaredDependencies: List<PackageSearchDeclaredPackage>,
     override val defaultScope: String = "implementation",
     override val compatiblePackageTypes: List<PackagesType>,
     val packageSearchModel: PackageSearchGradleModel,
@@ -38,41 +46,40 @@ data class PackageSearchGradleModule(
 
     override suspend fun updateDependencies(
         context: ProjectContext,
-        installedPackages: List<PackageSearchDeclaredDependency>,
-        knownRepositories: List<ApiRepository>,
-        onlyStable: Boolean,
+        updateCandidates: List<PackageUpdate>,
+        knownRepositories: List<ApiRepository>
     ) {
-        val updates = installedPackages
-            .filterIsInstance<PackageSearchDeclaredGradleDependency>()
-            .filter { it.declaredVersion < if (onlyStable) it.latestStableVersion else it.latestVersion }
-            .map {
+        updateCandidates.asSequence()
+            .filterIsInstance<GradlePackageUpdate>()
+            .filter { it.version != null || it.configuration != it.installedPackage.configuration }
+            .map { (installedPackage, version, scope) ->
                 val oldDescriptor = UnifiedDependency(
-                    groupId = it.module,
-                    artifactId = it.name,
-                    version = it.declaredVersion.versionName,
-                    configuration = it.configuration
+                    groupId = installedPackage.module,
+                    artifactId = installedPackage.name,
+                    version = installedPackage.declaredVersion.versionName,
+                    configuration = installedPackage.configuration
                 )
                 val newDescriptor = UnifiedDependency(
-                    groupId = it.module,
-                    artifactId = it.name,
-                    version = if (onlyStable) it.latestStableVersion.versionName else it.latestVersion.versionName,
-                    configuration = it.configuration
+                    groupId = installedPackage.module,
+                    artifactId = installedPackage.name,
+                    version = version ?: installedPackage.declaredVersion.versionName,
+                    configuration = scope
                 )
                 oldDescriptor to newDescriptor
             }
-
-        updates.forEach { (oldDescriptor, newDescriptor) ->
-            writeAction {
-                DependencyModifierService.getInstance(context.project)
-                    .updateDependency(getNativeModule(context), oldDescriptor, newDescriptor)
+            .forEach { (oldDescriptor, newDescriptor) ->
+                writeAction {
+                    DependencyModifierService.getInstance(context.project)
+                        .updateDependency(getNativeModule(context), oldDescriptor, newDescriptor)
+                }
             }
-        }
     }
 
     override suspend fun installDependency(
         context: ProjectContext,
         apiPackage: ApiPackage,
         selectedVersion: String,
+        selectedScope: String?
     ) {
         val mavenApiPackage = apiPackage as? ApiMavenPackage ?: return
 
@@ -80,7 +87,7 @@ data class PackageSearchGradleModule(
             groupId = mavenApiPackage.groupId,
             artifactId = mavenApiPackage.artifactId,
             version = selectedVersion,
-            configuration = null
+            configuration = selectedScope
         )
         writeAction {
             DependencyModifierService.getInstance(context.project)
@@ -90,15 +97,16 @@ data class PackageSearchGradleModule(
 
     override suspend fun removeDependency(
         context: ProjectContext,
-        installedPackage: PackageSearchDeclaredDependency,
+        installedPackage: PackageSearchDeclaredPackage
     ) {
-        val gradleDependency = installedPackage as? PackageSearchDeclaredGradleDependency ?: return
+        val gradlePackage =
+            installedPackage as? PackageSearchDeclaredGradlePackage ?: return
 
         val descriptor = UnifiedDependency(
-            groupId = gradleDependency.module,
-            artifactId = gradleDependency.name,
-            version = gradleDependency.declaredVersion.versionName,
-            configuration = gradleDependency.configuration
+            groupId = gradlePackage.module,
+            artifactId = gradlePackage.name,
+            version = gradlePackage.declaredVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName,
+            configuration = gradlePackage.configuration
         )
 
         writeAction {

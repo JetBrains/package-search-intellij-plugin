@@ -4,8 +4,6 @@ package org.jetbrains.packagesearch.plugin.services
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
-import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.Serializable
@@ -15,10 +13,9 @@ import kotlinx.serialization.modules.contextual
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersionWeakCache
 import org.jetbrains.packagesearch.plugin.PackageSearchModuleBaseTransformerUtils
 import org.jetbrains.packagesearch.plugin.applyOnEach
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
-import org.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import org.jetbrains.packagesearch.plugin.utils.*
 import kotlin.time.Duration.Companion.days
 
@@ -59,7 +56,7 @@ class PackageSearchProjectService(
                     polymorphic<PackageSearchModule> {
                         transformers.applyOnEach { registerModuleSerializer() }
                     }
-                    polymorphic<PackageSearchDeclaredDependency> {
+                    polymorphic<PackageSearchDeclaredPackage> {
                         transformers.applyOnEach { registerVersionSerializer() }
                     }
                 }

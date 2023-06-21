@@ -12,11 +12,18 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import org.jetbrains.packagesearch.plugin.core.data.PackageUpdate
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.utils.getNativeModule
+
+data class MavenPackageUpdate(
+    override val installedPackage: PackageSearchDeclaredMavenPackage,
+    override val version: String?,
+    val scope: String?
+) : PackageUpdate
 
 @Serializable
 @SerialName("maven")
@@ -25,7 +32,7 @@ data class PackageSearchMavenModule(
     override val projectDirPath: String,
     override val buildFilePath: String,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
-    override val declaredDependencies: List<PackageSearchDeclaredDependency>,
+    override val declaredDependencies: List<PackageSearchDeclaredPackage>,
     override val defaultScope: String? = null,
     override val compatiblePackageTypes: List<PackagesType>
 ) : PackageSearchModule.Base {
@@ -35,43 +42,40 @@ data class PackageSearchMavenModule(
 
     override suspend fun updateDependencies(
         context: ProjectContext,
-        installedPackages: List<PackageSearchDeclaredDependency>,
-        knownRepositories: List<ApiRepository>,
-        onlyStable: Boolean
+        updateCandidates: List<PackageUpdate>,
+        knownRepositories: List<ApiRepository>
     ) {
-        val updates =
-            installedPackages.filterIsInstance<PackageSearchDeclaredMavenDependency>()
-                .filter { it.declaredVersion < if (onlyStable) it.latestStableVersion else it.latestVersion }
-                .map {
-                    val oldDescriptor = UnifiedDependency(
-                        groupId = it.groupId,
-                        artifactId = it.artifactId,
-                        version = it.declaredVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName,
-                        configuration = it.scope
-                    )
-                    val newDescriptor = UnifiedDependency(
-                        groupId = it.groupId,
-                        artifactId = it.artifactId,
-                        version = when {
-                            onlyStable -> it.latestStableVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName
-                            else -> it.latestVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName
-                        },
-                        configuration = it.scope
-                    )
-                    oldDescriptor to newDescriptor
-                }
-        updates.forEach { (oldDescriptor, newDescriptor) ->
-            writeAction {
-                DependencyModifierService.getInstance(context.project)
-                    .updateDependency(getNativeModule(context), oldDescriptor, newDescriptor)
+        updateCandidates.asSequence()
+            .filterIsInstance<MavenPackageUpdate>()
+            .filter { it.scope != null || it.version != null }
+            .map { (installedPackage, version, scope) ->
+                val oldDescriptor = UnifiedDependency(
+                    groupId = installedPackage.groupId,
+                    artifactId = installedPackage.artifactId,
+                    version = installedPackage.declaredVersion.versionName,
+                    configuration = installedPackage.scope
+                )
+                val newDescriptor = UnifiedDependency(
+                    groupId = installedPackage.groupId,
+                    artifactId = installedPackage.artifactId,
+                    version = version ?: installedPackage.declaredVersion.versionName,
+                    configuration = scope ?: installedPackage.scope
+                )
+                oldDescriptor to newDescriptor
             }
-        }
+            .forEach { (oldDescriptor, newDescriptor) ->
+                writeAction {
+                    DependencyModifierService.getInstance(context.project)
+                        .updateDependency(getNativeModule(context), oldDescriptor, newDescriptor)
+                }
+            }
     }
 
     override suspend fun installDependency(
         context: ProjectContext,
         apiPackage: ApiPackage,
-        selectedVersion: String
+        selectedVersion: String,
+        selectedScope: String?
     ) {
         val mavenApiPackage = apiPackage as? ApiMavenPackage ?: return
 
@@ -79,7 +83,7 @@ data class PackageSearchMavenModule(
             groupId = mavenApiPackage.groupId,
             artifactId = mavenApiPackage.artifactId,
             version = selectedVersion,
-            configuration = null
+            configuration = selectedScope
         )
         writeAction {
             DependencyModifierService.getInstance(context.project)
@@ -89,10 +93,10 @@ data class PackageSearchMavenModule(
 
     override suspend fun removeDependency(
         context: ProjectContext,
-        installedPackage: PackageSearchDeclaredDependency
+        installedPackage: PackageSearchDeclaredPackage
     ) {
         val mavenPackage =
-            installedPackage as? PackageSearchDeclaredMavenDependency ?: return
+            installedPackage as? PackageSearchDeclaredMavenPackage ?: return
 
         val descriptor = UnifiedDependency(
             groupId = mavenPackage.groupId,

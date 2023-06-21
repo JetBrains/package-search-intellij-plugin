@@ -25,28 +25,35 @@ sealed interface PackageSearchModule : WithIcon {
         val declaredDependencies: List<PackageSearchModuleVariant>
     }
 
-    interface Base : PackageSearchModule {
+    interface Base : PackageSearchModule, DependencyManager {
         val compatiblePackageTypes: List<PackagesType>
-        val declaredDependencies: List<PackageSearchDeclaredDependency>
+        val declaredDependencies: List<PackageSearchDeclaredPackage>
     }
 
+}
+
+interface DependencyManager {
     suspend fun updateDependencies(
         context: ProjectContext,
-        installedPackages: List<PackageSearchDeclaredDependency>,
-        knownRepositories: List<ApiRepository>,
-        onlyStable: Boolean,
+        updateCandidates: List<PackageUpdate>,
+        knownRepositories: List<ApiRepository>
     )
 
     suspend fun installDependency(
         context: ProjectContext,
         apiPackage: ApiPackage,
         selectedVersion: String,
+        selectedScope: String? = null
     )
 
     suspend fun removeDependency(
         context: ProjectContext,
-        installedPackage: PackageSearchDeclaredDependency,
+        installedPackage: PackageSearchDeclaredPackage,
     )
+}
 
+interface PackageUpdate {
+    val installedPackage: PackageSearchDeclaredPackage
+    val version: String?
 }
 

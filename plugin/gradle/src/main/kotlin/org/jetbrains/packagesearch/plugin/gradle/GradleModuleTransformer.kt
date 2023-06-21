@@ -17,7 +17,7 @@ import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.api.v3.search.libraryElements
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
@@ -56,8 +56,8 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
         subclass(PackageSearchGradleModule.serializer())
     }
 
-    override fun PolymorphicModuleBuilder<PackageSearchDeclaredDependency>.registerVersionSerializer() {
-        subclass(PackageSearchDeclaredGradleDependency.serializer())
+    override fun PolymorphicModuleBuilder<PackageSearchDeclaredPackage>.registerVersionSerializer() {
+        subclass(PackageSearchDeclaredGradlePackage.serializer())
     }
 
     private fun getModuleChangesFlow(
@@ -109,7 +109,6 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
                     model.isKotlinJvmApplied -> gradlePackages {
                         mustBeRootPublication = true
                         variant {
-                            mustHaveFilesAttribute = false
                             javaApi()
                             javaRuntime()
                             libraryElements("jar")
@@ -120,7 +119,6 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
                         gradlePackages {
                             mustBeRootPublication = true
                             variant {
-                                mustHaveFilesAttribute = false
                                 javaApi()
                                 javaRuntime()
                                 libraryElements("aar")
@@ -129,7 +127,6 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
                         gradlePackages {
                             mustBeRootPublication = true
                             variant {
-                                mustHaveFilesAttribute = false
                                 javaApi()
                                 javaRuntime()
                                 libraryElements("jar")
@@ -202,7 +199,7 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
     private suspend fun Module.getDeclaredDependencies(
         context: PackageSearchModuleBuilderContext,
         isKts: Boolean,
-    ): List<PackageSearchDeclaredDependency> {
+    ): List<PackageSearchDeclaredPackage> {
         val declaredDependencies = readAction {
             DependencyModifierService.getInstance(context.project).declaredDependencies(this)
         }
@@ -212,7 +209,7 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
             .distinct().map { ApiPackage.hashPackageId(it) }.toSet().let { context.getPackageInfoByIdHashes(it) }
 
         return declaredDependencies.associateBy { it.packageId }.mapNotNull { (packageId, declaredDependency) ->
-            PackageSearchDeclaredGradleDependency(
+            PackageSearchDeclaredGradlePackage(
                 id = packageId,
                 declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
                 latestStableVersion = remoteInfo[packageId]?.versions

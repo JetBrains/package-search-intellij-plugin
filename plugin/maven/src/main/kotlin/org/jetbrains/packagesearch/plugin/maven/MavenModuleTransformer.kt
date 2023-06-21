@@ -16,7 +16,7 @@ import org.jetbrains.packagesearch.api.v3.search.buildPackagesType
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredDependency
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
@@ -41,8 +41,8 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
         subclass(PackageSearchMavenModule.serializer())
     }
 
-    override fun PolymorphicModuleBuilder<PackageSearchDeclaredDependency>.registerVersionSerializer() {
-        subclass(PackageSearchDeclaredMavenDependency.serializer())
+    override fun PolymorphicModuleBuilder<PackageSearchDeclaredPackage>.registerVersionSerializer() {
+        subclass(PackageSearchDeclaredMavenPackage.serializer())
     }
 
     private fun getModuleChangesFlow(context: ProjectContext, pomPath: String): Flow<Unit> = merge(
@@ -84,17 +84,13 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
         nativeModule: NativeModule,
     ): Flow<PackageSearchModule?> =
         flow {
-            val mavenProject = context.project.findMavenProjectFor(nativeModule)
-            if (mavenProject == null) {
-                emit(null)
-                return@flow
-            }
+            val mavenProject = context.project.findMavenProjectFor(nativeModule) ?: return@flow
             emit(nativeModule.toPackageSearch(context, mavenProject))
             getModuleChangesFlow(context, mavenProject.file.path)
                 .collect { emit(nativeModule.toPackageSearch(context, mavenProject)) }
         }
 
-    private suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderContext): List<PackageSearchDeclaredDependency> {
+    private suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderContext): List<PackageSearchDeclaredPackage> {
         val declaredDependencies = readAction {
             DependencyModifierService.getInstance(context.project)
                 .declaredDependencies(this)
@@ -112,7 +108,7 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
         return declaredDependencies
             .associateBy { it.packageId }
             .mapNotNull { (packageId, declaredDependency) ->
-                PackageSearchDeclaredMavenDependency(
+                PackageSearchDeclaredMavenPackage(
                     id = packageId,
                     declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
                     latestStableVersion = remoteInfo[packageId]?.versions

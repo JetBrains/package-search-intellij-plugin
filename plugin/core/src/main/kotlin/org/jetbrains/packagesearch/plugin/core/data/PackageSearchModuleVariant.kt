@@ -3,9 +3,9 @@ package org.jetbrains.packagesearch.plugin.core.data
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
-interface PackageSearchModuleVariant : WithIcon {
+interface PackageSearchModuleVariant : WithIcon, DependencyManager {
     val name: String
-    val declaredDependencies: List<PackageSearchDeclaredDependency>
+    val declaredDependencies: List<PackageSearchDeclaredPackage>
     val badges: List<Badge>
     val compatiblePackageTypes: List<PackagesType>
 
