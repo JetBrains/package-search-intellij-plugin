@@ -18,42 +18,49 @@ sealed interface PackageSearchModule : WithIcon {
     val projectDirPath: String
     val buildFilePath: String?
     val declaredKnownRepositories: Map<String, ApiRepository>
-    val defaultScope: String?
+    val availableScopes: List<String>
 
     interface WithVariants : PackageSearchModule {
-        val variantTerminology: String
         val declaredDependencies: List<PackageSearchModuleVariant>
     }
 
-    interface Base : PackageSearchModule, DependencyManager {
+    interface Base : PackageSearchModule {
+        val defaultScope: String?
         val compatiblePackageTypes: List<PackagesType>
         val declaredDependencies: List<PackageSearchDeclaredPackage>
     }
 
 }
 
-interface DependencyManager {
+interface PackageSearchDependencyManager {
+
     suspend fun updateDependencies(
         context: ProjectContext,
-        updateCandidates: List<PackageUpdate>,
+        data: List<UpdatePackageData>,
         knownRepositories: List<ApiRepository>
     )
 
     suspend fun installDependency(
         context: ProjectContext,
-        apiPackage: ApiPackage,
-        selectedVersion: String,
-        selectedScope: String? = null
+        data: InstallPackageData
     )
 
     suspend fun removeDependency(
         context: ProjectContext,
-        installedPackage: PackageSearchDeclaredPackage,
+        data: RemovePackageData
     )
 }
 
-interface PackageUpdate {
+interface UpdatePackageData {
     val installedPackage: PackageSearchDeclaredPackage
-    val version: String?
+    val newVersion: String?
 }
 
+interface InstallPackageData {
+    val apiPackage: ApiPackage
+    val selectedVersion: String
+}
+
+interface RemovePackageData {
+    val declaredPackage: PackageSearchDeclaredPackage
+}

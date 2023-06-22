@@ -1,7 +1,7 @@
 plugins {
-    alias(packageSearchCatalog.plugins.kotlin.jvm)
+    id(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
-    id("build-config")
+    `build-config`
     application
 }
 

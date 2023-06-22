@@ -10,7 +10,7 @@ import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationI
 
 @Serializable
 @SerialName("gradle-version")
-data class PackageSearchDeclaredGradlePackage(
+data class PackageSearchGradleDeclaredPackage(
     override val id: String,
     override val declaredVersion: NormalizedVersion,
     override val latestStableVersion: NormalizedVersion,

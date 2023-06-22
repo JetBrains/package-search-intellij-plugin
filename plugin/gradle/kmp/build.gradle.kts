@@ -15,11 +15,12 @@ packagesearch {
 }
 
 intellij {
-    plugins.addAll("org.jetbrains.plugins.gradle")
+    plugins.addAll(
+        "org.jetbrains.plugins.gradle",
+        "org.jetbrains.idea.gradle.dsl"
+    )
 }
 
 dependencies {
-    api(projects.plugin.gradle.tooling)
-    api(projects.plugin.core)
-    api(packageSearchCatalog.kotlinx.serialization.core)
+    api(projects.plugin.gradle)
 }

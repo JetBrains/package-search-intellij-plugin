@@ -64,18 +64,8 @@ private fun Dependency.toApiModel() = version?.let {
     )
 }
 
-fun PackageBuildFiles.toGradleApiPackage(): ApiPackage = ApiGradlePackage(
-    id = "maven:${gradleMetadata.component.group}:${gradleMetadata.component.module}",
-    idHash = ApiPackage.hashPackageId("maven:${gradleMetadata.component.group}:${gradleMetadata.component.module}"),
-    name = gradleMetadata.component.module,
-    description = null,
-    authors = pom.developers.map { it.toApiModel() },
-    scmUrl = pom.scm?.url,
-    licenses = pom.licenses.toApiModel(),
-    rankingMetric = 20.0,
-    groupId = gradleMetadata.component.group,
-    artifactId = gradleMetadata.component.module,
-    versions = listOf(
+fun PackageBuildFiles.toGradleApiPackage(): ApiPackage {
+    val versions = listOf(
         GradleVersion(
             normalized = NormalizedVersion.from(gradleMetadata.component.version, Clock.System.now()),
             repositoryIds = listOf("maven-central"),
@@ -89,7 +79,24 @@ fun PackageBuildFiles.toGradleApiPackage(): ApiPackage = ApiGradlePackage(
             artifacts = emptyList()
         )
     )
-)
+    return ApiGradlePackage(
+        id = "maven:${gradleMetadata.component.group}:${gradleMetadata.component.module}",
+        idHash = ApiPackage.hashPackageId("maven:${gradleMetadata.component.group}:${gradleMetadata.component.module}"),
+        name = gradleMetadata.component.module,
+        description = null,
+        authors = pom.developers.map { it.toApiModel() },
+        scmUrl = pom.scm?.url,
+        licenses = pom.licenses.toApiModel(),
+        rankingMetric = 20.0,
+        groupId = gradleMetadata.component.group,
+        artifactId = gradleMetadata.component.module,
+        versions = VersionsContainer(
+            latestStable = versions.first(),
+            latest = versions.first(),
+            all = versions
+        )
+    )
+}
 
 private fun List<License>.toApiModel() = first().toApiModel()?.let {
     Licenses(

@@ -25,20 +25,7 @@ inline fun <T> Iterable<T>.applyOnEach(action: T.() -> Unit) =
 
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val service = project.PackageSearchProjectService
-        service.coroutineScope.launch {
-            service.modules
-                .filterIsInstance<ModulesState.Ready>()
-                .combine(service.jsonFLow) { modules, json ->
-                    json.encodeToString(modules)
-                }
-                .collect { text ->
-                    withContext(Dispatchers.IO) {
-                        File("C:\\Users\\lamba\\IdeaProjects\\pkgs-v2\\modules.json")
-                            .writeText(text)
-                    }
-                }
-        }
+
     }
 }
 

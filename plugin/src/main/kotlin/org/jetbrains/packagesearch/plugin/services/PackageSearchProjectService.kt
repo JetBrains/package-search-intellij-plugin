@@ -14,7 +14,9 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 import org.jetbrains.packagesearch.plugin.PackageSearchModuleBaseTransformerUtils
 import org.jetbrains.packagesearch.plugin.applyOnEach
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import org.jetbrains.packagesearch.plugin.utils.*
 import kotlin.time.Duration.Companion.days
@@ -47,23 +49,6 @@ class PackageSearchProjectService(
             }
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
-    val jsonFLow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
-        .map { transformers ->
-            Json {
-                prettyPrint = true
-                serializersModule = SerializersModule {
-                    contextual(NormalizedVersionWeakCache)
-                    polymorphic<PackageSearchModule> {
-                        transformers.applyOnEach { registerModuleSerializer() }
-                    }
-                    polymorphic<PackageSearchDeclaredPackage> {
-                        transformers.applyOnEach { registerVersionSerializer() }
-                    }
-                }
-            }
-        }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Json)
-
     val modules = combine(
         project.getNativeModulesStateFlow(coroutineScope),
         PackageSearchModuleBaseTransformerUtils.extensionsFlow,
@@ -82,10 +67,7 @@ class PackageSearchProjectService(
 
 }
 
-@Serializable
 sealed interface ModulesState {
-    @Serializable
     object Loading : ModulesState
-    @Serializable
-    data class Ready(val modules: List<PackageSearchModule>) : ModulesState
+    data class Ready(val modules: List<PackageSearchModuleData>) : ModulesState
 }

@@ -10,7 +10,7 @@ plugins {
 packagesearch {
     publication {
         isEnabled.set(true)
-        artifactId.set("packagesearch-plugin-gradle")
+        artifactId.set("packagesearch-plugin-gradle-base")
     }
 }
 
@@ -19,7 +19,5 @@ intellij {
 }
 
 dependencies {
-    api(projects.plugin.gradle.tooling)
-    api(projects.plugin.core)
-    api(packageSearchCatalog.kotlinx.serialization.core)
+    api(projects.plugin.gradle)
 }

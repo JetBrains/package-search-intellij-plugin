@@ -22,11 +22,12 @@ include(
     ":plugin:core",
     ":plugin:maven",
     ":plugin:gradle",
+    ":plugin:gradle:base",
+    ":plugin:gradle:kmp",
     ":plugin:gradle:tooling",
     ":packagesearch-api-mock-server",
 )
 
-includeBuild("build-config")
 
 includeBuild("jewel") {
     dependencySubstitution {

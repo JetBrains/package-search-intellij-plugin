@@ -1,10 +1,10 @@
 plugins {
-    alias(packageSearchCatalog.plugins.kotlin.jvm)
-    alias(packageSearchCatalog.plugins.idea.gradle.plugin)
-    alias(packageSearchCatalog.plugins.dokka)
+    id(packageSearchCatalog.plugins.kotlin.jvm)
+    id(packageSearchCatalog.plugins.idea.gradle.plugin)
+    id(packageSearchCatalog.plugins.dokka)
     alias(packageSearchCatalog.plugins.compose.desktop)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
-    id("build-config")
+    `build-config`
     `maven-publish`
 }
 

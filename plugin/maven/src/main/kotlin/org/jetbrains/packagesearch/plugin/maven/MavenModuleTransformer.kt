@@ -16,15 +16,12 @@ import org.jetbrains.packagesearch.api.v3.search.buildPackagesType
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import org.jetbrains.packagesearch.plugin.core.data.*
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
-import org.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
-import org.jetbrains.packagesearch.plugin.core.utils.mapUnit
-import org.jetbrains.packagesearch.plugin.core.utils.packageId
-import org.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
+import org.jetbrains.packagesearch.plugin.core.utils.*
 import com.intellij.openapi.module.Module as NativeModule
 
 
@@ -35,34 +32,30 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
             get() = System.getenv("M2_HOME")
                 ?.let { "$it/conf/settings.xml".toNioPath() }
                 ?: System.getProperty("user.home").plus("/.m2/settings.xml").toNioPath()
-    }
 
-    override fun PolymorphicModuleBuilder<PackageSearchModule>.registerModuleSerializer() {
-        subclass(PackageSearchMavenModule.serializer())
-    }
-
-    override fun PolymorphicModuleBuilder<PackageSearchDeclaredPackage>.registerVersionSerializer() {
-        subclass(PackageSearchDeclaredMavenPackage.serializer())
+        val commonScopes = listOf("compile", "provided", "runtime", "test", "system", "import")
     }
 
     private fun getModuleChangesFlow(context: ProjectContext, pomPath: String): Flow<Unit> = merge(
         watchExternalFileChanges(mavenSettingsFilePath),
         context.project.filesChangedEventFlow
             .flatMapLatest { it.map { it.path }.asFlow() }
-            .filter {
-                val r = it == pomPath
-                r
-            }
+            .filter { it == pomPath }
             .mapUnit()
     )
 
-    private suspend fun Module.toPackageSearch(context: PackageSearchModuleBuilderContext, mavenProject: MavenProject) =
-        PackageSearchMavenModule(
+    private suspend fun Module.toPackageSearch(
+        context: PackageSearchModuleBuilderContext,
+        mavenProject: MavenProject
+    ): PackageSearchMavenModule {
+        val declaredDependencies = getDeclaredDependencies(context)
+        return PackageSearchMavenModule(
             name = mavenProject.name ?: name,
             projectDirPath = mavenProject.path.removeSuffix("/pom.xml"),
             buildFilePath = mavenProject.file.path,
             declaredKnownRepositories = getDeclaredKnownRepositories(context),
-            declaredDependencies = getDeclaredDependencies(context),
+            declaredDependencies = declaredDependencies,
+            availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.scope }).distinct(),
             compatiblePackageTypes = buildPackagesType {
                 mavenPackages()
                 gradlePackages {
@@ -78,19 +71,9 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
                 }
             },
         )
+    }
 
-    override fun buildModule(
-        context: PackageSearchModuleBuilderContext,
-        nativeModule: NativeModule,
-    ): Flow<PackageSearchModule?> =
-        flow {
-            val mavenProject = context.project.findMavenProjectFor(nativeModule) ?: return@flow
-            emit(nativeModule.toPackageSearch(context, mavenProject))
-            getModuleChangesFlow(context, mavenProject.file.path)
-                .collect { emit(nativeModule.toPackageSearch(context, mavenProject)) }
-        }
-
-    private suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderContext): List<PackageSearchDeclaredPackage> {
+    private suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderContext): List<PackageSearchDeclaredMavenPackage> {
         val declaredDependencies = readAction {
             DependencyModifierService.getInstance(context.project)
                 .declaredDependencies(this)
@@ -111,16 +94,9 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
                 PackageSearchDeclaredMavenPackage(
                     id = packageId,
                     declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
-                    latestStableVersion = remoteInfo[packageId]?.versions
-                        ?.asSequence()
-                        ?.map { it.normalized }
-                        ?.filter { it.isStable }
-                        ?.maxOrNull()
+                    latestStableVersion = remoteInfo[packageId]?.versions?.latestStable?.normalized
                         ?: NormalizedVersion.Missing,
-                    latestVersion = remoteInfo[packageId]?.versions
-                        ?.asSequence()
-                        ?.map { it.normalized }
-                        ?.maxOrNull()
+                    latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized
                         ?: NormalizedVersion.Missing,
                     remoteInfo = remoteInfo[packageId],
                     groupId = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
@@ -140,5 +116,22 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
         return context.knownRepositories.filterKeys { it in declaredDependencies }
     }
 
+    override fun buildModule(
+        context: PackageSearchModuleBuilderContext,
+        nativeModule: NativeModule,
+    ): Flow<PackageSearchModuleData?> =
+        flow {
+            val mavenProject = context.project.findMavenProjectFor(nativeModule) ?: return@flow
+            emit(nativeModule.toPackageSearch(context, mavenProject))
+            getModuleChangesFlow(context, mavenProject.file.path)
+                .collect { emit(nativeModule.toPackageSearch(context, mavenProject)) }
+        }
+            .map {
+                PackageSearchModuleData(
+                    module = it,
+                    nativeModule = nativeModule,
+                    dependencyManager = PackageSearchMavenDependencyManager(nativeModule)
+                )
+            }
 }
 

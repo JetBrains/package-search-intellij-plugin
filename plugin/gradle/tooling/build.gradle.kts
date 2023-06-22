@@ -1,7 +1,7 @@
 plugins {
     java
-    alias(packageSearchCatalog.plugins.idea.gradle.plugin)
-    id("build-config")
+    id(packageSearchCatalog.plugins.idea.gradle.plugin)
+    `build-config`
     `maven-publish`
 }
 

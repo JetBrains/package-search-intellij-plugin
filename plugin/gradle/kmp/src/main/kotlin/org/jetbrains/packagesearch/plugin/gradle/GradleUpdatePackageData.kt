@@ -10,34 +10,30 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
-import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.core.data.PackageUpdate
+import org.jetbrains.packagesearch.plugin.core.data.*
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.utils.getNativeModule
 
-data class GradlePackageUpdate(
-    override val installedPackage: PackageSearchDeclaredGradlePackage,
+data class GradleUpdatePackageData(
+    override val installedPackage: PackageSearchGradleDeclaredPackage,
     override val version: String?,
     val configuration: String
-) : PackageUpdate
+) : UpdatePackageData
 
 @Serializable
 @SerialName("gradle")
-data class PackageSearchGradleModule(
+data class PackageSearchKotlinMultiplatformModule(
     override val name: String,
     override val projectDirPath: String,
     override val buildFilePath: String?,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
-    override val declaredDependencies: List<PackageSearchDeclaredPackage>,
-    override val defaultScope: String = "implementation",
-    override val compatiblePackageTypes: List<PackagesType>,
+    override val defaultScope: String?,
+    override val availableScopes: List<String>,
     val packageSearchModel: PackageSearchGradleModel,
     val availableKnownRepositories: Map<String, ApiRepository>
-) : PackageSearchModule.Base {
+) : PackageSearchModule.WithVariants {
     override val icon
         get() = Icons.GRADLE
 
@@ -46,11 +42,11 @@ data class PackageSearchGradleModule(
 
     override suspend fun updateDependencies(
         context: ProjectContext,
-        updateCandidates: List<PackageUpdate>,
+        updateCandidates: List<UpdatePackageData>,
         knownRepositories: List<ApiRepository>
     ) {
         updateCandidates.asSequence()
-            .filterIsInstance<GradlePackageUpdate>()
+            .filterIsInstance<GradleUpdatePackageData>()
             .filter { it.version != null || it.configuration != it.installedPackage.configuration }
             .map { (installedPackage, version, scope) ->
                 val oldDescriptor = UnifiedDependency(
@@ -100,7 +96,7 @@ data class PackageSearchGradleModule(
         installedPackage: PackageSearchDeclaredPackage
     ) {
         val gradlePackage =
-            installedPackage as? PackageSearchDeclaredGradlePackage ?: return
+            installedPackage as? PackageSearchGradleDeclaredPackage ?: return
 
         val descriptor = UnifiedDependency(
             groupId = gradlePackage.module,

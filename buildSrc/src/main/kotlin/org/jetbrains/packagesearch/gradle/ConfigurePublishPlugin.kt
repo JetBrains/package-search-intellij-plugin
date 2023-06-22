@@ -4,6 +4,7 @@ package org.jetbrains.packagesearch.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
@@ -75,8 +76,11 @@ fun RepositoryHandler.pkgsSpace(project: Project) {
         name = "Space"
         setUrl("https://packages.jetbrains.team/maven/p/kpm/public")
         credentials {
-            username = System.getenv("MAVEN_SPACE_USERNAME") ?: project.extra["space.username"]?.toString()
-            password = System.getenv("MAVEN_SPACE_PASSWORD") ?: project.extra["space.password"]?.toString()
+            username = System.getenv("MAVEN_SPACE_USERNAME") ?: project.extra.getStringOrNull("space.username")
+            password = System.getenv("MAVEN_SPACE_PASSWORD") ?: project.extra.getStringOrNull("space.password")
         }
     }
 }
+
+fun ExtraPropertiesExtension.getStringOrNull(key: String) =
+        runCatching { get(key)?.toString() }.getOrNull()

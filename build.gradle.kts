@@ -3,13 +3,9 @@ import org.jetbrains.packagesearch.gradle.pkgsSpace
 import org.jetbrains.packagesearch.gradle.withType
 
 plugins {
-    alias(packageSearchCatalog.plugins.kotlin.jvm) apply false
-    alias(packageSearchCatalog.plugins.kotlin.multiplatform) apply false
-    alias(packageSearchCatalog.plugins.dokka) apply false
-    alias(packageSearchCatalog.plugins.idea.gradle.plugin) apply false
     `version-catalog`
     `maven-publish`
-    id("build-config")
+    `build-config`
 }
 
 allprojects {

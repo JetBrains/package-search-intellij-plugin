@@ -7,8 +7,12 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import org.jetbrains.packagesearch.plugin.core.utils.appendEscaped
 import org.jetbrains.packagesearch.plugin.core.utils.flow
@@ -16,6 +20,8 @@ import org.jetbrains.packagesearch.plugin.gradle.GradleModelCacheEntry
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 val Module.isGradleSourceSet: Boolean
     get() {
@@ -98,9 +104,9 @@ val Project.gradleSyncNotifierFlow
         }
     }
 
-val Project.dumbModeStateFlow
+val Project.dumbModeStateFlow: Flow<Boolean>
     get() = messageBus.flow(DumbService.DUMB_MODE) {
-        object : DumbService.DumbModeListener {
+        val l = object : DumbService.DumbModeListener {
             override fun enteredDumbMode() {
                 trySend(true)
             }
@@ -109,4 +115,6 @@ val Project.dumbModeStateFlow
                 trySend(false)
             }
         }
+        trySend(DumbService.getInstance(this@dumbModeStateFlow).isDumb)
+        l
     }

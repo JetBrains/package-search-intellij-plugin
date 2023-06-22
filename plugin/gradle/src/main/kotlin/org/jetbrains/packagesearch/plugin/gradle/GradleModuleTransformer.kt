@@ -7,20 +7,14 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.modules.PolymorphicModuleBuilder
-import kotlinx.serialization.modules.subclass
-import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
-import org.jetbrains.packagesearch.api.v3.search.buildPackagesType
-import org.jetbrains.packagesearch.api.v3.search.javaApi
-import org.jetbrains.packagesearch.api.v3.search.javaRuntime
-import org.jetbrains.packagesearch.api.v3.search.libraryElements
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
@@ -28,15 +22,12 @@ import org.jetbrains.packagesearch.plugin.core.nitrite.div
 import org.jetbrains.packagesearch.plugin.core.utils.*
 import org.jetbrains.packagesearch.plugin.gradle.utils.*
 import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
-import kotlin.io.path.extension
 import com.intellij.openapi.module.Module as NativeModule
 
+abstract class BaseGradleModuleTransformer : PackageSearchModuleTransformer {
 
-class GradleModuleTransformer : PackageSearchModuleTransformer {
-
-    companion object Utils {
+    companion object {
 
         val gradleHomePathString: String
             get() = System.getenv("GRADLE_HOME") ?: System.getProperty("user.home")
@@ -50,102 +41,92 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
         val knownGradleAncillaryFilesFiles
             get() = listOf("gradle.properties", "local.properties", "gradle/libs.versions.toml")
 
-    }
+        val commonConfigurations = setOf(
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly",
+            "testImplementation",
+            "testCompileOnly",
+            "testRuntimeOnly",
+            "annotationProcessor",
+            "detektPlugins",
+            "kapt",
+            "ksp",
+            "androidTestImplementation",
+            "androidTestCompileOnly",
+            "androidTestRuntimeOnly"
+        )
 
-    override fun PolymorphicModuleBuilder<PackageSearchModule>.registerModuleSerializer() {
-        subclass(PackageSearchGradleModule.serializer())
-    }
-
-    override fun PolymorphicModuleBuilder<PackageSearchDeclaredPackage>.registerVersionSerializer() {
-        subclass(PackageSearchDeclaredGradlePackage.serializer())
-    }
-
-    private fun getModuleChangesFlow(
-        context: ProjectContext,
-        buildFile: String?,
-    ): Flow<Unit> {
-        val allFiles = if (buildFile != null) {
-            knownGradleAncillaryFilesFiles + buildFile
-        } else {
-            knownGradleAncillaryFilesFiles
+        fun getModuleChangesFlow(
+            context: ProjectContext,
+            buildFile: String?,
+        ): Flow<Unit> {
+            val allFiles = if (buildFile != null) {
+                knownGradleAncillaryFilesFiles + buildFile
+            } else {
+                knownGradleAncillaryFilesFiles
+            }
+            val buildFileChanges = context
+                .project
+                .filesChangedEventFlow
+                .flatMapLatest { it.map { it.path }.asFlow() }
+                .filter { filePath -> allFiles.any { filePath.endsWith(it) } }
+                .mapUnit()
+            return merge(
+                watchExternalFileChanges(globalGradlePropertiesPath),
+                buildFileChanges
+            )
         }
-        val buildFileChanges = context
-            .project
-            .filesChangedEventFlow
-            .flatMapLatest { it.map { it.path }.asFlow() }
-            .filter { filePath -> allFiles.any { filePath.endsWith(it) } }
-            .mapUnit()
-        return merge(
-            watchExternalFileChanges(globalGradlePropertiesPath),
-            buildFileChanges
-        )
-    }
 
-    private suspend fun Module.toPackageSearch(
-        context: PackageSearchModuleBuilderContext,
-        model: PackageSearchGradleModel,
-        buildFile: Path?,
-    ): PackageSearchGradleModule {
-        val availableKnownRepositories =
-            model.repositories.toSet().let { availableGradleRepositories ->
-                context.knownRepositories.filterValues {
-                    it is ApiMavenRepository && it.alternateUrls.intersect(availableGradleRepositories).isNotEmpty()
-                }
+        suspend fun NativeModule.getDeclaredKnownRepositories(
+            context: PackageSearchModuleBuilderContext,
+        ): Map<String, ApiRepository> {
+            val declaredDependencies = readAction {
+                DependencyModifierService.getInstance(project).declaredRepositories(this)
+            }.mapNotNull { it.id }
+            return context.knownRepositories.filterKeys { it in declaredDependencies }
+        }
+
+        suspend fun Module.getDeclaredDependencies(
+            context: PackageSearchModuleBuilderContext,
+            isKts: Boolean,
+        ): List<PackageSearchGradleDeclaredPackage> {
+            val declaredDependencies = readAction {
+                DependencyModifierService.getInstance(context.project)
+                    .declaredDependencies(this)
             }
 
-        val isKts = buildFile?.extension == "kts"
+            val remoteInfo = declaredDependencies.asSequence()
+                .filter { it.coordinates.artifactId != null && it.coordinates.groupId != null }.map { it.packageId }
+                .distinct().map { ApiPackage.hashPackageId(it) }.toSet().let { context.getPackageInfoByIdHashes(it) }
 
-        return PackageSearchGradleModule(
-            name = model.projectName,
-            projectDirPath = model.projectDir,
-            buildFilePath = buildFile?.absolutePathString(),
-            declaredKnownRepositories = getDeclaredKnownRepositories(context),
-            declaredDependencies = getDeclaredDependencies(context, isKts),
-            availableKnownRepositories = availableKnownRepositories,
-            packageSearchModel = model,
-            compatiblePackageTypes = buildPackagesType {
-                mavenPackages()
-                when {
-                    model.isKotlinJvmApplied -> gradlePackages {
-                        mustBeRootPublication = true
-                        variant {
-                            javaApi()
-                            javaRuntime()
-                            libraryElements("jar")
-                        }
-                    }
-
-                    model.isKotlinAndroidApplied -> {
-                        gradlePackages {
-                            mustBeRootPublication = true
-                            variant {
-                                javaApi()
-                                javaRuntime()
-                                libraryElements("aar")
-                            }
-                        }
-                        gradlePackages {
-                            mustBeRootPublication = true
-                            variant {
-                                javaApi()
-                                javaRuntime()
-                                libraryElements("jar")
-                            }
-                        }
-                    }
-
-                    else -> gradlePackages {
-                        mustBeRootPublication = true
-                    }
-                }
+            return declaredDependencies.associateBy { it.packageId }.mapNotNull { (packageId, declaredDependency) ->
+                PackageSearchGradleDeclaredPackage(
+                    id = packageId,
+                    declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
+                    latestStableVersion = remoteInfo[packageId]?.versions?.latestStable?.normalized
+                        ?: NormalizedVersion.Missing,
+                    latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized
+                        ?: NormalizedVersion.Missing,
+                    remoteInfo = remoteInfo[packageId],
+                    icon = Icons.GRADLE,
+                    module = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
+                    name = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,
+                    configuration = declaredDependency.unifiedDependency.scope ?: error(
+                        "No scope available for ${declaredDependency.unifiedDependency}" + " in module $name"
+                    ),
+                    declarationIndexes = declaredDependency.evaluateDeclaredIndexes(isKts),
+                )
             }
-        )
+        }
+
     }
 
     override fun buildModule(
         context: PackageSearchModuleBuilderContext,
         nativeModule: NativeModule,
-    ): Flow<PackageSearchModule?> = when {
+    ): Flow<PackageSearchModuleData?> = when {
         nativeModule.isGradleSourceSet -> flowOf(null)
         else -> merge(
             flowOf(Unit),
@@ -191,57 +172,14 @@ class GradleModuleTransformer : PackageSearchModuleTransformer {
                 }
             }
             .map { (model, buildFile) ->
-                nativeModule.toPackageSearch(context, model, buildFile)
+                nativeModule.transform(context, model, buildFile)
             }
     }
 
-
-    private suspend fun Module.getDeclaredDependencies(
+    abstract suspend fun Module.transform(
         context: PackageSearchModuleBuilderContext,
-        isKts: Boolean,
-    ): List<PackageSearchDeclaredPackage> {
-        val declaredDependencies = readAction {
-            DependencyModifierService.getInstance(context.project).declaredDependencies(this)
-        }
-
-        val remoteInfo = declaredDependencies.asSequence()
-            .filter { it.coordinates.artifactId != null && it.coordinates.groupId != null }.map { it.packageId }
-            .distinct().map { ApiPackage.hashPackageId(it) }.toSet().let { context.getPackageInfoByIdHashes(it) }
-
-        return declaredDependencies.associateBy { it.packageId }.mapNotNull { (packageId, declaredDependency) ->
-            PackageSearchDeclaredGradlePackage(
-                id = packageId,
-                declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
-                latestStableVersion = remoteInfo[packageId]?.versions
-                    ?.asSequence()
-                    ?.map { it.normalized }
-                    ?.filter { it.isStable }
-                    ?.maxOrNull()
-                    ?: NormalizedVersion.Missing,
-                latestVersion = remoteInfo[packageId]?.versions
-                    ?.asSequence()
-                    ?.map { it.normalized }
-                    ?.maxOrNull()
-                    ?: NormalizedVersion.Missing,
-                remoteInfo = remoteInfo[packageId],
-                icon = Icons.GRADLE,
-                module = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
-                name = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,
-                configuration = declaredDependency.unifiedDependency.scope ?: error(
-                    "No scope available for ${declaredDependency.unifiedDependency}" + " in module $name"
-                ),
-                declarationIndexes = declaredDependency.evaluateDeclaredIndexes(isKts),
-            )
-        }
-    }
-
-    private suspend fun NativeModule.getDeclaredKnownRepositories(
-        context: PackageSearchModuleBuilderContext,
-    ): Map<String, ApiRepository> {
-        val declaredDependencies = readAction {
-            DependencyModifierService.getInstance(project).declaredRepositories(this)
-        }.mapNotNull { it.id }
-        return context.knownRepositories.filterKeys { it in declaredDependencies }
-    }
+        model: PackageSearchGradleModel,
+        buildFile: Path?
+    ): PackageSearchModuleData
 
 }

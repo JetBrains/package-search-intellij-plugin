@@ -1,7 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-rootProject.name = "packagesearch-build-config"
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()

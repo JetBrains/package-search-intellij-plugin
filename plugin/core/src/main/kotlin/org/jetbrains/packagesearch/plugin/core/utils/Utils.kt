@@ -90,7 +90,8 @@ fun <T> Flow<T>.mapUnit(): Flow<Unit> =
 val DeclaredDependency.packageId: String
     get() = "maven:${coordinates.groupId}:${coordinates.artifactId}"
 
-fun PackageSearchModule.getNativeModule(context: ProjectContext) = context.project.modules.find { it.moduleFile?.path == projectDirPath }
+fun PackageSearchModule.getNativeModule(context: ProjectContext) =
+    context.project.modules.find { it.moduleFile?.path == projectDirPath }
     ?: error("Could not find native module for PackageSearchModule $name of type ${this::class.simpleName}")
 
 fun <T : Any> ExtensionPointName<T>.extensionsFlow(
