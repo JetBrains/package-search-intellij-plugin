@@ -13,7 +13,7 @@ import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 @SerialName("gradle")
 data class PackageSearchGradleModule(
     override val name: String,
-    override val projectDirPath: String,
+    override val identityPath: List<String>,
     override val buildFilePath: String?,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
     override val declaredDependencies: List<PackageSearchGradleDeclaredPackage>,

@@ -1,16 +1,18 @@
 package org.jetbrains.packagesearch.plugin.utils
 
 import com.intellij.openapi.project.Project
-import com.intellij.util.flow.debounceBatch
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesProvider
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
 import java.util.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 suspend fun <T> windowedBuilderContext(
@@ -115,3 +117,21 @@ private data class Response(
     val packages: Map<String, ApiPackage>,
 )
 
+fun <T> Flow<T>.debounceBatch(duration: Duration): Flow<List<T>> = channelFlow {
+    val mutex = Mutex()
+    val buffer = mutableListOf<T>()
+    var job: Job? = null
+    collect {
+        mutex.withLock {
+            buffer.add(it)
+            job?.cancel()
+            job = launch {
+                delay(duration)
+                mutex.withLock {
+                    send(buffer.toList())
+                    buffer.clear()
+                }
+            }
+        }
+    }
+}

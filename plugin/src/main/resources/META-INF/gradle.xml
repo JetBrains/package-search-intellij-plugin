@@ -1,7 +1,5 @@
 <idea-plugin implementation-detail="true">
 
-    <depends optional="true" config-file="kmp.xml">intellij.android.gradle.dsl</depends>
-
     <extensions defaultExtensionNs="org.jetbrains.packagesearch.v2">
         <moduleTransformer
                 implementation="org.jetbrains.packagesearch.plugin.gradle.GradleModuleTransformer"/>

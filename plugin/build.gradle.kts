@@ -20,6 +20,6 @@ dependencies {
     implementation(packageSearchCatalog.packagesearch.api.models)
     compileOnly(packageSearchCatalog.kotlinx.serialization.core)
     implementation(projects.plugin.maven)
-    implementation(projects.plugin.gradle)
+    implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.core)
 }

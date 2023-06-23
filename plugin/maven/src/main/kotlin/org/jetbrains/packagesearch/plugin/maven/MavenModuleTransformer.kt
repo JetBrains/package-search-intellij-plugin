@@ -49,7 +49,6 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
         val declaredDependencies = getDeclaredDependencies(context)
         return PackageSearchMavenModule(
             name = mavenProject.name ?: name,
-            projectDirPath = mavenProject.path.removeSuffix("/pom.xml"),
             buildFilePath = mavenProject.file.path,
             declaredKnownRepositories = getDeclaredKnownRepositories(context),
             declaredDependencies = declaredDependencies,
@@ -127,7 +126,6 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
             .map {
                 PackageSearchModuleData(
                     module = it,
-                    nativeModule = nativeModule,
                     dependencyManager = PackageSearchMavenDependencyManager(nativeModule)
                 )
             }

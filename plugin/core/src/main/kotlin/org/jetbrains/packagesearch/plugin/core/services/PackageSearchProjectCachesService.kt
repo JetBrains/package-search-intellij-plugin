@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
 import io.ktor.util.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.job
 import org.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import org.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import kotlin.io.path.absolutePathString
@@ -22,4 +23,5 @@ class PackageSearchProjectCachesService(project: Project, coroutineScope: Corout
 
     suspend inline fun <reified T : Any> getRepository(key: String) =
         cache.await().getRepository<T>(key)
+
 }

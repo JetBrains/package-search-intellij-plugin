@@ -3,6 +3,7 @@ package org.jetbrains.packagesearch.plugin.core.nitrite
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.job
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
@@ -75,4 +76,7 @@ fun CoroutineScope.buildDefaultNitrate(
         .compressed()
         .openOrCreate()
         .asCoroutine()
+        .also { n ->
+            this@buildDefaultNitrate.coroutineContext.job.invokeOnCompletion { n.synchronous.close() }
+        }
 }

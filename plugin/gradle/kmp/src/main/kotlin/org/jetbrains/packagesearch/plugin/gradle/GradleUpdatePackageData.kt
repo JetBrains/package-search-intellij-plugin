@@ -35,7 +35,7 @@ data class KotlinMultiplatformRemovePackageData(
 @SerialName("kotlinMultiplatform")
 data class PackageSearchKotlinMultiplatformModule(
     override val name: String,
-    override val projectDirPath: String,
+    override val identityPath: List<String>,
     override val buildFilePath: String?,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
     override val defaultScope: String?,

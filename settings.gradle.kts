@@ -18,14 +18,15 @@ dependencyResolutionManagement {
 }
 
 include(
+    ":packagesearch-api-mock-server",
     ":plugin",
     ":plugin:core",
-    ":plugin:maven",
     ":plugin:gradle",
     ":plugin:gradle:base",
     ":plugin:gradle:kmp",
     ":plugin:gradle:tooling",
-    ":packagesearch-api-mock-server",
+    ":plugin:maven",
+    "kmp-modifier",
 )
 
 

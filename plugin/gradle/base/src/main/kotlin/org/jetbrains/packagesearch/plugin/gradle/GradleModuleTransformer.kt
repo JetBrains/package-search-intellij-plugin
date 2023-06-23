@@ -3,7 +3,6 @@
 package org.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.NlsSafe
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.javaApi
@@ -37,7 +36,7 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
         val availableScopes = generateAvailableScope(declaredDependencies, configurationNames)
         val packageSearchGradleModule = PackageSearchGradleModule(
             name = model.projectName,
-            projectDirPath = model.projectDir,
+            identityPath = model.projectIdentityPath.split(":").dropWhile { it.isBlank() },
             buildFilePath = buildFile?.absolutePathString(),
             declaredKnownRepositories = getDeclaredKnownRepositories(context),
             declaredDependencies = declaredDependencies,

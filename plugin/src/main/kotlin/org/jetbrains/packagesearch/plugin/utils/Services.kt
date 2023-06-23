@@ -14,8 +14,5 @@ val Application.PackageSearchApiClientService
 val Application.PackageSearchApplicationCachesService
     get() = service<PackageSearchApplicationCachesService>()
 
-val Project.PackageSearchProjectCachesService
-    get() = service<PackageSearchProjectCachesService>()
-
 val Project.PackageSearchProjectService
     get() = service<PackageSearchProjectService>()

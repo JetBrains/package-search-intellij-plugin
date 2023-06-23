@@ -15,7 +15,7 @@ import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 sealed interface PackageSearchModule : WithIcon {
 
     val name: String
-    val projectDirPath: String
+    val identityPath: List<String>
     val buildFilePath: String?
     val declaredKnownRepositories: Map<String, ApiRepository>
     val availableScopes: List<String>

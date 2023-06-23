@@ -30,7 +30,6 @@ data class MavenRemovePackageData(
 @SerialName("maven")
 data class PackageSearchMavenModule(
     override val name: String,
-    override val projectDirPath: String,
     override val buildFilePath: String,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
     override val declaredDependencies: List<PackageSearchDeclaredBaseMavenPackage>,
@@ -42,4 +41,5 @@ data class PackageSearchMavenModule(
     override val icon
         get() = Icons.MAVEN
 
+    override val identityPath = listOf(name)
 }

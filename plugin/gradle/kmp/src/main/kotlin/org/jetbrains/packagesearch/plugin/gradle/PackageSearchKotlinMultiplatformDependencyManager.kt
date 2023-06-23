@@ -45,7 +45,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
                     }
                 }
             }
-        baseDependencyManager.updateDependencies(context, dependencyBlockUpdates, knownRepositories)
+        baseDependencyManager.updateGradleDependencies(context, dependencyBlockUpdates, knownRepositories)
         mppModifier.updateDependencies(nativeModule, sourceSetsUpdates)
     }
 
@@ -106,9 +106,9 @@ class PackageSearchKotlinMultiplatformDependencyManager(
         when (kmpData.apiPackage) {
             is ApiMavenPackage -> when (variant) {
                 is PackageSearchKotlinMultiplatformVariant.Cocoapods -> TODO()
-                is PackageSearchKotlinMultiplatformVariant.DependenciesBlock -> baseDependencyManager.installDependency(
-                    context,
-                    GradleInstallPackageData(
+                is PackageSearchKotlinMultiplatformVariant.DependenciesBlock -> baseDependencyManager.installGradleDependencies(
+                    context = context,
+                    data = GradleInstallPackageData(
                         apiPackage = kmpData.apiPackage,
                         selectedVersion = kmpData.selectedVersion,
                         selectedConfiguration = kmpData.selectedConfiguration
@@ -134,7 +134,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
         when (variant) {
             is PackageSearchKotlinMultiplatformVariant.Cocoapods -> TODO()
             is PackageSearchKotlinMultiplatformVariant.DependenciesBlock -> when (kmpData.declaredPackage) {
-                is PackageSearchKotlinMultiplatformDeclaredDependency.Maven -> baseDependencyManager.removeDependency(
+                is PackageSearchKotlinMultiplatformDeclaredDependency.Maven -> baseDependencyManager.removeGradleDependencies(
                     context = context,
                     data = GradleRemovePackageData(kmpData.declaredPackage)
                 )

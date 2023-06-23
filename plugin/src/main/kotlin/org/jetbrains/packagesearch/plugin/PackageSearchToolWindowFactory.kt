@@ -25,7 +25,11 @@ inline fun <T> Iterable<T>.applyOnEach(action: T.() -> Unit) =
 
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-
+        project.PackageSearchProjectService.coroutineScope.launch {
+            project.PackageSearchProjectService.modules.collect {
+                println(it)
+            }
+        }
     }
 }
 

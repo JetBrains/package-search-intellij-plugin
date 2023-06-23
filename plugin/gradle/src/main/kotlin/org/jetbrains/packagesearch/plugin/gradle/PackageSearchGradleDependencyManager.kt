@@ -18,12 +18,12 @@ class PackageSearchGradleDependencyManager(
     private val nativeModule: Module
 ) : PackageSearchDependencyManager {
 
-    suspend fun updateDependencies(
+    suspend fun updateGradleDependencies(
         context: ProjectContext,
-        gradleData: List<GradleUpdatePackageData>,
+        data: List<GradleUpdatePackageData>,
         knownRepositories: List<ApiRepository>
     ) {
-        val updates = gradleData.filter { it.newVersion != null || it.newConfiguration != it.installedPackage.scope }
+        val updates = data.filter { it.newVersion != null || it.newConfiguration != it.installedPackage.scope }
             .map { (installedPackage, version, scope) ->
                 val oldDescriptor = UnifiedDependency(
                     groupId = installedPackage.groupId,
@@ -52,9 +52,9 @@ class PackageSearchGradleDependencyManager(
         context: ProjectContext,
         data: List<UpdatePackageData>,
         knownRepositories: List<ApiRepository>
-    ) = updateDependencies(
+    ) = updateGradleDependencies(
         context = context,
-        gradleData = data.filterIsInstance<GradleUpdatePackageData>(),
+        data = data.filterIsInstance<GradleUpdatePackageData>(),
         knownRepositories = knownRepositories
     )
 
@@ -63,17 +63,16 @@ class PackageSearchGradleDependencyManager(
         data: InstallPackageData
     ) {
         val gradleData = data as? GradleInstallPackageData ?: return
-        installDependency(gradleData, data, context)
+        installGradleDependencies(context, data)
     }
 
-    suspend fun installDependency(
-        gradleData: GradleInstallPackageData,
+    suspend fun installGradleDependencies(
+        context: ProjectContext,
         data: GradleInstallPackageData,
-        context: ProjectContext
     ) {
         val descriptor = UnifiedDependency(
-            groupId = gradleData.apiPackage.groupId,
-            artifactId = gradleData.apiPackage.artifactId,
+            groupId = data.apiPackage.groupId,
+            artifactId = data.apiPackage.artifactId,
             version = data.selectedVersion,
             configuration = data.selectedConfiguration
         )
@@ -88,18 +87,18 @@ class PackageSearchGradleDependencyManager(
         data: RemovePackageData
     ) {
         val gradleData = data as? GradleRemovePackageData ?: return
-        removeDependency(gradleData, context)
+        removeGradleDependencies(context, gradleData)
     }
 
-    suspend fun removeDependency(
-        gradleData: GradleRemovePackageData,
-        context: ProjectContext
+    suspend fun removeGradleDependencies(
+        context: ProjectContext,
+        data: GradleRemovePackageData
     ) {
         val descriptor = UnifiedDependency(
-            groupId = gradleData.declaredPackage.groupId,
-            artifactId = gradleData.declaredPackage.artifactId,
-            version = gradleData.declaredPackage.declaredVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName,
-            configuration = gradleData.declaredPackage.scope
+            groupId = data.declaredPackage.groupId,
+            artifactId = data.declaredPackage.artifactId,
+            version = data.declaredPackage.declaredVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName,
+            configuration = data.declaredPackage.scope
         )
 
         writeAction {

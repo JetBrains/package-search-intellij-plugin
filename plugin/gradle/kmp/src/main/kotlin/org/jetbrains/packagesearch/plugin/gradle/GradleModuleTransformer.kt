@@ -34,7 +34,7 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
                 .asKmpVariantDependencies()
         val module = PackageSearchKotlinMultiplatformModule(
             name = model.projectName,
-            projectDirPath = model.projectDir,
+            identityPath = model.projectIdentityPath.split(":").dropWhile { it.isBlank() },
             buildFilePath = buildFile?.absolutePathString(),
             declaredKnownRepositories = context.knownRepositories - DependencyModifierService
                 .getInstance(context.project)
