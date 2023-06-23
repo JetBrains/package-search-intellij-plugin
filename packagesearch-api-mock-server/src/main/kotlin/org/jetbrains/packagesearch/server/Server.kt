@@ -17,9 +17,9 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.packagesearch.api.v3.*
-import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithAvailableAt
+import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.*
+import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.Attribute.Companion
 import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithAvailableAt.AvailableAt
-import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.ApiVariant.WithFiles
 import org.jetbrains.packagesearch.api.v3.ApiGradlePackage.GradleVersion
 import org.jetbrains.packagesearch.api.v3.Licenses
 import org.jetbrains.packagesearch.gradle.File
@@ -65,8 +65,8 @@ private fun Dependency.toApiModel() = version?.let {
 }
 
 fun PackageBuildFiles.toGradleApiPackage(): ApiPackage {
-    val versions = listOf(
-        GradleVersion(
+    val versions = mapOf(
+        gradleMetadata.component.version to GradleVersion(
             normalized = NormalizedVersion.from(gradleMetadata.component.version, Clock.System.now()),
             repositoryIds = listOf("maven-central"),
             vulnerability = Vulnerability(
@@ -91,8 +91,8 @@ fun PackageBuildFiles.toGradleApiPackage(): ApiPackage {
         groupId = gradleMetadata.component.group,
         artifactId = gradleMetadata.component.module,
         versions = VersionsContainer(
-            latestStable = versions.first(),
-            latest = versions.first(),
+            latestStable = versions.values.first(),
+            latest = versions.values.first(),
             all = versions
         )
     )
@@ -118,11 +118,10 @@ private fun Developer.toApiModel() = Author(
     org = organization
 )
 
-
 fun Variant.toApiModel(): ApiGradlePackage.ApiVariant = when {
     availableAt != null -> WithAvailableAt(
         name = name,
-        attributes = attributes ?: emptyMap(),
+        attributes = attributes?.toApiAttributes() ?: emptyMap(),
         availableAt = AvailableAt(
             url = availableAt!!.url,
             group = availableAt!!.group,
@@ -133,10 +132,14 @@ fun Variant.toApiModel(): ApiGradlePackage.ApiVariant = when {
 
     else -> WithFiles(
         name = name,
-        attributes = attributes ?: emptyMap(),
+        attributes = attributes?.toApiAttributes() ?: emptyMap(),
         dependencies = dependencies?.map { it.toApiModel() } ?: emptyList(),
         files = files?.map { it.toApiModel() } ?: emptyList()
     )
+}
+
+fun Map<String, String>.toApiAttributes() = mapValues { (name, value) ->
+    Attribute.create(name, value)
 }
 
 fun GradleMetadataDependency.toApiModel() =
@@ -146,7 +149,7 @@ fun GradleMetadataDependency.toApiModel() =
         version.requires
     )
 
-fun File.toApiModel() = ApiGradlePackage.ApiVariant.File(
+fun File.toApiModel() = File(
     name = name,
     url = url,
     size = size.toLong(),

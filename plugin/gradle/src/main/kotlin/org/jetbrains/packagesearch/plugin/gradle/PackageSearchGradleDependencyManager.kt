@@ -15,51 +15,67 @@ import org.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 
 class PackageSearchGradleDependencyManager(
-    private val packageSearchGradleModule: PackageSearchGradleModule,
     private val nativeModule: Module
 ) : PackageSearchDependencyManager {
-    override suspend fun updateDependencies(
+
+    suspend fun updateDependencies(
         context: ProjectContext,
-        data: List<UpdatePackageData>,
+        gradleData: List<GradleUpdatePackageData>,
         knownRepositories: List<ApiRepository>
     ) {
-        data.asSequence()
-            .filterIsInstance<GradleUpdatePackageData>()
-            .filter { it.newVersion != null || it.configuration != it.installedPackage.configuration }
+        val updates = gradleData.filter { it.newVersion != null || it.newConfiguration != it.installedPackage.scope }
             .map { (installedPackage, version, scope) ->
                 val oldDescriptor = UnifiedDependency(
-                    groupId = installedPackage.module,
-                    artifactId = installedPackage.name,
+                    groupId = installedPackage.groupId,
+                    artifactId = installedPackage.artifactId,
                     version = installedPackage.declaredVersion.versionName,
-                    configuration = installedPackage.configuration
+                    configuration = installedPackage.scope
                 )
                 val newDescriptor = UnifiedDependency(
-                    groupId = installedPackage.module,
-                    artifactId = installedPackage.name,
+                    groupId = installedPackage.groupId,
+                    artifactId = installedPackage.artifactId,
                     version = version ?: installedPackage.declaredVersion.versionName,
                     configuration = scope
                 )
                 oldDescriptor to newDescriptor
             }
-            .forEach { (oldDescriptor, newDescriptor) ->
-                writeAction {
-                    DependencyModifierService.getInstance(context.project)
-                        .updateDependency(nativeModule, oldDescriptor, newDescriptor)
-                }
+        writeAction {
+            updates.forEach { (oldDescriptor, newDescriptor) ->
+                DependencyModifierService.getInstance(context.project)
+                    .updateDependency(nativeModule, oldDescriptor, newDescriptor)
             }
+        }
+
     }
+
+    override suspend fun updateDependencies(
+        context: ProjectContext,
+        data: List<UpdatePackageData>,
+        knownRepositories: List<ApiRepository>
+    ) = updateDependencies(
+        context = context,
+        gradleData = data.filterIsInstance<GradleUpdatePackageData>(),
+        knownRepositories = knownRepositories
+    )
 
     override suspend fun installDependency(
         context: ProjectContext,
         data: InstallPackageData
     ) {
         val gradleData = data as? GradleInstallPackageData ?: return
+        installDependency(gradleData, data, context)
+    }
 
+    suspend fun installDependency(
+        gradleData: GradleInstallPackageData,
+        data: GradleInstallPackageData,
+        context: ProjectContext
+    ) {
         val descriptor = UnifiedDependency(
             groupId = gradleData.apiPackage.groupId,
             artifactId = gradleData.apiPackage.artifactId,
             version = data.selectedVersion,
-            configuration = data.configuration
+            configuration = data.selectedConfiguration
         )
         writeAction {
             DependencyModifierService.getInstance(context.project)
@@ -72,12 +88,18 @@ class PackageSearchGradleDependencyManager(
         data: RemovePackageData
     ) {
         val gradleData = data as? GradleRemovePackageData ?: return
+        removeDependency(gradleData, context)
+    }
 
+    suspend fun removeDependency(
+        gradleData: GradleRemovePackageData,
+        context: ProjectContext
+    ) {
         val descriptor = UnifiedDependency(
-            groupId = gradleData.declaredPackage.module,
-            artifactId = gradleData.declaredPackage.name,
+            groupId = gradleData.declaredPackage.groupId,
+            artifactId = gradleData.declaredPackage.artifactId,
             version = gradleData.declaredPackage.declaredVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName,
-            configuration = gradleData.configuration
+            configuration = gradleData.declaredPackage.scope
         )
 
         writeAction {

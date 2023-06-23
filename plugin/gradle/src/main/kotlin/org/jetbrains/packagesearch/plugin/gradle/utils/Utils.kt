@@ -7,21 +7,20 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.NlsSafe
+import com.intellij.psi.PsiElement
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import org.jetbrains.packagesearch.plugin.core.utils.appendEscaped
 import org.jetbrains.packagesearch.plugin.core.utils.flow
+import org.jetbrains.packagesearch.plugin.gradle.BaseGradleModuleTransformer
 import org.jetbrains.packagesearch.plugin.gradle.GradleModelCacheEntry
+import org.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 val Module.isGradleSourceSet: Boolean
     get() {
@@ -36,12 +35,26 @@ val Module.gradleIdentityPathOrNull: String?
         ?.gradleIdentityPathOrNull
 
 suspend fun DeclaredDependency.evaluateDeclaredIndexes(isKts: Boolean): DependencyDeclarationIndexes? {
-    val artifactId = coordinates.artifactId ?: return null
-    val groupId = coordinates.groupId ?: return null
-    val configuration = unifiedDependency.scope ?: return null
+    return dependencyDeclarationIndexes(
+        groupId = coordinates.groupId ?: return null,
+        artifactId = coordinates.artifactId ?: return null,
+        version = coordinates.version?.takeIf { it.isNotEmpty() && it.isNotBlank() },
+        isKts = isKts,
+        configuration = unifiedDependency.scope ?: return null,
+        psiElement = psiElement
+    )
+}
+
+suspend fun dependencyDeclarationIndexes(
+    groupId: String,
+    artifactId:String,
+    version: String?,
+    isKts: Boolean,
+    configuration: String,
+    psiElement: PsiElement?
+): DependencyDeclarationIndexes? {
     var currentPsi = psiElement ?: return null
     val isKotlinDependencyInKts = isKts && artifactId.startsWith("kotlin-")
-    val version = coordinates.version?.takeIf { it.isNotEmpty() && it.isNotBlank() }
 
     val regexText = buildString {
         when {
@@ -80,7 +93,8 @@ suspend fun DeclaredDependency.evaluateDeclaredIndexes(isKts: Boolean): Dependen
         val groups = compiledRegex.find(readAction { currentPsi.text })?.groups
         if (!groups.isNullOrEmpty()) {
             val coordinatesStartIndex = groups[1]?.range?.start?.let { currentPsi.textOffset + it } ?: error(
-                "Cannot find coordinatesStartIndex for dependency $coordinates " + "in ${currentPsi.containingFile.virtualFile.path}"
+                "Cannot find coordinatesStartIndex for dependency '$groupId:$artifactId:$version' " +
+                        "in ${currentPsi.containingFile.virtualFile.path}"
             )
             return DependencyDeclarationIndexes(wholeDeclarationStartIndex = currentPsi.textOffset,
                 coordinatesStartIndex = coordinatesStartIndex,
@@ -118,3 +132,14 @@ val Project.dumbModeStateFlow: Flow<Boolean>
         trySend(DumbService.getInstance(this@dumbModeStateFlow).isDumb)
         l
     }
+
+fun generateAvailableScope(
+    declaredDependencies: List<PackageSearchGradleDeclaredPackage>,
+    configurationNames: List<String>
+): List<String> {
+    val usedConfigurations = declaredDependencies.map { it.configuration }
+    return BaseGradleModuleTransformer.commonConfigurations
+        .filter { it !in configurationNames }
+        .plus(usedConfigurations)
+        .distinct()
+}

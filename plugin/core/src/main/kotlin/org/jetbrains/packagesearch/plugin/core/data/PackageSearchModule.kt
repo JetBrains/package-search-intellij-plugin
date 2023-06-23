@@ -22,7 +22,7 @@ sealed interface PackageSearchModule : WithIcon {
     val defaultScope: String?
 
     interface WithVariants : PackageSearchModule {
-        val variants: List<PackageSearchModuleVariant>
+        val variants: Map<String, PackageSearchModuleVariant>
     }
 
     interface Base : PackageSearchModule {

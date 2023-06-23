@@ -3,13 +3,15 @@
 package org.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.NlsSafe
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
-import org.jetbrains.packagesearch.api.v3.search.buildPackagesType
+import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.api.v3.search.libraryElements
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
+import org.jetbrains.packagesearch.plugin.gradle.utils.generateAvailableScope
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.extension
@@ -32,7 +34,7 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
 
         val configurationNames = model.configurations.map { name }
         val declaredDependencies = getDeclaredDependencies(context, isKts)
-        val usedConfigurations = declaredDependencies.map { it.configuration }
+        val availableScopes = generateAvailableScope(declaredDependencies, configurationNames)
         val packageSearchGradleModule = PackageSearchGradleModule(
             name = model.projectName,
             projectDirPath = model.projectDir,
@@ -42,11 +44,8 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
             availableKnownRepositories = availableKnownRepositories,
             packageSearchModel = model,
             defaultScope = "implementation".takeIf { it in configurationNames },
-            availableScopes = commonConfigurations
-                .filter { it !in configurationNames }
-                .plus(usedConfigurations)
-                .distinct(),
-            compatiblePackageTypes = buildPackagesType {
+            availableScopes = availableScopes,
+            compatiblePackageTypes = buildPackageTypes {
                 mavenPackages()
                 when {
                     model.isKotlinJvmApplied -> gradlePackages {
@@ -85,7 +84,7 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
         )
         return PackageSearchModuleData(
             module = packageSearchGradleModule,
-            dependencyManager = PackageSearchGradleDependencyManager(packageSearchGradleModule, this)
+            dependencyManager = PackageSearchGradleDependencyManager(this)
         )
     }
 

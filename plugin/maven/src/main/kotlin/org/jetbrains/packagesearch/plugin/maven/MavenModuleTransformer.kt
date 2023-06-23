@@ -7,12 +7,10 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.modules.PolymorphicModuleBuilder
-import kotlinx.serialization.modules.subclass
 import org.jetbrains.idea.maven.project.MavenProject
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
-import org.jetbrains.packagesearch.api.v3.search.buildPackagesType
+import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -56,7 +54,7 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
             declaredKnownRepositories = getDeclaredKnownRepositories(context),
             declaredDependencies = declaredDependencies,
             availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.scope }).distinct(),
-            compatiblePackageTypes = buildPackagesType {
+            compatiblePackageTypes = buildPackageTypes {
                 mavenPackages()
                 gradlePackages {
                     mustBeRootPublication = false
@@ -73,7 +71,7 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
         )
     }
 
-    private suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderContext): List<PackageSearchDeclaredMavenPackage> {
+    private suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderContext): List<PackageSearchDeclaredBaseMavenPackage> {
         val declaredDependencies = readAction {
             DependencyModifierService.getInstance(context.project)
                 .declaredDependencies(this)
@@ -91,7 +89,7 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
         return declaredDependencies
             .associateBy { it.packageId }
             .mapNotNull { (packageId, declaredDependency) ->
-                PackageSearchDeclaredMavenPackage(
+                PackageSearchDeclaredBaseMavenPackage(
                     id = packageId,
                     declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
                     latestStableVersion = remoteInfo[packageId]?.versions?.latestStable?.normalized

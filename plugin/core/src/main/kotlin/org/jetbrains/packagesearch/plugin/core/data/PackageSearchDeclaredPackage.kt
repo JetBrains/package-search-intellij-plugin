@@ -12,3 +12,9 @@ interface PackageSearchDeclaredPackage : WithIcon {
     val remoteInfo: ApiPackage?
     val declarationIndexes: DependencyDeclarationIndexes?
 }
+
+interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {
+    val groupId: String
+    val artifactId: String
+    val scope: String?
+}

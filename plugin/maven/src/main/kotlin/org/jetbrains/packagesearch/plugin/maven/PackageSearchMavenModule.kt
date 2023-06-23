@@ -11,7 +11,7 @@ import org.jetbrains.packagesearch.plugin.core.data.*
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 
 data class MavenUpdatePackageData(
-    override val installedPackage: PackageSearchDeclaredMavenPackage,
+    override val installedPackage: PackageSearchDeclaredBaseMavenPackage,
     override val newVersion: String?,
     val newScope: String? = null
 ) : UpdatePackageData
@@ -23,7 +23,7 @@ data class MavenInstallPackageData(
 ) : InstallPackageData
 
 data class MavenRemovePackageData(
-    override val declaredPackage: PackageSearchDeclaredMavenPackage
+    override val declaredPackage: PackageSearchDeclaredBaseMavenPackage
 ) : RemovePackageData
 
 @Serializable
@@ -33,7 +33,7 @@ data class PackageSearchMavenModule(
     override val projectDirPath: String,
     override val buildFilePath: String,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
-    override val declaredDependencies: List<PackageSearchDeclaredPackage>,
+    override val declaredDependencies: List<PackageSearchDeclaredBaseMavenPackage>,
     override val defaultScope: String? = null,
     override val availableScopes: List<String>,
     override val compatiblePackageTypes: List<PackagesType>

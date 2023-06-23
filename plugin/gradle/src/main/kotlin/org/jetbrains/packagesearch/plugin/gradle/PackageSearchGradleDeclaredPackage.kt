@@ -4,6 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType
 import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
@@ -21,4 +22,11 @@ data class PackageSearchGradleDeclaredPackage(
     val module: String,
     val name: String,
     val configuration: String
-) : PackageSearchDeclaredPackage
+) : PackageSearchDeclaredMavenPackage {
+    override val groupId: String
+        get() = module
+    override val artifactId: String
+        get() = name
+    override val scope: String
+        get() = configuration
+}
