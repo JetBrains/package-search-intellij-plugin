@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package org.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.buildsystem.model.unified.UnifiedDependency

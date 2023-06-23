@@ -23,3 +23,5 @@ dependencies {
     api(projects.plugin.core)
     api(packageSearchCatalog.kotlinx.serialization.core)
 }
+
+//con
