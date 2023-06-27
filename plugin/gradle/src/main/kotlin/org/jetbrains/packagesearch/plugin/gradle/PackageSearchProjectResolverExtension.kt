@@ -40,6 +40,7 @@ internal fun PackageSearchGradleJavaModel.toKotlin() = PackageSearchGradleModel(
     repositories = repositoryUrls,
     isKotlinJvmApplied = isKotlinJvmApplied,
     isKotlinAndroidApplied = isKotlinAndroidApplied,
-    isKotlinMultiplatformApplied = isKotlinMultiplatformApplied
+    isKotlinMultiplatformApplied = isKotlinMultiplatformApplied,
+    rootProjectName = rootProjectName
 )
 

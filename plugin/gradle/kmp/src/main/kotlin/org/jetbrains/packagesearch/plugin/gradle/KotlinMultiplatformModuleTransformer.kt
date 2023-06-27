@@ -15,13 +15,14 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.plugin.gradle.utils.dependencyDeclarationIndexes
+import org.jetbrains.packagesearch.plugin.gradle.utils.listOf
 import org.jetbrains.plugins.gradle.mpp.MppCompilationInfoModel.Compilation
 import org.jetbrains.plugins.gradle.mpp.MppCompilationInfoProvider
 import org.jetbrains.plugins.gradle.mpp.MppDependencyModificator
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
-class GradleModuleTransformer : BaseGradleModuleTransformer() {
+class KotlinMultiplatformModuleTransformer : BaseGradleModuleTransformer() {
 
     override suspend fun Module.transform(
         context: PackageSearchModuleBuilderContext,
@@ -34,7 +35,7 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
                 .asKmpVariantDependencies()
         val module = PackageSearchKotlinMultiplatformModule(
             name = model.projectName,
-            identityPath = model.projectIdentityPath.split(":").dropWhile { it.isBlank() },
+            identityPath = listOf(model.rootProjectName, model.projectIdentityPath.split(":").dropWhile { it.isBlank() }),
             buildFilePath = buildFile?.absolutePathString(),
             declaredKnownRepositories = context.knownRepositories - DependencyModifierService
                 .getInstance(context.project)
@@ -48,8 +49,8 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
             availableKnownRepositories = context.knownRepositories
         )
         return PackageSearchModuleData(
-            module,
-            PackageSearchKotlinMultiplatformDependencyManager(module, this)
+            module = module,
+            dependencyManager = PackageSearchKotlinMultiplatformDependencyManager(module, this)
         )
     }
 

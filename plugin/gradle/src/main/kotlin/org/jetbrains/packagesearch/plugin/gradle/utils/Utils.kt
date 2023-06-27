@@ -143,3 +143,8 @@ fun generateAvailableScope(
         .plus(usedConfigurations)
         .distinct()
 }
+
+fun <T> listOf(item: T, items: List<T>) = buildList {
+    add(item)
+    addAll(items)
+}

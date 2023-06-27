@@ -59,6 +59,7 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
         return new PackageSearchGradleJavaModelImpl(
                 project.getProjectDir().getAbsolutePath(),
                 project.getName(),
+                project.getRootProject().getName(),
                 projectIdentityPath,
                 configurations,
                 repositories,

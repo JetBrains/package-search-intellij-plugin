@@ -12,6 +12,8 @@ public interface PackageSearchGradleJavaModel extends Serializable {
 
     List<String> getRepositoryUrls();
 
+    String getRootProjectName();
+
     boolean isKotlinJvmApplied();
     boolean isKotlinAndroidApplied();
     boolean isKotlinMultiplatformApplied();
