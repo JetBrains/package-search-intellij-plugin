@@ -10,7 +10,7 @@ plugins {
 packagesearch {
     publication {
         isEnabled.set(true)
-        artifactId.set("packagesearch-plugin-gradle")
+        artifactId.set("packagesearch-plugin-gradle-core")
     }
 }
 
