@@ -4,13 +4,14 @@ job("Publish Snapshots") {
             branch("lamberto.basti/dev")
         }
     }
-    startOn {
-        gitPush {
-            pathFilter {
-                branch("lamberto.basti/dev")
-            }
-        }
-    }
+//    startOn {
+//        gitPush {
+//            enabled = true
+//            pathFilter {
+//                branch("lamberto.basti/dev")
+//            }
+//        }
+//    }
 
     gradlew("eclipse-temurin:17", "publish") {
         env["IS_SNAPSHOT"] = "true"
