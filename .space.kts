@@ -1,9 +1,4 @@
 job("Publish Snapshots") {
-
-    git {
-        build()
-    }
-
     startOn {
         gitPush {
             enabled = true
