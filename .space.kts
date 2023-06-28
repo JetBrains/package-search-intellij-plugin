@@ -4,14 +4,15 @@ job("Publish Snapshots") {
             branch("lamberto.basti/dev")
         }
     }
-//    startOn {
-//        gitPush {
-//            enabled = true
-//            pathFilter {
-//                branch("lamberto.basti/dev")
-//            }
-//        }
-//    }
+    startOn {
+        gitPush {
+            enabled = true
+            pathFilter {
+                branch("lamberto.basti/dev")
+                branch("main")
+            }
+        }
+    }
 
     gradlew("eclipse-temurin:17", "publish") {
         env["IS_SNAPSHOT"] = "true"
@@ -23,7 +24,7 @@ job("Publish Snapshots") {
 }
 
 fun RefSpecs.branch(name: String) =
-    "/refs/head/${name.removePrefix("/")}".unaryPlus()
+    "/refs/heads/${name.removePrefix("/")}".unaryPlus()
 
 fun PathFilter.branch(name: String) =
-    "/refs/head/${name.removePrefix("/")}".unaryPlus()
+    "/refs/heads/${name.removePrefix("/")}".unaryPlus()
