@@ -52,7 +52,7 @@ val isCi
 gradleEnterprise {
     buildScan {
         server = "https://ge.labs.jb.gg/"
-        accessKey = System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY")
+        accessKey = System.getenv("GRADLE_ENTERPRISE_KEY")
             ?: extra.properties["gradleEnterpriseAccessKey"]?.toString()
         publishAlwaysIf(isCi)
     }
