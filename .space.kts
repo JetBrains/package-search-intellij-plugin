@@ -12,7 +12,7 @@ job("Publish Snapshots") {
             }
         }
     }
-    gradlew("eclipse-temurin:17", ":plugins:core:publish") {
+    gradlew("eclipse-temurin:17", "publish") {
         env["IS_SNAPSHOT"] = "true"
         env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"
         env["MAVEN_SPACE_PASSWORD"] = "{{ project:jetbrains_team_registry_key }}"
