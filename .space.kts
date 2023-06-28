@@ -1,15 +1,15 @@
 job("Publish Snapshots") {
+
     git {
-        refSpec {
-            branch("lamberto.basti/dev")
-        }
+        build()
     }
+
     startOn {
         gitPush {
             enabled = true
-            pathFilter {
-                branch("lamberto.basti/dev")
-                branch("main")
+            anyBranchMatching {
+                +"lamberto.basti/dev"
+                +"main"
             }
         }
     }
@@ -22,9 +22,3 @@ job("Publish Snapshots") {
         env["CI"] = "true"
     }
 }
-
-fun RefSpecs.branch(name: String) =
-    "/refs/heads/${name.removePrefix("/")}".unaryPlus()
-
-fun PathFilter.branch(name: String) =
-    "/refs/heads/${name.removePrefix("/")}".unaryPlus()
