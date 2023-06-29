@@ -8,14 +8,6 @@ job("Publish Snapshots") {
             }
         }
     }
-    host("Checkout submodule") {
-        shellScript {
-            content = """
-                git submodule update
-                git submodule init
-                """.trimIndent()
-        }
-    }
     gradlew("eclipse-temurin:17", "publish") {
         env["IS_SNAPSHOT"] = "true"
         env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"
