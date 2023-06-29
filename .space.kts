@@ -10,7 +10,10 @@ job("Publish Snapshots") {
     }
     host("Checkout submodule") {
         shellScript {
-            content = "git submodule update --init"
+            content = """
+                git submodule update
+                git submodule init
+                """.trimIndent()
         }
     }
     gradlew("eclipse-temurin:17", "publish") {
