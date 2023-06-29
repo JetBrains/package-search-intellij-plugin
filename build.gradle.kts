@@ -23,7 +23,7 @@ allprojects {
 
 catalog {
     versionCatalog {
-        from(files("packageSearch.versions.toml"))
+        from(files("packagesearch.versions.toml"))
     }
 }
 

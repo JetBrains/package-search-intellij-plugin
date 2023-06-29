@@ -8,7 +8,9 @@ job("Publish Snapshots") {
             }
         }
     }
-
+    // DO NOT USE THE gradlew FUNCTION!
+    // gradlew uses a container which isolates the git configuration
+    // of the host machine. Our gradle build interacts with git!
     host("Run Gradle") {
         shellScript {
             content = "./gradlew publish"

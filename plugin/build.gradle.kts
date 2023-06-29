@@ -23,3 +23,10 @@ dependencies {
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.core)
 }
+
+tasks {
+    buildPlugin {
+        println("buildPlugin -> " + dependsOn.joinToString())
+
+    }
+}
