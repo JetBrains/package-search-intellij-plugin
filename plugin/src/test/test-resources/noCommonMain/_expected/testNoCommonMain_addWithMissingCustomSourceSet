@@ -1,0 +1,24 @@
+val kotlinVersion = "1.7.20-Beta"
+
+plugins {
+    kotlin("multiplatform") version "1.7.20-Beta"
+    application //to run JVM part
+}
+
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    jvm {
+        withJava()
+    }
+
+    sourceSets {
+        val THIS_DID_NOT_EXIST by getting {
+            dependencies {
+                implementation("1:2:3")
+            }
+        }
+    }
+}

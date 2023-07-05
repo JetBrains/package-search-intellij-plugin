@@ -1,0 +1,44 @@
+val kotlinVersion = "1.7.20-Beta"
+val serializationVersion = "2"
+val ktorVersion = "2.0.3"
+
+plugins {
+    kotlin("multiplatform") version "1.7.20-Beta"
+    application //to run JVM part
+    kotlin("plugin.serialization") version "1.7.20-Beta"
+}
+
+group = "org.example"
+version = "1.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    jvm {
+        withJava()
+    }
+
+    js {}
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
+            }
+        }
+
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
+            }
+        }
+        val THIS_DID_NOT_EXIST by getting {
+            dependencies {
+                compile("org.jetbrains.kotlinx:kotlinx-serialization-json:2")
+            }
+        }
+    }
+}

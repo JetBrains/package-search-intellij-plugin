@@ -1,0 +1,16 @@
+<idea-plugin implementation-detail="true">
+  <depends>org.jetbrains.idea.gradle.dsl</depends>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <mppProjectResolve implementation="com.intellij.packageSearch.mppDependencyUpdater.resolved.MppGradleProjectResolver"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.idea.gradle.dsl">
+    <blockModel implementation="com.intellij.packageSearch.mppDependencyUpdater.dsl.KotlinDslProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+  <externalProjectDataService implementation="com.intellij.packageSearch.mppDependencyUpdater.resolved.MppDataNodeProcessor"/>
+  </extensions>
+
+</idea-plugin>

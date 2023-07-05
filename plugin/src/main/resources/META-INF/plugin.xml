@@ -1,10 +1,12 @@
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
     <id>org.jetbrains.packagesearch.v2</id>
     <name>Package Search</name>
     <vendor>JetBrains</vendor>
 
     <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
     <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>
+
+    <xi:include href="MppDependencyUpdater.xml"/>
 
     <extensionPoints>
         <extensionPoint name="moduleTransformer"

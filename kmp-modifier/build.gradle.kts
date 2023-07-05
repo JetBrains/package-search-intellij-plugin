@@ -2,10 +2,13 @@ plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.idea.gradle.plugin)
     id(packageSearchCatalog.plugins.dokka)
-    alias(packageSearchCatalog.plugins.compose.desktop)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     `build-config`
     `maven-publish`
+}
+dependencies {
+    implementation(packageSearchCatalog.kotlinx.serialization.core)
+    implementation(packageSearchCatalog.kotlinx.serialization.protobuf)
 }
 
 packagesearch {
