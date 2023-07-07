@@ -1,6 +1,9 @@
 package org.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.module.Module
+import com.intellij.packageSearch.mppDependencyUpdater.MppDependency
+import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
+import com.intellij.packageSearch.mppDependencyUpdater.MppModifierUpdateData
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -9,9 +12,6 @@ import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManag
 import org.jetbrains.packagesearch.plugin.core.data.RemovePackageData
 import org.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
-import org.jetbrains.plugins.gradle.mpp.MppDependency
-import org.jetbrains.plugins.gradle.mpp.MppDependencyModificator
-import org.jetbrains.plugins.gradle.mpp.MppModifierUpdateData
 
 class PackageSearchKotlinMultiplatformDependencyManager(
     private val module: PackageSearchKotlinMultiplatformModule,
@@ -19,9 +19,6 @@ class PackageSearchKotlinMultiplatformDependencyManager(
 ) : PackageSearchDependencyManager {
 
     private val baseDependencyManager = PackageSearchGradleDependencyManager(nativeModule)
-
-    private val mppModifier
-        get() = MppDependencyModificator.getInstance(nativeModule.project)
 
     override suspend fun updateDependencies(
         context: ProjectContext,
@@ -46,7 +43,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
                 }
             }
         baseDependencyManager.updateGradleDependencies(context, dependencyBlockUpdates, knownRepositories)
-        mppModifier.updateDependencies(nativeModule, sourceSetsUpdates)
+        MppDependencyModifier.updateDependencies(nativeModule, sourceSetsUpdates)
     }
 
     private fun KotlinMultiplatformUpdatePackageData.handleDependenciesBlockUpdate(
@@ -114,10 +111,10 @@ class PackageSearchKotlinMultiplatformDependencyManager(
                         selectedConfiguration = kmpData.selectedConfiguration
                     )
                 )
-                is PackageSearchKotlinMultiplatformVariant.SourceSet -> mppModifier.addDependency(
+                is PackageSearchKotlinMultiplatformVariant.SourceSet -> MppDependencyModifier.addDependency(
                     module = nativeModule,
                     sourceSet = kmpData.variantName,
-                    mppDependency = MppDependency.Maven(
+                    descriptor = MppDependency.Maven(
                         groupId = kmpData.apiPackage.groupId,
                         artifactId = kmpData.apiPackage.artifactId,
                         version = kmpData.selectedVersion,
@@ -142,10 +139,10 @@ class PackageSearchKotlinMultiplatformDependencyManager(
             }
             is PackageSearchKotlinMultiplatformVariant.SourceSet -> when (kmpData.declaredPackage) {
                 is PackageSearchKotlinMultiplatformDeclaredDependency.Cocoapods -> return
-                is PackageSearchKotlinMultiplatformDeclaredDependency.Maven -> mppModifier.removeDependency(
-                    nativeModule,
-                    kmpData.variantName,
-                    MppDependency.Maven(
+                is PackageSearchKotlinMultiplatformDeclaredDependency.Maven -> MppDependencyModifier.removeDependency(
+                    module = nativeModule,
+                    sourceSet = kmpData.variantName,
+                    descriptor = MppDependency.Maven(
                         groupId = kmpData.declaredPackage.groupId,
                         artifactId = kmpData.declaredPackage.artifactId,
                         version = kmpData.declaredPackage.declaredVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName,

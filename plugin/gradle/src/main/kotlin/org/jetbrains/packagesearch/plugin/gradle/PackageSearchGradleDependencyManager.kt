@@ -23,7 +23,7 @@ class PackageSearchGradleDependencyManager(
         data: List<GradleUpdatePackageData>,
         knownRepositories: List<ApiRepository>
     ) {
-        val updates = data.filter { it.newVersion != null || it.newConfiguration != it.installedPackage.scope }
+        val updates = data.filter { it.newVersion != null || it.newScope != it.installedPackage.scope }
             .map { (installedPackage, version, scope) ->
                 val oldDescriptor = UnifiedDependency(
                     groupId = installedPackage.groupId,
@@ -63,7 +63,7 @@ class PackageSearchGradleDependencyManager(
         data: InstallPackageData
     ) {
         val gradleData = data as? GradleInstallPackageData ?: return
-        installGradleDependencies(context, data)
+        installGradleDependencies(context, gradleData)
     }
 
     suspend fun installGradleDependencies(
