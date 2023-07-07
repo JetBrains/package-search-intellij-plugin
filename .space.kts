@@ -3,9 +3,7 @@ job("Publish Snapshots") {
         gitPush {
             enabled = true
             anyBranchMatching {
-                +"lamberto.basti/dev"
                 +"main"
-            }
         }
     }
     // DO NOT USE THE gradlew FUNCTION!
