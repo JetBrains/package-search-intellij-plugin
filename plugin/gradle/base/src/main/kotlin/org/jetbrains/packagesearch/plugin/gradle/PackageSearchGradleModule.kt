@@ -4,6 +4,8 @@ package org.jetbrains.packagesearch.plugin.gradle
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
@@ -13,7 +15,7 @@ import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 @SerialName("gradle")
 data class PackageSearchGradleModule(
     override val name: String,
-    override val identityPath: List<String>,
+    override val identityPath: String,
     override val buildFilePath: String?,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
     override val declaredDependencies: List<PackageSearchGradleDeclaredPackage>,
@@ -29,5 +31,13 @@ data class PackageSearchGradleModule(
     val defaultConfiguration
         get() = defaultScope
 
-
+    override fun getInstallData(
+        apiPackage: ApiPackage,
+        selectedVersion: String,
+        selectedScope: String?
+    ) = GradleInstallPackageData(
+        apiPackage = apiPackage as ApiMavenPackage,
+        selectedVersion = selectedVersion,
+        selectedConfiguration = selectedScope ?: error("Scope is not selected")
+    )
 }

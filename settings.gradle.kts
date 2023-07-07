@@ -23,7 +23,6 @@ if (file(".gitsubmoduleinit").run { !exists() }) {
         commandLine("git", "submodule", "update", "--init")
     }
     file(".gitsubmoduleinit").writeText("stub")
-
 }
 
 include(

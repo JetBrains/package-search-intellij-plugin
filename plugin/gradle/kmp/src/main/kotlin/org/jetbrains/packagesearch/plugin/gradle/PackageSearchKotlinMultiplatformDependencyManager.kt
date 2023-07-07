@@ -31,10 +31,10 @@ class PackageSearchKotlinMultiplatformDependencyManager(
         val dependencyBlockUpdates = mutableListOf<GradleUpdatePackageData>()
         val sourceSetsUpdates = mutableListOf<MppModifierUpdateData>()
         data.filterIsInstance<KotlinMultiplatformUpdatePackageData>()
-            .filter { it.variantName in module.variants }
-            .filter { it.newVersion != null || it.newConfiguration != null }
+            .filter { it.sourceSetName in module.variants }
+            .filter { it.newVersion != null || it.newScope != null }
             .forEach {
-                val variant = module.variants.getValue(it.variantName)
+                val variant = module.variants.getValue(it.sourceSetName)
                 when (variant) {
                     is PackageSearchKotlinMultiplatformVariant.Cocoapods -> TODO()
                     is PackageSearchKotlinMultiplatformVariant.DependenciesBlock -> it.handleDependenciesBlockUpdate(dependencyBlockUpdates)
@@ -57,7 +57,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
                 GradleUpdatePackageData(
                     installedPackage = installedPackage,
                     newVersion = newVersion,
-                    newConfiguration = newConfiguration ?: installedPackage.configuration
+                    newScope = newScope ?: installedPackage.configuration
                 )
             )
         }
@@ -74,7 +74,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
             is PackageSearchKotlinMultiplatformDeclaredDependency.Maven -> {
                 sourceSetsUpdates.add(
                     MppModifierUpdateData(
-                        sourceSet = variantName,
+                        sourceSet = sourceSetName,
                         oldDescriptor = MppDependency.Maven(
                             groupId = installedPackage.groupId,
                             artifactId = installedPackage.artifactId,
@@ -86,7 +86,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
                             artifactId = installedPackage.artifactId,
                             version = newVersion
                                 ?: installedPackage.declaredVersion.takeIf { it !is NormalizedVersion.Missing }?.versionName,
-                            configuration = newConfiguration ?: installedPackage.configuration
+                            configuration = newScope ?: installedPackage.configuration
                         )
                     )
                 )

@@ -3,17 +3,17 @@ package org.jetbrains.packagesearch.plugin.core.data
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
-import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
-interface PackageSearchModuleVariant {
+interface PackageSearchModuleVariant : PackageInstallDataProvider {
     val name: String
     val variantTerminology: String?
     val declaredDependencies: List<PackageSearchDeclaredPackage>
-    val badges: List<Badge>
+    val attributes: List<Attributes>
     val compatiblePackageTypes: List<PackagesType>
 
     @Serializable
-    data class Badge(val name: String, val isAvailable: String, val children: List<Badge>)
+    data class Attributes(val name: String, val children: List<Attributes>)
 
     fun isCompatible(dependency: ApiPackage, version: String): Boolean
+
 }

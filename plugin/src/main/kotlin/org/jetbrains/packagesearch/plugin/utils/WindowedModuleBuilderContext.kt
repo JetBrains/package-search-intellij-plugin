@@ -1,9 +1,25 @@
 package org.jetbrains.packagesearch.plugin.utils
 
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.*
+import java.util.UUID
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -11,9 +27,6 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesProvider
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
-import java.util.*
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 suspend fun <T> windowedBuilderContext(
     project: Project,
@@ -57,7 +70,7 @@ class WindowedModuleBuilderContext(
     override val project: Project,
     override val knownRepositories: Map<String, ApiRepository>,
     private val packagesCache: PackageSearchApiPackagesProvider,
-    coroutineScope: CoroutineScope,
+    override val coroutineScope: CoroutineScope,
     override val projectCaches: CoroutineNitrite,
     override val applicationCaches: CoroutineNitrite,
 ) : PackageSearchModuleBuilderContext {

@@ -8,6 +8,8 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.util.Function
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -20,16 +22,13 @@ import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.modules.polymorphic
 import org.dizitart.no2.objects.filters.ObjectFilters
-import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.plugin.core.nitrite.ApiRepositoryCacheEntry
 import org.jetbrains.packagesearch.plugin.core.nitrite.asCacheEntry
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import org.jetbrains.packagesearch.plugin.core.nitrite.insert
 import org.jetbrains.packagesearch.plugin.core.utils.collectIn
 import org.jetbrains.packagesearch.plugin.core.utils.flow
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 
 
 internal val Project.nativeModules
@@ -60,12 +59,6 @@ internal val Project.nativeModulesFlow: Flow<NativeModules>
             }
         }
     }
-
-internal fun Project.asContext() =
-    SimpleProjectContext(this)
-
-@JvmInline
-value class SimpleProjectContext(override val project: Project) : ProjectContext
 
 fun <T> interval(
     interval: Duration,

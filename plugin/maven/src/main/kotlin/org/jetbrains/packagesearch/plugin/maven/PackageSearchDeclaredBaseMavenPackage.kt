@@ -21,6 +21,17 @@ data class PackageSearchDeclaredBaseMavenPackage(
     override val artifactId: String,
     override val scope: String? = null
 ) : PackageSearchDeclaredMavenPackage {
+
+    override fun getUpdateData(newVersion: String?, newScope: String?) =
+        MavenUpdatePackageData(
+            installedPackage = this,
+            newVersion = newVersion,
+            newScope = newScope
+        )
+
+    override fun getDeleteData() =
+        MavenRemovePackageData(this)
+
     override val icon
         get() = Icons.MAVEN
 }

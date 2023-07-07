@@ -5,6 +5,7 @@ package org.jetbrains.packagesearch.plugin.maven
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import org.jetbrains.packagesearch.plugin.core.data.*
@@ -13,7 +14,7 @@ import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 data class MavenUpdatePackageData(
     override val installedPackage: PackageSearchDeclaredBaseMavenPackage,
     override val newVersion: String?,
-    val newScope: String? = null
+    override val newScope: String?
 ) : UpdatePackageData
 
 data class MavenInstallPackageData(
@@ -41,5 +42,15 @@ data class PackageSearchMavenModule(
     override val icon
         get() = Icons.MAVEN
 
-    override val identityPath = listOf(name)
+    override val identityPath = name
+
+    override fun getInstallData(
+        apiPackage: ApiPackage,
+        selectedVersion: String,
+        selectedScope: String?
+    ) = MavenInstallPackageData(
+        apiPackage = apiPackage as ApiMavenPackage,
+        selectedVersion = selectedVersion,
+        selectedScope = selectedScope
+    )
 }

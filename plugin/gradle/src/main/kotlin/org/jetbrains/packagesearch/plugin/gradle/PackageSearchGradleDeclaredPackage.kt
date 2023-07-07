@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType
 import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
@@ -29,4 +28,13 @@ data class PackageSearchGradleDeclaredPackage(
         get() = name
     override val scope: String
         get() = configuration
+
+    override fun getUpdateData(newVersion: String?, newScope: String?) =
+        GradleUpdatePackageData(
+            installedPackage = this,
+            newVersion = newVersion,
+            newScope = newScope
+        )
+
+    override fun getDeleteData() = GradleRemovePackageData(this)
 }

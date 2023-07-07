@@ -37,7 +37,7 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
         val availableScopes = generateAvailableScope(declaredDependencies, configurationNames)
         val packageSearchGradleModule = PackageSearchGradleModule(
             name = model.projectName,
-            identityPath = listOf(model.rootProjectName, model.projectIdentityPath.split(":").dropWhile { it.isBlank() }),
+            identityPath = model.projectIdentityPath,
             buildFilePath = buildFile?.absolutePathString(),
             declaredKnownRepositories = getDeclaredKnownRepositories(context),
             declaredDependencies = declaredDependencies,

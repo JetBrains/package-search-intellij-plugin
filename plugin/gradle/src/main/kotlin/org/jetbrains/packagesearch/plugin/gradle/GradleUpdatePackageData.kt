@@ -6,7 +6,7 @@ import org.jetbrains.packagesearch.plugin.core.data.*
 data class GradleUpdatePackageData(
     override val installedPackage: PackageSearchDeclaredMavenPackage,
     override val newVersion: String?,
-    val newConfiguration: String
+    override val newScope: String?
 ) : UpdatePackageData
 
 data class GradleInstallPackageData(

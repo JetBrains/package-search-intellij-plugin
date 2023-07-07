@@ -9,11 +9,22 @@ import org.jetbrains.packagesearch.plugin.core.data.WithIcon
 import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
-sealed interface PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchDeclaredPackage {
+sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchDeclaredPackage {
 
-    sealed interface ForSourceSet : PackageSearchKotlinMultiplatformDeclaredDependency {
-        val configuration: String
-    }
+    abstract val variantName: String
+
+    override fun getUpdateData(newVersion: String?, newScope: String?) =
+        KotlinMultiplatformUpdatePackageData(
+            installedPackage = this,
+            newVersion = newVersion,
+            newScope = newScope,
+            sourceSetName = variantName
+        )
+
+    override fun getDeleteData() = KotlinMultiplatformRemovePackageData(
+        declaredPackage = this,
+        variantName = variantName
+    )
 
     @Serializable
     data class Maven(
@@ -25,8 +36,9 @@ sealed interface PackageSearchKotlinMultiplatformDeclaredDependency : PackageSea
         override val declarationIndexes: DependencyDeclarationIndexes?,
         override val groupId: String,
         override val artifactId: String,
-        override val configuration: String
-    ) : ForSourceSet, PackageSearchDeclaredMavenPackage {
+        override val variantName: String,
+        val configuration: String,
+    ) : PackageSearchKotlinMultiplatformDeclaredDependency(), PackageSearchDeclaredMavenPackage {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.MAVEN
         override val scope
@@ -41,8 +53,9 @@ sealed interface PackageSearchKotlinMultiplatformDeclaredDependency : PackageSea
         override val latestVersion: NormalizedVersion,
         override val remoteInfo: ApiPackage?,
         override val declarationIndexes: DependencyDeclarationIndexes?,
+        override val variantName: String,
         val name: String,
-    ) : PackageSearchKotlinMultiplatformDeclaredDependency {
+    ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.COCOAPODS
     }
@@ -55,9 +68,10 @@ sealed interface PackageSearchKotlinMultiplatformDeclaredDependency : PackageSea
         override val latestVersion: NormalizedVersion,
         override val remoteInfo: ApiPackage?,
         override val declarationIndexes: DependencyDeclarationIndexes?,
-        override val configuration: String,
+        override val variantName: String,
+        val configuration: String,
         val name: String
-    ) : ForSourceSet {
+    ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.NPM
     }

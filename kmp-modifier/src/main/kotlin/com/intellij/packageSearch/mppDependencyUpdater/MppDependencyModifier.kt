@@ -17,11 +17,10 @@ import com.intellij.util.alsoIfNull
 import com.intellij.packageSearch.mppDependencyUpdater.dsl.models.KotlinDslModel
 import com.intellij.packageSearch.mppDependencyUpdater.dsl.models.SourceSetModel
 
-private val LOG = logger<MppDependencyModificator>()
+private val LOG = logger<MppDependencyModifier>()
 
-object MppDependencyModificator {
+object MppDependencyModifier {
   suspend fun isAvailable(module: Module): Boolean =
-    // TODO check if the plugin is available
     readFromKotlinModel(module) { it.isAvailable } ?: false
 
   suspend fun sourceSets(module: Module): List<SourceSetModel>? =

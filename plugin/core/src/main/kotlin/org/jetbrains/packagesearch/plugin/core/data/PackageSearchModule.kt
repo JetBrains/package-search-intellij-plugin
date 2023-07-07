@@ -15,7 +15,7 @@ import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 sealed interface PackageSearchModule : WithIcon {
 
     val name: String
-    val identityPath: List<String>
+    val identityPath: String
     val buildFilePath: String?
     val declaredKnownRepositories: Map<String, ApiRepository>
     val availableScopes: List<String>
@@ -25,7 +25,7 @@ sealed interface PackageSearchModule : WithIcon {
         val variants: Map<String, PackageSearchModuleVariant>
     }
 
-    interface Base : PackageSearchModule {
+    interface Base : PackageSearchModule, PackageInstallDataProvider {
         val compatiblePackageTypes: List<PackagesType>
         val declaredDependencies: List<PackageSearchDeclaredPackage>
     }
@@ -54,6 +54,7 @@ interface PackageSearchDependencyManager {
 interface UpdatePackageData {
     val installedPackage: PackageSearchDeclaredPackage
     val newVersion: String?
+    val newScope: String?
 }
 
 interface InstallPackageData {
@@ -63,4 +64,8 @@ interface InstallPackageData {
 
 interface RemovePackageData {
     val declaredPackage: PackageSearchDeclaredPackage
+}
+
+interface PackageInstallDataProvider {
+    fun getInstallData(apiPackage: ApiPackage, selectedVersion: String, selectedScope: String? = null): InstallPackageData
 }

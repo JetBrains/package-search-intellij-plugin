@@ -7,7 +7,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.junit.jupiter.api.Disabled
 
-class MppDependencyModificatorTest : MppGradleImportingTestBase() {
+class MppDependencyModifierTest : MppGradleImportingTestBase() {
   @Test
   fun testSimple_add() {
     doTest {
@@ -29,7 +29,7 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
       )
 
       runBlocking {
-        MppDependencyModificator.addDependencies(it, descriptors)
+        MppDependencyModifier.addDependencies(it, descriptors)
       }
 
       assertBuildFileIsAsExpected(it)
@@ -57,7 +57,7 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
       )
 
       runBlocking {
-        MppDependencyModificator.removeDependencies(it, descriptors)
+        MppDependencyModifier.removeDependencies(it, descriptors)
       }
 
       assertBuildFileIsAsExpected(it)
@@ -93,7 +93,7 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
       )
 
       runBlocking {
-        MppDependencyModificator.updateDependencies(it, updates)
+        MppDependencyModifier.updateDependencies(it, updates)
       }
 
       assertBuildFileIsAsExpected(it)
@@ -104,7 +104,7 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
   fun testNoDepsBlock_addWithMissingDependenciesBlock() {
     doTest {
       runBlocking {
-        MppDependencyModificator.addDependency(
+        MppDependencyModifier.addDependency(
             it,
           "commonMain",
             MppDependency.Maven(
@@ -122,7 +122,7 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
   fun testNoCommonMain_addWithMissingCommonMain() {
     doTest {
       runBlocking {
-        MppDependencyModificator.addDependency(
+        MppDependencyModifier.addDependency(
           it,
         "commonMain",
           MppDependency.Maven(
@@ -140,7 +140,7 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
   fun testNoCommonMain_addWithMissingCustomSourceSet() {
     doTest {
       runBlocking {
-        MppDependencyModificator.addDependency(
+        MppDependencyModifier.addDependency(
           it,
           "THIS_DID_NOT_EXIST",
           MppDependency.Maven(
@@ -186,7 +186,7 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
   fun testCurlyBracesCommonMain_add() {
     doTest {
       runBlocking {
-        MppDependencyModificator.addDependency(
+        MppDependencyModifier.addDependency(
           it,
           "commonMain",
           MppDependency.Maven(
@@ -204,7 +204,7 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
   fun testByCreating_add() {
     doTest {
       runBlocking {
-        MppDependencyModificator.addDependency(
+        MppDependencyModifier.addDependency(
           it,
           "THIS_DID_NOT_EXIST",
           MppDependency.Maven(
@@ -239,10 +239,10 @@ class MppDependencyModificatorTest : MppGradleImportingTestBase() {
       val sourceSet3 = "commonMain"
 
       runBlocking {
-        MppDependencyModificator.addDependency(it, sourceSet1, descriptor1)
-        MppDependencyModificator.updateDependency(it, sourceSet1, descriptor1, descriptor2)
-        MppDependencyModificator.addDependency(it, sourceSet1, descriptor1)
-        MppDependencyModificator.removeDependency(it, sourceSet3, descriptor3)
+        MppDependencyModifier.addDependency(it, sourceSet1, descriptor1)
+        MppDependencyModifier.updateDependency(it, sourceSet1, descriptor1, descriptor2)
+        MppDependencyModifier.addDependency(it, sourceSet1, descriptor1)
+        MppDependencyModifier.removeDependency(it, sourceSet3, descriptor3)
       }
 
       assertBuildFileIsAsExpected(it)

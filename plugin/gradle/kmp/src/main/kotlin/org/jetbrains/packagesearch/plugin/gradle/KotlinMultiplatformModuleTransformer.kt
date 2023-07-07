@@ -6,21 +6,22 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
-import io.ktor.util.*
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoProvider
+import io.ktor.util.extension
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.kotlinMultiplatform
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.plugin.gradle.utils.dependencyDeclarationIndexes
-import org.jetbrains.packagesearch.plugin.gradle.utils.listOf
-import org.jetbrains.plugins.gradle.mpp.MppCompilationInfoModel.Compilation
-import org.jetbrains.plugins.gradle.mpp.MppCompilationInfoProvider
-import org.jetbrains.plugins.gradle.mpp.MppDependencyModificator
-import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 
 class KotlinMultiplatformModuleTransformer : BaseGradleModuleTransformer() {
 
@@ -35,7 +36,7 @@ class KotlinMultiplatformModuleTransformer : BaseGradleModuleTransformer() {
                 .asKmpVariantDependencies()
         val module = PackageSearchKotlinMultiplatformModule(
             name = model.projectName,
-            identityPath = listOf(model.rootProjectName, model.projectIdentityPath.split(":").dropWhile { it.isBlank() }),
+            identityPath = model.projectIdentityPath,
             buildFilePath = buildFile?.absolutePathString(),
             declaredKnownRepositories = context.knownRepositories - DependencyModifierService
                 .getInstance(context.project)
@@ -71,21 +72,28 @@ class KotlinMultiplatformModuleTransformer : BaseGradleModuleTransformer() {
                 }
             )
         }
-        val rawDeclaredSourceSetDependencies = MppDependencyModificator
-            .getInstance(context.project)
+        val rawDeclaredSourceSetDependencies = MppDependencyModifier
             .dependenciesBySourceSet(this@getKMPVariants)
             ?.mapNotNull { (key, value) -> value?.let { key to value } }
             ?.toMap()
             ?.mapValues { readAction { it.value.artifacts().map { it to it.spec } } }
             ?: emptyMap()
-        val hashesToSearch = rawDeclaredSourceSetDependencies
+
+        val packageIds = rawDeclaredSourceSetDependencies
             .values
+            .asSequence()
             .flatten()
             .mapNotNull { it.second.mavenId }
-            .toSet()
-        val dependencyInfo = context.getPackageInfoByIdHashes(hashesToSearch)
+            .distinct()
+
+        val isLocalhost = Registry.`is`("org.jetbrains.packagesearch.localhost", false)
+        val dependencyInfo = if (!isLocalhost) {
+            context.getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
+        } else {
+            context.getPackageInfoByIds(packageIds.toSet())
+        }
         val declaredSourceSetDependencies = rawDeclaredSourceSetDependencies
-            .mapValues { (_, dependencies) ->
+            .mapValues { (sourceSetName, dependencies) ->
                 dependencies.mapNotNull { (model, spec) ->
                     val mavenId = spec.mavenId ?: return@mapNotNull null
                     val groupId = spec.group ?: return@mapNotNull null
@@ -108,7 +116,8 @@ class KotlinMultiplatformModuleTransformer : BaseGradleModuleTransformer() {
                         ),
                         groupId = groupId,
                         artifactId = spec.name,
-                        configuration = configuration
+                        configuration = configuration,
+                        variantName = sourceSetName
                     )
                 }
 
@@ -120,23 +129,24 @@ class KotlinMultiplatformModuleTransformer : BaseGradleModuleTransformer() {
                     PackageSearchKotlinMultiplatformVariant.SourceSet(
                         name = sourceSetName,
                         declaredDependencies = declaredSourceSetDependencies[sourceSetName] ?: emptyList(),
-                        badges = emptyList(), // TODO
+                        attributes = emptyList(), // TODO
                         compatiblePackageTypes = buildPackageTypes {
                             gradlePackages {
                                 kotlinMultiplatform {
                                     compilationTargets.forEach { compilationTarget ->
                                         when (compilationTarget) {
-                                            is Compilation.Js -> when (compilationTarget.compiler) {
-                                                Compilation.Js.Compiler.IR -> jsIr()
-                                                Compilation.Js.Compiler.LEGACY -> jsLegacy()
+                                            is MppCompilationInfoModel.Js -> when (compilationTarget.compiler) {
+                                                MppCompilationInfoModel.Js.Compiler.IR -> jsIr()
+                                                MppCompilationInfoModel.Js.Compiler.LEGACY -> jsLegacy()
                                             }
-                                            is Compilation.Native -> native(compilationTarget.platformId)
+
+                                            is MppCompilationInfoModel.Native -> native(compilationTarget.platformId)
                                             else -> {}
                                         }
                                     }
                                     when {
-                                        Compilation.Android in compilationTargets -> android()
-                                        Compilation.Jvm in compilationTargets -> jvm()
+                                        MppCompilationInfoModel.Android in compilationTargets -> android()
+                                        MppCompilationInfoModel.Jvm in compilationTargets -> jvm()
                                     }
                                 }
                             }
@@ -161,7 +171,8 @@ fun List<PackageSearchGradleDeclaredPackage>.asKmpVariantDependencies() =
             declarationIndexes = it.declarationIndexes,
             groupId = it.groupId,
             artifactId = it.artifactId,
-            configuration = it.configuration
+            configuration = it.configuration,
+            variantName = "dependencies block"
         )
     }
 

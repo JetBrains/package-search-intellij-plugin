@@ -6,12 +6,22 @@ import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
-import kotlinx.coroutines.flow.*
+import com.intellij.openapi.util.registry.Registry
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
@@ -19,10 +29,19 @@ import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTra
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import org.jetbrains.packagesearch.plugin.core.nitrite.div
-import org.jetbrains.packagesearch.plugin.core.utils.*
-import org.jetbrains.packagesearch.plugin.gradle.utils.*
-import java.nio.file.Path
-import kotlin.io.path.exists
+import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import org.jetbrains.packagesearch.plugin.core.utils.collectIn
+import org.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
+import org.jetbrains.packagesearch.plugin.core.utils.mapUnit
+import org.jetbrains.packagesearch.plugin.core.utils.packageId
+import org.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
+import org.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
+import org.jetbrains.packagesearch.plugin.gradle.utils.dumbModeStateFlow
+import org.jetbrains.packagesearch.plugin.gradle.utils.evaluateDeclaredIndexes
+import org.jetbrains.packagesearch.plugin.gradle.utils.getGradleModelRepository
+import org.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
+import org.jetbrains.packagesearch.plugin.gradle.utils.gradleSyncNotifierFlow
+import org.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
 import com.intellij.openapi.module.Module as NativeModule
 
 abstract class BaseGradleModuleTransformer : PackageSearchModuleTransformer {
@@ -75,7 +94,13 @@ abstract class BaseGradleModuleTransformer : PackageSearchModuleTransformer {
                 .mapUnit()
             return merge(
                 watchExternalFileChanges(globalGradlePropertiesPath),
-                buildFileChanges
+                buildFileChanges,
+                IntelliJApplication.registryStateFlow(
+                    context.coroutineScope,
+                    "org.jetbrains.packagesearch.localhost",
+                    false
+                )
+                    .mapUnit()
             )
         }
 
@@ -97,9 +122,18 @@ abstract class BaseGradleModuleTransformer : PackageSearchModuleTransformer {
                     .declaredDependencies(this)
             }
 
-            val remoteInfo = declaredDependencies.asSequence()
-                .filter { it.coordinates.artifactId != null && it.coordinates.groupId != null }.map { it.packageId }
-                .distinct().map { ApiPackage.hashPackageId(it) }.toSet().let { context.getPackageInfoByIdHashes(it) }
+            val distinctIds = declaredDependencies
+                .asSequence()
+                .filter { it.coordinates.artifactId != null && it.coordinates.groupId != null }
+                .map { it.packageId }
+                .distinct()
+            val isLocalhost = Registry.`is`("org.jetbrains.packagesearch.localhost", false)
+            val remoteInfo =
+                if (!isLocalhost) {
+                    context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
+                } else {
+                    context.getPackageInfoByIds(distinctIds.toSet())
+                }
 
             return declaredDependencies.associateBy { it.packageId }.mapNotNull { (packageId, declaredDependency) ->
                 PackageSearchGradleDeclaredPackage(

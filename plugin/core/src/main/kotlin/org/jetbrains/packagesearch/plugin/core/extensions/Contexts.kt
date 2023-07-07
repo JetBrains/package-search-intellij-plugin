@@ -1,6 +1,7 @@
 package org.jetbrains.packagesearch.plugin.core.extensions
 
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
@@ -29,4 +30,5 @@ interface PackageSearchModuleBuilderContext :
 
 interface ProjectContext {
     val project: Project
+    val coroutineScope: CoroutineScope
 }

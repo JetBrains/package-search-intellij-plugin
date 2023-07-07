@@ -14,9 +14,9 @@ import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 
 data class KotlinMultiplatformUpdatePackageData(
     override val installedPackage: PackageSearchKotlinMultiplatformDeclaredDependency,
-    override val newVersion: String? = null,
-    val newConfiguration: String? = null,
-    val variantName: String
+    override val newVersion: String?,
+    override val newScope: String?,
+    val sourceSetName: String
 ) : UpdatePackageData
 
 data class KotlinMultiplatformInstallPackageData(
@@ -35,7 +35,7 @@ data class KotlinMultiplatformRemovePackageData(
 @SerialName("kotlinMultiplatform")
 data class PackageSearchKotlinMultiplatformModule(
     override val name: String,
-    override val identityPath: List<String>,
+    override val identityPath: String,
     override val buildFilePath: String?,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
     override val defaultScope: String?,
