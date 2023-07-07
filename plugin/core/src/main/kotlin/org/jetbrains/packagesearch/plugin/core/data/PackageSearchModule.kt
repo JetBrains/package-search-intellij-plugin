@@ -15,7 +15,7 @@ import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 sealed interface PackageSearchModule : WithIcon {
 
     val name: String
-    val identityPath: String
+    val identity: Identity
     val buildFilePath: String?
     val declaredKnownRepositories: Map<String, ApiRepository>
     val availableScopes: List<String>
@@ -30,6 +30,8 @@ sealed interface PackageSearchModule : WithIcon {
         val declaredDependencies: List<PackageSearchDeclaredPackage>
     }
 
+    @Serializable
+    data class Identity(val group: String, val path: String)
 }
 
 interface PackageSearchDependencyManager {

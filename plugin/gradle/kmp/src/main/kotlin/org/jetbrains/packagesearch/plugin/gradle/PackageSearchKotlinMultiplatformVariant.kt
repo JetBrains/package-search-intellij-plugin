@@ -50,19 +50,15 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             apiPackage: ApiPackage,
             selectedVersion: String,
             selectedScope: String?
-        ): KotlinMultiplatformInstallPackageData {
-            val version = apiPackage.versions.all[selectedVersion]
-            return when (apiPackage) {
-                is ApiMavenPackage -> when (val apiMavenVersion = apiPackage.versions.all[selectedVersion]) {
-                    is ApiMavenVersion -> KotlinMultiplatformInstallPackageData(
-                        apiPackage = apiPackage,
-                        selectedVersion = apiMavenVersion.normalized.versionName,
-                        selectedConfiguration = selectedScope ?: "implementation",
-                        variantName = name
-                    )
-
-                    null -> error("Version $selectedVersion not found in package $apiPackage")
-                }
+        ): KotlinMultiplatformInstallPackageData = when (apiPackage) {
+            is ApiMavenPackage -> when (val apiMavenVersion = apiPackage.versions.all[selectedVersion]) {
+                is ApiMavenVersion -> KotlinMultiplatformInstallPackageData(
+                    apiPackage = apiPackage,
+                    selectedVersion = apiMavenVersion.normalized.versionName,
+                    selectedConfiguration = selectedScope ?: "implementation",
+                    variantName = name
+                )
+                null -> error("Version $selectedVersion not found in package $apiPackage")
             }
         }
     }

@@ -10,6 +10,7 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import org.jetbrains.packagesearch.plugin.core.data.*
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import org.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 
 data class MavenUpdatePackageData(
     override val installedPackage: PackageSearchDeclaredBaseMavenPackage,
@@ -42,14 +43,14 @@ data class PackageSearchMavenModule(
     override val icon
         get() = Icons.MAVEN
 
-    override val identityPath = name
+    override val identity = PackageSearchModule.Identity("maven", name)
 
     override fun getInstallData(
         apiPackage: ApiPackage,
         selectedVersion: String,
         selectedScope: String?
     ) = MavenInstallPackageData(
-        apiPackage = apiPackage as ApiMavenPackage,
+        apiPackage = apiPackage.asMavenApiPackage(),
         selectedVersion = selectedVersion,
         selectedScope = selectedScope
     )

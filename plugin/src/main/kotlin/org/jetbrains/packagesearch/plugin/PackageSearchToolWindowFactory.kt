@@ -27,8 +27,8 @@ fun List<PackageSearchModuleData>.generateData() =
         groupBy { it::class.qualifiedName }
             .values
             .forEach {
-                val sortedItems = it.sortedBy { it.module.identityPath }
-                sortedItems.filter { it.module.identityPath.split(":").isEmpty() }
+                val sortedItems = it.sortedBy { it.module.identity.group }
+                sortedItems.filter { it.module.identity.path.split(":").isEmpty() }
                     .forEach { addData(sortedItems, it) }
             }
     }
@@ -38,7 +38,7 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addData(
     currentData: PackageSearchModuleData
 ) {
     val children = sortedItems
-        .filter { it.module.identityPath.startsWith(currentData.module.identityPath) }
+        .filter { it.module.identity.path.startsWith(currentData.module.identity.path) }
     if (children.isNotEmpty()) addNode(currentData, id = currentData.module) {
         children.forEach { addData(sortedItems.subList(sortedItems.indexOf(currentData) + 1, sortedItems.size), it) }
     }

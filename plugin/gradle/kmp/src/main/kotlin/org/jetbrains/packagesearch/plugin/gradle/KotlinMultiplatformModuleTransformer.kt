@@ -15,10 +15,12 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.kotlinMultiplatform
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.plugin.gradle.utils.dependencyDeclarationIndexes
@@ -36,7 +38,7 @@ class KotlinMultiplatformModuleTransformer : BaseGradleModuleTransformer() {
                 .asKmpVariantDependencies()
         val module = PackageSearchKotlinMultiplatformModule(
             name = model.projectName,
-            identityPath = model.projectIdentityPath,
+            identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
             buildFilePath = buildFile?.absolutePathString(),
             declaredKnownRepositories = context.knownRepositories - DependencyModifierService
                 .getInstance(context.project)
@@ -105,7 +107,7 @@ class KotlinMultiplatformModuleTransformer : BaseGradleModuleTransformer() {
                             ?: NormalizedVersion.Missing,
                         latestVersion = dependencyInfo[mavenId]?.versions?.latest?.normalized
                             ?: NormalizedVersion.Missing,
-                        remoteInfo = dependencyInfo[mavenId],
+                        remoteInfo = dependencyInfo[mavenId] as? ApiMavenPackage,
                         declarationIndexes = dependencyDeclarationIndexes(
                             groupId = groupId,
                             artifactId = spec.name,

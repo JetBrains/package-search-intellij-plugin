@@ -33,6 +33,8 @@ import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import java.nio.file.Path
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 @RequiresOptIn("This API is internal and you should not use it.")
 annotation class PKGSInternalAPI
@@ -138,3 +140,7 @@ suspend fun <T> Flow<T>.collectIn(flowCollector: FlowCollector<T>) =
 
 val Project.PackageSearchProjectCachesService
     get() = service<PackageSearchProjectCachesService>()
+
+fun ApiPackage.asMavenApiPackage() =
+    this as? ApiMavenPackage ?: error("Package $id is of type '${this::class.simpleName}' " +
+            "instead of '${ApiMavenPackage::class.simpleName}'")

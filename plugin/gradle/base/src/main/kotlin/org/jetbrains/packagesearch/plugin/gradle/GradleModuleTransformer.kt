@@ -15,6 +15,7 @@ import org.jetbrains.packagesearch.plugin.gradle.utils.listOf
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.extension
+import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 
 class GradleModuleTransformer : BaseGradleModuleTransformer() {
 
@@ -37,7 +38,7 @@ class GradleModuleTransformer : BaseGradleModuleTransformer() {
         val availableScopes = generateAvailableScope(declaredDependencies, configurationNames)
         val packageSearchGradleModule = PackageSearchGradleModule(
             name = model.projectName,
-            identityPath = model.projectIdentityPath,
+            identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
             buildFilePath = buildFile?.absolutePathString(),
             declaredKnownRepositories = getDeclaredKnownRepositories(context),
             declaredDependencies = declaredDependencies,

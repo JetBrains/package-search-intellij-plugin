@@ -1,6 +1,7 @@
 package org.jetbrains.packagesearch.plugin.gradle
 
 import kotlinx.serialization.Serializable
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
@@ -32,7 +33,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val declaredVersion: NormalizedVersion,
         override val latestStableVersion: NormalizedVersion,
         override val latestVersion: NormalizedVersion,
-        override val remoteInfo: ApiPackage?,
+        override val remoteInfo: ApiMavenPackage?,
         override val declarationIndexes: DependencyDeclarationIndexes?,
         override val groupId: String,
         override val artifactId: String,
@@ -54,7 +55,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val remoteInfo: ApiPackage?,
         override val declarationIndexes: DependencyDeclarationIndexes?,
         override val variantName: String,
-        val name: String,
+        override val displayName: String,
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.COCOAPODS
@@ -70,7 +71,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val declarationIndexes: DependencyDeclarationIndexes?,
         override val variantName: String,
         val configuration: String,
-        val name: String
+        override val displayName: String
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.NPM

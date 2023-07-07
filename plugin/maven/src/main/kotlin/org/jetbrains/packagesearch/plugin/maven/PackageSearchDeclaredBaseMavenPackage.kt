@@ -2,7 +2,7 @@ package org.jetbrains.packagesearch.plugin.maven
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
@@ -15,7 +15,7 @@ data class PackageSearchDeclaredBaseMavenPackage(
     override val declaredVersion: NormalizedVersion,
     override val latestStableVersion: NormalizedVersion,
     override val latestVersion: NormalizedVersion,
-    override val remoteInfo: ApiPackage?,
+    override val remoteInfo: ApiMavenPackage?,
     override val declarationIndexes: DependencyDeclarationIndexes?,
     override val groupId: String,
     override val artifactId: String,

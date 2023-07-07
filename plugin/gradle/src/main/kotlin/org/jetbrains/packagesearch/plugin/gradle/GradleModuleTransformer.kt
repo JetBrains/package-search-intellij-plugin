@@ -30,6 +30,7 @@ import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import org.jetbrains.packagesearch.plugin.core.nitrite.div
 import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import org.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import org.jetbrains.packagesearch.plugin.core.utils.collectIn
 import org.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import org.jetbrains.packagesearch.plugin.core.utils.mapUnit
@@ -143,7 +144,7 @@ abstract class BaseGradleModuleTransformer : PackageSearchModuleTransformer {
                         ?: NormalizedVersion.Missing,
                     latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized
                         ?: NormalizedVersion.Missing,
-                    remoteInfo = remoteInfo[packageId],
+                    remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
                     icon = Icons.GRADLE,
                     module = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
                     name = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,

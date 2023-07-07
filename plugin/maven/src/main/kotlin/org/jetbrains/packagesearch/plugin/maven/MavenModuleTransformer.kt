@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import org.jetbrains.idea.maven.project.MavenProject
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
@@ -26,6 +27,7 @@ import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleDat
 import org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer
 import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import org.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import org.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import org.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import org.jetbrains.packagesearch.plugin.core.utils.packageId
@@ -113,7 +115,7 @@ class MavenModuleTransformer : PackageSearchModuleTransformer {
                             ?: NormalizedVersion.Missing,
                         latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized
                             ?: NormalizedVersion.Missing,
-                        remoteInfo = remoteInfo[packageId],
+                        remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
                         groupId = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
                         artifactId = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,
                         scope = declaredDependency.unifiedDependency.scope,
