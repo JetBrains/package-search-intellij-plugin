@@ -2,8 +2,7 @@ job("Publish Snapshots") {
     startOn {
         gitPush {
             enabled = true
-            anyBranchMatching {
-                +"main"
+            anyBranchMatching { +"master" }
         }
     }
     // DO NOT USE THE gradlew FUNCTION!
