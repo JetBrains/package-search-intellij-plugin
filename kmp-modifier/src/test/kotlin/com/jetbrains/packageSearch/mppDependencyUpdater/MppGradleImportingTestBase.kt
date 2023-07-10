@@ -64,7 +64,7 @@ sealed class MppGradleImportingTestBase : KotlinGradleImportingTestCase() {
 
   private fun TestName.sanitizedMethodName(): String = methodName.split("[").first()
 
-  private val BASE_DIR = File("src/test/test-resources")
+  private val BASE_DIR = File("src/test/resources")
 
   companion object {
     private val SUPPORTED_GRADLE_VERSIONS = arrayOf("8.0")

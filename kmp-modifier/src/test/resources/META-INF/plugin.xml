@@ -1,0 +1,20 @@
+<idea-plugin implementation-detail="true">
+  <name>Fake for Kotlin Multiplatform Dependency Updater Testing</name>
+  <id>intellij.packagesearch.mppDependencyUpdater</id>
+  <description>
+    Plugin provides Kotlin Multiplatform Dependency Updater implementation for Kotlin Gradle scripts
+  </description>
+  <vendor>JetBrains</vendor>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <mppProjectResolve implementation="com.intellij.packageSearch.mppDependencyUpdater.resolved.MppGradleProjectResolver"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.idea.gradle.dsl">
+    <blockModel implementation="com.intellij.packageSearch.mppDependencyUpdater.dsl.KotlinDslProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <externalProjectDataService implementation="com.intellij.packageSearch.mppDependencyUpdater.resolved.MppDataNodeProcessor"/>
+  </extensions>
+</idea-plugin>
