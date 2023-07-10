@@ -11,6 +11,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.application.readAndWriteAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.util.alsoIfNull
@@ -238,11 +239,12 @@ object MppDependencyModifier {
   private suspend fun modifyKotlinModel(
     module: Module,
     action: (KotlinDslModel) -> Unit,
-  ) = readAction {
-    module.buildModel()
-      ?.also { action(it.getModel()) }
+  ) =  readAndWriteAction {
+      // read
+      val model = module.buildModel()?.also { action(it.getModel()) }
+      // write
+      writeAction { model?.let { applyChanges(it) } }
   }
-    ?.let { applyChanges(it) }
 
   private fun applyChanges(model: GradleBuildModel) {
     WriteCommandAction.writeCommandAction(model.project, model.psiFile).run<Throwable> {
