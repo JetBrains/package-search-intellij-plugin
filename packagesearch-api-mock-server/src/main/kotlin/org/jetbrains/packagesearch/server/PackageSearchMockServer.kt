@@ -20,6 +20,7 @@ import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.http.GetPackageInfoRequest
 import org.jetbrains.packagesearch.api.v3.http.GetPackageInfoResponse
+import org.jetbrains.packagesearch.api.v3.http.SearchPackagesResponse
 import org.jetbrains.packagesearch.maven.PomResolver
 import org.slf4j.event.Level
 import kotlin.time.Duration.Companion.milliseconds
@@ -83,7 +84,7 @@ fun Application.PackageSearchMockServer() {
                         "maven:io.ktor:ktor-server-cio",
                     )
                 )
-                call.respond(apiModels)
+                call.respond(SearchPackagesResponse(call.receive(), apiModels))
             }
             get("package-info-by-id-hashes") {
                 call.respond<List<String>>(emptyList())

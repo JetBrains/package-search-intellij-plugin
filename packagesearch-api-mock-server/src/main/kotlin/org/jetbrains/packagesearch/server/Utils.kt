@@ -138,7 +138,7 @@ data class MavenCoordinateWithVersions(
 suspend fun HttpClient.getMavenCentralInfo(
     groupId: String,
     artifactId: String
-) = get("https://search.maven.org/solrsearch/select?q=g:$groupId+AND+a:$artifactId&core=gav&rows=2&wt=json")
+) = get("https://search.maven.org/solrsearch/select?q=g:$groupId+AND+a:$artifactId&core=gav&rows=5&wt=json")
     .body<MavenCentralApiResponse>()
     .takeIf { it.response.docs.isNotEmpty() }
 
