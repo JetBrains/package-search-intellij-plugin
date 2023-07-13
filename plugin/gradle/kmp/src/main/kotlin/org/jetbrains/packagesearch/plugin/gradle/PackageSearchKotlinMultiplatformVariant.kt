@@ -69,7 +69,12 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val attributes: List<PackageSearchModuleVariant.Attributes>,
         override val compatiblePackageTypes: List<PackagesType>,
     ) : PackageSearchKotlinMultiplatformVariant {
-        override val name: String = "dependencies block" // TODO localize
+
+        companion object {
+            val name = "dependencies block"
+        }
+
+        override val name: String = Companion.name // TODO localize
         override val variantTerminology = null
 
         override fun isCompatible(dependency: ApiPackage, version: String) = when (dependency) {
@@ -101,7 +106,11 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val compatiblePackageTypes: List<PackagesType>,
     ) : PackageSearchKotlinMultiplatformVariant {
 
-        override val name: String = "cocoapods"
+        companion object {
+            val name = "cocoapods"
+        }
+
+        override val name: String = Companion.name
         override val variantTerminology = null
 
         override fun isCompatible(dependency: ApiPackage, version: String) = when (dependency) {

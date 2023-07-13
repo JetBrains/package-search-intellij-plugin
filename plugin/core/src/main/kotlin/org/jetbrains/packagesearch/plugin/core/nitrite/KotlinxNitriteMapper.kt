@@ -4,16 +4,15 @@ import kotlinx.serialization.serializer
 import org.dizitart.no2.Document
 import org.dizitart.no2.mapper.NitriteMapper
 import org.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
-import org.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentSerializer
-import org.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentSerializerBuilder
-import kotlin.reflect.full.createType
-import kotlin.reflect.typeOf
+import org.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormatBuilder
 
-fun KotlinxNitriteMapper(builderAction: NitriteDocumentSerializerBuilder.() -> Unit) =
-    KotlinxNitriteMapper(NitriteDocumentSerializer(builderAction))
+fun KotlinxNitriteMapper(
+    from: NitriteDocumentFormat = NitriteDocumentFormat.Default,
+    builderAction: NitriteDocumentFormatBuilder.() -> Unit
+) = KotlinxNitriteMapper(NitriteDocumentFormat(from, builderAction))
 
 class KotlinxNitriteMapper(
-    val nitriteDocumentFormat: NitriteDocumentFormat = NitriteDocumentFormat(),
+    val nitriteDocumentFormat: NitriteDocumentFormat = NitriteDocumentFormat.Default,
 ) : NitriteMapper {
 
     override fun <T : Any> asDocument(`object`: T): Document =
@@ -31,6 +30,5 @@ class KotlinxNitriteMapper(
 
     override fun isValueType(`object`: Any?) = true
     override fun asValue(`object`: Any?) = `object`
-
 
 }

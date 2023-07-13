@@ -2,6 +2,7 @@ package org.jetbrains.packagesearch.server
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.http.ContentType
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonPrimitive
 import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -38,6 +40,9 @@ import org.jetbrains.packagesearch.maven.dependencies
 import org.jetbrains.packagesearch.maven.developers
 import org.jetbrains.packagesearch.maven.licenses
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.packagesearch.gradle.Dependency as GradleMetadataDependency
 
 
@@ -50,7 +55,7 @@ fun Dependency.toApiModel() = version?.let {
     )
 }
 
-fun List<License>.toApiModel() = first().toApiModel()?.let {
+fun List<License>.toApiModel() = firstOrNull()?.toApiModel()?.let {
     Licenses(
         it,
         drop(1).mapNotNull { it.toApiModel() }
@@ -90,8 +95,8 @@ fun Variant.toApiModel(): ApiMavenPackage.ApiVariant = when {
     )
 }
 
-fun Map<String, String>.toApiAttributes() = mapValues { (name, value) ->
-    ApiMavenPackage.ApiVariant.Attribute.create(name, value)
+fun Map<String, JsonPrimitive>.toApiAttributes() = mapValues { (name, value) ->
+    ApiMavenPackage.ApiVariant.Attribute.create(name, value.content)
 }
 
 fun GradleMetadataDependency.toApiModel() =
@@ -133,7 +138,7 @@ data class MavenCoordinateWithVersions(
 suspend fun HttpClient.getMavenCentralInfo(
     groupId: String,
     artifactId: String
-) = get("https://search.maven.org/solrsearch/select?q=g:$groupId+AND+a:$artifactId&core=gav&rows=50&wt=json")
+) = get("https://search.maven.org/solrsearch/select?q=g:$groupId+AND+a:$artifactId&core=gav&rows=2&wt=json")
     .body<MavenCentralApiResponse>()
     .takeIf { it.response.docs.isNotEmpty() }
 
@@ -146,16 +151,17 @@ suspend fun HttpClient.getBuildSystemsMetadata(
     mavenCentralApiResponse.response.docs
         .asFlow()
         .buffer()
-        .map { doc ->
-            doc.v to coroutineScope {
-                val pom = async { pomSolver.resolve(doc.g, doc.a, doc.v) }
+        .mapNotNull { doc ->
+            coroutineScope {
+                val pomJob = async { pomSolver.resolve(doc.g, doc.a, doc.v) }
                 val gradleMetadata = runCatching {
                     get(GoogleMavenCentralMirror.buildGradleMetadataUrl(doc.g, doc.a, doc.v))
                         .body<GradleMetadata>()
                 }.getOrNull()
-                MavenCoordinateWithVersions.Metadata(
+                val pom = pomJob.await() ?: return@coroutineScope null
+                doc.v to MavenCoordinateWithVersions.Metadata(
                     gradleMetadata = gradleMetadata,
-                    pom = pom.await(),
+                    pom = pom,
                     publicationDate = Instant.fromEpochMilliseconds(doc.timestamp),
                     artifacts = doc.ec.map { "${doc.g}-${doc.v}-$it" }
                 )
@@ -207,8 +213,8 @@ fun MavenCoordinateWithVersions.toApiModels(): ApiPackage {
         versions = VersionsContainer(
             latestStable = mavenVersions.values
                 .filter { it.normalized.isStable }
-                .maxBy { it.normalized },
-            latest = mavenVersions.values.maxBy { it.normalized },
+                .maxByOrNull { it.normalized },
+            latest = mavenVersions.values.maxByOrNull { it.normalized },
             all = mavenVersions
         ),
         groupId = groupId,
@@ -219,11 +225,26 @@ fun MavenCoordinateWithVersions.toApiModels(): ApiPackage {
 
 suspend fun PomResolver.toApiModels(ids: Iterable<String>) =
     ids.asFlow()
-        .buffer()
         .filter { it.startsWith("maven:") }
         .map { it.removePrefix("maven:") }
         .map { it.split(":").let { it[0] to it[1] } }
+        .buffer()
         .mapNotNull { httpClient.getMavenCentralInfo(it.first, it.second) }
+        .buffer()
         .map { httpClient.getBuildSystemsMetadata(it, this) }
         .map { it.toApiModels() }
         .toList()
+
+internal var HttpTimeout.HttpTimeoutCapabilityConfiguration.requestTimeout: Duration?
+    get() = requestTimeoutMillis?.milliseconds
+    set(value) {
+        requestTimeoutMillis = value?.inWholeMilliseconds
+    }
+
+internal fun HttpRequestRetry.Configuration.constantDelay(
+    delay: Duration = 1.seconds,
+    randomization: Duration = 1.seconds,
+    respectRetryAfterHeader: Boolean = true
+) {
+    constantDelay(delay.inWholeMilliseconds, randomization.inWholeMilliseconds, respectRetryAfterHeader)
+}

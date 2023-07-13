@@ -1,3 +1,5 @@
+import kotlin.io.path.absolutePathString
+
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.dokka)
@@ -23,6 +25,12 @@ dependencies {
     }
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.api)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
+    testImplementation(packageSearchCatalog.kotlinx.coroutines.test)
     testImplementation(kotlin("test-junit5"))
-    compileOnly(packageSearchCatalog.kotlinx.serialization.core)
+}
+
+tasks {
+    withType<Test> {
+        environment("DB_PATH", buildDir.toPath().resolve("tests/cache.db").absolutePathString())
+    }
 }

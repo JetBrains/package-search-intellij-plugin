@@ -4,6 +4,8 @@ Content-Type: application/json
 
 {
     "ids": [
-      "maven:io.ktor:ktor-client-cio"
+      "maven:io.ktor:ktor-client-cio",
+      "maven:io.ktor:ktor-client-js",
+      "maven:ch.qos.logback:logback-classic"
     ]
 }

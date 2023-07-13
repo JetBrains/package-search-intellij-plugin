@@ -4,7 +4,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.dizitart.no2.IndexOptions
 import org.dizitart.no2.NitriteCollection
-import org.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
+import org.dizitart.no2.WriteResult
+import org.dizitart.no2.objects.filters.ObjectFilters
 
 class CoroutineNitriteCollection(
     val synchronous: NitriteCollection,
@@ -13,5 +14,8 @@ class CoroutineNitriteCollection(
 
     suspend fun createIndex(field: String, indexOptions: IndexOptions) =
         dispatch { synchronous.createIndex(field, indexOptions) }
+
+    suspend fun removeAll(): WriteResult =
+        dispatch { synchronous.remove(ObjectFilters.ALL) }
 
 }

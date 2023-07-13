@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
 import org.jetbrains.jewel.foundation.tree.buildTree
@@ -19,6 +20,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
             .filterIsInstance<ModulesState.Ready>()
             .map { it.modules }
             .map { it.generateData() }
+            .launchIn(project.PackageSearchProjectService.coroutineScope)
     }
 }
 

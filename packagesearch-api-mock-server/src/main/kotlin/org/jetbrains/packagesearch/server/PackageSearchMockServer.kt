@@ -22,6 +22,8 @@ import org.jetbrains.packagesearch.api.v3.http.GetPackageInfoRequest
 import org.jetbrains.packagesearch.api.v3.http.GetPackageInfoResponse
 import org.jetbrains.packagesearch.maven.PomResolver
 import org.slf4j.event.Level
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation.Plugin as ClientContentNegotiation
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ServerContentNegotiation
 
@@ -37,7 +39,9 @@ fun Application.PackageSearchMockServer() {
 
     val client = HttpClient(CIO) {
         install(ClientContentNegotiation) {
-            json()
+            json(Json {
+                ignoreUnknownKeys = true
+            })
             xml(xml)
         }
         install(Logging) {
@@ -45,10 +49,10 @@ fun Application.PackageSearchMockServer() {
         }
         install(HttpRequestRetry) {
             maxRetries = 10
-            constantDelay(500, 100, false)
+            constantDelay(500.milliseconds, 100.milliseconds, false)
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 5000
+            requestTimeout = 10.seconds
         }
     }
 
@@ -57,8 +61,8 @@ fun Application.PackageSearchMockServer() {
     install(ServerContentNegotiation) {
         protobuf(ProtoBuf)
         json(Json {
-            encodeDefaults = false
-            explicitNulls = false
+            encodeDefaults = true
+            explicitNulls = true
         })
     }
     install(CallLogging) {

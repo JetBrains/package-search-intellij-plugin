@@ -12,6 +12,7 @@ import org.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import org.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import org.jetbrains.packagesearch.plugin.utils.*
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
 
 @Service(Level.PROJECT)
 class PackageSearchProjectService(
@@ -55,6 +56,7 @@ class PackageSearchProjectService(
         .flatMapLatest { combine(it) { it.filterNotNull() } }
         .filter { it.isNotEmpty() }
         .map { ModulesState.Ready(it) }
+        .debounce(1.seconds)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), ModulesState.Loading)
 
 }

@@ -6,11 +6,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
+import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import org.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.packagesearch.plugin.core.data.RemovePackageData
 import org.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
 import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import org.jetbrains.packagesearch.plugin.gradle.PackageSearchKotlinMultiplatformVariant.*
 
 data class KotlinMultiplatformUpdatePackageData(
     override val installedPackage: PackageSearchKotlinMultiplatformDeclaredDependency,
@@ -47,7 +49,19 @@ data class PackageSearchKotlinMultiplatformModule(
     override val icon
         get() = Icons.GRADLE
 
+    override val compatiblePackageTypes: List<PackagesType>
+        get() = variants.commonMain.compatiblePackageTypes
+
     val defaultConfiguration
         get() = defaultScope
 
 }
+
+val Map<String, PackageSearchKotlinMultiplatformVariant>.commonMain
+    get() = getValue("commonMain") as SourceSet
+
+val Map<String, PackageSearchKotlinMultiplatformVariant>.dependenciesBlock: DependenciesBlock
+    get() = getValue(DependenciesBlock.name) as DependenciesBlock
+
+val Map<String, PackageSearchKotlinMultiplatformVariant>.cocoapods: Cocoapods
+    get() = getValue(Cocoapods.name) as Cocoapods

@@ -21,7 +21,7 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
 import org.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import org.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
-import org.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentSerializerBuilder
+import org.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormatBuilder
 
 private val NitriteContext.kotlinxMapperOrNull
     get() = nitriteMapper as? KotlinxNitriteMapper
@@ -58,20 +58,22 @@ fun Nitrite.asCoroutine(documentFormat: NitriteDocumentFormat? = null) =
         documentFormat = documentFormat ?: context.kotlinxMapperOrNull?.nitriteDocumentFormat ?: error("Must use kotlinx mapper")
     )
 
-fun NitriteBuilder.kotlinxNitriteMapper(function: NitriteDocumentSerializerBuilder.() -> Unit = {}): NitriteBuilder =
-    nitriteMapper(KotlinxNitriteMapper(function))
+fun NitriteBuilder.kotlinxNitriteMapper(
+    from: NitriteDocumentFormat = NitriteDocumentFormat.Default,
+    builderAction: NitriteDocumentFormatBuilder.() -> Unit = {}
+): NitriteBuilder = nitriteMapper(KotlinxNitriteMapper(from, builderAction))
 
 fun CoroutineScope.buildDefaultNitrate(
     path: String,
-    nitriteMapperConf: NitriteDocumentSerializerBuilder.() -> Unit = {
-        ignoreUnknownsKeys = true
+    nitriteMapperConf: NitriteDocumentFormatBuilder.() -> Unit = {
+        ignoreUnknownKeys = true
         serializersModule = SerializersModule {
             contextual(NormalizedVersionWeakCache)
         }
     },
 ) = async(Dispatchers.IO) {
     Nitrite.builder()
-        .kotlinxNitriteMapper(nitriteMapperConf)
+        .kotlinxNitriteMapper(builderAction = nitriteMapperConf)
         .filePath(path)
         .compressed()
         .openOrCreate()

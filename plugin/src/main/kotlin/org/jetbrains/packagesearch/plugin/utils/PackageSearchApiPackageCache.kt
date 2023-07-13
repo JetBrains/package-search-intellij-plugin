@@ -2,6 +2,9 @@ package org.jetbrains.packagesearch.plugin.utils
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
@@ -49,33 +52,31 @@ class PackageSearchApiPackageCache(
     ): Map<String, ApiPackage> = cachesMutex.withLock {
         val inMemoryResults: Map<String, ApiPackage> = weakMap.getAllPresent(ids)
         var missingIds = ids - inMemoryResults.keys
-        val localDatabaseResults = missingIds
-            .takeIf { it.isNotEmpty() }
-            ?.let { fileCache.find(query(it)) }
-            ?.filter { it.lastUpdate + maxAge < Clock.System.now() }
-            ?.map { it.data }
-            ?.associateBy { it.id }
-            ?: emptyMap()
-        val localCacheResults = inMemoryResults + localDatabaseResults
-        weakMap.putAll(localDatabaseResults)
-        missingIds = ids - localCacheResults.keys
         return if (missingIds.isNotEmpty()) {
-            val networkResults = apiCall(missingIds)
+            val localDatabaseResults = fileCache.find(query(missingIds))
+                .filter { Clock.System.now() < it.lastUpdate + maxAge }
+                .map { it.data }
+                .toList()
                 .associateBy { it.id }
-            networkResults.values.map { it.asCacheEntry() }
-                .forEach { entry ->
-                    fileCache.update(
-                        filter = NitriteFilters.Object.eq(
-                            path = ApiPackageCacheEntry::data / ApiPackage::id,
-                            value = entry.data.id
-                        ),
-                        update = entry,
-                        upsert = true
-                    )
-                }
-            fileCache.insert(networkResults.values.map { it.asCacheEntry() })
-            weakMap.putAll(networkResults)
-            localCacheResults + networkResults
-        } else localCacheResults
+            val localCacheResults = inMemoryResults + localDatabaseResults
+            weakMap.putAll(localDatabaseResults)
+            missingIds = ids - localCacheResults.keys
+            if (missingIds.isNotEmpty()) {
+                val networkResults = apiCall(missingIds)
+                    .associateBy { it.id }
+                val packageEntries = networkResults.values.map { it.asCacheEntry() }
+                // TODO cache also miss in network to avoid pointless empty query
+                if (networkResults.isNotEmpty()) {
+                    fileCache.remove(NitriteFilters.Object.`in`(
+                        path = ApiPackageCacheEntry::data / ApiPackage::id,
+                        value = packageEntries.map { it.data.id }
+                    ))
+                    fileCache.insert(packageEntries)
+
+                    weakMap.putAll(networkResults)
+                    localCacheResults + networkResults
+                } else localCacheResults
+            } else localCacheResults
+        } else inMemoryResults
     }
 }

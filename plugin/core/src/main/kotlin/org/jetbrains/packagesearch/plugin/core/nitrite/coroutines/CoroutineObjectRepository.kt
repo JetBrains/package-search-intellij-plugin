@@ -6,6 +6,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import org.dizitart.no2.FindOptions
 import org.dizitart.no2.IndexOptions
@@ -37,13 +38,14 @@ class CoroutineObjectRepository<T : Any> @PKGSInternalAPI constructor(
 
     private val indexMutex = Mutex()
 
-    suspend fun find(filter: ObjectFilter? = null, findOptions: FindOptions? = null) =
-        when {
-            filter != null && findOptions != null -> synchronous.find(filter, findOptions).asFlow()
-            filter != null -> synchronous.find(filter).asFlow()
-            else -> synchronous.find().asFlow()
-        }.flowOn(dispatcher)
-            .toList()
+    suspend fun find(filter: ObjectFilter? = null, findOptions: FindOptions? = null): Flow<T> =
+        withContext(dispatcher) {
+            when {
+                filter != null && findOptions != null -> synchronous.find(filter, findOptions).asFlow()
+                filter != null -> synchronous.find(filter).asFlow()
+                else -> synchronous.find().asFlow()
+            }.flowOn(dispatcher)
+        }
 
     fun changes(): Flow<Change<Item<T>>> = channelFlow {
         val listener = ChangeListener { trySend(it.asKotlin(documentFormat, type)) }

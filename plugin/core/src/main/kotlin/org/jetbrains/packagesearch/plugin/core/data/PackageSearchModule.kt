@@ -20,13 +20,13 @@ sealed interface PackageSearchModule : WithIcon {
     val declaredKnownRepositories: Map<String, ApiRepository>
     val availableScopes: List<String>
     val defaultScope: String?
+    val compatiblePackageTypes: List<PackagesType>
 
     interface WithVariants : PackageSearchModule {
         val variants: Map<String, PackageSearchModuleVariant>
     }
 
     interface Base : PackageSearchModule, PackageInstallDataProvider {
-        val compatiblePackageTypes: List<PackagesType>
         val declaredDependencies: List<PackageSearchDeclaredPackage>
     }
 
