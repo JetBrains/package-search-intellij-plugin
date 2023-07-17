@@ -27,7 +27,7 @@ data class PackageSearchGradleDeclaredPackage(
     override val groupId: String
         get() = module
     override val artifactId: String
-        get() = displayName
+        get() = name
     override val scope: String
         get() = configuration
 

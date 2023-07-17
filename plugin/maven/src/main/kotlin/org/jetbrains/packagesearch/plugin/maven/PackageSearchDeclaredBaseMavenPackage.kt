@@ -9,7 +9,7 @@ import org.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import org.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
-@SerialName("maven-version")
+@SerialName("maven")
 data class PackageSearchDeclaredBaseMavenPackage(
     override val id: String,
     override val declaredVersion: NormalizedVersion,
