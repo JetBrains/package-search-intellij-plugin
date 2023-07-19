@@ -33,7 +33,15 @@ dependencies {
     api(packageSearchCatalog.packagesearch.build.systems.models)
     testImplementation(kotlin("test-junit5"))
     testImplementation(packageSearchCatalog.junit.jupiter.api)
+    testImplementation(packageSearchCatalog.ktor.server.test.host)
+    testImplementation(packageSearchCatalog.commons.codec)
     testImplementation(packageSearchCatalog.packagesearch.api.client)
     testImplementation(packageSearchCatalog.kotlinx.coroutines.test)
     testCompileOnly(packageSearchCatalog.junit.jupiter.engine)
+}
+
+tasks {
+    withType<Test> {
+        testLogging.showStandardStreams = true
+    }
 }
