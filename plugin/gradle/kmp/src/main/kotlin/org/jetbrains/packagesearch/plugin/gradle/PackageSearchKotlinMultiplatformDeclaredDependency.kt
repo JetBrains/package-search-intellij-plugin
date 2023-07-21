@@ -59,6 +59,8 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.COCOAPODS
+
+        override val scope: String? = null
     }
 
     @Serializable
@@ -75,5 +77,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.NPM
+        override val scope: String
+            get() = configuration
     }
 }

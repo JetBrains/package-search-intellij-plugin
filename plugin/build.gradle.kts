@@ -27,3 +27,12 @@ dependencies {
     testImplementation(packageSearchCatalog.junit.jupiter.api)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
 }
+
+tasks {
+    publishPlugin {
+        toolboxEnterprise.set(true)
+        host.set("https://tbe.labs.jb.gg/")
+        token.set(System.getenv("TOOLBOX_ENTERPRISE_TOKEN"))
+        channels.set(listOf("EAP"))
+    }
+}

@@ -13,6 +13,7 @@ interface PackageSearchDeclaredPackage : WithIcon {
     val latestVersion: NormalizedVersion
     val remoteInfo: ApiPackage?
     val declarationIndexes: DependencyDeclarationIndexes?
+    val scope: String?
 
     fun getUpdateData(newVersion: String?, newScope: String?): UpdatePackageData
     fun getDeleteData(): RemovePackageData
@@ -21,7 +22,6 @@ interface PackageSearchDeclaredPackage : WithIcon {
 interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {
     val groupId: String
     val artifactId: String
-    val scope: String?
     override val remoteInfo: ApiMavenPackage?
 
     override val displayName: String

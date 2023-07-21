@@ -1,4 +1,4 @@
-job("Publish Snapshots") {
+job("Publish snapshots") {
     startOn {
         gitPush {
             enabled = true
@@ -16,6 +16,10 @@ job("Publish Snapshots") {
         env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"
         env["MAVEN_SPACE_PASSWORD"] = "{{ project:jetbrains_team_registry_key }}"
         env["GRADLE_ENTERPRISE_KEY"] = "{{ project:gradle_enterprise_access_key }}"
+        env["TOOLBOX_ENTERPRISE_TOKEN"] = "{{ project:toolbox-enterprise-token }}"
         env["CI"] = "true"
     }
 }
+
+
+// toolbox-enterprise-token

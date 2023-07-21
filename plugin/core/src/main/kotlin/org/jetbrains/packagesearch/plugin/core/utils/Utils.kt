@@ -10,7 +10,6 @@ import com.intellij.openapi.extensions.ExtensionPointListener
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryManager
 import com.intellij.openapi.util.registry.RegistryValue
@@ -25,16 +24,20 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
+import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
-import org.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import org.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
-import org.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
-import java.nio.file.Path
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 
 @RequiresOptIn("This API is internal and you should not use it.")
 annotation class PKGSInternalAPI
