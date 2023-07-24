@@ -33,6 +33,6 @@ tasks {
         toolboxEnterprise.set(true)
         host.set("https://tbe.labs.jb.gg/")
         token.set(System.getenv("TOOLBOX_ENTERPRISE_TOKEN"))
-        channels.set(listOf("EAP"))
+        channels.set(listOf("INTERNAL-EAP"))
     }
 }

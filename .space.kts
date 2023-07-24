@@ -10,7 +10,7 @@ job("Publish snapshots") {
     // of the host machine. Our gradle build interacts with git!
     host("Run Gradle") {
         shellScript {
-            content = "./gradlew publish"
+            content = "./gradlew publish :plugin:publishPlugin"
         }
         env["IS_SNAPSHOT"] = "true"
         env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"
