@@ -1,7 +1,15 @@
 <idea-plugin>
-    <id>org.jetbrains.packagesearch.v2</id>
+    <id>com.jetbrains.packagesearch.intellij-plugin</id>
     <name>Package Search</name>
     <vendor>JetBrains</vendor>
+
+    <description><![CDATA[
+Find and manage dependencies for JVM and Kotlin Multiplatform projects.
+<br>
+Supports Maven and Gradle projects.
+<br>
+<a href="https://package-search.jetbrains.com">Package Search on the web</a><br>
+]]></description>
 
     <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
     <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>

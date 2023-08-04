@@ -32,7 +32,10 @@ tasks {
     publishPlugin {
         toolboxEnterprise.set(true)
         host.set("https://tbe.labs.jb.gg/")
-        token.set(System.getenv("TOOLBOX_ENTERPRISE_TOKEN"))
+        token.set(
+            project.properties["toolboxEnterpriseToken"]?.toString()
+                ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
+        )
         channels.set(listOf("INTERNAL-EAP"))
     }
 }
