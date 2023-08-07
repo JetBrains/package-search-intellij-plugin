@@ -11,7 +11,7 @@
         <externalProjectDataService implementation="com.intellij.packageSearch.mppDependencyUpdater.resolved.MppDataNodeProcessor"/>
     </extensions>
 
-    <extensions defaultExtensionNs="org.jetbrains.packagesearch.v2">
-        <moduleTransformer implementation="org.jetbrains.packagesearch.plugin.maven.MavenModuleTransformer"/>
+    <extensions defaultExtensionNs="com.intellij.packagesearch">
+        <moduleProvider implementation="org.jetbrains.packagesearch.plugin.maven.KotlinMultiplatformModuleProvider"/>
     </extensions>
 </idea-plugin>

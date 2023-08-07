@@ -6,7 +6,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dizitart.no2.Nitrite
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.plugin.core.nitrite.*
+import com.jetbrains.packagesearch.plugin.core.nitrite.*
 import org.junit.jupiter.api.BeforeAll
 import java.io.File
 import kotlin.test.Test

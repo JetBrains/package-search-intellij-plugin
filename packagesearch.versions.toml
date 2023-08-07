@@ -17,7 +17,7 @@ kotlin = "1.8.20"
 kotlinterGradlePlugin = "3.12.0"
 kotlinxDatetime = "0.4.0"
 kotlinxSerialization = "1.5.1"
-ktor = "2.3.2"
+ktor = "2.3.3"
 logback = "1.4.7"
 nitrite = "3.4.4"
 packagesearchApiModels = "3.0.0-SNAPSHOT"
@@ -65,10 +65,12 @@ packagesearch-api-client = { module = "org.jetbrains.packagesearch:packagesearch
 packagesearch-api-models = { module = "org.jetbrains.packagesearch:packagesearch-api-models", version.ref = "packagesearchApiModels" }
 packagesearch-build-systems-models = { module = "org.jetbrains.packagesearch:packagesearch-build-systems-models", version.ref = "packagesearchApiModels" }
 packagesearch-http-models = { module = "org.jetbrains.packagesearch:packagesearch-http-models", version.ref = "packagesearchApiModels" }
+
 # Plugin libraries for build-logic's convention plugins to use to resolve the types/tasks coming from these plugins
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinter-gradle-plugin = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinterGradlePlugin" }
+shadow-gradle-plugin = { module="com.github.johnrengelman:shadow", version="8.1.1" }
 
 [bundles]
 idea = ["ij-platform-ide-core", "ij-platform-ide-impl", "ij-platform-core-ui"]

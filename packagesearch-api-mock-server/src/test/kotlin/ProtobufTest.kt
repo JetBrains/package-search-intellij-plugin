@@ -1,3 +1,4 @@
+import com.jetbrains.packagesearch.server.PackageSearchMockServer
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.URLProtocol
@@ -9,7 +10,6 @@ import kotlinx.coroutines.coroutineScope
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient.Companion.defaultHttpClientConfig
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchDefaultEndpoints
-import org.jetbrains.packagesearch.server.PackageSearchMockServer
 import org.junit.jupiter.api.Test
 
 class ProtobufTest {

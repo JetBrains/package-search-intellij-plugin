@@ -1,15 +1,14 @@
 <idea-plugin implementation-detail="true">
 
-    <extensions defaultExtensionNs="org.jetbrains.packagesearch.v2">
-        <moduleTransformer
-                implementation="org.jetbrains.packagesearch.plugin.gradle.GradleModuleTransformer"/>
+    <extensions defaultExtensionNs="com.intellij.packagesearch">
+        <moduleProvider implementation="com.jetbrains.packagesearch.plugin.gradle.GradleModuleProvider"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <externalProjectDataService
-                implementation="org.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor"/>
+                implementation="com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor"/>
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
         <projectResolve
-                implementation="org.jetbrains.packagesearch.plugin.gradle.PackageSearchProjectResolverExtension"/>
+                implementation="com.jetbrains.packagesearch.plugin.gradle.PackageSearchProjectResolverExtension"/>
     </extensions>
 </idea-plugin>

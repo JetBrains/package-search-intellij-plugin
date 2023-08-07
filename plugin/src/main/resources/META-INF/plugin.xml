@@ -1,4 +1,4 @@
-<idea-plugin>
+<idea-plugin package="com.jetbrains.packagesearch">
     <id>com.jetbrains.packagesearch.intellij-plugin</id>
     <name>Package Search</name>
     <vendor>JetBrains</vendor>
@@ -15,8 +15,8 @@ Supports Maven and Gradle projects.
     <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>
 
     <extensionPoints>
-        <extensionPoint name="moduleTransformer"
-                        interface="org.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleTransformer"
+        <extensionPoint qualifiedName="com.intellij.packagesearch.moduleProvider"
+                        interface="com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleProvider"
                         dynamic="true"/>
     </extensionPoints>
 
@@ -25,7 +25,7 @@ Supports Maven and Gradle projects.
                     anchor="bottom"
                     secondary="false"
                     canCloseContents="true"
-                    factoryClass="org.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
+                    factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
         <registryKey defaultValue="false"
                      description="Uses localhost as host in Package Search"
                      key="org.jetbrains.packagesearch.localhost"

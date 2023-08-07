@@ -49,7 +49,7 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
                     "kotlinx.serialization.ExperimentalSerializationApi",
                     "kotlinx.serialization.InternalSerializationApi",
                     "kotlinx.coroutines.ExperimentalCoroutinesApi",
-                    "org.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI",
+                    "com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI",
                     "kotlinx.coroutines.FlowPreview"
                 )
             )
@@ -59,12 +59,13 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
         .apply {
             addAll(
                 "kotlin-stdlib",
-                "ktor-",
                 "slf4j",
                 "kotlin-reflect",
-                "kotlinx-"
+                "kotlinx-coroutines"
             )
         }
+
+    val librariesToKeep = project.objects.listProperty<String>()
 
     val intellijVersion = project.objects.property<String>()
         .convention("232-SNAPSHOT")

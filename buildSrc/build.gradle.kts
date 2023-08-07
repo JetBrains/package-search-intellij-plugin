@@ -25,4 +25,5 @@ dependencies {
     implementation(packageSearchCatalog.foojay.resolver.gradle.plugin)
     implementation(packageSearchCatalog.detekt.gradle.plugin)
     implementation(packageSearchCatalog.kotlinter.gradle.plugin)
+    implementation(packageSearchCatalog.shadow.gradle.plugin)
 }

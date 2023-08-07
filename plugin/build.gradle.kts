@@ -21,6 +21,7 @@ dependencies {
     compileOnly(packageSearchCatalog.kotlinx.serialization.core)
     implementation(projects.plugin.maven)
     implementation(projects.plugin.gradle.base)
+    implementation(projects.plugin.gradle)
     implementation(projects.plugin.core)
     implementation(projects.plugin.gradle.kmp)
     testImplementation(kotlin("test-junit5"))
