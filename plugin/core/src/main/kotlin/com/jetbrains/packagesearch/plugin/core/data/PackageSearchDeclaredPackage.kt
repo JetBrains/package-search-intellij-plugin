@@ -7,7 +7,7 @@ import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationI
 
 interface PackageSearchDeclaredPackage : WithIcon {
     val id: String
-    val displayName: String
+    val displayName: String // todo @Lamberto fix packageSearchDeclaredPackage.displayname some time crashes in a stackoverflow
     val declaredVersion: NormalizedVersion
     val latestStableVersion: NormalizedVersion
     val latestVersion: NormalizedVersion
@@ -27,3 +27,15 @@ interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {
     override val displayName: String
         get() = remoteInfo?.name ?: "$groupId:$artifactId"
 }
+
+
+/**
+ * Checks if the declared package can be upgraded.
+ *
+ * @return theLatestApiVersion if the package can be upgraded, null otherwise.
+ */
+val PackageSearchDeclaredPackage.latestStableOrNull
+    get() = remoteInfo?.let {
+        it.versions.latestStable
+            ?.takeIf { it.normalized > declaredVersion }
+    }

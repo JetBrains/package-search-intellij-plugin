@@ -2,11 +2,11 @@
 
 package com.jetbrains.packagesearch.plugin.core.data
 
+import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
-import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 
 /**
  * Package Search representation of a module.
@@ -32,6 +32,13 @@ sealed interface PackageSearchModule : WithIcon {
 
     @Serializable
     data class Identity(val group: String, val path: String)
+}
+
+fun PackageSearchModule.getPackageTypes()= when(this){
+    is PackageSearchModule.Base -> compatiblePackageTypes
+    is PackageSearchModule.WithVariants->{
+        variants.entries.flatMap { it.value.compatiblePackageTypes }
+    }
 }
 
 interface PackageSearchDependencyManager {

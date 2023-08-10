@@ -19,9 +19,9 @@ dependencyResolutionManagement {
 
 if (file(".gitsubmoduleinit").run { !exists() }) {
     logger.lifecycle("Initializing git submodules")
-    exec {
-        commandLine("git", "submodule", "update", "--init")
-    }
+    //exec {
+    //    commandLine("git", "submodule", "update", "--init")
+    //}
     file(".gitsubmoduleinit").writeText("stub")
 }
 
@@ -40,8 +40,8 @@ include(
 
 includeBuild("jewel") {
     dependencySubstitution {
-        substitute(module("org.jetbrains.jewel:foundation")).using(project(":foundation"))
         substitute(module("org.jetbrains.jewel:core")).using(project(":core"))
+        substitute(module("org.jetbrains.jewel:int-ui-standalone")).using(project(":themes:int-ui:int-ui-standalone"))
     }
 }
 

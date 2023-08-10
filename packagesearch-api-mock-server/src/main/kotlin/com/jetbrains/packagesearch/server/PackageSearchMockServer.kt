@@ -55,6 +55,13 @@ fun Application.PackageSearchMockServer() {
         install(HttpTimeout) {
             requestTimeout = 10.seconds
         }
+        install(HttpRequestRetry) {
+            retryOnServerErrors(maxRetries = 5)
+            delayMillis { 500 }
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 3000
+        }
     }
 
     val pomResolver = PomResolver(xml = xml, httpClient = client)

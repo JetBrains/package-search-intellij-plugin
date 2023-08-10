@@ -15,6 +15,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven("https://repo.gradle.org/gradle/libs-releases")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
     extensions.withType<PackageSearchExtension> {
         intellijVersion.set("2023.2-SNAPSHOT")

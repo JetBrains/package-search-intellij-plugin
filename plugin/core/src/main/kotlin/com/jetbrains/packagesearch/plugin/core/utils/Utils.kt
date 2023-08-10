@@ -24,20 +24,15 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
-import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import java.nio.file.Path
 
 @RequiresOptIn("This API is internal and you should not use it.")
 annotation class PKGSInternalAPI
@@ -148,3 +143,32 @@ fun ApiPackage.asMavenApiPackage() =
         "Package $id is of type '${this::class.simpleName}' " +
                 "instead of '${ApiMavenPackage::class.simpleName}'"
     )
+
+
+sealed interface PackageSearchTableItem {
+
+    val displayName: String?
+    val id: String
+
+    @JvmInline
+    value class Remote(val item: ApiPackage) : PackageSearchTableItem {
+        override val displayName: String?
+            get() = item.name
+        override val id: String
+            get() = item.id
+    }
+
+    @JvmInline
+    value class Installed(val item: PackageSearchDeclaredPackage) : PackageSearchTableItem {
+        override val displayName: String
+            get() = item.displayName
+        override val id: String
+            get() = item.id
+    }
+}
+
+fun ApiPackage.asPackageSearchTableItem() =
+    PackageSearchTableItem.Remote(this)
+
+fun PackageSearchDeclaredPackage.asPackageSearchTableItem() =
+    PackageSearchTableItem.Installed(this)

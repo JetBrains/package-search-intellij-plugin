@@ -3,7 +3,11 @@ package com.jetbrains.packagesearch.plugin.utils
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.jetbrains.packagesearch.plugin.services.*
+import com.jetbrains.packagesearch.plugin.services.PackageSearchApiClientService
+import com.jetbrains.packagesearch.plugin.services.PackageSearchApiEndpointsService
+import com.jetbrains.packagesearch.plugin.services.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
+import org.jetbrains.packagesearch.plugin.services.PackageSearchComposeTunnel
 
 val Application.PackageSearchApiEndpointsService
     get() = service<PackageSearchApiEndpointsService>()
@@ -16,3 +20,6 @@ val Application.PackageSearchApplicationCachesService
 
 val Project.PackageSearchProjectService
     get() = service<PackageSearchProjectService>()
+
+val Project.PackageSearchComposeTunnel
+    get() = service<PackageSearchComposeTunnel>()

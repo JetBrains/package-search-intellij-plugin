@@ -14,8 +14,8 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
         }
         tasks {
             val shadowJar = named<ShadowJar>("shadowJar") {
-                relocate("io.ktor", "bundled.io.ktor")
-                relocate("kotlinx.serialization", "bundled.kotlinx.serialization")
+                relocate("io.ktor", "shadow.io.ktor")
+                relocate("kotlinx.serialization", "shadow.kotlinx.serialization")
                 exclude {
                     it.name.containsAny(packageSearchExtension.librariesToDelete.get())
                             && !it.name.containsAny(packageSearchExtension.librariesToKeep.get())

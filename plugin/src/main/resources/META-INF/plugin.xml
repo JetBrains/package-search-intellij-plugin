@@ -31,4 +31,9 @@ Supports Maven and Gradle projects.
                      key="org.jetbrains.packagesearch.localhost"
                      restartRequired="false"/>
     </extensions>
+    <actions>
+        <action id="com.jetbrains.packagesearch.plugin.utils.PKGSInfoWindowAction"
+                class="com.jetbrains.packagesearch.plugin.utils.PKGSInfoWindowAction" text="PKGSInfoPanelToggle"
+                description="PKGSInfoPanelToggle"/>
+    </actions>
 </idea-plugin>

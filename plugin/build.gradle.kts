@@ -16,7 +16,14 @@ packagesearch {
 }
 
 dependencies {
-    implementation(packageSearchCatalog.jewel.foundation)
+    implementation(packageSearchCatalog.jewel.intUi.standalone)
+    implementation(packageSearchCatalog.compose.desktop.components.splitpane)
+    implementation(packageSearchCatalog.jewel.core)
+    implementation(compose.desktop.macos_x64)
+    implementation(compose.desktop.macos_arm64)
+    implementation(compose.desktop.linux_arm64)
+    implementation(compose.desktop.linux_x64)
+    implementation(compose.desktop.windows_x64)
     implementation(packageSearchCatalog.packagesearch.api.models)
     compileOnly(packageSearchCatalog.kotlinx.serialization.core)
     implementation(projects.plugin.maven)
