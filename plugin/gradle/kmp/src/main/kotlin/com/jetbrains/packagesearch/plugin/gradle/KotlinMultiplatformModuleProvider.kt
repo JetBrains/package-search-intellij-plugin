@@ -31,7 +31,9 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
         buildFile: Path?,
-    ): PackageSearchModuleData {
+    ): PackageSearchModuleData? {
+        if (!model.isKotlinMultiplatformApplied) return null
+
         val isKts = buildFile?.extension == "kts"
         val dependencyBlockDeclaredDependencies =
             getDeclaredDependencies(context, isKts)

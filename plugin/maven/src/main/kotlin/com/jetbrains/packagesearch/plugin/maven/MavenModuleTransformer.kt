@@ -7,21 +7,6 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
-import org.jetbrains.idea.maven.project.MavenProject
-import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
-import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.api.v3.ApiRepository
-import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
-import org.jetbrains.packagesearch.api.v3.search.javaApi
-import org.jetbrains.packagesearch.api.v3.search.javaRuntime
-import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleProvider
@@ -33,6 +18,20 @@ import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.packageId
 import com.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import org.jetbrains.idea.maven.project.MavenProject
+import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiRepository
+import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
+import org.jetbrains.packagesearch.api.v3.search.javaApi
+import org.jetbrains.packagesearch.api.v3.search.javaRuntime
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.intellij.openapi.module.Module as NativeModule
 
 
@@ -90,6 +89,7 @@ class MavenModuleTransformer : PackageSearchModuleProvider {
                 DependencyModifierService.getInstance(context.project)
                     .declaredDependencies(this)
             }
+                .distinctBy { it.unifiedDependency }
 
             val distinctIds = declaredDependencies
                 .asSequence()

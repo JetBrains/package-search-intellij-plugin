@@ -22,7 +22,9 @@ class GradleModuleProvider : BaseGradleModuleProvider() {
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
         buildFile: Path?,
-    ): PackageSearchModuleData {
+    ): PackageSearchModuleData? {
+        if (model.isKotlinMultiplatformApplied) return null
+
         val availableKnownRepositories =
             model.repositories.toSet().let { availableGradleRepositories ->
                 context.knownRepositories.filterValues {

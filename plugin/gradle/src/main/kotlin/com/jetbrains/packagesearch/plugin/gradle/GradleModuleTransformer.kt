@@ -7,12 +7,6 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
-import kotlinx.coroutines.flow.*
-import java.nio.file.Path
-import kotlin.io.path.exists
-import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.api.v3.ApiRepository
-import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
@@ -34,6 +28,22 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.getGradleModelRepository
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleSyncNotifierFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.singleOrNull
+import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiRepository
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.intellij.openapi.module.Module as NativeModule
 
 abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
@@ -113,6 +123,7 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                 DependencyModifierService.getInstance(context.project)
                     .declaredDependencies(this)
             }
+                .distinctBy { it.unifiedDependency }
 
             val distinctIds = declaredDependencies
                 .asSequence()
@@ -127,24 +138,26 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                     context.getPackageInfoByIds(distinctIds.toSet())
                 }
 
-            return declaredDependencies.associateBy { it.packageId }.mapNotNull { (packageId, declaredDependency) ->
-                PackageSearchGradleDeclaredPackage(
-                    id = packageId,
-                    declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
-                    latestStableVersion = remoteInfo[packageId]?.versions?.latestStable?.normalized
-                        ?: NormalizedVersion.Missing,
-                    latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized
-                        ?: NormalizedVersion.Missing,
-                    remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
-                    icon = Icons.GRADLE,
-                    module = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
-                    name = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,
-                    configuration = declaredDependency.unifiedDependency.scope ?: error(
-                        "No scope available for ${declaredDependency.unifiedDependency}" + " in module $name"
-                    ),
-                    declarationIndexes = declaredDependency.evaluateDeclaredIndexes(isKts),
-                )
-            }
+            return declaredDependencies
+                .associateBy { it.packageId }
+                .mapNotNull { (packageId, declaredDependency) ->
+                    PackageSearchGradleDeclaredPackage(
+                        id = packageId,
+                        declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
+                        latestStableVersion = remoteInfo[packageId]?.versions?.latestStable?.normalized
+                            ?: NormalizedVersion.Missing,
+                        latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized
+                            ?: NormalizedVersion.Missing,
+                        remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
+                        icon = Icons.GRADLE,
+                        module = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
+                        name = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,
+                        configuration = declaredDependency.unifiedDependency.scope ?: error(
+                            "No scope available for ${declaredDependency.unifiedDependency}" + " in module $name"
+                        ),
+                        declarationIndexes = declaredDependency.evaluateDeclaredIndexes(isKts),
+                    )
+                }
         }
 
     }
@@ -206,6 +219,6 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
         buildFile: Path?
-    ): PackageSearchModuleData
+    ): PackageSearchModuleData?
 
 }
