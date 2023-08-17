@@ -167,7 +167,7 @@ fun MavenCoordinateWithVersions.toApiModels(): ApiPackage {
                     name = pom.name,
                     description = pom.description,
                     authors = pom.developers.map { it.toApiModel() },
-                    scmUrl = pom.scm?.url,
+                    scm = null,
                     licenses = pom.licenses.toApiModel()
                 )
 
@@ -182,7 +182,7 @@ fun MavenCoordinateWithVersions.toApiModels(): ApiPackage {
                     name = pom.name,
                     description = pom.description,
                     authors = pom.developers.map { it.toApiModel() },
-                    scmUrl = pom.scm?.url,
+                    scm = null,
                     licenses = pom.licenses.toApiModel()
                 )
             }
