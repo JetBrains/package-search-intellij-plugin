@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.idea.gradle.plugin)
@@ -16,8 +18,8 @@ dependencies {
 
 packagesearch {
     publication {
-        isEnabled.set(true)
-        artifactId.set("kmp-dependency-modifier")
+        isEnabled = true
+        artifactId = "kmp-dependency-modifier"
     }
 }
 

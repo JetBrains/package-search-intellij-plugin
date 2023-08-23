@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.idea.gradle.plugin)
@@ -9,8 +11,8 @@ plugins {
 
 packagesearch {
     publication {
-        isEnabled.set(true)
-        artifactId.set("packagesearch-plugin-kmp")
+        isEnabled = true
+        artifactId = "packagesearch-plugin-kmp"
     }
 }
 

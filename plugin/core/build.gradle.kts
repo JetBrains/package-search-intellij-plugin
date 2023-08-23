@@ -1,5 +1,4 @@
-import kotlin.io.path.absolutePathString
-import org.jetbrains.compose.compose
+@file:Suppress("UnstableApiUsage")
 
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
@@ -12,8 +11,8 @@ plugins {
 
 packagesearch {
     publication {
-        isEnabled.set(true)
-        artifactId.set("packagesearch-plugin-core")
+        isEnabled = true
+        artifactId = "packagesearch-plugin-core"
     }
 }
 
@@ -33,6 +32,6 @@ dependencies {
 
 tasks {
     withType<Test> {
-        environment("DB_PATH", buildDir.toPath().resolve("tests/cache.db").absolutePathString())
+        environment("DB_PATH", layout.buildDirectory.file("tests/cache.db").get().asFile.absolutePath)
     }
 }

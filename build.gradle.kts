@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import org.jetbrains.packagesearch.gradle.PackageSearchExtension
 import org.jetbrains.packagesearch.gradle.pkgsSpace
 import org.jetbrains.packagesearch.gradle.withType
@@ -18,7 +20,7 @@ allprojects {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
     extensions.withType<PackageSearchExtension> {
-        intellijVersion.set("2023.2-SNAPSHOT")
+        intellijVersion = "2023.2-SNAPSHOT"
     }
 }
 

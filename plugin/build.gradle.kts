@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.idea.gradle.plugin)
@@ -10,8 +12,8 @@ plugins {
 
 packagesearch {
     publication {
-        isEnabled.set(true)
-        artifactId.set("packagesearch-plugin")
+        isEnabled = true
+        artifactId = "packagesearch-plugin"
     }
 }
 
@@ -38,12 +40,12 @@ dependencies {
 
 tasks {
     publishPlugin {
-        toolboxEnterprise.set(true)
-        host.set("https://tbe.labs.jb.gg/")
+        toolboxEnterprise = true
+        host = "https://tbe.labs.jb.gg/"
         token.set(
             project.properties["toolboxEnterpriseToken"]?.toString()
                 ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
         )
-        channels.set(listOf("INTERNAL-EAP"))
+        channels = listOf("INTERNAL-EAP")
     }
 }

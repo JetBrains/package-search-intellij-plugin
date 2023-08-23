@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
@@ -7,12 +9,12 @@ plugins {
 
 packagesearch {
     publication {
-        isEnabled.set(false)
+        isEnabled = false
     }
 }
 
 application {
-    mainClass.set("org.jetbrains.packagesearch.server.ServerKt")
+    mainClass = "org.jetbrains.packagesearch.server.ServerKt"
 }
 
 dependencies {
