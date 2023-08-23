@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package org.jetbrains.packagesearch.gradle
 
 import org.gradle.api.Project
@@ -6,6 +8,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.property
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -28,7 +31,7 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
             .convention {  }
 
         fun pom(action: MavenPom.() -> Unit) {
-            pomAction.set(action)
+            pomAction = action
         }
     }
 

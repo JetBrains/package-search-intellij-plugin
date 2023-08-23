@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.TextUnit
 import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.LocalTextStyle
 import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 
 @Composable
 fun LabelInfo(
@@ -34,7 +35,7 @@ fun LabelInfo(
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current
 ) {
-    val textColor = IntelliJTheme.colors.infoContent
+    val textColor = TODO("IntelliJTheme.colors.infoContent") // fab halp pls!
     Text(
         text = text,
         modifier = modifier,

@@ -50,7 +50,7 @@ fun SearchRow(
             }
         }
     }
-    val borderColor = IntelliJTheme.colors.borders.disabled
+    val borderColor = TODO("IntelliJTheme.colors.borders.disabled")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -72,7 +72,7 @@ fun SearchRow(
     ) {
         Icon(
             painterResource("icons/intui/search.svg", LocalResourceLoader.current),
-            tint = IntelliJTheme.colors.infoContent
+            tint = TODO("IntelliJTheme.colors.infoContent")
         )
         TextField(
             value = textSearchState.value,
@@ -82,7 +82,7 @@ fun SearchRow(
             placeholder = {
                 Text(
                     text = "Search",
-                    color = IntelliJTheme.colors.infoContent,
+                    color = TODO("IntelliJTheme.colors.infoContent"),
                     modifier = Modifier.padding(start = 4.pxToDp())
                 )
             },
@@ -93,7 +93,7 @@ fun SearchRow(
                         searchResultsCount.let {
                             Text(
                                 text = "$it ${if (it == 1) "result" else "results"}",
-                                color = IntelliJTheme.colors.infoContent,
+                                color = TODO("IntelliJTheme.colors.infoContent"),
                                 modifier = Modifier.padding(end = 4.pxToDp())
                             )
                         }

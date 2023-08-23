@@ -25,7 +25,7 @@ fun TreeBox(
         resourceLoader = LocalResourceLoader.current,
         treeState = treeState,
         onElementClick = {},
-        onSelectionChange = onSelectionChange,
+        //onSelectionChange = onSelectionChange,
     ) {
         Row(
             modifier = Modifier

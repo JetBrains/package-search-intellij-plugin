@@ -38,11 +38,11 @@ fun UI(
     val detailsExpanded = composeTunnel.infoTabStateFlow.collectAsState()
 
     val swingCompat by remember { mutableStateOf(false) }
-    val theme = if (!lightMode) IntUiTheme.dark() else IntUiTheme.light()
+    val theme = if (!lightMode) IntUiTheme.darkThemeDefinition() else IntUiTheme.lightThemeDefinition()
     val windowBackground = if (lightMode) {
-        IntUiTheme.light().palette.grey(13)
+        IntUiTheme.lightThemeDefinition().colorPalette.grey(13)
     } else {
-        IntUiTheme.dark().palette.grey(2)
+        IntUiTheme.darkThemeDefinition().colorPalette.grey(2)
     }
     IntUiTheme(theme, swingCompat) {
         CompositionLocalProvider(
@@ -69,10 +69,5 @@ fun UI(
     }
 }
 
-fun Application.lightThemeFlow() = IntelliJApplication.messageBus.flow(LafManagerListener.TOPIC) {
-    object : LafManagerListener {
-        override fun lookAndFeelChanged(source: LafManager) {
-            trySend(isLightTheme())
-        }
-    }
-}
+fun Application.lightThemeFlow() =
+    messageBus.flow(LafManagerListener.TOPIC) { LafManagerListener { trySend(isLightTheme()) } }

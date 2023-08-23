@@ -20,15 +20,13 @@ packagesearch {
 val sourcesJar by tasks.registering(Jar::class) {
     from(sourceSets["main"].allSource)
     archiveClassifier = "sources"
-    archiveBaseName = "sources"
-    into(layout.buildDirectory.dir("artifacts"))
+    destinationDirectory = layout.buildDirectory.dir("artifacts")
 }
 
 val javadocJar by tasks.registering(Jar::class) {
     from(tasks.javadoc.get().destinationDir)
     archiveClassifier = "javadoc"
-    archiveBaseName = "javadoc"
-    into(layout.buildDirectory.dir("artifacts"))
+    destinationDirectory = layout.buildDirectory.dir("artifacts")
 }
 
 publishing {

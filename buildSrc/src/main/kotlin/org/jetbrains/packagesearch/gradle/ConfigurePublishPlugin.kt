@@ -22,15 +22,13 @@ fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.
                 val dokkaHtml = tasks.named<DokkaTask>("dokkaHtml")
                 val sourcesJar by tasks.registering(Jar::class) {
                     from(project.the<KotlinJvmProjectExtension>().sourceSets["main"].kotlin)
-                    archiveClassifier.set("sources")
-                    archivesName.set("sourcesJar")
-                    into("$buildDir/artifacts")
+                    archiveClassifier = "sources"
+                    destinationDirectory = layout.buildDirectory.dir("artifacts")
                 }
                 val javadocJar by tasks.registering(Jar::class) {
                     from(dokkaHtml)
-                    archiveClassifier.set("javadoc")
-                    archivesName.set("javadocJar")
-                    into("$buildDir/artifacts")
+                    archiveClassifier = "javadoc"
+                    destinationDirectory = layout.buildDirectory.dir("artifacts")
                 }
                 extensions.withType<PublishingExtension> {
                     repositories {

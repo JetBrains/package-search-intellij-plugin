@@ -1,7 +1,10 @@
+@file:Suppress("UnstableApiUsage")
+
 package org.jetbrains.packagesearch.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
@@ -11,7 +14,7 @@ fun Project.configureKotlinJvmPlugin(packageSearchExtension: PackageSearchExtens
         tasks {
             withType<KotlinJvmCompile> {
                 compilerOptions {
-                    jvmTarget.set(packageSearchExtension.jvmTarget)
+                    jvmTarget = packageSearchExtension.jvmTarget
                     freeCompilerArgs.addAll(packageSearchExtension.optIns.map { it.map { "-opt-in=$it" } })
                 }
             }
