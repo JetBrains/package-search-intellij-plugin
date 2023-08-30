@@ -3,10 +3,13 @@
 package com.jetbrains.packagesearch.plugin.utils
 
 import com.intellij.ProjectTopics
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.Function
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -26,6 +29,7 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjec
 import com.jetbrains.packagesearch.plugin.core.nitrite.insert
 import com.jetbrains.packagesearch.plugin.core.utils.collectIn
 import com.jetbrains.packagesearch.plugin.core.utils.flow
+import io.ktor.client.plugins.logging.Logger
 
 
 internal val Project.nativeModules
@@ -97,3 +101,43 @@ fun <T> Flow<T>.startWithNull() = flow {
     emit(null)
     collectIn(this)
 }
+
+@Suppress("FunctionName")
+fun KtorDebugLogger() = object : Logger {
+    override fun log(message: String) = logDebug(message)
+}
+
+internal sealed interface FileEditorEvent {
+
+    val file: VirtualFile
+
+    @JvmInline
+    value class FileOpened(override val file: VirtualFile) : FileEditorEvent
+
+    @JvmInline
+    value class FileClosed(override val file: VirtualFile) : FileEditorEvent
+}
+
+internal val Project.fileOpenedFlow: Flow<List<VirtualFile>>
+    get() = flow {
+        val buffer: MutableList<VirtualFile> = FileEditorManager.getInstance(this@fileOpenedFlow).openFiles
+            .toMutableList()
+        emit(buffer.toList())
+        messageBus.flow(FileEditorManagerListener.FILE_EDITOR_MANAGER) {
+            object : FileEditorManagerListener {
+                override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+                    trySend(FileEditorEvent.FileOpened(file))
+                }
+
+                override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+                    trySend(FileEditorEvent.FileClosed(file))
+                }
+            }
+        }.collect {
+            when (it) {
+                is FileEditorEvent.FileClosed -> buffer.remove(it.file)
+                is FileEditorEvent.FileOpened -> buffer.add(it.file)
+            }
+            emit(buffer.toList())
+        }
+    }

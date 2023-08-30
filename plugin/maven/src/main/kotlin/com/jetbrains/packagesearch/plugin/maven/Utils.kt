@@ -25,8 +25,7 @@ suspend fun DeclaredDependency.evaluateDeclaredIndexes() = readAction {
         .find { it is Navigatable && it.canNavigate() }
         ?: return@readAction null
     DependencyDeclarationIndexes(
-        wholeDeclarationStartIndex = xmlTag.textOffset,
-        coordinatesStartIndex = xmlTag.textOffset,
+        declarationStartIndex = xmlTag.textOffset,
         versionStartIndex = children.filterIsInstance<XmlTag>()
             .find { it.name == "version" }
             ?.children

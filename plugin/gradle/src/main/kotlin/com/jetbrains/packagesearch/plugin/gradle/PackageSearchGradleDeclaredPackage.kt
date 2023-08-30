@@ -16,7 +16,7 @@ data class PackageSearchGradleDeclaredPackage(
     override val latestStableVersion: NormalizedVersion,
     override val latestVersion: NormalizedVersion,
     override val remoteInfo: ApiMavenPackage?,
-    override val declarationIndexes: DependencyDeclarationIndexes?,
+    override val declarationIndexes: DependencyDeclarationIndexes,
     override val icon: PathSourceType,
     val module: String,
     val name: String,

@@ -1,3 +1,4 @@
 <idea-plugin implementation-detail="true">
     <depends optional="true" config-file="gradle.xml">com.intellij.gradle</depends>
+    <depends>org.jetbrains.idea.gradle.dsl</depends>
 </idea-plugin>

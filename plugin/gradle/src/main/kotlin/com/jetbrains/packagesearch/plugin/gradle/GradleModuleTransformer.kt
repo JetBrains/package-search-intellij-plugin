@@ -2,12 +2,14 @@
 
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
 import com.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleProvider
@@ -19,11 +21,10 @@ import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.collectIn
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
-import com.jetbrains.packagesearch.plugin.core.utils.packageId
 import com.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import com.jetbrains.packagesearch.plugin.gradle.utils.dumbModeStateFlow
-import com.jetbrains.packagesearch.plugin.gradle.utils.evaluateDeclaredIndexes
+import com.jetbrains.packagesearch.plugin.gradle.utils.getDependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.gradle.utils.getGradleModelRepository
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleSyncNotifierFlow
@@ -45,6 +46,40 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.intellij.openapi.module.Module as NativeModule
+
+class GradleDependencyModel(
+    val groupId: String,
+    val artifactId: String,
+    val version: String?,
+    val configuration: String,
+    val indexes: DependencyDeclarationIndexes
+) {
+
+    val packageId
+        get() = "maven:$groupId:$artifactId"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as GradleDependencyModel
+
+        if (groupId != other.groupId) return false
+        if (artifactId != other.artifactId) return false
+        if (version != other.version) return false
+        if (configuration != other.configuration) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = groupId.hashCode()
+        result = 31 * result + artifactId.hashCode()
+        result = 31 * result + (version?.hashCode() ?: 0)
+        result = 31 * result + (configuration?.hashCode() ?: 0)
+        return result
+    }
+}
 
 abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
 
@@ -117,20 +152,29 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
 
         suspend fun Module.getDeclaredDependencies(
             context: PackageSearchModuleBuilderContext,
-            isKts: Boolean,
         ): List<PackageSearchGradleDeclaredPackage> {
             val declaredDependencies = readAction {
-                DependencyModifierService.getInstance(context.project)
-                    .declaredDependencies(this)
-            }
-                .distinctBy { it.unifiedDependency }
+                ProjectBuildModel.get(context.project).getModuleBuildModel(this)
+                    ?.dependencies()
+                    ?.artifacts()
+                    ?.mapNotNull { artifact ->
+                        GradleDependencyModel(
+                            groupId = artifact.group().toString(),
+                            artifactId = artifact.name().toString(),
+                            version = artifact.version().toString() as String?,
+                            configuration = artifact.configurationName(),
+                            indexes = artifact.getDependencyDeclarationIndexes() ?: return@mapNotNull null
+                        )
+                    } ?: emptyList()
+            }.distinct()
 
             val distinctIds = declaredDependencies
                 .asSequence()
-                .filter { it.coordinates.artifactId != null && it.coordinates.groupId != null }
                 .map { it.packageId }
                 .distinct()
+
             val isLocalhost = Registry.`is`("org.jetbrains.packagesearch.localhost", false)
+
             val remoteInfo =
                 if (!isLocalhost) {
                     context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
@@ -139,23 +183,20 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                 }
 
             return declaredDependencies
-                .associateBy { it.packageId }
-                .mapNotNull { (packageId, declaredDependency) ->
+                .map { declaredDependency ->
                     PackageSearchGradleDeclaredPackage(
-                        id = packageId,
-                        declaredVersion = NormalizedVersion.from(declaredDependency.coordinates.version),
-                        latestStableVersion = remoteInfo[packageId]?.versions?.latestStable?.normalized
+                        id = declaredDependency.packageId,
+                        declaredVersion = NormalizedVersion.from(declaredDependency.version),
+                        latestStableVersion = remoteInfo[declaredDependency.packageId]?.versions?.latestStable?.normalized
                             ?: NormalizedVersion.Missing,
-                        latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized
+                        latestVersion = remoteInfo[declaredDependency.packageId]?.versions?.latest?.normalized
                             ?: NormalizedVersion.Missing,
-                        remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
+                        remoteInfo = remoteInfo[declaredDependency.packageId]?.asMavenApiPackage(),
                         icon = Icons.GRADLE,
-                        module = declaredDependency.coordinates.groupId ?: return@mapNotNull null,
-                        name = declaredDependency.coordinates.artifactId ?: return@mapNotNull null,
-                        configuration = declaredDependency.unifiedDependency.scope ?: error(
-                            "No scope available for ${declaredDependency.unifiedDependency}" + " in module $name"
-                        ),
-                        declarationIndexes = declaredDependency.evaluateDeclaredIndexes(isKts),
+                        module = declaredDependency.groupId,
+                        name = declaredDependency.artifactId,
+                        configuration = declaredDependency.configuration,
+                        declarationIndexes = declaredDependency.indexes,
                     )
                 }
         }

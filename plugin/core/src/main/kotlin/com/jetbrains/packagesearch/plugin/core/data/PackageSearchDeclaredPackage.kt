@@ -7,12 +7,12 @@ import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationI
 
 interface PackageSearchDeclaredPackage : WithIcon {
     val id: String
-    val displayName: String // todo @Lamberto fix packageSearchDeclaredPackage.displayname some time crashes in a stackoverflow
+    val displayName: String
     val declaredVersion: NormalizedVersion
     val latestStableVersion: NormalizedVersion
     val latestVersion: NormalizedVersion
     val remoteInfo: ApiPackage?
-    val declarationIndexes: DependencyDeclarationIndexes?
+    val declarationIndexes: DependencyDeclarationIndexes
     val scope: String?
 
     fun getUpdateData(newVersion: String?, newScope: String?): UpdatePackageData

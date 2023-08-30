@@ -10,7 +10,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import org.dizitart.no2.objects.ObjectFilter
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesProvider
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesContext
 import com.jetbrains.packagesearch.plugin.core.nitrite.*
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import kotlin.time.Duration
@@ -21,7 +21,7 @@ class PackageSearchApiPackageCache(
     private val fileCache: CoroutineObjectRepository<ApiPackageCacheEntry>,
     private val apiClient: PackageSearchApiClient,
     private val maxAge: Duration = 1.days / 2,
-) : PackageSearchApiPackagesProvider {
+) : PackageSearchApiPackagesContext {
 
     private val cachesMutex = Mutex()
 

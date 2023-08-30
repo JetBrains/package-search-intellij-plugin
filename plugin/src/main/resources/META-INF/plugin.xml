@@ -30,6 +30,20 @@ Supports Maven and Gradle projects.
                      description="Uses localhost as host in Package Search"
                      key="org.jetbrains.packagesearch.localhost"
                      restartRequired="false"/>
+        <registryKey id="packagesearch.plugin.debug.logging"
+                     key="packagesearch.plugin.debug.logging"
+                     defaultValue="false"
+                     description="Emit in-depth debug logging (warning: very spammy, only useful for debugging data flow issues). Make sure you have this line in Help | Diagnostic Tools | Debug Log Settings: '#com.jetbrains.packagesearch.intellij-plugin:trace'."
+                     restartRequired="false"/>
+        <localInspection
+                bundle="messages.packageSearchBundle"
+                enabledByDefault="true"
+                groupKey="packagesearch.inspection.upgrade.group"
+                implementationClass="com.jetbrains.packagesearch.plugin.inspections.PackageUpdateInspection"
+                key="packagesearch.inspection.upgrade.key"
+                hasStaticDescription="true"
+                level="WEAK WARNING"
+                language=""/>
     </extensions>
     <actions>
         <action id="com.jetbrains.packagesearch.plugin.utils.PKGSInfoWindowAction"

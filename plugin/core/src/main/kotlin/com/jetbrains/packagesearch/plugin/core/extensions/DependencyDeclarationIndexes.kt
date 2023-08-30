@@ -23,12 +23,11 @@ import kotlinx.serialization.Serializable
  * //                ▲ versionStartIndex
  *      </dependency>
  * ```
- * @param wholeDeclarationStartIndex index of the first character where the whole declarations starts.
+ * @param declarationStartIndex index of the first character where the whole declarations starts.
  *
  */
 @Serializable
 data class DependencyDeclarationIndexes(
-    val wholeDeclarationStartIndex: Int,
-    val coordinatesStartIndex: Int,
+    val declarationStartIndex: Int,
     val versionStartIndex: Int?
 )

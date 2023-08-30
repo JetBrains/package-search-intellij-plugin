@@ -24,7 +24,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesProvider
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
 
@@ -69,7 +69,7 @@ inline fun <T> CoroutineScope.windowedBuilderContext(
 class WindowedModuleBuilderContext(
     override val project: Project,
     override val knownRepositories: Map<String, ApiRepository>,
-    private val packagesCache: PackageSearchApiPackagesProvider,
+    private val packagesCache: PackageSearchApiPackagesContext,
     override val coroutineScope: CoroutineScope,
     override val projectCaches: CoroutineNitrite,
     override val applicationCaches: CoroutineNitrite,
@@ -130,7 +130,7 @@ private data class Response(
     val packages: Map<String, ApiPackage>,
 )
 
-fun <T> Flow<T>.debounceBatch(duration: Duration): Flow<List<T>> = channelFlow {
+private fun <T> Flow<T>.debounceBatch(duration: Duration): Flow<List<T>> = channelFlow {
     val mutex = Mutex()
     val buffer = mutableListOf<T>()
     var job: Job? = null

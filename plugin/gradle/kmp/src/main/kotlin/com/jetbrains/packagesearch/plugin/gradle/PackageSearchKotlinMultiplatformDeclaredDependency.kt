@@ -34,7 +34,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val latestStableVersion: NormalizedVersion,
         override val latestVersion: NormalizedVersion,
         override val remoteInfo: ApiMavenPackage?,
-        override val declarationIndexes: DependencyDeclarationIndexes?,
+        override val declarationIndexes: DependencyDeclarationIndexes,
         override val groupId: String,
         override val artifactId: String,
         override val variantName: String,
@@ -53,7 +53,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val latestStableVersion: NormalizedVersion,
         override val latestVersion: NormalizedVersion,
         override val remoteInfo: ApiPackage?,
-        override val declarationIndexes: DependencyDeclarationIndexes?,
+        override val declarationIndexes: DependencyDeclarationIndexes,
         override val variantName: String,
         override val displayName: String,
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
@@ -70,7 +70,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val latestStableVersion: NormalizedVersion,
         override val latestVersion: NormalizedVersion,
         override val remoteInfo: ApiPackage?,
-        override val declarationIndexes: DependencyDeclarationIndexes?,
+        override val declarationIndexes: DependencyDeclarationIndexes,
         override val variantName: String,
         val configuration: String,
         override val displayName: String
@@ -80,4 +80,5 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val scope: String
             get() = configuration
     }
+
 }

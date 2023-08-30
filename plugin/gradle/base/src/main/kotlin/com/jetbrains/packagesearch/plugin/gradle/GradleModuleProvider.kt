@@ -35,7 +35,7 @@ class GradleModuleProvider : BaseGradleModuleProvider() {
         val isKts = buildFile?.extension == "kts"
 
         val configurationNames = model.configurations.map { name }
-        val declaredDependencies = getDeclaredDependencies(context, isKts)
+        val declaredDependencies = getDeclaredDependencies(context)
         val availableScopes = generateAvailableScope(declaredDependencies, configurationNames)
         val packageSearchGradleModule = PackageSearchGradleModule(
             name = model.projectName,

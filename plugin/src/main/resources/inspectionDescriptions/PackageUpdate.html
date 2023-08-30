@@ -1,0 +1,25 @@
+<html>
+<body>
+This inspection detects outdated versions of declared dependencies in Maven POM files, Gradle Kotlin DSL files, and SBT build definitions.
+It can help you maintain your project's dependencies at their latest stable versions for better compatibility, performance, and updates.
+<p>
+    The inspection works by checking the declared version of each dependency in your project's build configuration files against the latest versions available in public repositories. If it identifies a newer version, the inspection will raise a warning and suggest an update. This not only ensures your project is up-to-date, but also aids in identifying potential security and compatibility risks associated with outdated dependencies.
+</p>
+<p>
+    Find more information about inspections at <a href="https://jetbrains.design/intellij/text/inspections/#descriptions"> JetBrains Design Guidelines for Inspections</a>.
+</p>
+<p>
+    Here is a simple scenario:
+</p>
+<pre><code>
+// In your build.gradle.kts
+dependencies {
+    implementation("com.somegroup:somelibrary:1.0.0") // Inspection detects a newer version 1.0.1 available
+}
+</code></pre>
+<!-- tooltip end -->
+<p>More details regarding this inspection are only available in the settings of the inspector.</p>
+
+<p>Directly access the related settings from this description by simply clicking <a href="settings://$">here</a>.</p>
+</body>
+</html>
