@@ -9,7 +9,6 @@ plugins {
     `maven-publish`
 }
 dependencies {
-    implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.kotlinx.serialization.protobuf)
     testImplementation(kotlin("test-junit5"))
     testRuntimeOnly(packageSearchCatalog.junit4.base)
