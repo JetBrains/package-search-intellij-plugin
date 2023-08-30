@@ -13,11 +13,12 @@ import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.util.asSafely
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolWindows
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchComposeTunnel
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchUIStateService
 import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.packagesearch.plugin.ui.UI
+import org.jetbrains.packagesearch.plugin.services.PackageSearchUIStateService
 
 
 inline fun <T> Iterable<T>.applyOnEach(action: T.() -> Unit) =
@@ -26,7 +27,7 @@ inline fun <T> Iterable<T>.applyOnEach(action: T.() -> Unit) =
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
 
-        val composeTunnel = project.PackageSearchComposeTunnel
+        val composeTunnel = project.PackageSearchUIStateService
         val apiClient = IntelliJApplication.PackageSearchApiClientService.client
         val isActionPerforming = mutableStateOf(false)
 
@@ -34,13 +35,14 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
         toolWindow.asSafely<ToolWindowEx>()?.setTabActions(
             actionManager.getAction("com.jetbrains.packagesearch.plugin.utils.PKGSInfoWindowAction")
         )
+
         toolWindow.addComposeTab("UX") {
             CompositionLocalProvider(
                 LocalProjectService provides project.PackageSearchProjectService,
-                LocalToolWindow provides toolWindow,
                 LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
+                LocalPackageSearchUIStateService provides composeTunnel,
             ) {
-                UI(composeTunnel, apiClient, isActionPerforming)
+                PackageSearchToolWindows(apiClient, isActionPerforming)
             }
         }
 
@@ -52,10 +54,8 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
 val LocalProjectService = staticCompositionLocalOf<PackageSearchProjectService> {
     error("No ProjectService provided")
 }
-
-val LocalToolWindow = staticCompositionLocalOf<ToolWindow> {
-    error("No Toolwindow provided")
-}
+val LocalPackageSearchUIStateService =
+    staticCompositionLocalOf<PackageSearchUIStateService> { error("No PackageSearchUIStateService provided") }
 
 val LocalProjectCoroutineScope = staticCompositionLocalOf<CoroutineScope> {
     error("No ProjectCoroutineScope provided")

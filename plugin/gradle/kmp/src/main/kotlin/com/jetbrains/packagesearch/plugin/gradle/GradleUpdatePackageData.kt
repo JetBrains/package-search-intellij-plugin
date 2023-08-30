@@ -2,17 +2,14 @@
 
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.jetbrains.packagesearch.plugin.core.data.*
+import com.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import com.jetbrains.packagesearch.plugin.gradle.PackageSearchKotlinMultiplatformVariant.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
-import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
-import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
-import com.jetbrains.packagesearch.plugin.gradle.PackageSearchKotlinMultiplatformVariant.*
 
 data class KotlinMultiplatformUpdatePackageData(
     override val installedPackage: PackageSearchKotlinMultiplatformDeclaredDependency,
@@ -54,6 +51,9 @@ data class PackageSearchKotlinMultiplatformModule(
 
     val defaultConfiguration
         get() = defaultScope
+
+    override val mainVariant: PackageSearchModuleVariant
+        get() = variants.commonMain
 
 }
 

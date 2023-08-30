@@ -3,11 +3,13 @@ package org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -16,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
 import com.jetbrains.packagesearch.plugin.LocalProjectService
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
@@ -28,6 +31,7 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import org.jetbrains.packagesearch.plugin.ui.bridge.getComposeColor
 import org.jetbrains.packagesearch.plugin.ui.bridge.getPackageActions
+import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import javax.swing.UIManager
 import kotlin.math.roundToInt
 
@@ -57,12 +61,13 @@ internal fun PopupContent(
     isActionPerforming: MutableState<Boolean>,
     dropDownItemIdOpen: MutableState<Any?>
 ) {
+    val scope = LocalProjectCoroutineScope.current
     Column(
-        Modifier.padding(vertical = 4.dp, horizontal = 12.dp),
+        Modifier
+            .padding(vertical = 4.dp, horizontal = 12.dp),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        val scope = rememberCoroutineScope()
         Text(
             modifier = Modifier.width(176.dp),
             text = "Other Actions",
@@ -81,6 +86,7 @@ internal fun PopupContent(
                         scope.launch {
                             action.action()
                         }.invokeOnCompletion {
+                            it?.printStackTrace()
                             isActionPerforming.value = false
                             dropDownItemIdOpen.value = null
                         }
@@ -92,6 +98,9 @@ internal fun PopupContent(
 
 @Composable
 fun RemotePackageRow(
+    modifier: Modifier = Modifier,
+    isActive: Boolean,
+    isSelected: Boolean,
     apiPackage: ApiPackage,
     dropDownItemIdOpen: MutableState<Any?>,
     dependencyManager: PackageSearchDependencyManager?,
@@ -110,6 +119,9 @@ fun RemotePackageRow(
     }
     val packageSearchQuality = remember { PackageQuality.values().random() }
     PackageRowImpl(
+        modifier = modifier,
+        isActive = isActive,
+        isSelected = isSelected,
         iconResource = packageIconResource,
         packageName = apiPackage.name ?: apiPackage.id,
         packageId = if (apiPackage.name.isNullOrEmpty()) "" else apiPackage.id,
@@ -124,6 +136,9 @@ fun RemotePackageRow(
 
 @Composable
 fun LocalPackageRow(
+    modifier: Modifier = Modifier,
+    isActive: Boolean,
+    isSelected: Boolean,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
     dropDownItemIdOpen: MutableState<Any?>,
     selectedModules: List<PackageSearchModuleData>,
@@ -131,7 +146,7 @@ fun LocalPackageRow(
 ) {
     val packageIconResource = remember {
         when (val icon = packageSearchDeclaredPackage.icon) {
-            is WithIcon.PathSourceType.ClasspathResources, is WithIcon.PathSourceType.File-> icon.path
+            is WithIcon.PathSourceType.ClasspathResources, is WithIcon.PathSourceType.File -> icon.path
             is WithIcon.PathSourceType.Network -> TODO("not implemented")
             is WithIcon.PathSourceType.Platform -> TODO("not implemented")
         }
@@ -143,20 +158,26 @@ fun LocalPackageRow(
     )
 
     PackageRowImpl(
-        packageIconResource,
-        packageSearchDeclaredPackage.displayName,
-        packageSearchDeclaredPackage.id,
-        packageSearchQuality,
+        modifier = modifier,
+        isActive = isActive,
+        isSelected = isSelected,
+        iconResource = packageIconResource,
+        packageName = packageSearchDeclaredPackage.displayName,
+        packageId = packageSearchDeclaredPackage.id,
+        quality = packageSearchQuality,
         action = actions.first,
-        actions.second,
-        dropDownItemIdOpen,
-        isActionPerforming
+        otherActions = actions.second,
+        dropDownItemIdOpen = dropDownItemIdOpen,
+        isActionPerforming = isActionPerforming
     )
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun PackageRowImpl(
+    modifier: Modifier,
+    isActive: Boolean,
+    isSelected: Boolean,
     iconResource: String,
     packageName: String,
     packageId: String,
@@ -166,11 +187,22 @@ internal fun PackageRowImpl(
     dropDownItemIdOpen: MutableState<Any?>,
     isActionPerforming: MutableState<Boolean>
 ) {
-    val scope = rememberCoroutineScope()
+    val scope = LocalProjectCoroutineScope.current
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .height(24.dp),
+            .height(24.dp)
+            .background(
+                when{
+                    isSelected && isActive ->
+                        pickComposeColorFromLaf("Tree.selectionBackground")
+
+                    isSelected && !isActive ->
+                        pickComposeColorFromLaf("Tree.selectionInactiveBackground")
+
+                    else -> Color.Unspecified
+                }
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -209,6 +241,7 @@ internal fun PackageRowImpl(
                                     scope.launch {
                                         it.action()
                                     }.invokeOnCompletion {
+                                        it?.printStackTrace()
                                         isActionPerforming.value = false
                                         showProgress = false
                                     }
@@ -233,7 +266,7 @@ internal fun PackageRowImpl(
                                     } ?: Modifier
                             } else Modifier
                         )
-                        .pointerInput(Unit) {
+                        .pointerInput(packageId) {
                             awaitPointerEventScope {
                                 while (true) {
                                     val event = awaitPointerEvent()
@@ -267,7 +300,10 @@ internal fun PackageRowImpl(
                                 dropDownItemIdOpen.value = null
                             }) {
                             Box(
-                                modifier = Modifier.width(200.dp)
+                                modifier =
+                                Modifier.width(200.dp)
+                                    .clip(shape = RoundedCornerShape(10.dp))
+                                    .border(width = 1.dp, color = borderColor, shape=RoundedCornerShape(10.dp))
                                     .background(color = bgColor)
                             ) {
                                 PopupContent(otherActions, borderColor, isActionPerforming, dropDownItemIdOpen)

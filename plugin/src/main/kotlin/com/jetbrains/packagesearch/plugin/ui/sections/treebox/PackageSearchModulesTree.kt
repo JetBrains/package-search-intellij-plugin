@@ -14,7 +14,7 @@ import org.jetbrains.jewel.foundation.tree.TreeState
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalJewelApi::class)
 @Composable
-fun TreeBox(
+fun PackageSearchModulesTree(
     tree: Tree<PackageSearchModuleData>,
     treeState: TreeState,
     onSelectionChange: (List<Tree.Element<PackageSearchModuleData>>) -> Unit = { },
@@ -25,7 +25,7 @@ fun TreeBox(
         resourceLoader = LocalResourceLoader.current,
         treeState = treeState,
         onElementClick = {},
-        //onSelectionChange = onSelectionChange,
+        onSelectionChange = onSelectionChange,
     ) {
         Row(
             modifier = Modifier

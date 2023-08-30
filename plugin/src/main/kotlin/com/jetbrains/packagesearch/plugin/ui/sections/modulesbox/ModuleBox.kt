@@ -1,12 +1,17 @@
 package org.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Modifier
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchTableItem
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.NoResultsToShow
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackagesGroup
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.RemotePackagesGroup
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.ResultsSelectableLazyColumn
+import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 
 enum class DependenciesBrowsingMode {
@@ -15,52 +20,43 @@ enum class DependenciesBrowsingMode {
 }
 
 @Composable
-fun ModuleBox(
+fun PackageSearchCentralPanel(
     isLoading: Boolean = false,
-    packagesGroupsState: List<PackagesGroup>,
+    packagesGroups: List<PackagesGroup>,
     dependenciesBrowsingModeState: MutableState<DependenciesBrowsingMode>,
     textSearchState: MutableState<String>,
     searchParams: MutableState<SearchPackagesRequest>,
-    selectableLazyListState: SelectableLazyListState,
     dropDownItemIdOpen: MutableState<Any?>,
     selectedModules: List<PackageSearchModuleData>,
     isActionPerforming: MutableState<Boolean>,
     onPackageClick: (PackageSearchTableItem) -> Unit = {}
 ) {
-    Box {
-        Column {
-            SearchRow(
-                textSearchState = textSearchState,
-                searchResultsCount =
-                    packagesGroupsState.filterIsInstance<RemotePackageGroup>().sumOf { it.packages.size },
-                dependenciesBrowsingModeStatus = dependenciesBrowsingModeState
-            ) {
-                searchParams.value = searchParams.value.copy(searchQuery = it)
-            }
-            ResultsColumn(
-                packagesGroupState = packagesGroupsState.let {
-                    if (dependenciesBrowsingModeState.value == DependenciesBrowsingMode.Search) {
-                        it.map {
-                            if (it is LocalPackagesGroup) {
-                                LocalPackagesGroup(
-                                    it.header,
-                                    it.packages.filter {
-                                        it.id.contains(textSearchState.value) ||
-                                                it.displayName.contains(textSearchState.value)
-                                    }
-                                )
-                            } else it
-                        }
-                    } else it
-                },
-                lazyListState = selectableLazyListState,
-                dependencyBrowsingMode = dependenciesBrowsingModeState.value,
-                isLoading = isLoading,
-                dropDownItemIdOpen = dropDownItemIdOpen,
-                selectedModules = selectedModules,
-                isActionPerforming = isActionPerforming
-            ) { onPackageClick(it) }
+    Column {
+        SearchRow(
+            textSearchState = textSearchState,
+            searchResultsCount =
+            packagesGroups.filterIsInstance<RemotePackagesGroup>().sumOf { it.packages.size },
+            dependenciesBrowsingModeStatus = dependenciesBrowsingModeState
+        ) {
+            searchParams.value = searchParams.value.copy(searchQuery = it)
         }
+
+        if (packagesGroups.isEmpty() && !isLoading) {
+            NoResultsToShow(dependenciesBrowsingModeState.value)
+        } else {
+            ResultsSelectableLazyColumn(
+                packagesGroups,
+                dropDownItemIdOpen,
+                selectedModules,
+                isActionPerforming,
+                onPackageClick
+            )
+        }
+        if (isLoading) {
+            IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
+        }
+
     }
 }
+
 

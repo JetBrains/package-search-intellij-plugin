@@ -1,203 +1,266 @@
-package org.jetbrains.packagesearch.plugin.ui.sections.modulesbox
+package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
 import com.jetbrains.packagesearch.plugin.LocalProjectService
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.latestStableOrNull
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchTableItem
-import kotlinx.coroutines.launch
-import org.jetbrains.jewel.*
+import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
+import org.jetbrains.jewel.Icon
+import org.jetbrains.jewel.Link
+import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyListScope
-import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
+import org.jetbrains.jewel.foundation.lazy.SelectionMode
+import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
+import org.jetbrains.jewel.painterResource
 import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import org.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.DependenciesBrowsingMode
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.LocalPackageRow
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.ModulesHeader
+import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageSearchAction
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.RemotePackageRow
 
-interface PackagesGroup {
-    val isGroupCollapsed: MutableState<Boolean>
+sealed interface PackagesGroup {
+    val packages: List<PackageSearchTableItem>
 }
 
-class LocalPackagesGroup(
-    val header: PackageSearchModuleData,
-    val packages: List<PackageSearchTableItem.Installed>,
-    override val isGroupCollapsed: MutableState<Boolean> = mutableStateOf(false)
-) : PackagesGroup
-
-class RemotePackageGroup(
-    val packages: List<PackageSearchTableItem.Remote>,
-    val dependencyManager: PackageSearchDependencyManager?,
-    override val isGroupCollapsed: MutableState<Boolean> = mutableStateOf(false)
-) : PackagesGroup
-
-@Composable
-fun ResultsColumn(
-    packagesGroupState: List<PackagesGroup>,
-    lazyListState: SelectableLazyListState,
-    dependencyBrowsingMode: DependenciesBrowsingMode,
-    isLoading: Boolean,
-    dropDownItemIdOpen: MutableState<Any?>,
-    selectedModules: List<PackageSearchModuleData>,
-    isActionPerforming: MutableState<Boolean>,
-    onPackageClick: (PackageSearchTableItem) -> Unit,
-) {
-    Box {
-        if (packagesGroupState.isEmpty() && !isLoading) {
-            NoResultsToShow(dependencyBrowsingMode)
-        } else {
-            ResultsSelectableLazyColumn(
-                packagesGroupState,
-                lazyListState,
-                onPackageClick,
-                dropDownItemIdOpen,
-                selectedModules,
-                isActionPerforming
-            )
-        }
-        if (isLoading) {
-            IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
+fun LocalPackagesGroup.getCollectiveAction(
+    projectService: PackageSearchProjectService,
+) = packages.count { it.item.latestStableOrNull != null }.takeIf { it > 0 }?.let {
+    it to PackageSearchAction(
+        "UpgradeAll"
+    ) {
+        packages.forEach {
+            val latest = it.item.remoteInfo?.versions?.latestStable
+            if (latest != null) {
+                val updateData =
+                    it.item.getUpdateData(latest.normalized.versionName, null)
+                //todo handle concurrent process
+                runCatching {
+                    header.dependencyManager.updateDependencies(
+                        projectService,
+                        listOf(
+                            updateData
+                        ),
+                        projectService.knownRepositoriesStateFlow.value.values.toList()
+                    )
+                }.onFailure {
+                    it.printStackTrace()
+                }
+            }
         }
     }
+
+}
+
+// todo packages should be a map to handle variants in multiplatform
+class LocalPackagesGroup(
+    val header: PackageSearchModuleData,
+    override val packages: List<PackageSearchTableItem.Installed>,
+) : PackagesGroup
+
+class RemotePackagesGroup(
+    override val packages: List<PackageSearchTableItem.Remote>,
+    val dependencyManager: PackageSearchDependencyManager?,
+) : PackagesGroup
+
+sealed interface Entry {
+    class Header(
+        val moduleName: String,
+        val moduleSize: Int,
+        val availableAction: Pair<Int, PackageSearchAction>? = null,
+        val onToggleCollapse: () -> Unit,
+    ) : Entry
+
+    class Package(val moduleName: String, val packageItem: PackageSearchTableItem) : Entry
+
 }
 
 @Composable
 fun ResultsSelectableLazyColumn(
     results: List<PackagesGroup>,
-    selectableState: SelectableLazyListState,
-    onPackageClick: (PackageSearchTableItem) -> Unit,
     dropDownItemIdOpen: MutableState<Any?>,
     selectedModules: List<PackageSearchModuleData>,
-    isActionPerforming: MutableState<Boolean>
+    isActionPerforming: MutableState<Boolean>,
+    onPackageClick: (PackageSearchTableItem) -> Unit
 ) {
     val projectService = LocalProjectService.current
-    val scope = LocalProjectCoroutineScope.current
+    var selectedPackage by remember {
+        mutableStateOf<Pair<String, PackageSearchTableItem>?>(null)
+    }
+    var collapsedGroups by remember {
+        mutableStateOf(emptyList<String>())
+    }
+    val flattenGroups = remember(collapsedGroups, results) {
+        buildList {
+            results.forEach {
+                when (it) {
+                    is LocalPackagesGroup -> {
+                        add(
+                            Entry.Header(
+                                it.header.module.name,
+                                it.packages.size,
+                                it.getCollectiveAction(projectService)
+                            )
+                            {
+                                val name = it.header.module.name
+                                collapsedGroups = if (collapsedGroups.contains(name))
+                                    collapsedGroups - name
+                                else
+                                    collapsedGroups + name
+                            }
+                        )
+                        if (!collapsedGroups.contains(it.header.module.name))
+                            addAll(it.packages.map { packageItem ->
+                                Entry.Package(
+                                    it.header.module.name,
+                                    packageItem
+                                )
+                            })
+                    }
+
+                    is RemotePackagesGroup -> {
+                        add(
+                            Entry.Header("Search Results", it.packages.size)
+                            {
+                                collapsedGroups = if (collapsedGroups.contains("Search Results"))
+                                    collapsedGroups - "Search Results"
+                                else
+                                    collapsedGroups + "Search Results"
+                            }
+                        )
+                        if (!collapsedGroups.contains("Search Results"))
+                            addAll(it.packages.map { packageItem -> Entry.Package("remote", packageItem) })
+                    }
+                }
+            }
+        }
+    }
+
+
     SelectableLazyColumn(
-        state = selectableState,
-    ) {
+        state = rememberSelectableLazyListState(),
+        selectionMode = SelectionMode.Single,
+        onSelectedIndexesChanged = {
+            if (flattenGroups.isNotEmpty() && it.isNotEmpty()) {
+                flattenGroups.getOrNull(it.last()).let {
+                    if (it is Entry.Package)
+                        onPackageClick(it.packageItem)
+                }
+            }
+        }) {
         when {
             else -> {
-                results.forEach { moduleGroup ->
-                    stickyHeader(moduleGroup.hashCode()) {
-                        when (moduleGroup) {
-                            is LocalPackagesGroup -> {
-                                val upgradablePackageCount =
-                                    moduleGroup.packages.count { it.item.latestStableOrNull != null }
+                flattenGroups.forEach {
+                    when (it) {
+                        is Entry.Header -> {
+                            stickyHeader(it.hashCode()) {
                                 ModulesHeader(
-                                    moduleName = moduleGroup.header.module.name,
-                                    toggleCollapse = {
-                                        moduleGroup.isGroupCollapsed.value = !moduleGroup.isGroupCollapsed.value
-                                    },
-                                    badges = emptyList(),
-                                    groupSize = moduleGroup.packages.size,
-                                    isGroupExpanded = !moduleGroup.isGroupCollapsed.value,
-                                    collectiveActionItemCount = upgradablePackageCount,
-                                    availableCollectiveCallback = upgradablePackageCount.takeIf {
-                                        it > 0
-                                    }?.let {
-                                        Pair(
-                                            "Upgrade All"
-                                        ) {
-                                            isActionPerforming.value = true
-                                            scope.launch {
-                                                moduleGroup.packages.forEach {
-                                                    val latest = it.item.remoteInfo?.versions?.latestStable
-                                                    if (latest != null) {
-                                                        val updateData =
-                                                            it.item.getUpdateData(latest.normalized.versionName, null)
-                                                        //todo handle concurrent process
-                                                        runCatching {
-                                                            moduleGroup.header.dependencyManager.updateDependencies(
-                                                                projectService,
-                                                                listOf(
-                                                                    updateData
-                                                                ),
-                                                                projectService.knownRepositoriesStateFlow.value.values.toList()
-                                                            )
-                                                        }.onFailure {
-                                                            it.printStackTrace()
-                                                        }
-                                                    }
-                                                }
-                                            }.invokeOnCompletion {
-                                                isActionPerforming.value = false
+                                    modifier = Modifier
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null
+                                        ) {}
+                                        .background(
+                                            when {
+                                                isSelected && isActive ->
+                                                    pickComposeColorFromLaf("Tree.selectionBackground")
+
+                                                isSelected && !isActive ->
+                                                    pickComposeColorFromLaf("Tree.selectionInactiveBackground")
+
+                                                else -> Color.Unspecified
                                             }
-
-                                        }
-                                    },
-                                     isActionPerforming = isActionPerforming
-                                )
-                            }
-
-                            is RemotePackageGroup -> {
-                                ModulesHeader(
-                                    moduleName = "Search Results",
-                                    toggleCollapse = {
-                                        moduleGroup.isGroupCollapsed.value = !moduleGroup.isGroupCollapsed.value
-                                    },
+                                        ),
+                                    moduleName = it.moduleName,
+                                    toggleCollapse = it.onToggleCollapse,
                                     badges = emptyList(),
-                                    groupSize = moduleGroup.packages.size,
-                                    isGroupExpanded = !moduleGroup.isGroupCollapsed.value,
-                                    availableCollectiveCallback = null,
+                                    groupSize = it.moduleSize,
+                                    isGroupExpanded = !collapsedGroups.contains(it.moduleName),
+                                    collectiveActionItemCount = it.availableAction?.first ?: 0,
+                                    availableCollectiveCallback = it.availableAction?.second,
                                     isActionPerforming = isActionPerforming
                                 )
                             }
                         }
 
-                    }
-                    if (!moduleGroup.isGroupCollapsed.value) {
-                        when (moduleGroup) {
-                            is LocalPackagesGroup -> {
-                                moduleGroup.packages.forEach {
-                                        packageItem(
-                                            moduleGroup.header.module.name + "." + it.id,
-                                            onItemClick = { onPackageClick(it) }
-                                        ) {
-                                            LocalPackageRow(
-                                                packageSearchDeclaredPackage = it.item,
-                                                dropDownItemIdOpen = dropDownItemIdOpen,
-                                                selectedModules = selectedModules,
-                                                isActionPerforming =  isActionPerforming
-                                            )
-                                        }
-                                    }
-                            }
-
-                            is RemotePackageGroup -> {
-                                moduleGroup.packages.forEach {
-                                    packageItem(
-                                        "remote." + it.id,
-                                        onItemClick = { onPackageClick(it) }
+                        is Entry.Package -> {
+                            when (val packageItem = it.packageItem) {
+                                is PackageSearchTableItem.Installed ->
+                                    item(
+                                        it.moduleName + ":" + packageItem.id,
                                     ) {
-                                        RemotePackageRow(
-                                            it.item,
-                                            dropDownItemIdOpen,
-                                            moduleGroup.dependencyManager,
-                                            selectedModules,
-                                            isActionPerforming =  isActionPerforming
+                                        LocalPackageRow(
+                                            modifier = Modifier
+                                                .clickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null
+                                                ) {}
+                                                .background(
+                                                    when {
+                                                        isSelected && isActive ->
+                                                            pickComposeColorFromLaf("Tree.selectionBackground")
+
+                                                        isSelected && !isActive ->
+                                                            pickComposeColorFromLaf("Tree.selectionInactiveBackground")
+
+                                                        else -> Color.Unspecified
+                                                    }
+                                                ),
+                                            isActive = isActive,
+                                            isSelected = selectedPackage == it.moduleName to it.packageItem,
+                                            packageSearchDeclaredPackage = packageItem.item,
+                                            dropDownItemIdOpen = dropDownItemIdOpen,
+                                            selectedModules = selectedModules,
+                                            isActionPerforming = isActionPerforming
                                         )
                                     }
-                                }
+
+
+                                is PackageSearchTableItem.Remote ->
+                                    item(
+                                        "remote:${packageItem.id}"
+                                    ) {
+                                        RemotePackageRow(
+                                            modifier = Modifier
+                                                .clickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null
+                                                ) {}
+                                                .background(
+                                                    when {
+                                                        isSelected && isActive ->
+                                                            pickComposeColorFromLaf("Tree.selectionBackground")
+
+                                                        isSelected && !isActive ->
+                                                            pickComposeColorFromLaf("Tree.selectionInactiveBackground")
+
+                                                        else -> Color.Unspecified
+                                                    }
+                                                ),
+                                            isActive = isActive,
+                                            isSelected = selectedPackage == it.moduleName to it.packageItem,
+                                            apiPackage = packageItem.item,
+                                            dropDownItemIdOpen = dropDownItemIdOpen,
+                                            dependencyManager = selectedModules.firstOrNull()?.dependencyManager,
+                                            selectedModules = selectedModules,
+                                            isActionPerforming = isActionPerforming
+                                        )
+                                    }
                             }
 
-                            else -> {
-                                //no handled packageGroup type
-                            }
                         }
                     }
                 }
@@ -205,36 +268,6 @@ fun ResultsSelectableLazyColumn(
         }
     }
 
-}
-
-internal fun SelectableLazyListScope.packageItem(
-    itemId: Any,
-    onItemClick: () -> Unit,
-    itemContent: @Composable () -> Unit
-) {
-    item(itemId) {
-        Box(modifier = Modifier
-            .then(
-                Modifier.background(
-                    when {
-                        isSelected && !isFocused -> pickComposeColorFromLaf("Tree.selectionBackground")
-                        isSelected && isFocused -> pickComposeColorFromLaf("Tree.selectionInactiveBackground")
-                        else -> Color.Unspecified
-                    }
-                )
-            )
-            .pointerInput(itemId) {//bug on click consumation
-                while (true) {
-                    awaitPointerEventScope {
-                        awaitFirstDown(false)
-                        onItemClick()
-                    }
-                }
-            }
-        ) {
-            itemContent()
-        }
-    }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -247,16 +280,13 @@ internal fun NoResultsToShow(resultType: DependenciesBrowsingMode) {
     ) {
         if (resultType == DependenciesBrowsingMode.Search) {
             LabelInfo(":( No results found")
-            Link(
-                resourceLoader = LocalResourceLoader.current,
-                text = "Learn more",
-                onClick = {
-                    runCatching {
-                        openLinkInBrowser("https://www.jetbrains.com/help/idea/searching-everywhere.html")
-                    }.onFailure {
-                        println("Failed to open link in browser: $it")
-                    }
-                } // todo fix link
+            Link(resourceLoader = LocalResourceLoader.current, text = "Learn more", onClick = {
+                runCatching {
+                    openLinkInBrowser("https://www.jetbrains.com/help/idea/searching-everywhere.html")
+                }.onFailure {
+                    println("Failed to open link in browser: $it")
+                }
+            } // todo fix link
             )
         } else {
             LabelInfo("No supported dependencies were found.")
@@ -266,16 +296,13 @@ internal fun NoResultsToShow(resultType: DependenciesBrowsingMode) {
                     painter = painterResource("icons/intui/question.svg", LocalResourceLoader.current),
                     modifier = Modifier.size(16.dp).padding(end = 4.dp)
                 )
-                Link(
-                    resourceLoader = LocalResourceLoader.current,
-                    text = "Learn more",
-                    onClick = {
-                        runCatching {
-                            openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html")
-                        }.onFailure {
-                            println("Failed to open link in browser: $it")
-                        }
-                    } // todo fix link
+                Link(resourceLoader = LocalResourceLoader.current, text = "Learn more", onClick = {
+                    runCatching {
+                        openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html")
+                    }.onFailure {
+                        println("Failed to open link in browser: $it")
+                    }
+                } // todo fix link
                 )
             }
         }

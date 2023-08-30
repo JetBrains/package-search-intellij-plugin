@@ -24,6 +24,7 @@ sealed interface PackageSearchModule : WithIcon {
 
     interface WithVariants : PackageSearchModule {
         val variants: Map<String, PackageSearchModuleVariant>
+        val mainVariant: PackageSearchModuleVariant
     }
 
     interface Base : PackageSearchModule, PackageInstallDataProvider {

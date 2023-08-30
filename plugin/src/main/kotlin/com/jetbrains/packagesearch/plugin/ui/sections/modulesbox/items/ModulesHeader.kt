@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.jewel.*
 import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
@@ -21,21 +23,22 @@ import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ModulesHeader(
+    modifier: Modifier = Modifier,
     moduleName: String,
     toggleCollapse: () -> Unit,
     badges: List<Pair<String, () -> Unit>>,
     groupSize: Int,
     isGroupExpanded: Boolean,
     collectiveActionItemCount: Int = 0,
-    availableCollectiveCallback: Pair<String, () -> Unit>? = null,
+    availableCollectiveCallback: PackageSearchAction? = null,
     isActionPerforming: MutableState<Boolean>,
 ) {
     Row(
-        Modifier
+        modifier
+            .background(pickComposeColorFromLaf("Desktop.background"))
             .fillMaxWidth()
             .padding(1.dp)
-            .height(28.dp)
-            .background(pickComposeColorFromLaf("WelcomeScreen.separatorColor")),
+            .height(28.dp),
         horizontalArrangement = SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -48,7 +51,9 @@ fun ModulesHeader(
                     }
             ) {
                 val iconResource =
-                    remember(isGroupExpanded) { if (!isGroupExpanded) "icons/intui/chevronRight.svg" else "icons/intui/chevronDown.svg" }
+                    remember(isGroupExpanded) {
+                        if (!isGroupExpanded) "icons/intui/chevronRight.svg" else "icons/intui/chevronDown.svg"
+                    }
                 Icon(painterResource(iconResource, LocalResourceLoader.current), tint = Color.Gray)
             }
             Text(
@@ -76,13 +81,24 @@ fun ModulesHeader(
 //                }
             }
         }
+        val scope = LocalProjectCoroutineScope.current
         Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             if (collectiveActionItemCount > 0) {
                 availableCollectiveCallback?.let {
                     Link(
+                        enabled = !isActionPerforming.value,
                         resourceLoader = LocalResourceLoader.current,
-                        text = "${it.first} ($collectiveActionItemCount)",
-                        onClick = { availableCollectiveCallback.second.invoke() }
+                        text = "${it.name} ($collectiveActionItemCount)",
+                        onClick = {
+                            if (isActionPerforming.value) return@Link
+                            isActionPerforming.value = true
+                            scope.launch {
+                                availableCollectiveCallback.action.invoke()
+                            }.invokeOnCompletion {
+                                it?.printStackTrace()
+                                isActionPerforming.value = false
+                            }
+                        }
                     )
                 }
             }

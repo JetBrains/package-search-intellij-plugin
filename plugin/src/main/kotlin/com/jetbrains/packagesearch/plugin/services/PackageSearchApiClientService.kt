@@ -12,7 +12,7 @@ import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 class PackageSearchApiClientService {
     val client = PackageSearchApiClient(
         endpoints = IntelliJApplication.PackageSearchApiEndpointsService.endpoints,
-        httpClient = PackageSearchApiClient.defaultHttpClient(false) {
+        httpClient = PackageSearchApiClient.defaultHttpClient() {
             install(Logging) {
                 level = LogLevel.HEADERS
                 logger = KtorDebugLogger()

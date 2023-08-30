@@ -11,7 +11,7 @@ internal class PKGSInfoWindowAction : ToggleAction() {
     // don't use field inside AnAction (or his subclasses like ToggleAction)
     // because it will keep in memory the entire project
     private fun AnActionEvent.getInfoTabStateFlow() =
-        project?.PackageSearchComposeTunnel?.infoTabStateFlow
+        project?.PackageSearchUIStateService?.infoTabStateFlow
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 

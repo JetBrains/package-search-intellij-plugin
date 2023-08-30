@@ -12,6 +12,7 @@ import com.intellij.psi.PsiManager
 import com.jetbrains.packagesearch.plugin.PackageSearchModuleBaseTransformerUtils
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
+import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService

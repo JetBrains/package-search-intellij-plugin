@@ -9,9 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.*
-import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
 import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import org.jetbrains.packagesearch.plugin.ui.bridge.TextSubHeaderMultiplier
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageQuality
@@ -102,6 +102,8 @@ fun PackageNameAndActions(
                                 modifier = Modifier.clickable {
                                     scope.launch {
                                         defaultAction?.action?.invoke() ?: otherActions.first().action()
+                                    }.invokeOnCompletion {
+                                        it?.printStackTrace()
                                     }
                                 }, text = defaultAction?.name ?: otherActions.first().name,
                                 softWrap = false,

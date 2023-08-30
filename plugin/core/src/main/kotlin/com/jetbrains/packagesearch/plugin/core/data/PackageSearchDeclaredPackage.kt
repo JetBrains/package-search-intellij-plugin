@@ -1,9 +1,9 @@
 package com.jetbrains.packagesearch.plugin.core.data
 
+import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 interface PackageSearchDeclaredPackage : WithIcon {
     val id: String

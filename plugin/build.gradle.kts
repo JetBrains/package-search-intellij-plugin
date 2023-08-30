@@ -15,6 +15,7 @@ packagesearch {
         isEnabled = true
         artifactId = "packagesearch-plugin"
     }
+    optIns.add("androidx.compose.ui.ExperimentalComposeUiApi")
 }
 
 dependencies {

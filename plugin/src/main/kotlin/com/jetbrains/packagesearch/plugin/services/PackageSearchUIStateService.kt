@@ -5,11 +5,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 
 @Service(Service.Level.PROJECT)
-class PackageSearchComposeTunnel() {
+class PackageSearchUIStateService {
 
     internal val infoTabStateFlow = MutableStateFlow<InfoTabState>(InfoTabState.Close)
-
 }
+
 
 @Serializable
 sealed interface InfoTabState {

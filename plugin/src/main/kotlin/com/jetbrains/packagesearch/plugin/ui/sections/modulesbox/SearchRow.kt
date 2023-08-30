@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.jetbrains.jewel.*
 import org.jetbrains.jewel.util.pxToDp
+import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import java.awt.Cursor
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -50,7 +51,8 @@ fun SearchRow(
             }
         }
     }
-    val borderColor = TODO("IntelliJTheme.colors.borders.disabled")
+    val borderColor =
+        pickComposeColorFromLaf("IntelliJTheme.colors.borders.disabled")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -72,7 +74,7 @@ fun SearchRow(
     ) {
         Icon(
             painterResource("icons/intui/search.svg", LocalResourceLoader.current),
-            tint = TODO("IntelliJTheme.colors.infoContent")
+            tint = pickComposeColorFromLaf("IntelliJTheme.colors.infoContent")
         )
         TextField(
             value = textSearchState.value,
@@ -82,7 +84,7 @@ fun SearchRow(
             placeholder = {
                 Text(
                     text = "Search",
-                    color = TODO("IntelliJTheme.colors.infoContent"),
+                    color = pickComposeColorFromLaf("IntelliJTheme.colors.infoContent"),
                     modifier = Modifier.padding(start = 4.pxToDp())
                 )
             },
@@ -93,7 +95,7 @@ fun SearchRow(
                         searchResultsCount.let {
                             Text(
                                 text = "$it ${if (it == 1) "result" else "results"}",
-                                color = TODO("IntelliJTheme.colors.infoContent"),
+                                color = pickComposeColorFromLaf("IntelliJTheme.colors.infoContent"),
                                 modifier = Modifier.padding(end = 4.pxToDp())
                             )
                         }
