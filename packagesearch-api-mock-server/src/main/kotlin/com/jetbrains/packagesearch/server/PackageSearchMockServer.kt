@@ -73,7 +73,7 @@ fun Application.PackageSearchMockServer() {
         })
     }
     install(CallLogging) {
-        level = Level.INFO
+        level = Level.TRACE
     }
     install(Compression) {
         gzip()
