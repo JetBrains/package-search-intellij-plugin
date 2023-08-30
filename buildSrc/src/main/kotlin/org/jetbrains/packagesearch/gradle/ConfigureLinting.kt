@@ -22,7 +22,7 @@ fun Project.configureLinting(extension: PackageSearchExtension) {
             from(zipTree(currentJarPath)) {
                 include { it.name == "detekt.yml" }
             }
-            into("$buildDir/detekt")
+            into(layout.buildDirectory.dir("detekt"))
         }
         extensions.withType<DetektExtension> {
             toolVersion = "1.20.0"
