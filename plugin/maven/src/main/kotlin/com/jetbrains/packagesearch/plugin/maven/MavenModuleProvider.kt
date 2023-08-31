@@ -71,7 +71,7 @@ class MavenDependencyModel(
     }
 }
 
-class MavenModuleTransformer : PackageSearchModuleProvider {
+class MavenModuleProvider : PackageSearchModuleProvider {
 
     companion object {
         val mavenSettingsFilePath

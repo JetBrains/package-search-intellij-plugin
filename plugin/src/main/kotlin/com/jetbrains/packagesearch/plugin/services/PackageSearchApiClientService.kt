@@ -14,7 +14,7 @@ class PackageSearchApiClientService {
         endpoints = IntelliJApplication.PackageSearchApiEndpointsService.endpoints,
         httpClient = PackageSearchApiClient.defaultHttpClient() {
             install(Logging) {
-                level = LogLevel.HEADERS
+                level = LogLevel.BODY
                 logger = KtorDebugLogger()
             }
         }

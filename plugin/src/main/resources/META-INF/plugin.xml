@@ -12,7 +12,7 @@ Supports Maven and Gradle projects.
 ]]></description>
 
     <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
-    <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>
+    <depends optional="true" config-file="gradle.xml">com.intellij.gradle</depends>
 
     <extensionPoints>
         <extensionPoint qualifiedName="com.intellij.packagesearch.moduleProvider"

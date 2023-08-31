@@ -3,6 +3,7 @@ package com.intellij.packageSearch.mppDependencyUpdater.resolved
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -31,7 +32,7 @@ class MppDataNodeProcessor : AbstractProjectDataService<MppCompilationInfoModel,
 
   override fun getTargetDataKey(): Key<MppCompilationInfoModel> = Util.MPP_SOURCES_SETS_MAP_KEY
 
-  @Service(Service.Level.PROJECT)
+  @Service(Level.PROJECT)
   class Cache(private val project: Project) : Disposable {
 
     private val cacheFile

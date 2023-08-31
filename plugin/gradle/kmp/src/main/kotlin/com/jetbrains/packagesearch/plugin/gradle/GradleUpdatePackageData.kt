@@ -57,11 +57,11 @@ data class PackageSearchKotlinMultiplatformModule(
 
 }
 
-val Map<String, PackageSearchKotlinMultiplatformVariant>.commonMain
-    get() = getValue("commonMain") as SourceSet
+val Map<String, PackageSearchKotlinMultiplatformVariant>.commonMain: SourceSet
+    get() = get("commonMain") as SourceSet
 
 val Map<String, PackageSearchKotlinMultiplatformVariant>.dependenciesBlock: DependenciesBlock
     get() = getValue(DependenciesBlock.name) as DependenciesBlock
 
-val Map<String, PackageSearchKotlinMultiplatformVariant>.cocoapods: Cocoapods
-    get() = getValue(Cocoapods.name) as Cocoapods
+val Map<String, PackageSearchKotlinMultiplatformVariant>.cocoapods: Cocoapods?
+    get() = get(Cocoapods.name) as Cocoapods?

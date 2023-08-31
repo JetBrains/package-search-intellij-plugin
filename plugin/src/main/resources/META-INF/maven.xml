@@ -1,5 +1,5 @@
 <idea-plugin implementation-detail="true">
     <extensions defaultExtensionNs="com.intellij.packagesearch">
-        <moduleProvider implementation="com.jetbrains.packagesearch.plugin.maven.MavenModuleTransformer"/>
+        <moduleProvider implementation="com.jetbrains.packagesearch.plugin.maven.MavenModuleProvider"/>
     </extensions>
 </idea-plugin>

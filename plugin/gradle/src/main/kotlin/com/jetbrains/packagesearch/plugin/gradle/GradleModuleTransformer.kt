@@ -24,11 +24,11 @@ import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import com.jetbrains.packagesearch.plugin.gradle.utils.dumbModeStateFlow
-import com.jetbrains.packagesearch.plugin.gradle.utils.getDependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.gradle.utils.getGradleModelRepository
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleSyncNotifierFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
+import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlinx.coroutines.flow.Flow
@@ -80,7 +80,6 @@ class GradleDependencyModel(
         return result
     }
 }
-
 abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
 
     companion object {
@@ -157,15 +156,8 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                 ProjectBuildModel.get(context.project).getModuleBuildModel(this)
                     ?.dependencies()
                     ?.artifacts()
-                    ?.mapNotNull { artifact ->
-                        GradleDependencyModel(
-                            groupId = artifact.group().toString(),
-                            artifactId = artifact.name().toString(),
-                            version = artifact.version().toString() as String?,
-                            configuration = artifact.configurationName(),
-                            indexes = artifact.getDependencyDeclarationIndexes() ?: return@mapNotNull null
-                        )
-                    } ?: emptyList()
+                    ?.map { it.toGradleDependencyModel() }
+                    ?: emptyList()
             }.distinct()
 
             val distinctIds = declaredDependencies

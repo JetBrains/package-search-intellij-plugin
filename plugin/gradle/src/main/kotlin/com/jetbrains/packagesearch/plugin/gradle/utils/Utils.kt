@@ -12,6 +12,7 @@ import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBui
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import com.jetbrains.packagesearch.plugin.core.utils.flow
 import com.jetbrains.packagesearch.plugin.gradle.BaseGradleModuleProvider
+import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import com.jetbrains.packagesearch.plugin.gradle.GradleModelCacheEntry
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
 import kotlinx.coroutines.flow.Flow
@@ -74,18 +75,25 @@ val ArtifactDependencySpec.mavenId: String?
     get() {
         val group = group ?: return null
         val artifactId = name
-        return "maven:$group$artifactId"
+        return "maven:$group:$artifactId"
     }
 
-fun ArtifactDependencyModel.getDependencyDeclarationIndexes(): DependencyDeclarationIndexes? {
-    return DependencyDeclarationIndexes(
+private fun ArtifactDependencyModel.getDependencyDeclarationIndexes() =
+    DependencyDeclarationIndexes(
         declarationStartIndex = psiElement
             ?.parents
             ?.take(5)
             ?.firstOrNull { configurationName() in it.text }
-            ?.textOffset
-            ?: return null,
+            ?.textOffset!!,
         versionStartIndex = version().psiElement?.textOffset
             ?: psiElement?.children?.firstOrNull()?.textOffset
     )
-}
+
+fun ArtifactDependencyModel.toGradleDependencyModel() =
+    GradleDependencyModel(
+        groupId = group().toString(),
+        artifactId = name().toString(),
+        version = version().toString() as String?,
+        configuration = configurationName(),
+        indexes = getDependencyDeclarationIndexes()
+    )

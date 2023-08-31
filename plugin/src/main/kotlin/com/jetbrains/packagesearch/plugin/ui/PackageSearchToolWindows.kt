@@ -33,11 +33,11 @@ fun PackageSearchToolWindows(
     val detailsExpanded = LocalPackageSearchUIStateService.current.infoTabStateFlow.collectAsState()
 
     val swingCompat by remember { mutableStateOf(false) }
-    val theme = if (!lightMode) IntUiTheme.dark() else IntUiTheme.light()
+    val theme = if (!lightMode) IntUiTheme.darkThemeDefinition() else IntUiTheme.lightThemeDefinition()
     val windowBackground = if (lightMode) {
-        IntUiTheme.light().palette.grey(13)
+        IntUiTheme.lightThemeDefinition().colorPalette.grey(13)
     } else {
-        IntUiTheme.dark().palette.grey(2)
+        IntUiTheme.darkThemeDefinition().colorPalette.grey(2)
     }
     IntUiTheme(theme, swingCompat) {
         CompositionLocalProvider(

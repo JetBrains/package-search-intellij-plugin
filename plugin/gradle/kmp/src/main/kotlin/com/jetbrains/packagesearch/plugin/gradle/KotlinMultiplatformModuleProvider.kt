@@ -10,11 +10,9 @@ import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.gradle.utils.getDependencyDeclarationIndexes
-import com.jetbrains.packagesearch.plugin.gradle.utils.mavenId
+import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.async
@@ -45,7 +43,10 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                 .toSet(),
             defaultScope = "implementation",
             availableScopes = commonConfigurations.toList(),
-            variants = getKMPVariants(context = context).associateBy { it.name },
+            variants = getKMPVariants(context = context)
+                .associateBy { it.name }
+                .takeIf { it.isNotEmpty() }
+                ?: return null,
             packageSearchModel = model,
             availableKnownRepositories = context.knownRepositories
         )
@@ -73,17 +74,24 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
 
         val rawDeclaredSourceSetDependencies = MppDependencyModifier
             .dependenciesBySourceSet(this@getKMPVariants)
-            ?.mapNotNull { (key, value) -> value?.let { key to value } }
+            ?.mapNotNull { (key, value) ->
+                value?.let {
+                    key to readAction {
+                        it.artifacts().map {
+                            it.toGradleDependencyModel()
+                        }
+                    }
+                }
+            }
             ?.toMap()
-            ?.mapValues { readAction { it.value.artifacts() } }
             ?: emptyMap()
 
         val packageIds = rawDeclaredSourceSetDependencies
             .values
             .asSequence()
             .flatten()
-            .mapNotNull { it.spec.mavenId }
             .distinct()
+            .map { it.packageId }
 
         val isLocalhost = Registry.`is`("org.jetbrains.packagesearch.localhost", false)
         val dependencyInfo = if (!isLocalhost) {
@@ -93,22 +101,19 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
         }
         val declaredSourceSetDependencies = rawDeclaredSourceSetDependencies
             .mapValues { (sourceSetName, dependencies) ->
-                dependencies.mapNotNull { artifactModel ->
-                    val mavenId = artifactModel.spec.mavenId ?: return@mapNotNull null
-                    val groupId = artifactModel.spec.group ?: return@mapNotNull null
-                    val configuration = artifactModel.spec.classifier ?: return@mapNotNull null
+                dependencies.map { artifactModel ->
                     PackageSearchKotlinMultiplatformDeclaredDependency.Maven(
-                        id = mavenId,
-                        declaredVersion = NormalizedVersion.from(artifactModel.spec.version),
-                        latestStableVersion = dependencyInfo[mavenId]?.versions?.latestStable?.normalized
+                        id = artifactModel.packageId,
+                        declaredVersion = NormalizedVersion.from(artifactModel.version),
+                        latestStableVersion = dependencyInfo[artifactModel.packageId]?.versions?.latestStable?.normalized
                             ?: NormalizedVersion.Missing,
-                        latestVersion = dependencyInfo[mavenId]?.versions?.latest?.normalized
+                        latestVersion = dependencyInfo[artifactModel.packageId]?.versions?.latest?.normalized
                             ?: NormalizedVersion.Missing,
-                        remoteInfo = dependencyInfo[mavenId] as? ApiMavenPackage,
-                        declarationIndexes = artifactModel.getDependencyDeclarationIndexes() ?: return@mapNotNull null,
-                        groupId = groupId,
-                        artifactId = artifactModel.spec.name,
-                        configuration = configuration,
+                        remoteInfo = dependencyInfo[artifactModel.packageId] as? ApiMavenPackage,
+                        declarationIndexes = artifactModel.indexes,
+                        groupId = artifactModel.groupId,
+                        artifactId = artifactModel.artifactId,
+                        configuration = artifactModel.configuration,
                         variantName = sourceSetName
                     )
                 }
@@ -147,7 +152,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                         compilerTargets = compilationTargets
                     )
                 }
-                ?: emptyList()
+                ?: return@coroutineScope emptyList()
 
         sourceSetVariants + dependenciesBlockVariant.await()
     }

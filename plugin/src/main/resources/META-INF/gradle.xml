@@ -1,5 +1,8 @@
 <idea-plugin implementation-detail="true">
 
+    <depends>org.jetbrains.idea.gradle.dsl</depends>
+    <depends optional="true" config-file="kotlin.xml">org.jetbrains.kotlin</depends>
+
     <extensions defaultExtensionNs="com.intellij.packagesearch">
         <moduleProvider implementation="com.jetbrains.packagesearch.plugin.gradle.GradleModuleProvider"/>
     </extensions>
