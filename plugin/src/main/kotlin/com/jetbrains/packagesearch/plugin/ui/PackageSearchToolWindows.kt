@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.application.Application
-import com.jetbrains.packagesearch.plugin.LocalPackageSearchUIStateService
 import com.jetbrains.packagesearch.plugin.LocalProjectService
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.flow
@@ -28,9 +27,9 @@ import org.jetbrains.packagesearch.plugin.ui.bridge.packageSearchResourceLoader
 fun PackageSearchToolWindows(
     apiClient: PackageSearchApiClient,
     isActionPerforming: MutableState<Boolean>,
+    detailsExpanded: Boolean
 ) {
     val lightMode by IntelliJApplication.lightThemeFlow().collectAsState(isLightTheme())
-    val detailsExpanded = LocalPackageSearchUIStateService.current.infoTabStateFlow.collectAsState()
 
     val swingCompat by remember { mutableStateOf(false) }
     val theme = if (!lightMode) IntUiTheme.darkThemeDefinition() else IntUiTheme.lightThemeDefinition()

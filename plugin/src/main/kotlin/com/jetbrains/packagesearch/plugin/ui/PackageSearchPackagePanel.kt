@@ -19,7 +19,6 @@ import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.jewel.foundation.tree.rememberTreeState
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
-import org.jetbrains.packagesearch.plugin.services.InfoTabState
 import org.jetbrains.packagesearch.plugin.ui.defaultPKGSSplitter
 import org.jetbrains.packagesearch.plugin.ui.sections.infobox.InfoBox
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.DependenciesBrowsingMode
@@ -29,7 +28,7 @@ import java.awt.Cursor
 
 @Composable
 fun PackageSearchPackagePanel(
-    detailExpanded: State<InfoTabState>,
+    detailExpanded: Boolean,
     tree: Tree<PackageSearchModuleData>,
     apiClient: PackageSearchApiClient,
     isActionPerforming: MutableState<Boolean>,
@@ -44,7 +43,7 @@ fun PackageSearchPackagePanel(
     val splitPaneState = rememberSplitPaneState(.20f)
     val innerSplitPaneState = rememberSplitPaneState(.80f)
     val splitterColor = LocalScrollbarStyle.current.unhoverColor
-    val infoBoxScrollState = remember(detailExpanded.value) { ScrollState(0) }
+    val infoBoxScrollState = remember(detailExpanded) { ScrollState(0) }
 
 
     // modules and packages handling
@@ -117,10 +116,9 @@ fun PackageSearchPackagePanel(
                 )
             }
         }
-        val expanded = detailExpanded.value is InfoTabState.Open
         defaultPKGSSplitter(splitterColor, cursor = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
         second(500.dp) {
-            if (expanded) {
+            if (detailExpanded) {
                 HorizontalSplitPane(Modifier.fillMaxSize(), innerSplitPaneState) {
                     first(100.dp) {
                         PackageSearchCentralPanel(

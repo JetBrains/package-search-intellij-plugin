@@ -15,7 +15,10 @@ packagesearch {
         isEnabled = true
         artifactId = "packagesearch-plugin"
     }
-    optIns.add("androidx.compose.ui.ExperimentalComposeUiApi")
+    optIns.addAll(
+        "androidx.compose.ui.ExperimentalComposeUiApi",
+        "org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi"
+    )
 }
 
 dependencies {

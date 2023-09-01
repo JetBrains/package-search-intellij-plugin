@@ -7,7 +7,6 @@ import com.jetbrains.packagesearch.plugin.services.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.services.PackageSearchApiEndpointsService
 import com.jetbrains.packagesearch.plugin.services.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
-import org.jetbrains.packagesearch.plugin.services.PackageSearchUIStateService
 
 val Application.PackageSearchApiEndpointsService
     get() = service<PackageSearchApiEndpointsService>()
@@ -20,6 +19,3 @@ val Application.PackageSearchApplicationCachesService
 
 val Project.PackageSearchProjectService
     get() = service<PackageSearchProjectService>()
-
-val Project.PackageSearchUIStateService
-    get() = service<PackageSearchUIStateService>()

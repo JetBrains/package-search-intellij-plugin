@@ -45,9 +45,4 @@ Supports Maven and Gradle projects.
                 level="WEAK WARNING"
                 language=""/>
     </extensions>
-    <actions>
-        <action id="com.jetbrains.packagesearch.plugin.utils.PKGSInfoWindowAction"
-                class="com.jetbrains.packagesearch.plugin.utils.PKGSInfoWindowAction" text="PKGSInfoPanelToggle"
-                description="PKGSInfoPanelToggle"/>
-    </actions>
 </idea-plugin>

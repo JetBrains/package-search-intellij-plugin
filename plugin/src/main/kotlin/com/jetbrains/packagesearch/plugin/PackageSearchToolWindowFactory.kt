@@ -1,11 +1,16 @@
-package com.jetbrains.packagesearch.plugin;
+package com.jetbrains.packagesearch.plugin
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.awt.ComposePanel
-import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -16,33 +21,38 @@ import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolWindows
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchUIStateService
 import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.packagesearch.plugin.services.PackageSearchUIStateService
-
-
-inline fun <T> Iterable<T>.applyOnEach(action: T.() -> Unit) =
-    forEach { it.action() }
 
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
 
-        val composeTunnel = project.PackageSearchUIStateService
         val apiClient = IntelliJApplication.PackageSearchApiClientService.client
         val isActionPerforming = mutableStateOf(false)
+        var isDetailsPanelOpen by mutableStateOf(false)
+        toolWindow.asSafely<ToolWindowEx>()
+            ?.setTitleActions(
+                listOf(
+                    object : ToggleAction(
+                        PackageSearchBundle.message("packagesearch.actions.showDetails.text"),
+                        PackageSearchBundle.message("packagesearch.actions.showDetails.description"),
+                        AllIcons.Actions.PreviewDetails
+                    ) {
+                        override fun isSelected(e: AnActionEvent) = isDetailsPanelOpen
+                        override fun setSelected(e: AnActionEvent, state: Boolean) {
+                            isDetailsPanelOpen = state
+                        }
 
-        val actionManager: ActionManager = ActionManager.getInstance()
-        toolWindow.asSafely<ToolWindowEx>()?.setTabActions(
-            actionManager.getAction("com.jetbrains.packagesearch.plugin.utils.PKGSInfoWindowAction")
-        )
+                        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+                    }
+                )
+            )
 
         toolWindow.addComposeTab("UX") {
             CompositionLocalProvider(
                 LocalProjectService provides project.PackageSearchProjectService,
                 LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
-                LocalPackageSearchUIStateService provides composeTunnel,
             ) {
-                PackageSearchToolWindows(apiClient, isActionPerforming)
+                PackageSearchToolWindows(apiClient, isActionPerforming, isDetailsPanelOpen)
             }
         }
 
@@ -54,13 +64,10 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
 val LocalProjectService = staticCompositionLocalOf<PackageSearchProjectService> {
     error("No ProjectService provided")
 }
-val LocalPackageSearchUIStateService =
-    staticCompositionLocalOf<PackageSearchUIStateService> { error("No PackageSearchUIStateService provided") }
 
 val LocalProjectCoroutineScope = staticCompositionLocalOf<CoroutineScope> {
     error("No ProjectCoroutineScope provided")
 }
-
 
 private fun ToolWindow.addComposeTab(
     title: String,
