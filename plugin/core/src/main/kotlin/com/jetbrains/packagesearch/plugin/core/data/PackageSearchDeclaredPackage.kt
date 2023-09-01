@@ -8,6 +8,7 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 interface PackageSearchDeclaredPackage : WithIcon {
     val id: String
     val displayName: String
+    val coordinates: String
     val declaredVersion: NormalizedVersion
     val latestStableVersion: NormalizedVersion
     val latestVersion: NormalizedVersion
@@ -23,6 +24,9 @@ interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {
     val groupId: String
     val artifactId: String
     override val remoteInfo: ApiMavenPackage?
+
+    override val coordinates: String
+        get() = "$groupId:$artifactId"
 
     override val displayName: String
         get() = remoteInfo?.name ?: "$groupId:$artifactId"

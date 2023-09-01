@@ -56,11 +56,15 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val declarationIndexes: DependencyDeclarationIndexes,
         override val variantName: String,
         override val displayName: String,
+        val name: String
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.COCOAPODS
 
         override val scope: String? = null
+
+        override val coordinates: String
+            get() = displayName
     }
 
     @Serializable
@@ -73,12 +77,15 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val declarationIndexes: DependencyDeclarationIndexes,
         override val variantName: String,
         val configuration: String,
-        override val displayName: String
+        override val displayName: String,
+        val name: String
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon: WithIcon.PathSourceType
             get() = WithIcon.Icons.NPM
         override val scope: String
             get() = configuration
+        override val coordinates: String
+            get() = name
     }
 
 }
