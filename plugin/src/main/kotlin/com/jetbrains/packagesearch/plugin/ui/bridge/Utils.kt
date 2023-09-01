@@ -6,15 +6,15 @@ import com.intellij.icons.AllIcons.Icons
 import com.intellij.ide.ui.laf.IdeaLaf
 import com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
+import org.jetbrains.jewel.foundation.tree.buildTree
+import org.jetbrains.jewel.themes.intui.standalone.IntUiDefaultResourceLoader
 import java.awt.Desktop
 import java.io.InputStream
 import java.net.URI
 import java.util.jar.JarFile
 import javax.swing.UIDefaults
 import javax.swing.UIManager
-import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
-import org.jetbrains.jewel.foundation.tree.buildTree
-import org.jetbrains.jewel.themes.intui.standalone.IntUiDefaultResourceLoader
 
 fun java.awt.Color.toComposeColor(): Color {
     return Color(red, green, blue, alpha)
@@ -31,28 +31,39 @@ fun UIDefaults.getComposeColorOrUnspecified(key: String): Color {
     }
 }
 
-
 fun List<PackageSearchModule>.asTree() =
     buildTree {
         groupBy { it.identity.group }
             .values
             .forEach {
                 val sortedItems = it.sortedBy { it.identity.path }
-                sortedItems.filter { it.identity.path == ":" }
-                    .forEach { addNodes(sortedItems, it) }
+                val roots = sortedItems.filter { it.identity.path == ":" }.toSet()
+                roots.forEach { addNodes(sortedItems - roots, it, true) }
             }
     }
 
 fun TreeGeneratorScope<PackageSearchModule>.addNodes(
     sortedItems: List<PackageSearchModule>,
-    currentData: PackageSearchModule
+    currentData: PackageSearchModule,
+    isRoot: Boolean = false,
 ) {
     val children = sortedItems
-        .filter { it.identity.path.startsWith(currentData.identity.path) }
-    if (children.isNotEmpty()) addNode(currentData, id = currentData.identity) {
-        children.forEach { addNodes(sortedItems.subList(sortedItems.indexOf(currentData) + 1, sortedItems.size), it) }
+        .filter {
+            val toRemove = buildString {
+                append(currentData.identity.path)
+                if (!isRoot) append(":")
+            }
+            it.identity.path.removePrefix(toRemove).run {
+                isNotEmpty() && !contains(":")
+            }
+        }
+    if (children.isNotEmpty()) {
+        addNode(currentData, id = currentData.identity) {
+            children.forEach { addNodes(sortedItems - children, it) }
+        }
+    } else {
+        addLeaf(currentData, id = currentData.identity)
     }
-    else addLeaf(currentData, id = currentData.identity)
 }
 
 fun openLinkInBrowser(url: String) {
@@ -61,10 +72,8 @@ fun openLinkInBrowser(url: String) {
         ?.browse(URI(url))
 }
 
-
 fun pickComposeColorFromLaf(key: String) =
     UIManager.getLookAndFeelDefaults().getComposeColor(key) ?: Color.Unspecified
-
 
 fun isLightTheme(): Boolean {
     val laf = UIManager.getLookAndFeelDefaults()
@@ -130,8 +139,4 @@ object PackageSearchResourceLoader : ResourceLoader {
     override fun load(resourcePath: String) =
         IntUiDefaultResourceLoader.loadOrNull(resourcePath)
             ?: rawJarResourceLoader.load(resourcePath)
-
 }
-
-
-
