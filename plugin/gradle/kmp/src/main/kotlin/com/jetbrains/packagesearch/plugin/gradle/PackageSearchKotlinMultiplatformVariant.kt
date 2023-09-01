@@ -25,7 +25,7 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     ) : PackageSearchKotlinMultiplatformVariant {
 
         override val variantTerminology: String
-            get() = "source set" // TODO localize
+            get() = "source set"
 
         override fun isCompatible(dependency: ApiPackage, version: String): Boolean = when (dependency) {
             is ApiMavenPackage -> when (val apiMavenVersion = dependency.versions.all[version]) {
@@ -71,10 +71,10 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     ) : PackageSearchKotlinMultiplatformVariant {
 
         companion object {
-            val name = "dependencies block"
+            const val NAME = "dependencies block"
         }
 
-        override val name: String = Companion.name // TODO localize
+        override val name: String = NAME
         override val variantTerminology = null
 
         override fun isCompatible(dependency: ApiPackage, version: String) = when (dependency) {
@@ -107,10 +107,10 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     ) : PackageSearchKotlinMultiplatformVariant {
 
         companion object {
-            val name = "cocoapods"
+            const val NAME = "cocoapods"
         }
 
-        override val name: String = Companion.name
+        override val name: String = NAME
         override val variantTerminology = null
 
         override fun isCompatible(dependency: ApiPackage, version: String) = when (dependency) {

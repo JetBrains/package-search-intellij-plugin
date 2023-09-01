@@ -52,9 +52,7 @@ fun PackageSearchToolWindows(
                 when (val moduleProvider = moduleProviderState) {
                     is ModulesState.Loading -> IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
                     is ModulesState.Ready -> {
-                        val tree by remember(
-                            moduleProvider.modules
-                        ) {
+                        val tree by remember(moduleProvider.modules) {
                             mutableStateOf(moduleProvider.modules.generateData())
                         }
                         PackageSearchPackagePanel(detailsExpanded, tree, apiClient, isActionPerforming)

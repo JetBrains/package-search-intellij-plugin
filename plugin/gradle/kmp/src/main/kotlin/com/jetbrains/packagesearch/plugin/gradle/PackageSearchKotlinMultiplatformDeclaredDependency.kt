@@ -10,9 +10,7 @@ import com.jetbrains.packagesearch.plugin.core.data.WithIcon
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
-sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchDeclaredPackage {
-
-    abstract val variantName: String
+sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchDeclaredPackage.WithVariant {
 
     override fun getUpdateData(newVersion: String?, newScope: String?) =
         KotlinMultiplatformUpdatePackageData(

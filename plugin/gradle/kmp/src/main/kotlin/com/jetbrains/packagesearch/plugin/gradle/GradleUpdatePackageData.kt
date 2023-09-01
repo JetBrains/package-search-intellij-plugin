@@ -61,7 +61,7 @@ val Map<String, PackageSearchKotlinMultiplatformVariant>.commonMain: SourceSet
     get() = get("commonMain") as SourceSet
 
 val Map<String, PackageSearchKotlinMultiplatformVariant>.dependenciesBlock: DependenciesBlock
-    get() = getValue(DependenciesBlock.name) as DependenciesBlock
+    get() = getValue(DependenciesBlock.NAME) as DependenciesBlock
 
 val Map<String, PackageSearchKotlinMultiplatformVariant>.cocoapods: Cocoapods?
-    get() = get(Cocoapods.name) as Cocoapods?
+    get() = get(Cocoapods.NAME) as Cocoapods?

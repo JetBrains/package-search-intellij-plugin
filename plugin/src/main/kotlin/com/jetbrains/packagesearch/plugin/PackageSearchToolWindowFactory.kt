@@ -41,7 +41,6 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
                         override fun setSelected(e: AnActionEvent, state: Boolean) {
                             isDetailsPanelOpen = state
                         }
-
                         override fun getActionUpdateThread() = ActionUpdateThread.BGT
                     }
                 )
@@ -59,7 +58,6 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
 
     }
 }
-
 
 val LocalProjectService = staticCompositionLocalOf<PackageSearchProjectService> {
     error("No ProjectService provided")

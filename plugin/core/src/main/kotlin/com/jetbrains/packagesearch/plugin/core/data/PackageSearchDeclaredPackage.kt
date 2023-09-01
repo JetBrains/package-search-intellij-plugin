@@ -6,6 +6,11 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 interface PackageSearchDeclaredPackage : WithIcon {
+
+    interface WithVariant : PackageSearchDeclaredPackage {
+        val variantName: String
+    }
+
     val id: String
     val displayName: String
     val coordinates: String

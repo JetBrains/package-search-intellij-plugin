@@ -7,7 +7,7 @@ import org.jetbrains.packagesearch.api.v3.search.PackagesType
 interface PackageSearchModuleVariant : PackageInstallDataProvider {
     val name: String
     val variantTerminology: String?
-    val declaredDependencies: List<PackageSearchDeclaredPackage>
+    val declaredDependencies: List<PackageSearchDeclaredPackage.WithVariant>
     val attributes: List<Attributes>
     val compatiblePackageTypes: List<PackagesType>
 
