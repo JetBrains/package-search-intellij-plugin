@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui.bridge
+package com.jetbrains.packagesearch.plugin.ui.bridge
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui.sections.modulesbox
+package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,10 +7,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchTableItem
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.NoResultsToShow
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackagesGroup
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.RemotePackagesGroup
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.ResultsSelectableLazyColumn
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 

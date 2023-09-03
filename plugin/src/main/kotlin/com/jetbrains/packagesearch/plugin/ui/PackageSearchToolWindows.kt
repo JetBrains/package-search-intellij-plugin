@@ -18,9 +18,9 @@ import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
-import org.jetbrains.packagesearch.plugin.ui.bridge.generateData
-import org.jetbrains.packagesearch.plugin.ui.bridge.isLightTheme
-import org.jetbrains.packagesearch.plugin.ui.bridge.packageSearchResourceLoader
+import com.jetbrains.packagesearch.plugin.ui.bridge.generateData
+import com.jetbrains.packagesearch.plugin.ui.bridge.isLightTheme
+import com.jetbrains.packagesearch.plugin.ui.bridge.packageSearchResourceLoader
 
 
 @Composable

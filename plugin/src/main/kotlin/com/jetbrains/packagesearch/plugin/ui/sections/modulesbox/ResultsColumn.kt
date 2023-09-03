@@ -23,12 +23,11 @@ import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
 import org.jetbrains.jewel.painterResource
-import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import org.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
-import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.DependenciesBrowsingMode
+import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
+import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.LocalPackageRow
-import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.ModulesHeader
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.ModulesHeader
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageSearchAction
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.RemotePackageRow
 

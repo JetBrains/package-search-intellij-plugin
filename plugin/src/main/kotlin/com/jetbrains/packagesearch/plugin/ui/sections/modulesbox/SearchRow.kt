@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui.sections.modulesbox
+package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.jetbrains.jewel.*
 import org.jetbrains.jewel.util.pxToDp
-import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import java.awt.Cursor
 
 @OptIn(ExperimentalComposeUiApi::class)

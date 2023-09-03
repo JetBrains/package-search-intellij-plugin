@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
+package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -17,8 +17,9 @@ import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.*
-import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageSearchAction
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable

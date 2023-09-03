@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui.sections.infobox
+package com.jetbrains.packagesearch.plugin.ui.sections.infobox
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -15,9 +15,9 @@ import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchTableItem
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.*
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import org.jetbrains.packagesearch.plugin.ui.bridge.getPackageActions
-import org.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
+import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+import com.jetbrains.packagesearch.plugin.ui.bridge.getPackageActions
+import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageQuality
 
 internal enum class InfoTabState {

@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui.sections.treebox
+package com.jetbrains.packagesearch.plugin.ui.sections.treebox
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable

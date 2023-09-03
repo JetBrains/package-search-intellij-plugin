@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui
+package com.jetbrains.packagesearch.plugin.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

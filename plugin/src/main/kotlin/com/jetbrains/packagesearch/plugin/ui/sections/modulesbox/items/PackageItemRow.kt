@@ -2,10 +2,24 @@ package org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -18,22 +32,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
 import com.jetbrains.packagesearch.plugin.LocalProjectService
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.WithIcon
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import kotlinx.coroutines.launch
-import org.jetbrains.jewel.*
-import org.jetbrains.jewel.styling.LocalLinkStyle
-import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import org.jetbrains.packagesearch.plugin.ui.bridge.getComposeColor
-import org.jetbrains.packagesearch.plugin.ui.bridge.getPackageActions
-import org.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+import com.jetbrains.packagesearch.plugin.ui.bridge.getComposeColor
+import com.jetbrains.packagesearch.plugin.ui.bridge.getPackageActions
+import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import javax.swing.UIManager
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
+import org.jetbrains.jewel.Divider
+import org.jetbrains.jewel.Icon
+import org.jetbrains.jewel.Link
+import org.jetbrains.jewel.LocalResourceLoader
+import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.painterResource
+import org.jetbrains.jewel.styling.LocalLinkStyle
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 @Suppress("unused")
 enum class PackageQuality {
@@ -193,7 +213,7 @@ internal fun PackageRowImpl(
             .fillMaxWidth()
             .height(24.dp)
             .background(
-                when{
+                when {
                     isSelected && isActive ->
                         pickComposeColorFromLaf("Tree.selectionBackground")
 
@@ -295,15 +315,16 @@ internal fun PackageRowImpl(
 
                         Popup(
                             offset = IntOffset(-contentOffsetX.roundToInt(), 32),
-                            focusable = true,
-                            onDismissRequest = {
-                                dropDownItemIdOpen.value = null
-                            }) {
+                            onDismissRequest = { dropDownItemIdOpen.value = null },
+                            properties = PopupProperties(focusable = true),
+                            onPreviewKeyEvent = { false },
+                            onKeyEvent = { false }
+                        ) {
                             Box(
                                 modifier =
                                 Modifier.width(200.dp)
                                     .clip(shape = RoundedCornerShape(10.dp))
-                                    .border(width = 1.dp, color = borderColor, shape=RoundedCornerShape(10.dp))
+                                    .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(10.dp))
                                     .background(color = bgColor)
                             ) {
                                 PopupContent(otherActions, borderColor, isActionPerforming, dropDownItemIdOpen)

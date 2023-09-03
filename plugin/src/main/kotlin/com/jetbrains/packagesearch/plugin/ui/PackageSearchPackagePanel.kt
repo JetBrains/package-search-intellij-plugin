@@ -19,11 +19,10 @@ import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.jewel.foundation.tree.rememberTreeState
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
-import org.jetbrains.packagesearch.plugin.ui.defaultPKGSSplitter
-import org.jetbrains.packagesearch.plugin.ui.sections.infobox.InfoBox
-import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.DependenciesBrowsingMode
-import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
-import org.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
+import com.jetbrains.packagesearch.plugin.ui.sections.infobox.InfoBox
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.DependenciesBrowsingMode
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
+import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
 import java.awt.Cursor
 
 @Composable

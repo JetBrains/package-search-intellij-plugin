@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui.bridge
+package com.jetbrains.packagesearch.plugin.ui.bridge
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color

@@ -1,4 +1,4 @@
-package org.jetbrains.packagesearch.plugin.ui.sections.infobox
+package com.jetbrains.packagesearch.plugin.ui.sections.infobox
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.*
-import org.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import org.jetbrains.packagesearch.plugin.ui.bridge.TextSubHeaderMultiplier
+import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+import com.jetbrains.packagesearch.plugin.ui.bridge.TextSubHeaderMultiplier
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageQuality
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageSearchAction
 import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.getIconResourcePath
