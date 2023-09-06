@@ -57,11 +57,11 @@ fun Developer.toApiModel() = Author(
     org = organization
 )
 
-fun Variant.toApiModel(): ApiMavenPackage.ApiVariant = when {
-    availableAt != null -> ApiMavenPackage.ApiVariant.WithAvailableAt(
+fun Variant.toApiModel(): ApiMavenPackage.GradleVersion.ApiVariant = when {
+    availableAt != null -> ApiMavenPackage.GradleVersion.ApiVariant.WithAvailableAt(
         name = name,
         attributes = attributes?.toApiAttributes() ?: emptyMap(),
-        availableAt = ApiMavenPackage.ApiVariant.WithAvailableAt.AvailableAt(
+        availableAt = ApiMavenPackage.GradleVersion.ApiVariant.WithAvailableAt.AvailableAt(
             url = availableAt!!.url,
             group = availableAt!!.group,
             module = availableAt!!.module,
@@ -69,7 +69,7 @@ fun Variant.toApiModel(): ApiMavenPackage.ApiVariant = when {
         )
     )
 
-    else -> ApiMavenPackage.ApiVariant.WithFiles(
+    else -> ApiMavenPackage.GradleVersion.ApiVariant.WithFiles(
         name = name,
         attributes = attributes?.toApiAttributes() ?: emptyMap(),
         dependencies = dependencies?.map { it.toApiModel() } ?: emptyList(),
@@ -78,7 +78,7 @@ fun Variant.toApiModel(): ApiMavenPackage.ApiVariant = when {
 }
 
 fun Map<String, JsonPrimitive>.toApiAttributes() = mapValues { (name, value) ->
-    ApiMavenPackage.ApiVariant.Attribute.create(name, value.content)
+    ApiMavenPackage.GradleVersion.ApiVariant.Attribute.create(name, value.content)
 }
 
 fun GradleMetadataDependency.toApiModel() =
@@ -88,7 +88,7 @@ fun GradleMetadataDependency.toApiModel() =
         version?.requires
     )
 
-fun File.toApiModel() = ApiMavenPackage.ApiVariant.File(
+fun File.toApiModel() = ApiMavenPackage.GradleVersion.ApiVariant.File(
     name = name,
     url = url,
     size = size.toLong(),
@@ -196,7 +196,7 @@ fun MavenCoordinateWithVersions.toApiModels(): ApiPackage {
             latestStable = mavenVersions.values
                 .filter { it.normalized.isStable }
                 .maxByOrNull { it.normalized },
-            latest = mavenVersions.values.maxByOrNull { it.normalized },
+            latest = mavenVersions.values.maxBy { it.normalized },
             all = mavenVersions
         ),
         groupId = groupId,

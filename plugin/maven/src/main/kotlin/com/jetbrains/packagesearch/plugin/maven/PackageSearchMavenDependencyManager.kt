@@ -12,15 +12,15 @@ import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
 import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 
 class PackageSearchMavenDependencyManager(
     private val nativeModule: Module
 ) : PackageSearchDependencyManager {
     override suspend fun updateDependencies(
-        context: ProjectContext,
+        context: PackageSearchKnownRepositoriesContext,
         data: List<UpdatePackageData>,
-        knownRepositories: List<ApiRepository>
     ) {
         data.asSequence()
             .filterIsInstance<MavenUpdatePackageData>()
@@ -48,8 +48,8 @@ class PackageSearchMavenDependencyManager(
             }
     }
 
-    override suspend fun installDependency(
-        context: ProjectContext,
+    override suspend fun addDependency(
+        context: PackageSearchKnownRepositoriesContext,
         data: InstallPackageData
     ) {
         val mavenData = data as? MavenInstallPackageData ?: return

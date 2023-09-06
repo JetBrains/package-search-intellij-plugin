@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
@@ -29,7 +29,7 @@ data class PackageSearchDeclaredBaseMavenPackage(
             newScope = newScope
         )
 
-    override fun getDeleteData() =
+    override fun getRemoveData() =
         MavenRemovePackageData(this)
 
     override val icon

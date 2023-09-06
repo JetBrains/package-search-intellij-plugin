@@ -12,6 +12,7 @@ import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
 import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 
 class PackageSearchGradleDependencyManager(
@@ -19,9 +20,8 @@ class PackageSearchGradleDependencyManager(
 ) : PackageSearchDependencyManager {
 
     suspend fun updateGradleDependencies(
-        context: ProjectContext,
+        context: PackageSearchKnownRepositoriesContext,
         data: List<GradleUpdatePackageData>,
-        knownRepositories: List<ApiRepository>
     ) {
         val updates = data.filter { it.newVersion != null || it.newScope != it.installedPackage.scope }
             .map { (installedPackage, version, scope) ->
@@ -49,17 +49,15 @@ class PackageSearchGradleDependencyManager(
     }
 
     override suspend fun updateDependencies(
-        context: ProjectContext,
+        context: PackageSearchKnownRepositoriesContext,
         data: List<UpdatePackageData>,
-        knownRepositories: List<ApiRepository>
     ) = updateGradleDependencies(
         context = context,
         data = data.filterIsInstance<GradleUpdatePackageData>(),
-        knownRepositories = knownRepositories
     )
 
-    override suspend fun installDependency(
-        context: ProjectContext,
+    override suspend fun addDependency(
+        context: PackageSearchKnownRepositoriesContext,
         data: InstallPackageData
     ) {
         val gradleData = data as? GradleInstallPackageData ?: return

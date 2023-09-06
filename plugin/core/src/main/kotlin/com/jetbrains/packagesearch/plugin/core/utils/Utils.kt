@@ -25,6 +25,7 @@ import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
@@ -143,32 +144,3 @@ fun ApiPackage.asMavenApiPackage() =
         "Package $id is of type '${this::class.simpleName}' " +
                 "instead of '${ApiMavenPackage::class.simpleName}'"
     )
-
-
-sealed interface PackageSearchTableItem {
-
-    val displayName: String?
-    val id: String
-
-    @JvmInline
-    value class Remote(val item: ApiPackage) : PackageSearchTableItem {
-        override val displayName: String?
-            get() = item.name
-        override val id: String
-            get() = item.id
-    }
-
-    @JvmInline
-    value class Installed(val item: PackageSearchDeclaredPackage) : PackageSearchTableItem {
-        override val displayName: String
-            get() = item.displayName
-        override val id: String
-            get() = item.id
-    }
-}
-
-fun ApiPackage.asPackageSearchTableItem() =
-    PackageSearchTableItem.Remote(this)
-
-fun PackageSearchDeclaredPackage.asPackageSearchTableItem() =
-    PackageSearchTableItem.Installed(this)

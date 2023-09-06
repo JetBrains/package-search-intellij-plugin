@@ -3,7 +3,7 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.jetbrains.packagesearch.plugin.core.data.*
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchKotlinMultiplatformVariant.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -6,7 +6,7 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
@@ -20,7 +20,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
             sourceSetName = variantName
         )
 
-    override fun getDeleteData() = KotlinMultiplatformRemovePackageData(
+    override fun getRemoveData() = KotlinMultiplatformRemovePackageData(
         declaredPackage = this,
         variantName = variantName
     )
@@ -38,8 +38,8 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val variantName: String,
         val configuration: String,
     ) : PackageSearchKotlinMultiplatformDeclaredDependency(), PackageSearchDeclaredMavenPackage {
-        override val icon: WithIcon.PathSourceType
-            get() = WithIcon.Icons.MAVEN
+        override val icon: IconProvider.PathSourceType
+            get() = IconProvider.Icons.MAVEN
         override val scope
             get() = configuration
     }
@@ -56,8 +56,8 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val displayName: String,
         val name: String
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
-        override val icon: WithIcon.PathSourceType
-            get() = WithIcon.Icons.COCOAPODS
+        override val icon: IconProvider.PathSourceType
+            get() = IconProvider.Icons.COCOAPODS
 
         override val scope: String? = null
 
@@ -78,8 +78,8 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val displayName: String,
         val name: String
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
-        override val icon: WithIcon.PathSourceType
-            get() = WithIcon.Icons.NPM
+        override val icon: IconProvider.PathSourceType
+            get() = IconProvider.Icons.NPM
         override val scope: String
             get() = configuration
         override val coordinates: String

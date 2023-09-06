@@ -75,4 +75,7 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
 
     val detektFile = project.objects.fileProperty()
 
+    val isRunIdeEnabled = project.objects.property<Boolean>()
+        .convention(false)
+
 }

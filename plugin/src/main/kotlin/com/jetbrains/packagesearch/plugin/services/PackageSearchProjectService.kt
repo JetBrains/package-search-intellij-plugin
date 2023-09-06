@@ -10,9 +10,8 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiManager
 import com.jetbrains.packagesearch.plugin.PackageSearchModuleBaseTransformerUtils
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
@@ -77,7 +76,7 @@ class PackageSearchProjectService(
         }
         .shareIn(coroutineScope, SharingStarted.Eagerly)
 
-    val modules = combine(
+    private val moduleData = combine(
         project.getNativeModulesStateFlow(coroutineScope),
         PackageSearchModuleBaseTransformerUtils.extensionsFlow,
         contextFlow
@@ -90,21 +89,32 @@ class PackageSearchProjectService(
     }
         .flatMapLatest { combine(it) { it.filterNotNull() } }
         .filter { it.isNotEmpty() }
-        .map { ModulesState.Ready(it) }
         .debounce(1.seconds)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), ModulesState.Loading)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
 
-    internal val modulesByBuildFile = modules
-        .filterIsInstance<ModulesState.Ready>()
-        .map { it.modules.associateBy { it.module.buildFilePath } }
+    internal val moduleDataByBuildFile = moduleData
+        .map { it.associate { it.module.buildFilePath to it } }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
+    val modules = moduleData
+        .map { ModulesState.Ready(it.map { it.module }) }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, ModulesState.Loading)
+
+    val dependencyManagers = moduleData
+        .map { it.associate { it.module to it.dependencyManager } }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+
+    internal val modulesByBuildFile = moduleDataByBuildFile
+        .map { it.mapValues { it.value.module } }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     init {
 
         val openedBuildFilesFlow = combine(
             project.fileOpenedFlow,
-            modules.map { it.modules.mapNotNull { it.module.buildFilePath } }
+            modules.filterIsInstance<ModulesState.Ready>()
+                .map { it.modules }
+                .map { it.mapNotNull { it.buildFilePath } }
         ) { openedFiles, buildFiles ->
             openedFiles.filter { it.toNioPath().absolutePathString() in buildFiles }
         }.shareIn(coroutineScope, SharingStarted.Eagerly, 1)
@@ -125,12 +135,12 @@ class PackageSearchProjectService(
 
 sealed interface ModulesState {
 
-    val modules: List<PackageSearchModuleData>
+    val modules: List<PackageSearchModule>
 
     data object Loading : ModulesState {
-        override val modules: List<PackageSearchModuleData>
+        override val modules: List<PackageSearchModule>
             get() = emptyList()
     }
 
-    data class Ready(override val modules: List<PackageSearchModuleData>) : ModulesState
+    data class Ready(override val modules: List<PackageSearchModule>) : ModulesState
 }

@@ -8,7 +8,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData

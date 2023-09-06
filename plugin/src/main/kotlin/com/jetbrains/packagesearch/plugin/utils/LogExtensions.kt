@@ -26,7 +26,7 @@ import kotlinx.coroutines.CancellationException
 private const val pluginId = "com.jetbrains.packagesearch.intellij-plugin"
 private val logger = Logger.getInstance("#$pluginId")
 
-fun logError(contextName: String? = null, throwable: Throwable? = null, messageProvider: () -> String) {
+fun logError(throwable: Throwable? = null, contextName: String? = null, messageProvider: () -> String) {
     logError(buildMessageFrom(contextName, messageProvider), throwable)
 }
 

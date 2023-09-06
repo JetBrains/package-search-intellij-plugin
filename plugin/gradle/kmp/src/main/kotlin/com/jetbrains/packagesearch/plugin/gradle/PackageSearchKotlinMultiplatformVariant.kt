@@ -7,8 +7,6 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenVersion
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.api.v3.search.GradlePackages
-import org.jetbrains.packagesearch.api.v3.search.MavenPackages
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 
@@ -19,18 +17,25 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     data class SourceSet(
         override val name: String,
         override val declaredDependencies: List<PackageSearchKotlinMultiplatformDeclaredDependency>,
-        override val attributes: List<PackageSearchModuleVariant.Attributes>,
+        override val attributes: List<String>,
         override val compatiblePackageTypes: List<PackagesType>,
         val compilerTargets: Set<MppCompilationInfoModel.Compilation>
     ) : PackageSearchKotlinMultiplatformVariant {
 
-        override val variantTerminology: String
-            get() = "source set"
+        companion object {
+            val TERMINOLOGY = PackageSearchModuleVariant.Terminology("source set", "source sets")
+        }
+
+        override val isPrimary: Boolean
+            get() = name.contains("main", ignoreCase = true)
+
+        override val variantTerminology: PackageSearchModuleVariant.Terminology
+            get() = TERMINOLOGY
 
         override fun isCompatible(dependency: ApiPackage, version: String): Boolean = when (dependency) {
             is ApiMavenPackage -> when (val apiMavenVersion = dependency.versions.all[version]) {
-                is ApiMavenPackage.MavenVersion -> MavenPackages in compatiblePackageTypes
-                is ApiMavenPackage.GradleVersion -> compatiblePackageTypes.filterIsInstance<GradlePackages>()
+                is ApiMavenPackage.MavenVersion -> PackagesType.Maven in compatiblePackageTypes
+                is ApiMavenPackage.GradleVersion -> compatiblePackageTypes.filterIsInstance<PackagesType.Gradle>()
                     .takeIf { it.isNotEmpty() }
                     ?.any { compatibleGradlePackageType ->
                         compatibleGradlePackageType.variants.all { requiredVariant ->
@@ -66,7 +71,7 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     @Serializable
     data class DependenciesBlock(
         override val declaredDependencies: List<PackageSearchKotlinMultiplatformDeclaredDependency.Maven>,
-        override val attributes: List<PackageSearchModuleVariant.Attributes>,
+        override val attributes: List<String>,
         override val compatiblePackageTypes: List<PackagesType>,
     ) : PackageSearchKotlinMultiplatformVariant {
 
@@ -76,6 +81,9 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
 
         override val name: String = NAME
         override val variantTerminology = null
+
+        override val isPrimary: Boolean
+            get() = false
 
         override fun isCompatible(dependency: ApiPackage, version: String) = when (dependency) {
             is ApiMavenPackage -> true
@@ -102,9 +110,12 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     @Serializable
     data class Cocoapods(
         override val declaredDependencies: List<PackageSearchKotlinMultiplatformDeclaredDependency.Cocoapods>,
-        override val attributes: List<PackageSearchModuleVariant.Attributes>,
+        override val attributes: List<String>,
         override val compatiblePackageTypes: List<PackagesType>,
     ) : PackageSearchKotlinMultiplatformVariant {
+
+        override val isPrimary: Boolean
+            get() = false
 
         companion object {
             const val NAME = "cocoapods"

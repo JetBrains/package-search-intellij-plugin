@@ -1,146 +1,112 @@
 package com.jetbrains.packagesearch.plugin.ui
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.LocalScrollbarStyle
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchTableItem
-import com.jetbrains.packagesearch.plugin.core.utils.asPackageSearchTableItem
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.LocalPackagesGroup
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.RemotePackagesGroup
-import org.jetbrains.compose.splitpane.HorizontalSplitPane
-import org.jetbrains.compose.splitpane.rememberSplitPaneState
-import org.jetbrains.jewel.foundation.tree.Tree
-import org.jetbrains.jewel.foundation.tree.rememberTreeState
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
-import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
-import com.jetbrains.packagesearch.plugin.ui.sections.infobox.InfoBox
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.DependenciesBrowsingMode
+import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
+import com.jetbrains.packagesearch.plugin.ui.models.SearchData
+import com.jetbrains.packagesearch.plugin.ui.models.buildPackageGroups
+import com.jetbrains.packagesearch.plugin.ui.models.buildSearchData
+import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageSearchInfoBox
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
 import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
+import com.jetbrains.packagesearch.plugin.utils.logError
 import java.awt.Cursor
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.jetbrains.compose.splitpane.HorizontalSplitPane
+import org.jetbrains.compose.splitpane.rememberSplitPaneState
+import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.foundation.tree.Tree
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
+import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 
 @Composable
 fun PackageSearchPackagePanel(
-    detailExpanded: Boolean,
-    tree: Tree<PackageSearchModuleData>,
-    apiClient: PackageSearchApiClient,
-    isActionPerforming: MutableState<Boolean>,
+    isInfoBoxOpen: Boolean,
+    tree: Tree<PackageSearchModule>,
 ) {
-    // search Handling
-    val textSearchState = remember { mutableStateOf("") }
-    val dependenciesBrowsingModeStatus = remember { mutableStateOf(DependenciesBrowsingMode.Lookup) }
-    val searchParams = remember { mutableStateOf(SearchPackagesRequest(emptyList(), "")) }
+    var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
 
-    // splitpane states
     val splitPaneState = rememberSplitPaneState(.20f)
     val innerSplitPaneState = rememberSplitPaneState(.80f)
     val splitterColor = LocalScrollbarStyle.current.unhoverColor
-    val infoBoxScrollState = remember(detailExpanded) { ScrollState(0) }
+    val infoBoxScrollState = rememberScrollState()
 
+    var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }
+    var searchResults by remember { mutableStateOf<SearchData.Results>(SearchData.Results.Empty) }
 
-    // modules and packages handling
-    var selectedModules by remember {
-        mutableStateOf(emptyList<PackageSearchModuleData>())
+    var selectedModules by remember { mutableStateOf<List<PackageSearchModule>>(emptyList()) }
+
+    val packageGroups by derivedStateOf {
+        buildPackageGroups(searchQuery) {
+            setSearchResults(searchResults)
+            setLocal(selectedModules)
+        }
     }
 
-    val selectedPackage = remember {
-        mutableStateOf<PackageSearchTableItem?>(null)
-    }
-
-    var searchPackageGroup by remember {
-        mutableStateOf<List<RemotePackagesGroup>>(emptyList())
-    }
-
-    val packagesGroups =
-        remember(
-            selectedModules,
-            dependenciesBrowsingModeStatus.value,// pass just the value not the state
-            searchPackageGroup,
-            tree
-        ) {
-            selectedModules.distinct().map { //todo check without distinct
-                it to when (val module = it.module) {
-                    is PackageSearchModule.Base -> {
-                        module.declaredDependencies.map { it.asPackageSearchTableItem() }
-                    }
-
-                    is PackageSearchModule.WithVariants -> {
-                        // todo should consider the other variants
-                        module.mainVariant.declaredDependencies.map { it.asPackageSearchTableItem() }
-                    }
-                }.filter {
-                    if (dependenciesBrowsingModeStatus.value != DependenciesBrowsingMode.Lookup)
-                        it.id.contains(textSearchState.value) ||
-                                it.displayName.contains(textSearchState.value)
-                    else
-                        true
-                }
-            }.map {
-                LocalPackagesGroup(
-                    header = it.first,
-                    packages = it.second
-                )
-            }.let { localPackages ->
-                localPackages + if (dependenciesBrowsingModeStatus.value == DependenciesBrowsingMode.Search) {
-                    searchPackageGroup.map {
-                        RemotePackagesGroup(
-                            it.packages.filter {
-                                it.id !in localPackages.flatMap { it.packages }.map { it.id }
-                            },
-                            it.dependencyManager
-                        )
-                    }
-                } else emptyList()
+    @Composable
+    fun PackageSearchCentralPanel() {
+        if (selectedModules.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Select one or more modules on the left to show declared dependencies")
             }
         }
-    val treeState = rememberTreeState()
-    val dropDownItemIdOpen = remember { mutableStateOf<Any?>(null) }
+        else PackageSearchCentralPanel(
+            isLoading = isSearching,
+            isInfoBoxOpen = isInfoBoxOpen,
+            packageGroups = packageGroups,
+            searchQuery = searchQuery,
+            onElementClick = { infoBoxDetail = it },
+            onSearchQueryChange = { searchQuery = it },
+        )
+    }
 
     HorizontalSplitPane(Modifier.fillMaxSize(), splitPaneState) {
         first(100.dp) {
-            Column(Modifier.fillMaxHeight().fillMaxWidth()) {
-                PackageSearchModulesTree(
-                    tree = tree,
-                    treeState = treeState,
-                    onSelectionChange = {
-                        selectedModules = it.map { it.data }
-                    }
-                )
+            Column(Modifier.fillMaxSize()) {
+                PackageSearchModulesTree(tree) { selectedModules = it }
             }
         }
         defaultPKGSSplitter(splitterColor, cursor = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
         second(500.dp) {
-            if (detailExpanded) {
+            if (isInfoBoxOpen) {
                 HorizontalSplitPane(Modifier.fillMaxSize(), innerSplitPaneState) {
-                    first(100.dp) {
-                        PackageSearchCentralPanel(
-                            isLoading = isSearching,
-                            packagesGroups = packagesGroups,
-                            dependenciesBrowsingModeState = dependenciesBrowsingModeStatus,//todo transform in a lambda
-                            textSearchState = textSearchState,
-                            searchParams = searchParams,
-                            dropDownItemIdOpen = dropDownItemIdOpen,
-                            selectedModules = selectedModules,
-                            isActionPerforming = isActionPerforming
-                        ) {
-                            selectedPackage.value = it
-                        }
+                    first(minSize = 100.dp) {
+                        PackageSearchCentralPanel()
                     }
                     defaultPKGSSplitter(splitterColor, cursor = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
                     second(160.dp) {
                         Box {
                             Column(
-                                modifier = Modifier
-                                    .verticalScroll(infoBoxScrollState)
+                                modifier = Modifier.verticalScroll(infoBoxScrollState)
                             ) {
-                                InfoBox(selectedPackage.value, selectedModules)
+                                PackageSearchInfoBox(infoBoxDetail, selectedModules)
                             }
                             Box(modifier = Modifier.matchParentSize()) {
                                 VerticalScrollbar(
@@ -151,44 +117,46 @@ fun PackageSearchPackagePanel(
                         }
                     }
                 }
-            } else {
-                PackageSearchCentralPanel(
-                    isLoading = isSearching,
-                    packagesGroups = packagesGroups,
-                    dependenciesBrowsingModeState = dependenciesBrowsingModeStatus,
-                    textSearchState = textSearchState,
-                    searchParams = searchParams,
-                    dropDownItemIdOpen = dropDownItemIdOpen,
-                    selectedModules = selectedModules,
-                    isActionPerforming = isActionPerforming
-                ) {
-                    selectedPackage.value = it
-                }
-
-            }
+            } else PackageSearchCentralPanel()
         }
     }
-    LaunchedEffect(searchParams.value, dependenciesBrowsingModeStatus, selectedModules) {
-        if (dependenciesBrowsingModeStatus.value == DependenciesBrowsingMode.Search) {
-            isSearching = true
-            runCatching {
-                if (selectedModules.size > 1) {
-                    // TODO()
-                } else {
-                    val searchResults = apiClient.searchPackages(searchParams.value)
-                    searchResults.let {
-                        searchPackageGroup = listOf(
-                            RemotePackagesGroup(
-                                searchResults.map { it.asPackageSearchTableItem() },
-                                selectedModules.firstOrNull()?.dependencyManager
-                            )
-                        )
+
+    val json = LocalJson.current
+    val apiClient = LocalPackageSearchApiClient.current
+
+    LaunchedEffect(selectedModules, searchQuery) {
+        delay(1.seconds) // debounce
+        isSearching = true
+        searchResults = when (val searchData = buildSearchData(selectedModules, searchQuery)) {
+            SearchData.Empty -> SearchData.Results.Empty
+            is SearchData.SingleBaseModule ->
+                searchData.withResults(apiClient.trySearchPackages(json, searchData.searchParameters))
+
+            is SearchData.MultipleModules ->
+                searchData.withResults(apiClient.trySearchPackages(json, searchData.searchParameters))
+
+            is SearchData.SingleWithVariantsModule -> searchData.withResults(
+                results = searchData.searchForVariant
+                    .map { it to async { apiClient.trySearchPackages(json, it.searchParameters) } }
+                    .map { (searchForVariant, search) ->
+                        searchForVariant.withResults(search.await())
                     }
-                }
-            }.onFailure {
-                it.printStackTrace()
-            }
-            isSearching = false
+            )
         }
+        isSearching = false
     }
 }
+
+private suspend fun PackageSearchApiClient.trySearchPackages(json: Json, request: SearchPackagesRequest) =
+    runCatching { searchPackages(request) }
+        .onFailure {
+            logError(it) {
+                """
+Error while searching. Request:
+|----------------
+|${json.encodeToString(request)}
+|----------------
+""".trimIndent()
+            }
+        }
+        .getOrDefault(emptyList())

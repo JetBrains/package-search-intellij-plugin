@@ -2,9 +2,9 @@ package com.jetbrains.packagesearch.plugin.core.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType.ClasspathResources
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider.PathSourceType.ClasspathResources
 
-interface WithIcon {
+interface IconProvider {
 
     object Icons {
         val MAVEN = ClasspathResources("icons/maven.svg")

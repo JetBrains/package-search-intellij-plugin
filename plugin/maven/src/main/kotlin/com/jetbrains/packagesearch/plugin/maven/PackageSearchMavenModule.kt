@@ -9,7 +9,7 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 import com.jetbrains.packagesearch.plugin.core.data.*
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon.Icons
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 
 data class MavenUpdatePackageData(

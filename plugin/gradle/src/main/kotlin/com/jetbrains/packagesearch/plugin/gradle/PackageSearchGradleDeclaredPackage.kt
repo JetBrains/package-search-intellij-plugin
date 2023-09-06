@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon.PathSourceType
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider.PathSourceType
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
@@ -36,5 +36,5 @@ data class PackageSearchGradleDeclaredPackage(
             newScope = newScope
         )
 
-    override fun getDeleteData() = GradleRemovePackageData(this)
+    override fun getRemoveData() = GradleRemovePackageData(this)
 }

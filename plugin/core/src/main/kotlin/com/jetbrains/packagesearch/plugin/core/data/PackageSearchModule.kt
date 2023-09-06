@@ -2,6 +2,7 @@
 
 package com.jetbrains.packagesearch.plugin.core.data
 
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -12,7 +13,7 @@ import org.jetbrains.packagesearch.api.v3.search.PackagesType
  * Package Search representation of a module.
  **/
 @Serializable
-sealed interface PackageSearchModule : WithIcon {
+sealed interface PackageSearchModule : IconProvider {
 
     val name: String
     val identity: Identity
@@ -45,13 +46,12 @@ fun PackageSearchModule.getPackageTypes()= when(this){
 interface PackageSearchDependencyManager {
 
     suspend fun updateDependencies(
-        context: ProjectContext,
+        context: PackageSearchKnownRepositoriesContext,
         data: List<UpdatePackageData>,
-        knownRepositories: List<ApiRepository>
     )
 
-    suspend fun installDependency(
-        context: ProjectContext,
+    suspend fun addDependency(
+        context: PackageSearchKnownRepositoriesContext,
         data: InstallPackageData
     )
 

@@ -1,24 +1,41 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.infobox
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.jetbrains.packagesearch.plugin.LocalProjectService
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.latestStableOrNull
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchTableItem
-import kotlinx.coroutines.launch
-import org.jetbrains.jewel.*
-import org.jetbrains.packagesearch.api.v3.ApiPackage
+import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import com.jetbrains.packagesearch.plugin.ui.bridge.getPackageActions
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
-import org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageQuality
+import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageQuality
+import kotlinx.coroutines.launch
+import org.jetbrains.jewel.Dropdown
+import org.jetbrains.jewel.ExternalLink
+import org.jetbrains.jewel.LocalResourceLoader
+import org.jetbrains.jewel.TabData
+import org.jetbrains.jewel.TabStrip
+import org.jetbrains.jewel.Text
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 internal enum class InfoTabState {
     Overview,
@@ -26,9 +43,9 @@ internal enum class InfoTabState {
 }
 
 @Composable
-fun InfoBox(
-    selectedPackage: PackageSearchTableItem?,
-    selectedModules: List<PackageSearchModuleData>,
+fun PackageSearchInfoBox(
+    selectedPackage: InfoBoxDetail?,
+    selectedModules: List<PackageSearchModule>,
 ) {
     var selectedTab by remember { mutableStateOf(InfoTabState.Overview) }
 
@@ -38,7 +55,7 @@ fun InfoBox(
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                LabelInfo("No dependency selected.\nSelect a row to view details.")
+                LabelInfo("No item selected.\nSelect a row to view details.")
             }
         } else {
             TabStrip(
@@ -67,18 +84,7 @@ fun InfoBox(
             Box(Modifier.fillMaxWidth()) {
                 when (selectedTab) {
                     InfoTabState.Overview -> {
-                        when (selectedPackage) {
-                            is PackageSearchTableItem.Installed -> PackageOverviewInfo(
-                                selectedPackage.item,
-                                null,
-                                selectedModules
-                            )
-
-                            is PackageSearchTableItem.Remote -> PackageOverviewInfo(
-                                selectedPackage.item,
-                                selectedModules
-                            )
-                        }
+                        // todo
                     }
 
                     InfoTabState.Platforms -> PlatformsTabContent()
@@ -102,16 +108,16 @@ fun PackageOverviewInfo(
 
     val projectService = LocalProjectService.current
     val actions by derivedStateOf {
-        selectedPackage.getPackageActions(selectedModules, projectService, selectedModules.first().dependencyManager)
+//        selectedPackage.getPackageActions(selectedModules, projectService, selectedModules.first().dependencyManager)
     }
 
-    PackageNameAndActions(
-        selectedPackage.name ?: selectedPackage.id,
-        if (selectedPackage.name.isNullOrEmpty()) "" else selectedPackage.id,
-        PackageQuality.Good,
-        actions.first,
-        actions.second
-    )
+//    PackageNameAndActions(
+//        selectedPackage.name ?: selectedPackage.id,
+//        if (selectedPackage.name.isNullOrEmpty()) "" else selectedPackage.id,
+//        PackageQuality.Good,
+////        actions.first,
+////        actions.second
+//    )
 
 }
 
@@ -135,19 +141,19 @@ fun PackageOverviewInfo(
 
     val projectService = LocalProjectService.current
     val actions by derivedStateOf {
-        selectedPackage.getPackageActions(selectedModules, projectService, selectedVersion.versionName, selectedScope)
+//        selectedPackage.getPackageActions(selectedModules, projectService, selectedVersion.versionName, selectedScope)
     }
 
 
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         //name action and descriptions
-        PackageNameAndActions(
-            selectedPackage.displayName,
-            selectedPackage.id,
-            PackageQuality.Good,
-            actions.first,
-            actions.second
-        )
+//        PackageNameAndActions(
+//            selectedPackage.displayName,
+//            selectedPackage.id,
+//            PackageQuality.Good,
+////            actions.first,
+////            actions.second
+//        )
 
         //versions
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

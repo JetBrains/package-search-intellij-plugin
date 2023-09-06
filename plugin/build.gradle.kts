@@ -17,8 +17,11 @@ packagesearch {
     }
     optIns.addAll(
         "androidx.compose.ui.ExperimentalComposeUiApi",
-        "org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi"
+        "org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi",
+        "org.jetbrains.jewel.ExperimentalJewelApi",
+        "androidx.compose.foundation.ExperimentalFoundationApi"
     )
+    isRunIdeEnabled = true
 }
 
 dependencies {

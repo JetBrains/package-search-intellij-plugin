@@ -28,6 +28,9 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
                 from(shadowJar)
                 exclude { it.name != shadowJar.get().archiveFile.get().asFile.name }
             }
+            named("runIde") {
+                onlyIf { packageSearchExtension.isRunIdeEnabled.get() }
+            }
         }
     }
 }

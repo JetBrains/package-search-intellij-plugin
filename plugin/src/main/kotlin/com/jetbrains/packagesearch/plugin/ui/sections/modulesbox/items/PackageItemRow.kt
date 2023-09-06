@@ -1,12 +1,15 @@
-package org.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
+package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,16 +18,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -33,17 +35,18 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
-import com.jetbrains.packagesearch.plugin.LocalProjectService
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
-import com.jetbrains.packagesearch.plugin.core.data.WithIcon
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
+import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
+import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
+import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
+import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import com.jetbrains.packagesearch.plugin.ui.bridge.getComposeColor
-import com.jetbrains.packagesearch.plugin.ui.bridge.getPackageActions
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import javax.swing.UIManager
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Divider
@@ -53,7 +56,10 @@ import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.painterResource
 import org.jetbrains.jewel.styling.LocalLinkStyle
+import org.jetbrains.jewel.util.appendIf
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 @Suppress("unused")
 enum class PackageQuality {
@@ -62,26 +68,14 @@ enum class PackageQuality {
 
 fun PackageQuality.getIconResourcePath() = "icons/intui/quality/${name.lowercase()}.svg"
 
-class PackageSearchAction(
-    val name: String,
-    private val _action: suspend () -> Unit
-) {
-
-    val action: suspend () -> Unit = {
-        _action()
-    }
-}
-
-
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun PopupContent(
-    otherActions: List<PackageSearchAction>,
-    borderColor: Color,
-    isActionPerforming: MutableState<Boolean>,
-    dropDownItemIdOpen: MutableState<Any?>
+internal fun DeclaredPackageMoreActionPopup(
+    dependencyManager: PackageSearchDependencyManager,
+    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
+    borderColor: Color = pickComposeColorFromLaf("OnePixelDivider.background"),
+    onDismissRequest: () -> Unit,
 ) {
-    val scope = LocalProjectCoroutineScope.current
+    val context = LocalProjectService.current
     Column(
         Modifier
             .padding(vertical = 4.dp, horizontal = 12.dp),
@@ -95,23 +89,22 @@ internal fun PopupContent(
             softWrap = false
         )
         Divider(color = borderColor)
-        otherActions.forEachIndexed { index, action ->
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Link(
-                    resourceLoader = LocalResourceLoader.current,
-                    text = action.name,
-                    enabled = !isActionPerforming.value,
-                    onClick = {
-                        isActionPerforming.value = true
-                        scope.launch {
-                            action.action()
-                        }.invokeOnCompletion {
-                            it?.printStackTrace()
-                            isActionPerforming.value = false
-                            dropDownItemIdOpen.value = null
-                        }
-                    })
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            var isActionPerforming by LocalIsActionPerformingState.current
+            Link(
+                resourceLoader = LocalResourceLoader.current,
+                text = "Remove",
+                enabled = !isActionPerforming,
+                onClick = {
+                    isActionPerforming = true
+                    context.coroutineScope.launch {
+                        dependencyManager.removeDependency(
+                            context,
+                            packageSearchDeclaredPackage.getRemoveData()
+                        )
+                    }
+                        .invokeOnCompletion { onDismissRequest() }
+                })
         }
     }
 }
@@ -122,92 +115,50 @@ fun RemotePackageRow(
     isActive: Boolean,
     isSelected: Boolean,
     apiPackage: ApiPackage,
-    dropDownItemIdOpen: MutableState<Any?>,
-    dependencyManager: PackageSearchDependencyManager?,
-    selectedModules: List<PackageSearchModuleData>,
-    isActionPerforming: MutableState<Boolean>
+    mainActionContent: @Composable RowScope.() -> Unit,
+    popupContent: (@Composable BoxScope.() -> Unit)? = null,
 ) {
-    val packageIconResource = remember {
-        "icons/intui/" + "question.svg" //"gradle.svg" todo fix icons
+    val iconPath = when (apiPackage) {
+        is ApiMavenPackage -> "icons/intui/maven.svg"
+        else -> null
     }
-    val localProjectService = LocalProjectService.current
-
-    val actions = remember {
-        dependencyManager?.let {
-            apiPackage.getPackageActions(selectedModules, localProjectService, dependencyManager)
-        }
+    val painter = iconPath?.let {
+        painterResource(
+            resourcePath = it,
+            loader = LocalResourceLoader.current
+        )
     }
-    val packageSearchQuality = remember { PackageQuality.values().random() }
-    PackageRowImpl(
+    PackageRow(
         modifier = modifier,
         isActive = isActive,
         isSelected = isSelected,
-        iconResource = packageIconResource,
-        packageName = apiPackage.name ?: apiPackage.id,
-        packageId = if (apiPackage.name.isNullOrEmpty()) "" else apiPackage.id,
-        quality = packageSearchQuality,
-        action = actions?.first,
-        otherActions = actions?.second ?: emptyList(),
-        dropDownItemIdOpen = dropDownItemIdOpen,
-        isActionPerforming = isActionPerforming
+        isCompact = true,
+        packageIcon = painter,
+        actionPopupId = apiPackage.id,
+        packageNameContent = {
+            Text(text = apiPackage.name ?: apiPackage.coordinates)
+            if (apiPackage.name != null)
+                LabelInfo(text = apiPackage.coordinates)
+        },
+        editPackageContent = null,
+        mainActionContent = mainActionContent,
+        popupContent = popupContent
     )
 }
 
-
 @Composable
-fun LocalPackageRow(
+fun PackageRow(
     modifier: Modifier = Modifier,
     isActive: Boolean,
     isSelected: Boolean,
-    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    dropDownItemIdOpen: MutableState<Any?>,
-    selectedModules: List<PackageSearchModuleData>,
-    isActionPerforming: MutableState<Boolean>
+    isCompact: Boolean,
+    packageIcon: Painter?,
+    actionPopupId: String,
+    packageNameContent: @Composable RowScope.() -> Unit,
+    editPackageContent: (@Composable RowScope.() -> Unit)? = null,
+    mainActionContent: @Composable RowScope.() -> Unit,
+    popupContent: (@Composable BoxScope.() -> Unit)? = null,
 ) {
-    val packageIconResource = remember {
-        when (val icon = packageSearchDeclaredPackage.icon) {
-            is WithIcon.PathSourceType.ClasspathResources, is WithIcon.PathSourceType.File -> icon.path
-            is WithIcon.PathSourceType.Network -> TODO("not implemented")
-            is WithIcon.PathSourceType.Platform -> TODO("not implemented")
-        }
-    }
-    val packageSearchQuality by remember { mutableStateOf(PackageQuality.values().random()) }
-
-    val actions = packageSearchDeclaredPackage.getPackageActions(
-        selectedModules = selectedModules, LocalProjectService.current
-    )
-
-    PackageRowImpl(
-        modifier = modifier,
-        isActive = isActive,
-        isSelected = isSelected,
-        iconResource = packageIconResource,
-        packageName = packageSearchDeclaredPackage.displayName,
-        packageId = packageSearchDeclaredPackage.id,
-        quality = packageSearchQuality,
-        action = actions.first,
-        otherActions = actions.second,
-        dropDownItemIdOpen = dropDownItemIdOpen,
-        isActionPerforming = isActionPerforming
-    )
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-internal fun PackageRowImpl(
-    modifier: Modifier,
-    isActive: Boolean,
-    isSelected: Boolean,
-    iconResource: String,
-    packageName: String,
-    packageId: String,
-    quality: PackageQuality,
-    action: PackageSearchAction? = null,
-    otherActions: List<PackageSearchAction> = emptyList(),
-    dropDownItemIdOpen: MutableState<Any?>,
-    isActionPerforming: MutableState<Boolean>
-) {
-    val scope = LocalProjectCoroutineScope.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -227,12 +178,26 @@ internal fun PackageRowImpl(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Icon(painterResource(iconResource, LocalResourceLoader.current), modifier = Modifier.size(16.dp))
-            Text(text = packageName)
-            LabelInfo(packageId)
+            Box(Modifier.size(16.dp)) {
+                if (packageIcon != null) {
+                    Icon(
+                        painter = packageIcon,
+                        modifier = Modifier.fillMaxSize(),
+                        contentDescription = null
+                    )
+                }
+            }
+            packageNameContent()
         }
-        Row(horizontalArrangement = Arrangement.End) {
-            Icon(painterResource(quality.getIconResourcePath(), LocalResourceLoader.current))
+        Row {
+            if (!isCompact && editPackageContent != null) {
+                editPackageContent()
+            }
+            // enable when package quality will be live
+//            Icon(
+//                painterResource(packageSearchQuality.getIconResourcePath(), LocalResourceLoader.current),
+//                contentDescription = null
+//            )
             Row(
                 Modifier
                     .defaultMinSize(90.dp, 16.dp)
@@ -240,94 +205,64 @@ internal fun PackageRowImpl(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                var showProgress by remember { mutableStateOf(false) }
-
                 Row(Modifier.width(74.dp), horizontalArrangement = Arrangement.End) {
-                    if (showProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 1.dp,
-                            color = LocalLinkStyle.current.colors.contentDisabled
-                        )
-                    } else {
-                        action?.let {
-                            Link(
-                                resourceLoader = LocalResourceLoader.current,
-                                enabled = !isActionPerforming.value,
-                                text = it.name,
-                                onClick = {
-                                    isActionPerforming.value = true
-                                    showProgress = true
-                                    scope.launch {
-                                        it.action()
-                                    }.invokeOnCompletion {
-                                        it?.printStackTrace()
-                                        isActionPerforming.value = false
-                                        showProgress = false
-                                    }
-                                })
-                        }
-                    }
-
+                    mainActionContent()
                 }
-                var hovered by remember(packageId) { mutableStateOf(false) }
+                var hovered by remember(key1 = actionPopupId) { mutableStateOf(false) }
+                var globalPopupId by LocalGlobalPopupIdState.current
                 Box(
                     Modifier
                         .defaultMinSize(16.dp, 16.dp)
-                        .then(
-                            if (hovered || dropDownItemIdOpen.value == packageId) {
-                                UIManager
-                                    .getLookAndFeelDefaults()
-                                    .getComposeColor("ActionButton.hoverBackground")
-                                    ?.let {
-                                        Modifier
-                                            .background(it)
-                                            .border(1.dp, it)
-                                    } ?: Modifier
-                            } else Modifier
-                        )
-                        .pointerInput(packageId) {
-                            awaitPointerEventScope {
-                                while (true) {
-                                    val event = awaitPointerEvent()
-                                    when (event.type) {
-                                        PointerEventType.Enter -> hovered = true
-                                        PointerEventType.Exit -> hovered = false
-                                        PointerEventType.Press -> {
-                                            dropDownItemIdOpen.value =
-                                                if (dropDownItemIdOpen.value == packageId) null else packageId
+                        .appendIf(hovered || globalPopupId == actionPopupId) {
+                            background(pickComposeColorFromLaf("ActionButton.hoverBackground"))
+                                .border(1.dp, pickComposeColorFromLaf("ActionButton.hoverBorderColor"))
+                        }
+                        .appendIf(popupContent != null) {
+                            pointerInput(key1 = actionPopupId) {
+                                awaitPointerEventScope {
+                                    while (true) {
+                                        val event = awaitPointerEvent()
+                                        when (event.type) {
+                                            PointerEventType.Enter -> hovered = true
+                                            PointerEventType.Exit -> hovered = false
+                                            PointerEventType.Press -> {
+                                                globalPopupId =
+                                                    if (globalPopupId == actionPopupId) null
+                                                    else actionPopupId
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                 ) {
-                    Icon(painterResource("icons/intui/moreVertical.svg", LocalResourceLoader.current))
-                    if (dropDownItemIdOpen.value == packageId) {
-                        val borderColor = UIManager
-                            .getLookAndFeelDefaults()
-                            .getComposeColor("OnePixelDivider.background") ?: Color.Unspecified
+                    if (popupContent != null) {
+                        Icon(
+                            painterResource("icons/intui/moreVertical.svg", LocalResourceLoader.current),
+                            contentDescription = null
+                        )
+                        if (globalPopupId == actionPopupId) {
+                            val borderColor = pickComposeColorFromLaf("OnePixelDivider.background")
 
-                        val bgColor = UIManager
-                            .getLookAndFeelDefaults()
-                            .getComposeColor("PopupMenu.background") ?: Color.Unspecified
-                        val contentOffsetX = with(LocalDensity.current) { 184.dp.toPx() + 1 }
+                            val bgColor = pickComposeColorFromLaf("PopupMenu.background")
+                            val contentOffsetX = with(LocalDensity.current) { 184.dp.toPx() + 1 }
 
-                        Popup(
-                            offset = IntOffset(-contentOffsetX.roundToInt(), 32),
-                            onDismissRequest = { dropDownItemIdOpen.value = null },
-                            properties = PopupProperties(focusable = true),
-                            onPreviewKeyEvent = { false },
-                            onKeyEvent = { false }
-                        ) {
-                            Box(
-                                modifier =
-                                Modifier.width(200.dp)
-                                    .clip(shape = RoundedCornerShape(10.dp))
-                                    .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(10.dp))
-                                    .background(color = bgColor)
+                            Popup(
+                                offset = IntOffset(-contentOffsetX.roundToInt(), 32),
+                                onDismissRequest = { globalPopupId = null },
+                                properties = PopupProperties(focusable = true),
+                                onPreviewKeyEvent = { false },
+                                onKeyEvent = { false }
                             ) {
-                                PopupContent(otherActions, borderColor, isActionPerforming, dropDownItemIdOpen)
+                                Box(
+                                    modifier =
+                                    Modifier.width(200.dp)
+                                        .clip(shape = RoundedCornerShape(10.dp))
+                                        .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(10.dp))
+                                        .background(color = bgColor)
+                                ) {
+                                    popupContent()
+                                }
                             }
                         }
                     }
@@ -336,3 +271,140 @@ internal fun PackageRowImpl(
         }
     }
 }
+
+@Composable
+fun UpgradePackageActionLink(
+    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
+    dependencyManager: PackageSearchDependencyManager
+) {
+    val upgrade = packageSearchDeclaredPackage.evaluateUpgrade() ?: return
+    PackageActionLink("Upgrade") { context ->
+        dependencyManager.updateDependencies(
+            context = context,
+            data = listOf(
+                packageSearchDeclaredPackage.getUpdateData(
+                    newVersion = upgrade.versionName,
+                    newScope = packageSearchDeclaredPackage.scope
+                )
+            )
+        )
+    }
+}
+
+@Composable
+fun InstallPackageActionLink(
+    apiPackage: ApiPackage,
+    module: PackageSearchModule.WithVariants,
+    variant: PackageSearchModuleVariant,
+    dependencyManager: PackageSearchDependencyManager
+) {
+    val version = apiPackage.latestVersion
+    PackageActionLink("Add") { context ->
+        dependencyManager.addDependency(
+            context = context,
+            data = variant.getInstallData(
+                apiPackage = apiPackage,
+                selectedVersion = version.versionName,
+                selectedScope = module.defaultScope
+            )
+        )
+    }
+}
+
+@Composable
+fun PackageActionLink(
+    text: String,
+    action: suspend (PackageSearchKnownRepositoriesContext) -> Unit,
+) {
+    var showProgress by remember { mutableStateOf(false) }
+    var isActionPerforming by LocalIsActionPerformingState.current
+    val service = LocalProjectService.current
+    when {
+        showProgress -> CircularProgressIndicator(
+            modifier = Modifier.size(16.dp),
+            strokeWidth = 1.dp,
+            color = LocalLinkStyle.current.colors.contentDisabled
+        )
+
+        else -> Link(
+            resourceLoader = LocalResourceLoader.current,
+            enabled = !isActionPerforming,
+            text = text, // TODO localize
+            onClick = {
+                isActionPerforming = true
+                showProgress = true
+                service.coroutineScope.launch {
+                    action(service)
+                }.invokeOnCompletion { showProgress = false }
+            })
+
+    }
+}
+
+@Composable
+fun InstallPackageActionLink(
+    apiPackage: ApiPackage,
+    module: PackageSearchModule.Base,
+    dependencyManager: PackageSearchDependencyManager
+) {
+    val version = apiPackage.latestVersion
+    PackageActionLink("Add") { context ->
+        dependencyManager.addDependency(
+            context = context,
+            data = module.getInstallData(
+                apiPackage = apiPackage,
+                selectedVersion = version.versionName,
+                selectedScope = module.defaultScope
+            )
+        )
+    }
+}
+
+@Composable
+fun LocalPackageRow(
+    isActive: Boolean,
+    isSelected: Boolean,
+    isCompact: Boolean,
+    additionalDetails: String,
+    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
+    modifier: Modifier = Modifier,
+    mainActionContent: @Composable RowScope.() -> Unit,
+    popupContent: (@Composable BoxScope.() -> Unit)? = null,
+) {
+    PackageRow(
+        modifier = modifier,
+        isActive = isActive,
+        isSelected = isSelected,
+        isCompact = isCompact,
+        packageIcon = when (val icon = packageSearchDeclaredPackage.icon) {
+            is IconProvider.PathSourceType.ClasspathResources -> painterResource(icon.path, LocalResourceLoader.current)
+            is IconProvider.PathSourceType.File -> TODO()
+            is IconProvider.PathSourceType.Network -> TODO()
+            is IconProvider.PathSourceType.Platform -> TODO()
+        },
+        actionPopupId = packageSearchDeclaredPackage.id,
+        packageNameContent = {
+            Text(text = packageSearchDeclaredPackage.displayName)
+            LabelInfo(text = additionalDetails)
+        },
+        editPackageContent = null, // TODO versions and scopes selectors
+        mainActionContent = mainActionContent,
+        popupContent = popupContent
+    )
+}
+
+fun PackageSearchDeclaredPackage.evaluateUpgrade(stableOnly: Boolean): NormalizedVersion? {
+    val targetVersion = if (stableOnly) latestStableVersion else latestVersion
+    return if (targetVersion?.let { declaredVersion < it } == true) targetVersion else null
+}
+
+@Composable
+fun PackageSearchDeclaredPackage.evaluateUpgrade(): NormalizedVersion? =
+    evaluateUpgrade(LocalIsOnlyStableVersions.current.value)
+
+fun ApiPackage.getLatestVersion(stableOnly: Boolean): NormalizedVersion =
+    versions.latestStable?.normalized?.takeIf { stableOnly } ?: versions.latest.normalized
+
+val ApiPackage.latestVersion: NormalizedVersion
+    @Composable
+    get() = getLatestVersion(LocalIsOnlyStableVersions.current.value)

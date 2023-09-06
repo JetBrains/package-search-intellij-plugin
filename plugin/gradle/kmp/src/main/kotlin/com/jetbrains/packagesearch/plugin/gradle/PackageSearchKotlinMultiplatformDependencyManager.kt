@@ -11,6 +11,7 @@ import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
 import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 
 class PackageSearchKotlinMultiplatformDependencyManager(
@@ -21,9 +22,8 @@ class PackageSearchKotlinMultiplatformDependencyManager(
     private val baseDependencyManager = PackageSearchGradleDependencyManager(nativeModule)
 
     override suspend fun updateDependencies(
-        context: ProjectContext,
+        context: PackageSearchKnownRepositoriesContext,
         data: List<UpdatePackageData>,
-        knownRepositories: List<ApiRepository>
     ) {
         val dependencyBlockUpdates = mutableListOf<GradleUpdatePackageData>()
         val sourceSetsUpdates = mutableListOf<MppModifierUpdateData>()
@@ -42,7 +42,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
                     }
                 }
             }
-        baseDependencyManager.updateGradleDependencies(context, dependencyBlockUpdates, knownRepositories)
+        baseDependencyManager.updateGradleDependencies(context, dependencyBlockUpdates)
         MppDependencyModifier.updateDependencies(nativeModule, sourceSetsUpdates)
     }
 
@@ -96,7 +96,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
     }
 
 
-    override suspend fun installDependency(context: ProjectContext, data: InstallPackageData) {
+    override suspend fun addDependency(context: PackageSearchKnownRepositoriesContext, data: InstallPackageData) {
         val kmpData = data as? KotlinMultiplatformInstallPackageData ?: return
         val variant = module.variants[kmpData.variantName] ?: return
         if (!variant.isCompatible(kmpData.apiPackage, kmpData.selectedVersion)) return

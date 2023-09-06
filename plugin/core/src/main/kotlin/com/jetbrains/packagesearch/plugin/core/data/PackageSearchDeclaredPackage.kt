@@ -5,7 +5,8 @@ import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
-interface PackageSearchDeclaredPackage : WithIcon {
+
+interface PackageSearchDeclaredPackage : IconProvider {
 
     interface WithVariant : PackageSearchDeclaredPackage {
         val variantName: String
@@ -15,14 +16,14 @@ interface PackageSearchDeclaredPackage : WithIcon {
     val displayName: String
     val coordinates: String
     val declaredVersion: NormalizedVersion
-    val latestStableVersion: NormalizedVersion
+    val latestStableVersion: NormalizedVersion?
     val latestVersion: NormalizedVersion
     val remoteInfo: ApiPackage?
     val declarationIndexes: DependencyDeclarationIndexes
     val scope: String?
 
-    fun getUpdateData(newVersion: String?, newScope: String?): UpdatePackageData
-    fun getDeleteData(): RemovePackageData
+    fun getUpdateData(newVersion: String?, newScope: String? = scope): UpdatePackageData
+    fun getRemoveData(): RemovePackageData
 }
 
 interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {

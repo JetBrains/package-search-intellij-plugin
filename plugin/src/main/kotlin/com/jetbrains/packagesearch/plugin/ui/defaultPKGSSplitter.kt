@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi
 import org.jetbrains.compose.splitpane.SplitPaneScope
 
-@OptIn(ExperimentalSplitPaneApi::class)
 fun SplitPaneScope.defaultPKGSSplitter(
     splitterColor: Color,
     cursor: PointerIcon,

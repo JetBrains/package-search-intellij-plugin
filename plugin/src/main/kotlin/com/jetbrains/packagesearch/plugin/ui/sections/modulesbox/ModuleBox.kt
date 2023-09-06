@@ -1,57 +1,54 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchTableItem
+import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
+import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
-import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
-
-enum class DependenciesBrowsingMode {
-    Search, // the result content in showing the search result from the api
-    Lookup // the result content in showing the dependencies of the selected module
-}
+import org.jetbrains.jewel.IntelliJTheme
 
 @Composable
 fun PackageSearchCentralPanel(
-    isLoading: Boolean = false,
-    packagesGroups: List<PackagesGroup>,
-    dependenciesBrowsingModeState: MutableState<DependenciesBrowsingMode>,
-    textSearchState: MutableState<String>,
-    searchParams: MutableState<SearchPackagesRequest>,
-    dropDownItemIdOpen: MutableState<Any?>,
-    selectedModules: List<PackageSearchModuleData>,
-    isActionPerforming: MutableState<Boolean>,
-    onPackageClick: (PackageSearchTableItem) -> Unit = {}
+    isLoading: Boolean,
+    isInfoBoxOpen: Boolean,
+    packageGroups: List<PackageGroup>,
+    searchQuery: String,
+    packageGroupsState: MutableMap<PackageGroup.Id, PackageGroup.State> = remember { mutableStateMapOf() },
+    onElementClick: (InfoBoxDetail?) -> Unit = {},
+    onSearchQueryChange: (String) -> Unit = {}
 ) {
     Column {
         SearchRow(
-            textSearchState = textSearchState,
-            searchResultsCount =
-            packagesGroups.filterIsInstance<RemotePackagesGroup>().sumOf { it.packages.size },
-            dependenciesBrowsingModeStatus = dependenciesBrowsingModeState
-        ) {
-            searchParams.value = searchParams.value.copy(searchQuery = it)
-        }
+            searchQuery = searchQuery,
+            searchResultsCount = packageGroups.filterIsInstance<PackageGroup.Remote>()
+                .sumOf { it.size },
+            onSearchQueryChange = onSearchQueryChange
+        )
 
-        if (packagesGroups.isEmpty() && !isLoading) {
-            NoResultsToShow(dependenciesBrowsingModeState.value)
-        } else {
-            ResultsSelectableLazyColumn(
-                packagesGroups,
-                dropDownItemIdOpen,
-                selectedModules,
-                isActionPerforming,
-                onPackageClick
-            )
-        }
         if (isLoading) {
             IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
+        } else {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                .height(IntelliJTheme.horizontalProgressBarStyle.metrics.minHeight)
+            )
         }
 
+        when {
+            packageGroups.isEmpty() && !isLoading -> NoResultsToShow()
+            packageGroups.isNotEmpty() -> ResultsSelectableLazyColumn(
+                packageGroups = packageGroups,
+                packageGroupState = packageGroupsState,
+                isInfoBoxOpen = isInfoBoxOpen,
+                onElementClick = onElementClick
+            )
+        }
     }
 }
 

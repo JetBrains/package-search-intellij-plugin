@@ -54,11 +54,7 @@ abstract class PackageSearchInspection : LocalInspectionTool() {
         isOnTheFly: Boolean
     ): Array<ProblemDescriptor> {
         val moduleData = file.project.PackageSearchProjectService
-            .modulesByBuildFile.value[file.virtualFile.path]
-
-        if (moduleData == null) {
-            return emptyArray()
-        }
+            .moduleDataByBuildFile.value[file.virtualFile.path] ?: return emptyArray()
 
         val problemsHolder = ProblemsHolder(manager, file, isOnTheFly)
 
@@ -153,7 +149,6 @@ class PackageUpdateInspection : PackageSearchInspection() {
                         moduleData.dependencyManager.updateDependencies(
                             context = context,
                             data = listOf(it.getUpdateData(targetVersion.versionName, it.scope)),
-                            knownRepositories = context.knownRepositories.values.toList()
                         )
                     }
                 }

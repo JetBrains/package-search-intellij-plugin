@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -16,43 +15,18 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import org.jetbrains.jewel.*
 import org.jetbrains.jewel.util.pxToDp
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import java.awt.Cursor
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchRow(
-    textSearchState: MutableState<String>, // for the initial state no search will be called
-    dependenciesBrowsingModeStatus: MutableState<DependenciesBrowsingMode> = remember {
-        mutableStateOf(
-            DependenciesBrowsingMode.Search
-        )
-    },
+    searchQuery: String,
     searchResultsCount: Int,
-    debounceTimeMillis: Long = 300,
-    onQueryChanged: (String) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
 ) {
-    LaunchedEffect(textSearchState.value) {//launched effect, once called the last will be canceled
-        val currentValue = textSearchState.value
-        if (currentValue.isNotEmpty()) {
-            delay(debounceTimeMillis)  // debounce time in milliseconds
-            if (currentValue == textSearchState.value) {//if user stop type this become true
-                if (dependenciesBrowsingModeStatus.value == DependenciesBrowsingMode.Lookup) {
-                    dependenciesBrowsingModeStatus.value = DependenciesBrowsingMode.Search
-                }
-                onQueryChanged(currentValue)
-            }
-        } else {
-            if (dependenciesBrowsingModeStatus.value == DependenciesBrowsingMode.Search) {
-                dependenciesBrowsingModeStatus.value = DependenciesBrowsingMode.Lookup
-            }
-        }
-    }
-    val borderColor =
-        pickComposeColorFromLaf("IntelliJTheme.colors.borders.disabled")
+    val borderColor = pickComposeColorFromLaf("IntelliJTheme.colors.borders.disabled")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -74,11 +48,12 @@ fun SearchRow(
     ) {
         Icon(
             painterResource("icons/intui/search.svg", LocalResourceLoader.current),
-            tint = pickComposeColorFromLaf("IntelliJTheme.colors.infoContent")
+            tint = pickComposeColorFromLaf("IntelliJTheme.colors.infoContent"),
+            contentDescription = null
         )
         TextField(
-            value = textSearchState.value,
-            onValueChange = { textSearchState.value = it },
+            value = searchQuery,
+            onValueChange = onSearchQueryChange,
             modifier = Modifier.fillMaxWidth().weight(1f),
             undecorated = true,
             placeholder = {
@@ -89,7 +64,7 @@ fun SearchRow(
                 )
             },
             trailingIcon = {
-                if (textSearchState.value.isNotEmpty()) {
+                if (searchQuery.isNotEmpty()) {
                     var isHovered by remember { mutableStateOf(false) }
                     Row {
                         searchResultsCount.let {
@@ -101,19 +76,17 @@ fun SearchRow(
                         }
                         Box(
                             Modifier
-                                .onPointerEvent(PointerEventType.Enter) {
-                                    isHovered = true
-                                }
-                                .onPointerEvent(PointerEventType.Exit) {
-                                    isHovered = false
-                                }
+                                .onPointerEvent(PointerEventType.Enter) { isHovered = true }
+                                .onPointerEvent(PointerEventType.Exit) { isHovered = false }
                                 .pointerHoverIcon(PointerIcon(Cursor(Cursor.DEFAULT_CURSOR)))
                                 .clip(shape = RoundedCornerShape(10.dp))
                         ) {
                             val icon = if (isHovered) "icons/intui/closeHovered.svg" else "icons/intui/close.svg"
                             Icon(
                                 painter = painterResource(icon, LocalResourceLoader.current),
-                                modifier = Modifier.clickable { textSearchState.value = "" })
+                                modifier = Modifier.clickable { onSearchQueryChange("") },
+                                contentDescription = null
+                            )
                         }
                     }
                 }
