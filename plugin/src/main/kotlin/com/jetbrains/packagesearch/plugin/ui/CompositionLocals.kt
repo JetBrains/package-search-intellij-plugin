@@ -37,7 +37,6 @@ interface CompositionLocalProvider<T> {
 
     @get:Composable
     val current: T
-
 }
 
 fun <T> compositionLocalFrom(provide: @Composable () -> T) =
@@ -55,4 +54,3 @@ val LocalGlobalPopupIdState: ProvidableCompositionLocal<MutableState<String?>> =
 
 fun Application.lightThemeFlow() =
     messageBus.flow(LafManagerListener.TOPIC) { LafManagerListener { trySend(isLightTheme()) } }
-

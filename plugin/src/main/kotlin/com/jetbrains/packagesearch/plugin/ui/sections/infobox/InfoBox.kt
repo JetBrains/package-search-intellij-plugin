@@ -27,7 +27,6 @@ import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageQuality
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Dropdown
 import org.jetbrains.jewel.ExternalLink
@@ -39,7 +38,7 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 internal enum class InfoTabState {
     Overview,
-    Platforms
+    Platforms,
 }
 
 @Composable
@@ -53,7 +52,7 @@ fun PackageSearchInfoBox(
         if (selectedPackage == null) {
             Box(
                 Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 LabelInfo("No item selected.\nSelect a row to view details.")
             }
@@ -67,7 +66,7 @@ fun PackageSearchInfoBox(
                         onClick = {
                             selectedTab = InfoTabState.Overview
                         },
-                        tabIconResource = null
+                        tabIconResource = null,
                     ),
                     TabData.Default(
                         selected = selectedTab == InfoTabState.Platforms,
@@ -76,9 +75,9 @@ fun PackageSearchInfoBox(
                         onClick = {
                             selectedTab = InfoTabState.Platforms
                         },
-                        tabIconResource = null
-                    )
-                )
+                        tabIconResource = null,
+                    ),
+                ),
             )
 
             Box(Modifier.fillMaxWidth()) {
@@ -97,9 +96,9 @@ fun PackageSearchInfoBox(
 @Composable
 fun PackageOverviewInfo(
     selectedPackage: ApiPackage,
-    selectedModules: List<PackageSearchModuleData>
+    selectedModules: List<PackageSearchModuleData>,
 ) {
-//name action and descriptions
+// name action and descriptions
     var selectedVersion by remember { mutableStateOf(selectedPackage.versions.latestStable?.normalized) }
     val availableOtherVersions = remember(selectedVersion) {
         selectedPackage.versions.all.values
@@ -115,10 +114,9 @@ fun PackageOverviewInfo(
 //        selectedPackage.name ?: selectedPackage.id,
 //        if (selectedPackage.name.isNullOrEmpty()) "" else selectedPackage.id,
 //        PackageQuality.Good,
-////        actions.first,
-////        actions.second
+// //        actions.first,
+// //        actions.second
 //    )
-
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -126,7 +124,7 @@ fun PackageOverviewInfo(
 fun PackageOverviewInfo(
     selectedPackage: PackageSearchDeclaredPackage,
     selectedPackageVariant: PackageSearchModule.WithVariants? = null,
-    selectedModules: List<PackageSearchModuleData>
+    selectedModules: List<PackageSearchModuleData>,
 ) {
     val scope = rememberCoroutineScope()
     var selectedVersion by remember { mutableStateOf(selectedPackage.declaredVersion) }
@@ -138,24 +136,22 @@ fun PackageOverviewInfo(
 
     var selectedScope: String? by remember { mutableStateOf(null) }
 
-
     val projectService = LocalProjectService.current
     val actions by derivedStateOf {
 //        selectedPackage.getPackageActions(selectedModules, projectService, selectedVersion.versionName, selectedScope)
     }
 
-
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        //name action and descriptions
+        // name action and descriptions
 //        PackageNameAndActions(
 //            selectedPackage.displayName,
 //            selectedPackage.id,
 //            PackageQuality.Good,
-////            actions.first,
-////            actions.second
+// //            actions.first,
+// //            actions.second
 //        )
 
-        //versions
+        // versions
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
                 LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = "Version:")
@@ -170,12 +166,12 @@ fun PackageOverviewInfo(
                                     selected = it.normalized == selectedVersion,
                                     onClick = {
                                         selectedVersion = it.normalized
-                                    }
+                                    },
                                 ) {
                                     Text(selectedPackage.declaredVersion.versionName + "→" + it.normalized.versionName)
                                 }
                             }
-                        }
+                        },
                     ) {
                         Text(selectedPackage.declaredVersion.versionName + "→" + latestVersion.versionName)
                     }
@@ -194,7 +190,7 @@ fun PackageOverviewInfo(
                                 Text(it)
                             }
                         }
-                    }
+                    },
                 ) {
                     Text(selectedScope ?: "Default")
                 }
@@ -217,7 +213,7 @@ fun PackageOverviewInfo(
                 if (!it.isNullOrEmpty()) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = "Authors:")
                         Text(it.map { it.name }.joinToString(", "))
@@ -231,7 +227,7 @@ fun PackageOverviewInfo(
             ?.let {
                 Text(it)
             }
-        //licenses
+        // licenses
         Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
             selectedPackage.remoteInfo?.licenses?.let {
                 ExternalLink(
@@ -241,7 +237,7 @@ fun PackageOverviewInfo(
                         scope.launch {
                             openLinkInBrowser(it.mainLicense.htmlUrl ?: it.mainLicense.url)
                         }
-                    }
+                    },
                 )
                 it.otherLicenses.takeIf { it.isNotEmpty() }?.forEach { otherLicense ->
                     Text(", ")
@@ -252,7 +248,7 @@ fun PackageOverviewInfo(
                             scope.launch {
                                 openLinkInBrowser(otherLicense.htmlUrl ?: otherLicense.url)
                             }
-                        }
+                        },
                     )
                 }
             }

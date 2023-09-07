@@ -10,8 +10,7 @@ const val TextCaptionMultiplier = 0.75f
 const val TextSmallMultiplier = 0.5f
 const val TextTinyMultiplier = 0.25f
 
-
-//default spacing
+// default spacing
 @Composable
 fun SpacingNone() = 0.dp
 
@@ -20,4 +19,3 @@ fun SpacingMainElements() = 4.dp
 
 @Composable
 fun SpacingInnerElements() = 2.dp
-

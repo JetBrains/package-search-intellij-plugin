@@ -21,16 +21,16 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                 listOf(
                     PackageGroup.Remote.FromBaseModule(
                         module = data.searchData.module,
-                        packages = data.results.filter { it.id !in declaredDependencyIds }
-                    )
+                        packages = data.results.filter { it.id !in declaredDependencyIds },
+                    ),
                 )
             }
 
             is SearchData.MultipleModules.Results -> listOf(
                 PackageGroup.Remote.FromMultipleModules(
                     modules = data.searchData.modules,
-                    packages = data.results
-                )
+                    packages = data.results,
+                ),
             )
 
             is SearchData.SingleWithVariantsModule.Results ->
@@ -39,7 +39,7 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                         module = data.module,
                         packages = it.results,
                         badges = findCommonStrings(it.searchData.compatibleVariants.map { it.attributes }),
-                        compatibleVariants = it.searchData.compatibleVariants
+                        compatibleVariants = it.searchData.compatibleVariants,
                     )
                 }
         }
@@ -53,23 +53,25 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                     PackageGroup.Declared.FromBaseModule(
                         module = module,
                         filteredDependencies = module.declaredDependencies
-                            .filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) }
-                    ))
+                            .filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) },
+                    ),
+                )
 
-                is PackageSearchModule.WithVariants -> module.variants
-                    .map { (_, variant) ->
-                        PackageGroup.Declared.FromVariant(
-                            module = module,
-                            variant = variant,
-                            filteredDependencies = variant.declaredDependencies
-                                .filter {
-                                    it.id.contains(searchQuery, true) || it.displayName.contains(
-                                        searchQuery,
-                                        true
-                                    )
-                                }
-                        )
-                    }
+                is PackageSearchModule.WithVariants ->
+                    module.variants
+                        .map { (_, variant) ->
+                            PackageGroup.Declared.FromVariant(
+                                module = module,
+                                variant = variant,
+                                filteredDependencies = variant.declaredDependencies
+                                    .filter {
+                                        it.id.contains(searchQuery, true) || it.displayName.contains(
+                                            searchQuery,
+                                            true,
+                                        )
+                                    },
+                            )
+                        }
             }
 
             else -> selectedModules.map { module ->
@@ -77,7 +79,7 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                     is PackageSearchModule.Base -> PackageGroup.Declared.FromBaseModule(
                         module = module,
                         filteredDependencies = module.declaredDependencies
-                            .filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) }
+                            .filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) },
                     )
 
                     is PackageSearchModule.WithVariants -> PackageGroup.Declared.FromModuleWithVariantsCompact(
@@ -88,10 +90,10 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                                     .filter {
                                         it.id.contains(searchQuery, true) || it.displayName.contains(
                                             searchQuery,
-                                            true
+                                            true,
                                         )
                                     }
-                            }
+                            },
                     )
                 }
             }
@@ -130,7 +132,7 @@ sealed interface PackageGroup {
         },
         COLLAPSED {
             override fun toggle() = OPEN
-        };
+        }, ;
 
         abstract fun toggle(): State
     }
@@ -156,11 +158,12 @@ sealed interface PackageGroup {
 
         data class FromModuleWithVariantsCompact(
             override val module: PackageSearchModule.WithVariants,
-            override val filteredDependencies: List<PackageSearchDeclaredPackage.WithVariant>
+            override val filteredDependencies: List<PackageSearchDeclaredPackage.WithVariant>,
         ) : Declared {
             override val id: Id
-                get() = Id("Local.FromModuleWithVariantsCompact [module = ${module.identity}, " +
-                        "variants = ${filteredDependencies.joinToString { it.variantName }}]"
+                get() = Id(
+                    "Local.FromModuleWithVariantsCompact [module = ${module.identity}, " +
+                        "variants = ${filteredDependencies.joinToString { it.variantName }}]",
                 )
 
             override val size: Int
@@ -185,7 +188,7 @@ sealed interface PackageGroup {
 
         data class FromBaseModule(
             val module: PackageSearchModule.Base,
-            override val packages: List<ApiPackage>
+            override val packages: List<ApiPackage>,
         ) : Remote {
             override val id: Id
                 get() = Id("Remote.FromBaseModule [module = ${module.identity}]")
@@ -197,7 +200,7 @@ sealed interface PackageGroup {
             val module: PackageSearchModule.WithVariants,
             override val packages: List<ApiPackage>,
             val badges: List<String>,
-            val compatibleVariants: List<PackageSearchModuleVariant>
+            val compatibleVariants: List<PackageSearchModuleVariant>,
         ) : Remote {
             override val id: Id
                 get() = Id("Remote.FromVariant [module = ${module.identity}, variants = ${compatibleVariants.joinToString { it.name }}]")
@@ -207,14 +210,12 @@ sealed interface PackageGroup {
 
         data class FromMultipleModules(
             val modules: List<PackageSearchModule>,
-            override val packages: List<ApiPackage>
+            override val packages: List<ApiPackage>,
         ) : Remote {
             override val id: Id
                 get() = Id("Remote.FromMultipleModules [modules = ${modules.joinToString { it.identity.toString() }}]")
             override val size: Int
                 get() = packages.size
         }
-
     }
 }
-

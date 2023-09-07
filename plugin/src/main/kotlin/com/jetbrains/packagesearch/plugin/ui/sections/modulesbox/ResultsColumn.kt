@@ -58,7 +58,7 @@ fun ResultsSelectableLazyColumn(
                 ?.let { packageGroups.elementAt(it, packageGroupState) }
                 ?.asTableItem()
                 .let(onElementClick)
-        }
+        },
     ) {
         packageGroups.forEach { group ->
             when (group) {
@@ -73,10 +73,15 @@ fun ResultsSelectableLazyColumn(
 
                 is PackageGroup.Remote.FromBaseModule ->
                     remotePackageGroup(group, packageGroupState)
+
                 is PackageGroup.Remote.FromVariants ->
                     remotePackageGroup(group, packageGroupState, onElementClick)
 
-                is PackageGroup.Remote.FromMultipleModules -> remotePackageGroup(group, packageGroupState, onElementClick)
+                is PackageGroup.Remote.FromMultipleModules -> remotePackageGroup(
+                    group,
+                    packageGroupState,
+                    onElementClick,
+                )
             }
         }
     }
@@ -85,21 +90,21 @@ fun ResultsSelectableLazyColumn(
 fun SelectableLazyListScope.remotePackageGroup(
     group: PackageGroup.Remote.FromMultipleModules,
     state: MutableMap<PackageGroup.Id, PackageGroup.State>,
-    onBadgesClick: (InfoBoxDetail?) -> Unit
+    onBadgesClick: (InfoBoxDetail?) -> Unit,
 ) {
     stickyHeader(group.id, "header") {
         PackageGroupHeader(
             title = "Search results",
             groupSize = group.packages.size,
             isGroupExpanded = state.isExpanded(group.id),
-            toggleCollapse = { state.toggle(group.id) }
+            toggleCollapse = { state.toggle(group.id) },
         )
     }
-    if (state.isExpanded(group.id)){
+    if (state.isExpanded(group.id)) {
         items(
             items = group.packages,
             key = { group.id.hashCode() + it.hashCode() },
-            contentType = { "item" }
+            contentType = { "item" },
         ) { apiPackage ->
             RemotePackageRow(
                 isActive = isActive,
@@ -114,18 +119,19 @@ fun SelectableLazyListScope.remotePackageGroup(
                                 is PackageSearchModule.Base -> module.getInstallData(
                                     apiPackage,
                                     apiPackage.getLatestVersion(isStableOnly).versionName,
-                                    module.defaultScope
+                                    module.defaultScope,
                                 )
+
                                 is PackageSearchModule.WithVariants -> module.mainVariant.getInstallData(
                                     apiPackage,
                                     apiPackage.getLatestVersion(isStableOnly).versionName,
-                                    module.defaultScope
+                                    module.defaultScope,
                                 )
                             }
                             managers.getValue(module).addDependency(context, updates)
                         }
                     }
-                }
+                },
 //                popupContent = { // TODO popup to add to a specific variant }
             )
         }
@@ -135,7 +141,7 @@ fun SelectableLazyListScope.remotePackageGroup(
 fun SelectableLazyListScope.remotePackageGroup(
     group: PackageGroup.Remote.FromVariants,
     state: MutableMap<PackageGroup.Id, PackageGroup.State>,
-    onBadgesClick: (InfoBoxDetail?) -> Unit
+    onBadgesClick: (InfoBoxDetail?) -> Unit,
 ) {
     stickyHeader(group.id, "header") {
         PackageGroupHeader(
@@ -149,17 +155,17 @@ fun SelectableLazyListScope.remotePackageGroup(
                     text = "For ${group.compatibleVariants.size} variants",
                     modifier = Modifier.clickable {
                         onBadgesClick(InfoBoxDetail.SearchDetails(group))
-                    }
+                    },
                 )
                 // TODO popup with supported variants
-            }
+            },
         )
     }
-    if (state.isExpanded(group.id)){
+    if (state.isExpanded(group.id)) {
         items(
             items = group.packages,
             key = { group.id.hashCode() + it.hashCode() },
-            contentType = { "item" }
+            contentType = { "item" },
         ) { apiPackage ->
             RemotePackageRow(
                 isActive = isActive,
@@ -170,9 +176,9 @@ fun SelectableLazyListScope.remotePackageGroup(
                         apiPackage = apiPackage,
                         module = group.module,
                         dependencyManager = LocalDependencyManagers.current.getValue(group.module),
-                        variant = group.compatibleVariants.first { it.isPrimary }
+                        variant = group.compatibleVariants.first { it.isPrimary },
                     )
-                }
+                },
 //                popupContent = { // TODO popup to add to a specific variant }
             )
         }
@@ -181,7 +187,7 @@ fun SelectableLazyListScope.remotePackageGroup(
 
 fun SelectableLazyListScope.remotePackageGroup(
     group: PackageGroup.Remote.FromBaseModule,
-    state: MutableMap<PackageGroup.Id, PackageGroup.State>
+    state: MutableMap<PackageGroup.Id, PackageGroup.State>,
 ) {
     stickyHeader(group.id, "header") {
         PackageGroupHeader(
@@ -189,14 +195,14 @@ fun SelectableLazyListScope.remotePackageGroup(
             badges = emptyList(),
             groupSize = group.packages.size,
             isGroupExpanded = state.isExpanded(group.id),
-            toggleCollapse = { state.toggle(group.id) }
+            toggleCollapse = { state.toggle(group.id) },
         )
     }
     if (state.isExpanded(group.id)) {
         items(
             items = group.packages,
             key = { group.id.hashCode() + it.hashCode() },
-            contentType = { "item" }
+            contentType = { "item" },
         ) { apiPackage ->
             RemotePackageRow(
                 isActive = isActive,
@@ -206,9 +212,9 @@ fun SelectableLazyListScope.remotePackageGroup(
                     InstallPackageActionLink(
                         apiPackage = apiPackage,
                         module = group.module,
-                        dependencyManager = LocalDependencyManagers.current.getValue(group.module)
+                        dependencyManager = LocalDependencyManagers.current.getValue(group.module),
                     )
-                }
+                },
             )
         }
     }
@@ -243,7 +249,7 @@ fun <P : PackageSearchDeclaredPackage, M : PackageSearchModule> SelectableLazyLi
                 }
             }
         },
-        onBadgesClick = onBadgesClick
+        onBadgesClick = onBadgesClick,
     )
 }
 
@@ -297,7 +303,7 @@ fun <P : PackageSearchDeclaredPackage> SelectableLazyListScope.declaredPackages(
     items(
         items = packages,
         key = { groupId.hashCode() + it.hashCode() },
-        contentType = { "item" }
+        contentType = { "item" },
     ) {
         val dependencyManager = LocalDependencyManagers.current.getValue(module)
         LocalPackageRow(
@@ -319,7 +325,7 @@ fun <P : PackageSearchDeclaredPackage> SelectableLazyListScope.declaredPackages(
                     packageSearchDeclaredPackage = it,
                     onDismissRequest = { globalPopupId = null },
                 )
-            }
+            },
         )
     }
 }
@@ -344,7 +350,7 @@ fun SelectableLazyListScope.localPackageGroup(
         groupId = group.id,
         module = group.module,
         badges = group.variant.attributes, // TODO use badges groups
-        onBadgesClick = { onBadgesClick(InfoBoxDetail.VariantDetails(group.variant)) }
+        onBadgesClick = { onBadgesClick(InfoBoxDetail.VariantDetails(group.variant)) },
     )
 }
 
@@ -365,7 +371,7 @@ fun SelectableLazyListScope.localPackageGroup(
         state = state,
         declaredPackages = group.filteredDependencies,
         groupId = group.id,
-        module = group.module
+        module = group.module,
     )
 }
 
@@ -390,7 +396,7 @@ fun SelectableLazyListScope.localPackageGroup(
         groupId = group.id,
         module = group.module,
         badges = group.module.mainVariant.attributes,
-        onBadgesClick = { onBadgesClick(InfoBoxDetail.VariantDetails(group.module.mainVariant)) }
+        onBadgesClick = { onBadgesClick(InfoBoxDetail.VariantDetails(group.module.mainVariant)) },
     )
 }
 
@@ -408,12 +414,12 @@ private fun PackageGroupElement.asTableItem(): InfoBoxDetail = when (group) {
 
 data class PackageGroupElement(
     val group: PackageGroup,
-    val innerIndex: Int
+    val innerIndex: Int,
 )
 
 fun List<PackageGroup>.elementAt(
     index: Int,
-    packageGroupState: Map<PackageGroup.Id, PackageGroup.State>
+    packageGroupState: Map<PackageGroup.Id, PackageGroup.State>,
 ): PackageGroupElement {
     if (isEmpty() || index < 0) throw IndexOutOfBoundsException("Index: $index, Size: 0")
     var count = 0
@@ -427,7 +433,7 @@ fun List<PackageGroup>.elementAt(
         if (count < index + 1 && index + 1 < count + packageGroup.size + 1) {
             return PackageGroupElement(
                 group = packageGroup,
-                innerIndex = index - count - 1
+                innerIndex = index - count - 1,
             )
         }
         count += packageGroup.size + 1
@@ -440,7 +446,7 @@ fun NoResultsToShow() {
     Column(
         Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         LabelInfo("No supported dependencies were found.")
         LabelInfo("Search to add dependencies to the project.")
@@ -448,14 +454,13 @@ fun NoResultsToShow() {
             Icon(
                 painter = painterResource("icons/intui/question.svg", LocalResourceLoader.current),
                 modifier = Modifier.size(16.dp).padding(end = 4.dp),
-                contentDescription = null
+                contentDescription = null,
             )
             Link(
                 resourceLoader = LocalResourceLoader.current,
                 text = "Learn more",
-                onClick = { openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html") }
+                onClick = { openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html") },
             )
-
         }
     }
 }

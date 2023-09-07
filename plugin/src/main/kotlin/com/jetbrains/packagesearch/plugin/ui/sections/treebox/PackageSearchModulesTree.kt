@@ -38,7 +38,7 @@ fun PackageSearchModulesTree(
                 .fillMaxWidth()
                 .padding(vertical = 2.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             val iconResource = remember { it.data.icon.path }
             if (it !is Tree.Element.Node) {
@@ -47,10 +47,9 @@ fun PackageSearchModulesTree(
             Icon(
                 modifier = Modifier.size(16.dp),
                 painter = painterResource(iconResource, LocalResourceLoader.current),
-                contentDescription = null
+                contentDescription = null,
             )
             Text(it.data.name, softWrap = false)
         }
     }
 }
-

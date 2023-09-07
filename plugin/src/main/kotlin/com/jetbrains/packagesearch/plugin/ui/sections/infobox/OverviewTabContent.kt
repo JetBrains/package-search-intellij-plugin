@@ -1,31 +1,31 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.infobox
 //
-//import androidx.compose.foundation.clickable
-//import androidx.compose.foundation.layout.*
-//import androidx.compose.runtime.Composable
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.ExperimentalComposeUiApi
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.text.font.FontWeight
-//import androidx.compose.ui.text.style.TextAlign
-//import androidx.compose.ui.unit.dp
-//import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
-//import com.jetbrains.packagesearch.plugin.ui.LocalProjectCoroutineScope
-//import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-//import com.jetbrains.packagesearch.plugin.ui.bridge.TextSubHeaderMultiplier
-//import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageQuality
-//import kotlinx.coroutines.launch
-//import org.jetbrains.jewel.*
+// import androidx.compose.foundation.clickable
+// import androidx.compose.foundation.layout.*
+// import androidx.compose.runtime.Composable
+// import androidx.compose.ui.Alignment
+// import androidx.compose.ui.ExperimentalComposeUiApi
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.text.font.FontWeight
+// import androidx.compose.ui.text.style.TextAlign
+// import androidx.compose.ui.unit.dp
+// import com.jetbrains.packagesearch.plugin.LocalProjectCoroutineScope
+// import com.jetbrains.packagesearch.plugin.ui.LocalProjectCoroutineScope
+// import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+// import com.jetbrains.packagesearch.plugin.ui.bridge.TextSubHeaderMultiplier
+// import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageQuality
+// import kotlinx.coroutines.launch
+// import org.jetbrains.jewel.*
 //
 //
-//@Composable
-//fun PackageNameAndActions(
+// @Composable
+// fun PackageNameAndActions(
 //    packageName: String,
 //    packageId: String,
 //    packageQuality: PackageQuality = PackageQuality.Unknown,
-////    defaultAction: PackageSearchAction? = null,
-////    otherActions: List<PackageSearchAction> = listOf()
-//) {
+// //    defaultAction: PackageSearchAction? = null,
+// //    otherActions: List<PackageSearchAction> = listOf()
+// ) {
 //
 //    val scope = LocalProjectCoroutineScope.current
 //
@@ -42,7 +42,7 @@ package com.jetbrains.packagesearch.plugin.ui.sections.infobox
 //                text = packageName,
 //                modifier = Modifier.weight(1f, fill = false).padding(end = 4.dp)
 //            )
-////            Icon(painterResource(packageQuality.getIconResourcePath(), LocalResourceLoader.current))
+// //            Icon(painterResource(packageQuality.getIconResourcePath(), LocalResourceLoader.current))
 //
 //            Row(
 //                Modifier.defaultMinSize(88.dp, 24.dp)
@@ -116,4 +116,4 @@ package com.jetbrains.packagesearch.plugin.ui.sections.infobox
 //        }
 //        LabelInfo(packageId)
 //    }
-//}
+// }

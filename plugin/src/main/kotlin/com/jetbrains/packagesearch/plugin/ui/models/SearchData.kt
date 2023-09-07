@@ -17,7 +17,7 @@ sealed interface SearchData {
 
     data class SingleBaseModule(
         val searchParameters: SearchPackagesRequest,
-        val module: PackageSearchModule.Base
+        val module: PackageSearchModule.Base,
     ) : SearchData {
 
         fun withResults(results: List<ApiPackage>) =
@@ -25,13 +25,13 @@ sealed interface SearchData {
 
         data class Results(
             val searchData: SingleBaseModule,
-            val results: List<ApiPackage>
+            val results: List<ApiPackage>,
         ) : SearchData.Results
     }
 
     data class SingleWithVariantsModule(
         val searchForVariant: List<SearchForVariants>,
-        val module: PackageSearchModule.WithVariants
+        val module: PackageSearchModule.WithVariants,
     ) : SearchData {
 
         fun withResults(results: List<SearchForVariants.Results>) =
@@ -39,12 +39,12 @@ sealed interface SearchData {
 
         data class Results(
             val module: PackageSearchModule.WithVariants,
-            val results: List<SearchForVariants.Results>
+            val results: List<SearchForVariants.Results>,
         ) : SearchData.Results
 
         data class SearchForVariants(
             val searchParameters: SearchPackagesRequest,
-            val compatibleVariants: List<PackageSearchModuleVariant>
+            val compatibleVariants: List<PackageSearchModuleVariant>,
         ) {
 
             fun withResults(results: List<ApiPackage>) =
@@ -52,14 +52,14 @@ sealed interface SearchData {
 
             data class Results(
                 val searchData: SearchForVariants,
-                val results: List<ApiPackage>
+                val results: List<ApiPackage>,
             )
         }
     }
 
     data class MultipleModules(
         val searchParameters: SearchPackagesRequest,
-        val modules: List<PackageSearchModule>
+        val modules: List<PackageSearchModule>,
     ) : SearchData {
 
         fun withResults(results: List<ApiPackage>) =
@@ -67,23 +67,23 @@ sealed interface SearchData {
 
         data class Results(
             val searchData: MultipleModules,
-            val results: List<ApiPackage>
+            val results: List<ApiPackage>,
         ) : SearchData.Results
     }
 }
 
 internal fun buildSearchData(
     selectedModules: List<PackageSearchModule>,
-    searchQuery: String
+    searchQuery: String,
 ) = when {
     selectedModules.isEmpty() || searchQuery.isEmpty() -> SearchData.Empty
     selectedModules.size == 1 -> when (val module = selectedModules.first()) {
         is PackageSearchModule.Base -> SearchData.SingleBaseModule(
             searchParameters = SearchPackagesRequest(
                 packagesType = module.compatiblePackageTypes,
-                searchQuery = searchQuery
+                searchQuery = searchQuery,
             ),
-            module = module
+            module = module,
         )
 
         is PackageSearchModule.WithVariants -> {
@@ -95,30 +95,35 @@ internal fun buildSearchData(
                         SearchData.SingleWithVariantsModule.SearchForVariants(
                             searchParameters = SearchPackagesRequest(
                                 packagesType = compatiblePackages,
-                                searchQuery = searchQuery
+                                searchQuery = searchQuery,
                             ),
-                            compatibleVariants = supportedVariants
+                            compatibleVariants = supportedVariants,
                         )
                     },
-                module = module
+                module = module,
             )
         }
     }
+
     else -> SearchData.MultipleModules(
         searchParameters = SearchPackagesRequest(
             packagesType = buildPackageTypes {
                 val types = selectedModules.map { it.compatiblePackageTypes }
-                if (types.all { it.any { it is PackagesType.Maven } })
+                if (types.all { it.any { it is PackagesType.Maven } }) {
                     mavenPackages()
-                if (types.all { it.any { it is PackagesType.Gradle } })
+                }
+                if (types.all { it.any { it is PackagesType.Gradle } }) {
                     gradlePackages { }
-                if (types.all { it.any { it is PackagesType.Npm } })
+                }
+                if (types.all { it.any { it is PackagesType.Npm } }) {
                     npmPackages()
-                if (types.all { it.any { it is PackagesType.Cocoapods } })
+                }
+                if (types.all { it.any { it is PackagesType.Cocoapods } }) {
                     cocoapodsPackages { }
+                }
             },
             searchQuery = searchQuery,
         ),
-        modules = selectedModules
+        modules = selectedModules,
     )
 }

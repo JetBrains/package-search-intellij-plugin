@@ -21,14 +21,14 @@ fun PackageSearchCentralPanel(
     searchQuery: String,
     packageGroupsState: MutableMap<PackageGroup.Id, PackageGroup.State> = remember { mutableStateMapOf() },
     onElementClick: (InfoBoxDetail?) -> Unit = {},
-    onSearchQueryChange: (String) -> Unit = {}
+    onSearchQueryChange: (String) -> Unit = {},
 ) {
     Column {
         SearchRow(
             searchQuery = searchQuery,
             searchResultsCount = packageGroups.filterIsInstance<PackageGroup.Remote>()
                 .sumOf { it.size },
-            onSearchQueryChange = onSearchQueryChange
+            onSearchQueryChange = onSearchQueryChange,
         )
 
         if (isLoading) {
@@ -36,7 +36,7 @@ fun PackageSearchCentralPanel(
         } else {
             Box(
                 modifier = Modifier.fillMaxWidth()
-                .height(IntelliJTheme.horizontalProgressBarStyle.metrics.minHeight)
+                    .height(IntelliJTheme.horizontalProgressBarStyle.metrics.minHeight),
             )
         }
 
@@ -46,10 +46,8 @@ fun PackageSearchCentralPanel(
                 packageGroups = packageGroups,
                 packageGroupState = packageGroupsState,
                 isInfoBoxOpen = isInfoBoxOpen,
-                onElementClick = onElementClick
+                onElementClick = onElementClick,
             )
         }
     }
 }
-
-
