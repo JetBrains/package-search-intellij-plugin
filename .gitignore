@@ -4,3 +4,6 @@ out/
 *.iml
 .gradle/
 .gitsubmoduleinit
+
+!.idea/codeStyles/*
+!.idea/dictionaries/*
