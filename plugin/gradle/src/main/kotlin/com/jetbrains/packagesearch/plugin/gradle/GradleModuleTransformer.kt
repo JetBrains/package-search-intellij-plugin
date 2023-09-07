@@ -29,8 +29,6 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleSyncNotifierFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
-import java.nio.file.Path
-import kotlin.io.path.exists
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -45,6 +43,8 @@ import kotlinx.coroutines.flow.singleOrNull
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import java.nio.file.Path
+import kotlin.io.path.exists
 import com.intellij.openapi.module.Module as NativeModule
 
 class GradleDependencyModel(
@@ -52,7 +52,7 @@ class GradleDependencyModel(
     val artifactId: String,
     val version: String?,
     val configuration: String,
-    val indexes: DependencyDeclarationIndexes
+    val indexes: DependencyDeclarationIndexes,
 ) {
 
     val packageId
@@ -110,7 +110,7 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
             "ksp",
             "androidTestImplementation",
             "androidTestCompileOnly",
-            "androidTestRuntimeOnly"
+            "androidTestRuntimeOnly",
         )
 
         fun getModuleChangesFlow(
@@ -134,9 +134,9 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                 IntelliJApplication.registryStateFlow(
                     context.coroutineScope,
                     "org.jetbrains.packagesearch.localhost",
-                    false
+                    false,
                 )
-                    .mapUnit()
+                    .mapUnit(),
             )
         }
 
@@ -192,7 +192,6 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                     )
                 }
         }
-
     }
 
     override fun provideModule(
@@ -205,7 +204,7 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
             context.project.dumbModeStateFlow
                 .filterNot { it }
                 .mapUnit(),
-            context.project.gradleSyncNotifierFlow
+            context.project.gradleSyncNotifierFlow,
         )
             .mapNotNull { nativeModule.gradleIdentityPathOrNull }
             .flatMapLatest {
@@ -214,8 +213,8 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                         .find(
                             NitriteFilters.Object.eq(
                                 path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath,
-                                value = it
-                            )
+                                value = it,
+                            ),
                         )
                         .singleOrNull()
                         ?.data
@@ -251,7 +250,6 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
     abstract suspend fun Module.transform(
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
-        buildFile: Path?
+        buildFile: Path?,
     ): PackageSearchModuleData?
-
 }

@@ -2,10 +2,8 @@ package com.jetbrains.packagesearch.plugin
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.awt.ComposePanel
 import com.intellij.icons.AllIcons
@@ -25,11 +23,9 @@ import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchApiClient
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectCoroutineScope
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
-import com.jetbrains.packagesearch.plugin.ui.bridge.isLightTheme
-import com.jetbrains.packagesearch.plugin.ui.lightThemeFlow
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
-import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.bridge.SwingBridgeTheme
 
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -39,15 +35,15 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
                 object : ToggleAction(
                     PackageSearchBundle.message("packagesearch.actions.showDetails.text"),
                     PackageSearchBundle.message("packagesearch.actions.showDetails.description"),
-                    AllIcons.Actions.PreviewDetails
+                    AllIcons.Actions.PreviewDetails,
                 ) {
                     override fun isSelected(e: AnActionEvent) = isInfoBoxOpen
                     override fun setSelected(e: AnActionEvent, state: Boolean) {
                         isInfoBoxOpen = state
                     }
                     override fun getActionUpdateThread() = ActionUpdateThread.BGT
-                }
-            )
+                },
+            ),
         )
         toolWindow.addComposeTab("UX") {
             CompositionLocalProvider(
@@ -72,14 +68,10 @@ private fun ToolWindow.addComposeTab(
     contentManager.factory.createContent(
         /* component = */ ComposePanel().apply {
             setContent {
-                val lightMode by IntelliJApplication.lightThemeFlow().collectAsState(isLightTheme())
-
-                val swingCompat by remember { mutableStateOf(false) }
-                val theme = if (!lightMode) IntUiTheme.darkThemeDefinition() else IntUiTheme.lightThemeDefinition()
-                IntUiTheme(theme, swingCompat, content)
+                SwingBridgeTheme(content)
             }
         },
         /* displayName = */ title,
-        /* isLockable = */ isLockable
-    )
+        /* isLockable = */ isLockable,
+    ),
 )

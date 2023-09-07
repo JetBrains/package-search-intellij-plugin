@@ -62,7 +62,7 @@ val Project.dumbModeStateFlow: Flow<Boolean>
 
 fun generateAvailableScope(
     declaredDependencies: List<PackageSearchGradleDeclaredPackage>,
-    configurationNames: List<String>
+    configurationNames: List<String>,
 ): List<String> {
     val usedConfigurations = declaredDependencies.map { it.configuration }
     return BaseGradleModuleProvider.commonConfigurations
@@ -78,15 +78,16 @@ val ArtifactDependencySpec.mavenId: String?
         return "maven:$group:$artifactId"
     }
 
-private fun ArtifactDependencyModel.getDependencyDeclarationIndexes() =
+private fun ArtifactDependencyModel.getDependencyDeclarationIndexes(): DependencyDeclarationIndexes =
     DependencyDeclarationIndexes(
         declarationStartIndex = psiElement
             ?.parents
             ?.take(5)
             ?.firstOrNull { configurationName() in it.text }
-            ?.textOffset!!,
+            ?.textOffset
+            ?: psiElement!!.textOffset,
         versionStartIndex = version().psiElement?.textOffset
-            ?: psiElement?.children?.firstOrNull()?.textOffset
+            ?: psiElement?.children?.firstOrNull()?.textOffset,
     )
 
 fun ArtifactDependencyModel.toGradleDependencyModel() =
@@ -95,5 +96,5 @@ fun ArtifactDependencyModel.toGradleDependencyModel() =
         artifactId = name().toString(),
         version = version().toString() as String?,
         configuration = configurationName(),
-        indexes = getDependencyDeclarationIndexes()
+        indexes = getDependencyDeclarationIndexes(),
     )

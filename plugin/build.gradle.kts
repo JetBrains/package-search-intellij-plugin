@@ -34,6 +34,7 @@ dependencies {
     implementation(packageSearchCatalog.compose.desktop.components.splitpane)
     implementation(packageSearchCatalog.jewel.core)
     implementation(packageSearchCatalog.jewel.intUi.standalone)
+    implementation(packageSearchCatalog.jewel.bridge)
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.core)
@@ -50,10 +51,9 @@ tasks {
     publishPlugin {
         toolboxEnterprise = true
         host = "https://tbe.labs.jb.gg/"
-        token.set(
-            project.properties["toolboxEnterpriseToken"]?.toString()
-                ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
-        )
+        token = project.properties["toolboxEnterpriseToken"]?.toString()
+            ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
+
         channels = listOf("INTERNAL-EAP")
     }
 }
