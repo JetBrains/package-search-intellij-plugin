@@ -29,8 +29,6 @@ import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageSearchInfoB
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
 import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
 import com.jetbrains.packagesearch.plugin.utils.logError
-import java.awt.Cursor
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
@@ -41,6 +39,8 @@ import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
+import java.awt.Cursor
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun PackageSearchPackagePanel(
@@ -72,19 +72,20 @@ fun PackageSearchPackagePanel(
         if (selectedModules.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text("Select one or more modules on the left to show declared dependencies")
             }
+        } else {
+            PackageSearchCentralPanel(
+                isLoading = isSearching,
+                isInfoBoxOpen = isInfoBoxOpen,
+                packageGroups = packageGroups,
+                searchQuery = searchQuery,
+                onElementClick = { infoBoxDetail = it },
+                onSearchQueryChange = { searchQuery = it },
+            )
         }
-        else PackageSearchCentralPanel(
-            isLoading = isSearching,
-            isInfoBoxOpen = isInfoBoxOpen,
-            packageGroups = packageGroups,
-            searchQuery = searchQuery,
-            onElementClick = { infoBoxDetail = it },
-            onSearchQueryChange = { searchQuery = it },
-        )
     }
 
     HorizontalSplitPane(Modifier.fillMaxSize(), splitPaneState) {
@@ -104,20 +105,22 @@ fun PackageSearchPackagePanel(
                     second(160.dp) {
                         Box {
                             Column(
-                                modifier = Modifier.verticalScroll(infoBoxScrollState)
+                                modifier = Modifier.verticalScroll(infoBoxScrollState),
                             ) {
                                 PackageSearchInfoBox(infoBoxDetail, selectedModules)
                             }
                             Box(modifier = Modifier.matchParentSize()) {
                                 VerticalScrollbar(
                                     rememberScrollbarAdapter(infoBoxScrollState),
-                                    modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd)
+                                    modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
                                 )
                             }
                         }
                     }
                 }
-            } else PackageSearchCentralPanel()
+            } else {
+                PackageSearchCentralPanel()
+            }
         }
     }
 
@@ -140,7 +143,7 @@ fun PackageSearchPackagePanel(
                     .map { it to async { apiClient.trySearchPackages(json, it.searchParameters) } }
                     .map { (searchForVariant, search) ->
                         searchForVariant.withResults(search.await())
-                    }
+                    },
             )
         }
         isSearching = false
@@ -156,7 +159,7 @@ Error while searching. Request:
 |----------------
 |${json.encodeToString(request)}
 |----------------
-""".trimIndent()
+                """.trimIndent()
             }
         }
         .getOrDefault(emptyList())

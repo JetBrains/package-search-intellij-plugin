@@ -17,6 +17,7 @@ import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.LazyTree
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.foundation.tree.InitialNodeStatus
 import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.jewel.painterResource
 
@@ -27,6 +28,7 @@ fun PackageSearchModulesTree(
 ) {
     LazyTree(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        initialNodeStatus = InitialNodeStatus.Open,
         tree = tree,
         resourceLoader = LocalResourceLoader.current,
         onSelectionChange = { onSelectionChange(it.map { it.data }) },

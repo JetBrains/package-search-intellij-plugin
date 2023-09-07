@@ -30,10 +30,10 @@ fun LabelInfo(
     softWrap: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
     onTextLayout: (TextLayoutResult) -> Unit = {},
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
 ) {
     val textColor =
-        pickComposeColorFromLaf("infoText")
+        pickComposeColorFromLaf("TextField.inactiveForeground")
     Text(
         text = text,
         modifier = modifier,
@@ -50,6 +50,6 @@ fun LabelInfo(
         softWrap = softWrap,
         maxLines = maxLines,
         onTextLayout = onTextLayout,
-        style = style
+        style = style,
     )
 }

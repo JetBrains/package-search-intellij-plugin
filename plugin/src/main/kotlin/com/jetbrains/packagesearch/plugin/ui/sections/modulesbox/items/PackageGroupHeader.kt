@@ -43,11 +43,11 @@ fun PackageGroupHeader(
         horizontalArrangement = SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box {
+        Row {
             Box(
                 Modifier
                     .padding(start = 8.dp)
-                    .onClick { toggleCollapse() }
+                    .onClick { toggleCollapse() },
             ) {
                 val iconResource =
                     remember(isGroupExpanded) {
@@ -56,7 +56,7 @@ fun PackageGroupHeader(
                 Icon(
                     painter = painterResource(iconResource, LocalResourceLoader.current),
                     tint = Color.Gray,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
             Text(
@@ -71,7 +71,7 @@ fun PackageGroupHeader(
             if (badges.isNotEmpty()) {
                 Row(
                     modifier = Modifier.clickable { onBadgesClick() },
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     badges.forEach {
                         Text(

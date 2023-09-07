@@ -35,11 +35,11 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
-import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
@@ -47,7 +47,6 @@ import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.Icon
@@ -60,54 +59,7 @@ import org.jetbrains.jewel.util.appendIf
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-
-@Suppress("unused")
-enum class PackageQuality {
-    Unknown, Bad, Warning, Good
-}
-
-fun PackageQuality.getIconResourcePath() = "icons/intui/quality/${name.lowercase()}.svg"
-
-@Composable
-internal fun DeclaredPackageMoreActionPopup(
-    dependencyManager: PackageSearchDependencyManager,
-    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    borderColor: Color = pickComposeColorFromLaf("OnePixelDivider.background"),
-    onDismissRequest: () -> Unit,
-) {
-    val context = LocalProjectService.current
-    Column(
-        Modifier
-            .padding(vertical = 4.dp, horizontal = 12.dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(
-            modifier = Modifier.width(176.dp),
-            text = "Other Actions",
-            textAlign = TextAlign.Center,
-            softWrap = false
-        )
-        Divider(color = borderColor)
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            var isActionPerforming by LocalIsActionPerformingState.current
-            Link(
-                resourceLoader = LocalResourceLoader.current,
-                text = "Remove",
-                enabled = !isActionPerforming,
-                onClick = {
-                    isActionPerforming = true
-                    context.coroutineScope.launch {
-                        dependencyManager.removeDependency(
-                            context,
-                            packageSearchDeclaredPackage.getRemoveData()
-                        )
-                    }
-                        .invokeOnCompletion { onDismissRequest() }
-                })
-        }
-    }
-}
+import kotlin.math.roundToInt
 
 @Composable
 fun RemotePackageRow(
@@ -125,7 +77,7 @@ fun RemotePackageRow(
     val painter = iconPath?.let {
         painterResource(
             resourcePath = it,
-            loader = LocalResourceLoader.current
+            loader = LocalResourceLoader.current,
         )
     }
     PackageRow(
@@ -137,12 +89,13 @@ fun RemotePackageRow(
         actionPopupId = apiPackage.id,
         packageNameContent = {
             Text(text = apiPackage.name ?: apiPackage.coordinates)
-            if (apiPackage.name != null)
+            if (apiPackage.name != null) {
                 LabelInfo(text = apiPackage.coordinates)
+            }
         },
         editPackageContent = null,
         mainActionContent = mainActionContent,
-        popupContent = popupContent
+        popupContent = popupContent,
     )
 }
 
@@ -172,7 +125,7 @@ fun PackageRow(
                         pickComposeColorFromLaf("Tree.selectionInactiveBackground")
 
                     else -> Color.Unspecified
-                }
+                },
             ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -183,7 +136,7 @@ fun PackageRow(
                     Icon(
                         painter = packageIcon,
                         modifier = Modifier.fillMaxSize(),
-                        contentDescription = null
+                        contentDescription = null,
                     )
                 }
             }
@@ -203,7 +156,7 @@ fun PackageRow(
                     .defaultMinSize(90.dp, 16.dp)
                     .padding(start = 8.dp, end = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(Modifier.width(74.dp), horizontalArrangement = Arrangement.End) {
                     mainActionContent()
@@ -227,19 +180,22 @@ fun PackageRow(
                                             PointerEventType.Exit -> hovered = false
                                             PointerEventType.Press -> {
                                                 globalPopupId =
-                                                    if (globalPopupId == actionPopupId) null
-                                                    else actionPopupId
+                                                    if (globalPopupId == actionPopupId) {
+                                                        null
+                                                    } else {
+                                                        actionPopupId
+                                                    }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
+                        },
                 ) {
                     if (popupContent != null) {
                         Icon(
                             painterResource("icons/intui/moreVertical.svg", LocalResourceLoader.current),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                         if (globalPopupId == actionPopupId) {
                             val borderColor = pickComposeColorFromLaf("OnePixelDivider.background")
@@ -252,14 +208,14 @@ fun PackageRow(
                                 onDismissRequest = { globalPopupId = null },
                                 properties = PopupProperties(focusable = true),
                                 onPreviewKeyEvent = { false },
-                                onKeyEvent = { false }
+                                onKeyEvent = { false },
                             ) {
                                 Box(
                                     modifier =
                                     Modifier.width(200.dp)
                                         .clip(shape = RoundedCornerShape(10.dp))
                                         .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(10.dp))
-                                        .background(color = bgColor)
+                                        .background(color = bgColor),
                                 ) {
                                     popupContent()
                                 }
@@ -275,7 +231,7 @@ fun PackageRow(
 @Composable
 fun UpgradePackageActionLink(
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    dependencyManager: PackageSearchDependencyManager
+    dependencyManager: PackageSearchDependencyManager,
 ) {
     val upgrade = packageSearchDeclaredPackage.evaluateUpgrade() ?: return
     PackageActionLink("Upgrade") { context ->
@@ -284,9 +240,9 @@ fun UpgradePackageActionLink(
             data = listOf(
                 packageSearchDeclaredPackage.getUpdateData(
                     newVersion = upgrade.versionName,
-                    newScope = packageSearchDeclaredPackage.scope
-                )
-            )
+                    newScope = packageSearchDeclaredPackage.scope,
+                ),
+            ),
         )
     }
 }
@@ -296,7 +252,7 @@ fun InstallPackageActionLink(
     apiPackage: ApiPackage,
     module: PackageSearchModule.WithVariants,
     variant: PackageSearchModuleVariant,
-    dependencyManager: PackageSearchDependencyManager
+    dependencyManager: PackageSearchDependencyManager,
 ) {
     val version = apiPackage.latestVersion
     PackageActionLink("Add") { context ->
@@ -305,8 +261,8 @@ fun InstallPackageActionLink(
             data = variant.getInstallData(
                 apiPackage = apiPackage,
                 selectedVersion = version.versionName,
-                selectedScope = module.defaultScope
-            )
+                selectedScope = module.defaultScope,
+            ),
         )
     }
 }
@@ -323,7 +279,7 @@ fun PackageActionLink(
         showProgress -> CircularProgressIndicator(
             modifier = Modifier.size(16.dp),
             strokeWidth = 1.dp,
-            color = LocalLinkStyle.current.colors.contentDisabled
+            color = LocalLinkStyle.current.colors.contentDisabled,
         )
 
         else -> Link(
@@ -336,8 +292,8 @@ fun PackageActionLink(
                 service.coroutineScope.launch {
                     action(service)
                 }.invokeOnCompletion { showProgress = false }
-            })
-
+            },
+        )
     }
 }
 
@@ -345,7 +301,7 @@ fun PackageActionLink(
 fun InstallPackageActionLink(
     apiPackage: ApiPackage,
     module: PackageSearchModule.Base,
-    dependencyManager: PackageSearchDependencyManager
+    dependencyManager: PackageSearchDependencyManager,
 ) {
     val version = apiPackage.latestVersion
     PackageActionLink("Add") { context ->
@@ -354,8 +310,8 @@ fun InstallPackageActionLink(
             data = module.getInstallData(
                 apiPackage = apiPackage,
                 selectedVersion = version.versionName,
-                selectedScope = module.defaultScope
-            )
+                selectedScope = module.defaultScope,
+            ),
         )
     }
 }
@@ -389,7 +345,7 @@ fun LocalPackageRow(
         },
         editPackageContent = null, // TODO versions and scopes selectors
         mainActionContent = mainActionContent,
-        popupContent = popupContent
+        popupContent = popupContent,
     )
 }
 
@@ -408,3 +364,52 @@ fun ApiPackage.getLatestVersion(stableOnly: Boolean): NormalizedVersion =
 val ApiPackage.latestVersion: NormalizedVersion
     @Composable
     get() = getLatestVersion(LocalIsOnlyStableVersions.current.value)
+
+@Suppress("unused")
+enum class PackageQuality {
+    Unknown, Bad, Warning, Good
+}
+
+fun PackageQuality.getIconResourcePath() = "icons/intui/quality/${name.lowercase()}.svg"
+
+@Composable
+internal fun DeclaredPackageMoreActionPopup(
+    dependencyManager: PackageSearchDependencyManager,
+    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
+    borderColor: Color = pickComposeColorFromLaf("OnePixelDivider.background"),
+    onDismissRequest: () -> Unit,
+) {
+    val context = LocalProjectService.current
+    Column(
+        Modifier
+            .padding(vertical = 4.dp, horizontal = 12.dp),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            modifier = Modifier.width(176.dp),
+            text = "Other Actions",
+            textAlign = TextAlign.Center,
+            softWrap = false,
+        )
+        Divider(color = borderColor)
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            var isActionPerforming by LocalIsActionPerformingState.current
+            Link(
+                resourceLoader = LocalResourceLoader.current,
+                text = "Remove",
+                enabled = !isActionPerforming,
+                onClick = {
+                    isActionPerforming = true
+                    context.coroutineScope.launch {
+                        dependencyManager.removeDependency(
+                            context,
+                            packageSearchDeclaredPackage.getRemoveData(),
+                        )
+                    }
+                        .invokeOnCompletion { onDismissRequest() }
+                },
+            )
+        }
+    }
+}
