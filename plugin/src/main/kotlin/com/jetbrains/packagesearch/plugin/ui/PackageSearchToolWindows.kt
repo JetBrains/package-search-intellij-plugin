@@ -15,7 +15,6 @@ import com.jetbrains.packagesearch.plugin.ui.bridge.asTree
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.styling.LocalMenuStyle
 
-
 @Composable
 fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
     Box(
@@ -23,7 +22,7 @@ fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
             .fillMaxSize()
             // TODO replace with generic surface color from theme
             .background(LocalMenuStyle.current.colors.background)
-            .padding(top = 2.dp, bottom = 0.dp, start = 2.dp, end = 2.dp)
+            .padding(top = 2.dp, bottom = 0.dp, start = 2.dp, end = 2.dp),
     ) {
         val modulesState by LocalProjectService.current.modules.collectAsState()
         when (val moduleProvider = modulesState) {
@@ -32,7 +31,7 @@ fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
                 LocalIsActionPerformingState.current.value = false
                 PackageSearchPackagePanel(
                     isInfoBoxOpen = isInfoBoxOpen,
-                    tree = moduleProvider.modules.asTree()
+                    tree = moduleProvider.modules.asTree(),
                 )
             }
         }
