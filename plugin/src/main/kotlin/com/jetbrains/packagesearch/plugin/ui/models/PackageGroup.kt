@@ -10,6 +10,12 @@ inline fun buildPackageGroups(searchFilter: String, builder: PackageGroupsBuilde
 
 class PackageGroupsBuilder(private val searchQuery: String) {
 
+    @JvmInline
+    value class Remotes(val value: List<PackageGroup.Remote>)
+
+    @JvmInline
+    value class Declared(val value: List<PackageGroup.Declared>)
+
     private var remotes = emptyList<PackageGroup.Remote>()
     private var declared = emptyList<PackageGroup.Declared>()
 
@@ -104,7 +110,16 @@ class PackageGroupsBuilder(private val searchQuery: String) {
         addAll(declared)
         addAll(remotes)
     }
+
+    fun getDeclared() = Declared(declared)
+    fun getRemotes() = Remotes(remotes)
 }
+
+fun PackageGroupsBuilder.Declared.plus(remotes: PackageGroupsBuilder.Remotes) =
+    value + remotes.value
+
+fun PackageGroupsBuilder.Remotes.plus(decalred: PackageGroupsBuilder.Declared) =
+    decalred.value + value
 
 fun findCommonStrings(lists: List<List<String>>): List<String> {
     // If there are no nested lists or if any of the nested lists are empty, return an empty list
@@ -132,7 +147,8 @@ sealed interface PackageGroup {
         },
         COLLAPSED {
             override fun toggle() = OPEN
-        }, ;
+        },
+        ;
 
         abstract fun toggle(): State
     }
@@ -163,7 +179,7 @@ sealed interface PackageGroup {
             override val id: Id
                 get() = Id(
                     "Local.FromModuleWithVariantsCompact [module = ${module.identity}, " +
-                        "variants = ${filteredDependencies.joinToString { it.variantName }}]",
+                            "variants = ${filteredDependencies.joinToString { it.variantName }}]",
                 )
 
             override val size: Int

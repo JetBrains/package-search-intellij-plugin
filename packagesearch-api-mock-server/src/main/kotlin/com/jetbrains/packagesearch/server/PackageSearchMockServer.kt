@@ -12,6 +12,7 @@ import io.ktor.server.plugins.compression.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.async
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -59,9 +60,6 @@ fun Application.PackageSearchMockServer() {
             retryOnServerErrors(maxRetries = 5)
             delayMillis { 500 }
         }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 3000
-        }
     }
 
     val pomResolver = PomResolver(xml = xml, httpClient = client)
@@ -78,19 +76,20 @@ fun Application.PackageSearchMockServer() {
     install(Compression) {
         gzip()
     }
-
+    val results = async {
+        pomResolver.toApiModels(
+            listOf(
+                "maven:io.ktor:ktor-client-cio",
+                "maven:io.ktor:ktor-client-js",
+                "maven:io.ktor:ktor-client-darwin",
+                "maven:io.ktor:ktor-server-cio",
+            )
+        )
+    }
     routing {
         route("api/v3") {
             get("search-packages") {
-                val apiModels = pomResolver.toApiModels(
-                    listOf(
-                        "maven:io.ktor:ktor-client-cio",
-                        "maven:io.ktor:ktor-client-js",
-                        "maven:io.ktor:ktor-client-darwin",
-                        "maven:io.ktor:ktor-server-cio",
-                    )
-                )
-                call.respond(SearchPackagesResponse(call.receive(), apiModels))
+                call.respond(SearchPackagesResponse(call.receive(), results.await()))
             }
             get("package-info-by-id-hashes") {
                 call.respond<List<String>>(emptyList())

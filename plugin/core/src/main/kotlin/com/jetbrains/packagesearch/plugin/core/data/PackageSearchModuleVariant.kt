@@ -6,7 +6,13 @@ import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
 interface PackageSearchModuleVariant : PackageInstallDataProvider {
 
-    data class Terminology(val singular: String, val plural: String)
+    data class Terminology(val singular: String, val plural: String) {
+        fun getForCardinality(count: Int) = if (count >= 1) plural else singular
+
+        companion object {
+            val DEFAULT = Terminology("variant", "variants")
+        }
+    }
 
     val name: String
     val variantTerminology: Terminology?

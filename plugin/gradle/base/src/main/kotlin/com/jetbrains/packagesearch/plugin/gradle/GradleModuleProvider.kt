@@ -32,9 +32,7 @@ class GradleModuleProvider : BaseGradleModuleProvider() {
                 }
             }
 
-        val isKts = buildFile?.extension == "kts"
-
-        val configurationNames = model.configurations.map { name }
+        val configurationNames = model.configurations.map { it.name }
         val declaredDependencies = getDeclaredDependencies(context)
         val availableScopes = generateAvailableScope(declaredDependencies, configurationNames)
         val packageSearchGradleModule = PackageSearchGradleModule(
@@ -45,7 +43,7 @@ class GradleModuleProvider : BaseGradleModuleProvider() {
             declaredDependencies = declaredDependencies,
             availableKnownRepositories = availableKnownRepositories,
             packageSearchModel = model,
-            defaultScope = "implementation".takeIf { it in configurationNames },
+            defaultScope = "implementation".takeIf { it in configurationNames } ?: configurationNames.firstOrNull(),
             availableScopes = availableScopes,
             compatiblePackageTypes = buildPackageTypes {
                 mavenPackages()

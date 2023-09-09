@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
@@ -19,7 +17,6 @@ fun PackageSearchCentralPanel(
     isInfoBoxOpen: Boolean,
     packageGroups: List<PackageGroup>,
     searchQuery: String,
-    packageGroupsState: MutableMap<PackageGroup.Id, PackageGroup.State> = remember { mutableStateMapOf() },
     onElementClick: (InfoBoxDetail?) -> Unit = {},
     onSearchQueryChange: (String) -> Unit = {},
 ) {
@@ -42,9 +39,8 @@ fun PackageSearchCentralPanel(
 
         when {
             packageGroups.isEmpty() && !isLoading -> NoResultsToShow()
-            packageGroups.isNotEmpty() -> ResultsSelectableLazyColumn(
+            packageGroups.isNotEmpty() -> PackageSearchPackageList(
                 packageGroups = packageGroups,
-                packageGroupState = packageGroupsState,
                 isInfoBoxOpen = isInfoBoxOpen,
                 onElementClick = onElementClick,
             )

@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
@@ -36,7 +37,6 @@ fun PackageGroupHeader(
 ) {
     Row(
         modifier
-            .background(pickComposeColorFromLaf("Desktop.background"))
             .fillMaxWidth()
             .padding(1.dp)
             .height(28.dp),
@@ -47,7 +47,7 @@ fun PackageGroupHeader(
             Box(
                 Modifier
                     .padding(start = 8.dp)
-                    .onClick { toggleCollapse() },
+                    .onClick { toggleCollapse() }
             ) {
                 val iconResource =
                     remember(isGroupExpanded) {
@@ -56,7 +56,7 @@ fun PackageGroupHeader(
                 Icon(
                     painter = painterResource(iconResource, LocalResourceLoader.current),
                     tint = Color.Gray,
-                    contentDescription = null,
+                    contentDescription = null
                 )
             }
             Text(
@@ -70,8 +70,8 @@ fun PackageGroupHeader(
             )
             if (badges.isNotEmpty()) {
                 Row(
-                    modifier = Modifier.clickable { onBadgesClick() },
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.onClick { onBadgesClick() },
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     badges.forEach {
                         Text(

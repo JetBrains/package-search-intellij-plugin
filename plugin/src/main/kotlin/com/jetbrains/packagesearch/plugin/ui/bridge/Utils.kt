@@ -2,13 +2,9 @@ package com.jetbrains.packagesearch.plugin.ui.bridge
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.ResourceLoader
-import com.intellij.icons.AllIcons.Icons
-import com.intellij.ide.ui.laf.IdeaLaf
-import com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
 import org.jetbrains.jewel.foundation.tree.buildTree
-import org.jetbrains.jewel.themes.intui.standalone.IntUiDefaultResourceLoader
 import java.awt.Desktop
 import java.io.InputStream
 import java.net.URI
@@ -30,6 +26,7 @@ fun UIDefaults.getComposeColorOrUnspecified(key: String): Color {
         Color.Unspecified
     }
 }
+
 
 fun List<PackageSearchModule>.asTree() =
     buildTree {
@@ -72,8 +69,10 @@ fun openLinkInBrowser(url: String) {
         ?.browse(URI(url))
 }
 
+
 fun pickComposeColorFromLaf(key: String) =
     UIManager.getLookAndFeelDefaults().getComposeColor(key) ?: Color.Unspecified
+
 
 fun isLightTheme(): Boolean {
     val laf = UIManager.getLookAndFeelDefaults()
@@ -105,12 +104,12 @@ inline fun <reified T> getJarPath(): String? = getJarPath(T::class.java)
 class RawJarResourceLoader(private val jars: List<String>) : ResourceLoader {
     override fun load(resourcePath: String): InputStream =
         jars.firstNotNullOfOrNull { extractFileFromJar(it, resourcePath) }
-            ?: error("Resource $resourcePath not found in jars $jars")
+            ?: error("Resource $resourcePath not found in jars:\n ${jars.joinToString("\n") { "- $it" }}")
 }
 
 class JarPathBuilder {
 
-    private val jars = mutableListOf<String>()
+    private val jars = mutableSetOf<String>()
 
     fun add(clazz: Class<*>) {
         getJarPath(clazz)?.let { jars.add(it) }
@@ -127,16 +126,6 @@ fun buildJarPaths(builder: JarPathBuilder.() -> Unit) =
 fun RawJarResourceLoader(builder: JarPathBuilder.() -> Unit) =
     RawJarResourceLoader(buildJarPaths(builder))
 
-object PackageSearchResourceLoader : ResourceLoader {
 
-    private val rawJarResourceLoader = RawJarResourceLoader {
-        add<PackageSearchModule>()
-        add<PackageSearchToolWindowFactory>()
-        add<Icons>()
-        add<IdeaLaf>()
-    }
 
-    override fun load(resourcePath: String) =
-        IntUiDefaultResourceLoader.loadOrNull(resourcePath)
-            ?: rawJarResourceLoader.load(resourcePath)
-}
+

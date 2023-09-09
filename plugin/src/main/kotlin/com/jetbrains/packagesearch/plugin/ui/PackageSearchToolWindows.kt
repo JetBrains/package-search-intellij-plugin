@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +18,11 @@ import org.jetbrains.jewel.styling.LocalMenuStyle
 
 @Composable
 fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
+    val backgroundColor by animateColorAsState(LocalMenuStyle.current.colors.background)
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // TODO replace with generic surface color from theme
-            .background(LocalMenuStyle.current.colors.background)
+            .background(backgroundColor)
             .padding(top = 2.dp, bottom = 0.dp, start = 2.dp, end = 2.dp),
     ) {
         val modulesState by LocalProjectService.current.modules.collectAsState()

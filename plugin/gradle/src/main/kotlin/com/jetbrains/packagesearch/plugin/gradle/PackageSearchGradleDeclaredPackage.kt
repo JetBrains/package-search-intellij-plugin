@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
-import com.jetbrains.packagesearch.plugin.core.data.IconProvider.PathSourceType
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
@@ -17,7 +16,7 @@ data class PackageSearchGradleDeclaredPackage(
     override val latestVersion: NormalizedVersion,
     override val remoteInfo: ApiMavenPackage?,
     override val declarationIndexes: DependencyDeclarationIndexes,
-    override val icon: PathSourceType,
+    override val iconPath: String,
     val module: String,
     val name: String,
     val configuration: String

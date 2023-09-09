@@ -1,11 +1,9 @@
 package com.jetbrains.packagesearch.plugin
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.awt.ComposePanel
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -26,6 +24,7 @@ import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import org.jetbrains.jewel.bridge.SwingBridgeTheme
+import org.jetbrains.jewel.bridge.addComposeTab
 
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -46,32 +45,18 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
             ),
         )
         toolWindow.addComposeTab("UX") {
-            CompositionLocalProvider(
-                LocalProjectService provides project.PackageSearchProjectService,
-                LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
-                LocalPackageSearchApiClient provides IntelliJApplication.PackageSearchApiClientService.client,
-                LocalIsActionPerformingState provides mutableStateOf(false),
-                LocalIsOnlyStableVersions provides mutableStateOf(true),
-                LocalGlobalPopupIdState provides mutableStateOf(null),
-            ) {
-                PackageSearchToolwindow(isInfoBoxOpen)
+            SwingBridgeTheme {
+                CompositionLocalProvider(
+                    LocalProjectService provides project.PackageSearchProjectService,
+                    LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
+                    LocalPackageSearchApiClient provides IntelliJApplication.PackageSearchApiClientService.client,
+                    LocalIsActionPerformingState provides mutableStateOf(false),
+                    LocalIsOnlyStableVersions provides mutableStateOf(true),
+                    LocalGlobalPopupIdState provides mutableStateOf(null),
+                ) {
+                    PackageSearchToolwindow(isInfoBoxOpen)
+                }
             }
         }
     }
 }
-
-private fun ToolWindow.addComposeTab(
-    title: String,
-    isLockable: Boolean = false,
-    content: @Composable () -> Unit,
-) = contentManager.addContent(
-    contentManager.factory.createContent(
-        /* component = */ ComposePanel().apply {
-            setContent {
-                SwingBridgeTheme(content)
-            }
-        },
-        /* displayName = */ title,
-        /* isLockable = */ isLockable,
-    ),
-)

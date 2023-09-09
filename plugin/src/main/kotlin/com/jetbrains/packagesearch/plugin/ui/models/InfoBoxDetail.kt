@@ -1,26 +1,29 @@
 package com.jetbrains.packagesearch.plugin.ui.models
 
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 sealed interface InfoBoxDetail {
 
-    @JvmInline
-    value class RemotePackage(val apiPackage: ApiPackage) : InfoBoxDetail
+    sealed interface Package : InfoBoxDetail {
+        @JvmInline
+        value class RemotePackage(val apiPackage: ApiPackage) : Package
 
-    @JvmInline
-    value class DeclaredPackage(val declaredDependency: PackageSearchDeclaredPackage) : InfoBoxDetail
+        data class DeclaredPackage(
+            val declaredDependency: PackageSearchDeclaredPackage,
+            val module: PackageSearchModule
+        ) : Package
+    }
 
-    @JvmInline
-    value class VariantDetails(val variant: PackageSearchModuleVariant) : InfoBoxDetail
+    sealed interface Badges : InfoBoxDetail {
+        @JvmInline
+        value class Variant(val variant: PackageSearchModuleVariant) : Badges
 
-    @JvmInline
-    value class SearchDetails(val group: PackageGroup.Remote.FromVariants) : InfoBoxDetail
+        @JvmInline
+        value class Search(val group: PackageGroup.Remote.FromVariants) : Badges
+    }
+
+
 }
-
-fun ApiPackage.asPackageSearchTableItem() =
-    InfoBoxDetail.RemotePackage(this)
-
-fun PackageSearchDeclaredPackage.asPackageSearchTableItem() =
-    InfoBoxDetail.DeclaredPackage(this)

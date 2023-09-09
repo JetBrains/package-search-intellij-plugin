@@ -40,6 +40,7 @@ import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 import java.awt.Cursor
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
@@ -56,15 +57,21 @@ fun PackageSearchPackagePanel(
     val infoBoxScrollState = rememberScrollState()
 
     var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }
-    var searchResults by remember { mutableStateOf<SearchData.Results>(SearchData.Results.Empty) }
 
     var selectedModules by remember { mutableStateOf<List<PackageSearchModule>>(emptyList()) }
-
-    val packageGroups by derivedStateOf {
+    var searchResults by remember(selectedModules) { mutableStateOf<SearchData.Results>(SearchData.Results.Empty) }
+    val declaredPackageGroups by derivedStateOf {
         buildPackageGroups(searchQuery) {
-            setSearchResults(searchResults)
             setLocal(selectedModules)
         }
+    }
+    val remotePackageGroup by derivedStateOf {
+        buildPackageGroups(searchQuery) {
+            setSearchResults(searchResults)
+        }
+    }
+    val packageGroups by derivedStateOf {
+        declaredPackageGroups + remotePackageGroup
     }
 
     @Composable
@@ -128,7 +135,7 @@ fun PackageSearchPackagePanel(
     val apiClient = LocalPackageSearchApiClient.current
 
     LaunchedEffect(selectedModules, searchQuery) {
-        delay(1.seconds) // debounce
+        delay(250.milliseconds)
         isSearching = true
         searchResults = when (val searchData = buildSearchData(selectedModules, searchQuery)) {
             SearchData.Empty -> SearchData.Results.Empty
