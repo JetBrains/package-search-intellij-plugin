@@ -33,6 +33,7 @@ import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.painterResource
+import org.jetbrains.jewel.util.appendIf
 
 @Composable
 fun PackageSearchPackageList(
@@ -69,10 +70,15 @@ fun PackageSearchPackageList(
             onElementClick(item.infoBoxDetail)
         },
     ) {
-        items.forEach { item ->
+        items.forEachIndexed { index, item ->
             when (item) {
                 is Header -> stickyHeader(item, "header") {
                     PackageGroupHeader(
+                        modifier = Modifier.appendIf(item.groupId in packageGroupState || item.count == 0) {
+                            padding(
+                                bottom = 1.dp,
+                            )
+                        },
                         title = item.title,
                         badges = item.badges ?: emptyList(),
                         groupSize = item.count,
@@ -98,13 +104,17 @@ fun PackageSearchPackageList(
 
                             else -> null
                         },
-
                     )
                 }
 
                 is Package -> item(item, "package") {
                     PackageRow(
-                        modifier = Modifier,
+                        modifier = Modifier
+                            .appendIf(items.getOrNull(index - 1) is Header) {
+                                padding(top = 4.dp)
+                            }.appendIf(items.getOrNull(index + 1) is Header) {
+                                padding(bottom = 4.dp)
+                            },
                         isActive = isActive,
                         isSelected = isSelected,
                         isCompact = isInfoBoxOpen,

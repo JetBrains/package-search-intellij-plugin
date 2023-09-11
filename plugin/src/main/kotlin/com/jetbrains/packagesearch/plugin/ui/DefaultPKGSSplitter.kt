@@ -23,7 +23,7 @@ fun SplitPaneScope.defaultPKGSSplitter(
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(4.dp)
+                        .width(1.dp)
                         .background(splitterColor),
                 )
             }
@@ -33,7 +33,7 @@ fun SplitPaneScope.defaultPKGSSplitter(
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(10.dp)
+                        .width(8.dp)
                         .markAsHandle()
                         .pointerHoverIcon(cursor),
                 )

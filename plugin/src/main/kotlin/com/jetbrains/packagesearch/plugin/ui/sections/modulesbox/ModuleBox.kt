@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
+import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.IntelliJTheme
 
@@ -31,6 +33,7 @@ fun PackageSearchCentralPanel(
         if (isLoading) {
             IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
         } else {
+            Divider(Modifier.fillMaxWidth(), color = pickComposeColorFromLaf("MainWindow.Tab.borderColor"))
             Box(
                 modifier = Modifier.fillMaxWidth()
                     .height(IntelliJTheme.horizontalProgressBarStyle.metrics.minHeight),

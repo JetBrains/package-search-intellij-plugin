@@ -135,7 +135,7 @@ fun PackageRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.size(16.dp)) {
                 if (packageIcon != null) {
                     Icon(

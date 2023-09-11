@@ -1,6 +1,5 @@
 package com.jetbrains.packagesearch.plugin.ui
 
-import androidx.compose.foundation.LocalScrollbarStyle
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
+import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.SearchData
 import com.jetbrains.packagesearch.plugin.ui.models.buildDeclaredPackageGroups
@@ -52,7 +52,7 @@ fun PackageSearchPackagePanel(
 
     val splitPaneState = rememberSplitPaneState(.20f)
     val innerSplitPaneState = rememberSplitPaneState(.80f)
-    val splitterColor = LocalScrollbarStyle.current.unhoverColor
+    val splitterColor = pickComposeColorFromLaf("MainWindow.Tab.borderColor")
     val infoBoxScrollState = rememberScrollState()
 
     var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }

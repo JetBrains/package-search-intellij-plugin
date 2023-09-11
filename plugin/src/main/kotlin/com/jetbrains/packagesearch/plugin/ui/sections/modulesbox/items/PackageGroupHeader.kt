@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -36,13 +37,13 @@ fun PackageGroupHeader(
     Row(
         modifier
             .fillMaxWidth()
-            .height(28.dp)
             .background(pickComposeColorFromLaf("Plugins.SectionHeader.background"))
-            .padding(start = 8.dp, end = 2.dp),
+            .padding(start = 8.dp, end = 2.dp)
+            .height(28.dp),
         horizontalArrangement = SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.onClick { toggleCollapse() }) {
                 val iconResource =
                     remember(isGroupExpanded) {
@@ -55,12 +56,10 @@ fun PackageGroupHeader(
                 )
             }
             Text(
-                modifier = Modifier.padding(start = 4.dp),
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight(600),
                 text = title,
             )
             LabelInfo(
-                modifier = Modifier.padding(horizontal = 4.dp),
                 text = groupSize.toString(),
             )
             if (badges.isNotEmpty()) {
@@ -70,7 +69,6 @@ fun PackageGroupHeader(
                 ) {
                     badges.forEach {
                         LabelInfo(
-                            modifier = Modifier.padding(horizontal = 4.dp),
                             text = it,
                         )
                     }
