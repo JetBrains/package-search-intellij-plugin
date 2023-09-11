@@ -44,7 +44,6 @@ import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
-import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Divider
@@ -56,7 +55,6 @@ import org.jetbrains.jewel.painterResource
 import org.jetbrains.jewel.styling.LocalLazyTreeStyle
 import org.jetbrains.jewel.styling.LocalLinkStyle
 import org.jetbrains.jewel.util.appendIf
-import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import kotlin.math.roundToInt
@@ -108,43 +106,6 @@ internal fun DeclaredPackageMoreActionPopup(
             )
         }
     }
-}
-
-@Composable
-fun RemotePackageRow(
-    modifier: Modifier = Modifier,
-    isActive: Boolean,
-    isSelected: Boolean,
-    apiPackage: ApiPackage,
-    mainActionContent: @Composable RowScope.() -> Unit,
-    popupContent: (@Composable BoxScope.() -> Unit)? = null,
-) {
-    val iconPath = when (apiPackage) {
-        is ApiMavenPackage -> "icons/intui/maven.svg"
-        else -> null
-    }
-    val painter = iconPath?.let {
-        painterResource(
-            resourcePath = it,
-            loader = LocalResourceLoader.current,
-        )
-    }
-    PackageRow(
-        modifier = modifier,
-        isActive = isActive,
-        isSelected = isSelected,
-        isCompact = true,
-        packageIcon = painter,
-        actionPopupId = apiPackage.id,
-        packageNameContent = {
-            Text(text = apiPackage.name ?: apiPackage.coordinates)
-            if (apiPackage.name != null) {
-                LabelInfo(text = apiPackage.coordinates)
-            }
-        },
-        editPackageContent = null,
-        popupContent = popupContent,
-    )
 }
 
 @Composable
@@ -358,33 +319,6 @@ fun InstallPackageActionLink(
             ),
         )
     }
-}
-
-@Composable
-fun LocalPackageRow(
-    isActive: Boolean,
-    isSelected: Boolean,
-    isCompact: Boolean,
-    additionalDetails: String,
-    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    modifier: Modifier = Modifier,
-    mainActionContent: @Composable RowScope.() -> Unit,
-    popupContent: (@Composable BoxScope.() -> Unit)? = null,
-) {
-    PackageRow(
-        modifier = modifier,
-        isActive = isActive,
-        isSelected = isSelected,
-        isCompact = isCompact,
-        packageIcon = painterResource(packageSearchDeclaredPackage.iconPath, LocalResourceLoader.current),
-        actionPopupId = packageSearchDeclaredPackage.id,
-        packageNameContent = {
-            Text(text = packageSearchDeclaredPackage.displayName)
-            LabelInfo(text = additionalDetails)
-        },
-        editPackageContent = null, // TODO versions and scopes selectors
-        popupContent = popupContent,
-    )
 }
 
 fun PackageSearchDeclaredPackage.evaluateUpgrade(stableOnly: Boolean): NormalizedVersion? {
