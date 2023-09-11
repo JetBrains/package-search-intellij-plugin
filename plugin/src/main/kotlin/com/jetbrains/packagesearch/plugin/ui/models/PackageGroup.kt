@@ -1,8 +1,10 @@
 package com.jetbrains.packagesearch.plugin.ui.models
 
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 inline fun buildPackageGroups(searchFilter: String, builder: PackageGroupsBuilder.() -> Unit): List<PackageGroup> =
@@ -28,64 +30,70 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                     PackageGroup.Remote.FromBaseModule(
                         module = data.searchData.module,
                         packages = data.results.filter { it.id !in declaredDependencyIds },
+                        dependencyManager = data.searchData.dependencyManager
                     ),
                 )
             }
 
             is SearchData.MultipleModules.Results -> listOf(
                 PackageGroup.Remote.FromMultipleModules(
-                    modules = data.searchData.modules,
+                    moduleData = data.searchData.modules,
                     packages = data.results,
                 ),
             )
 
-            is SearchData.SingleWithVariantsModule.Results ->
+            is SearchData.SingleModuleWithVariants.Results ->
                 data.results.map {
                     PackageGroup.Remote.FromVariants(
                         module = data.module,
                         packages = it.results,
                         badges = findCommonStrings(it.searchData.compatibleVariants.map { it.attributes }),
                         compatibleVariants = it.searchData.compatibleVariants,
+                        dependencyManager = data.dependencyManager
                     )
                 }
         }
     }
 
-    fun setLocal(selectedModules: List<PackageSearchModule>) {
+    fun setLocal(selectedModules: List<PackageSearchModuleData>) {
         declared = when {
             selectedModules.isEmpty() -> emptyList()
-            selectedModules.size == 1 -> when (val module = selectedModules.first()) {
+            selectedModules.size == 1 -> when (val module = selectedModules.first().module) {
                 is PackageSearchModule.Base -> listOf(
                     PackageGroup.Declared.FromBaseModule(
                         module = module,
                         filteredDependencies = module.declaredDependencies
                             .filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) },
+                        dependencyManager = selectedModules.first().dependencyManager
                     ),
                 )
 
                 is PackageSearchModule.WithVariants ->
                     module.variants
-                        .map { (_, variant) ->
+                        .mapNotNull { (_, variant) ->
+                            if (variant.declaredDependencies.isEmpty()) return@mapNotNull null
                             PackageGroup.Declared.FromVariant(
                                 module = module,
                                 variant = variant,
                                 filteredDependencies = variant.declaredDependencies
                                     .filter {
                                         it.id.contains(searchQuery, true) || it.displayName.contains(
-                                            searchQuery,
-                                            true,
+                                            other = searchQuery,
+                                            ignoreCase = true,
                                         )
                                     },
+                                dependencyManager = selectedModules.first().dependencyManager
                             )
                         }
             }
 
-            else -> selectedModules.map { module ->
+            else -> selectedModules.map { (module, dependencyManager) ->
                 when (module) {
                     is PackageSearchModule.Base -> PackageGroup.Declared.FromBaseModule(
                         module = module,
                         filteredDependencies = module.declaredDependencies
                             .filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) },
+                        dependencyManager = dependencyManager
                     )
 
                     is PackageSearchModule.WithVariants -> PackageGroup.Declared.FromModuleWithVariantsCompact(
@@ -100,6 +108,7 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                                         )
                                     }
                             },
+                        dependencyManager = dependencyManager
                     )
                 }
             }
@@ -118,8 +127,8 @@ class PackageGroupsBuilder(private val searchQuery: String) {
 fun PackageGroupsBuilder.Declared.plus(remotes: PackageGroupsBuilder.Remotes) =
     value + remotes.value
 
-fun PackageGroupsBuilder.Remotes.plus(decalred: PackageGroupsBuilder.Declared) =
-    decalred.value + value
+fun PackageGroupsBuilder.Remotes.plus(declared: PackageGroupsBuilder.Declared) =
+    declared.value + value
 
 fun findCommonStrings(lists: List<List<String>>): List<String> {
     // If there are no nested lists or if any of the nested lists are empty, return an empty list
@@ -159,11 +168,13 @@ sealed interface PackageGroup {
     sealed interface Declared : PackageGroup {
         val module: PackageSearchModule
         val filteredDependencies: List<PackageSearchDeclaredPackage>
+        val dependencyManager: PackageSearchDependencyManager
 
         data class FromVariant(
             override val module: PackageSearchModule.WithVariants,
             val variant: PackageSearchModuleVariant,
             override val filteredDependencies: List<PackageSearchDeclaredPackage.WithVariant>,
+            override val dependencyManager: PackageSearchDependencyManager,
         ) : Declared {
             override val id: Id
                 get() = Id("Local.FromModuleWithVariants [module = ${module.identity}, variant = ${variant.name}]")
@@ -175,6 +186,7 @@ sealed interface PackageGroup {
         data class FromModuleWithVariantsCompact(
             override val module: PackageSearchModule.WithVariants,
             override val filteredDependencies: List<PackageSearchDeclaredPackage.WithVariant>,
+            override val dependencyManager: PackageSearchDependencyManager,
         ) : Declared {
             override val id: Id
                 get() = Id(
@@ -189,6 +201,7 @@ sealed interface PackageGroup {
         data class FromBaseModule(
             override val module: PackageSearchModule.Base,
             override val filteredDependencies: List<PackageSearchDeclaredPackage>,
+            override val dependencyManager: PackageSearchDependencyManager,
         ) : Declared {
             override val id: Id
                 get() = Id("Local.FromBaseModule [module = ${module.identity}]")
@@ -205,6 +218,7 @@ sealed interface PackageGroup {
         data class FromBaseModule(
             val module: PackageSearchModule.Base,
             override val packages: List<ApiPackage>,
+            val dependencyManager: PackageSearchDependencyManager
         ) : Remote {
             override val id: Id
                 get() = Id("Remote.FromBaseModule [module = ${module.identity}]")
@@ -217,6 +231,7 @@ sealed interface PackageGroup {
             override val packages: List<ApiPackage>,
             val badges: List<String>,
             val compatibleVariants: List<PackageSearchModuleVariant>,
+            val dependencyManager: PackageSearchDependencyManager
         ) : Remote {
             override val id: Id
                 get() = Id("Remote.FromVariant [module = ${module.identity}, variants = ${compatibleVariants.joinToString { it.name }}]")
@@ -225,11 +240,11 @@ sealed interface PackageGroup {
         }
 
         data class FromMultipleModules(
-            val modules: List<PackageSearchModule>,
+            val moduleData: List<PackageSearchModuleData>,
             override val packages: List<ApiPackage>,
         ) : Remote {
             override val id: Id
-                get() = Id("Remote.FromMultipleModules [modules = ${modules.joinToString { it.identity.toString() }}]")
+                get() = Id("Remote.FromMultipleModules [modules = ${moduleData.joinToString { it.module.identity.toString() }}]")
             override val size: Int
                 get() = packages.size
         }

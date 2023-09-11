@@ -20,17 +20,17 @@ data class MppCompilationInfoModel(
   }
 
   @Serializable
-  object Jvm : Compilation {
+  data object Jvm : Compilation {
     override val platformId = "jvm"
   }
 
   @Serializable
-  object Android : Compilation {
+  data object Android : Compilation {
     override val platformId = "android"
   }
 
   @Serializable
-  object Wasm: Compilation {
+  data object Wasm: Compilation {
     override val platformId = "wasm"
   }
 
@@ -52,7 +52,7 @@ data class MppCompilationInfoModel(
     Compatibility with NMPP (see [org.jetbrains.kotlin.idea.projectModel.KotlinPlatform.COMMON]
   **/
   @Serializable
-  object Common : Compilation {
+  data object Common : Compilation {
     override val platformId = "common"
   }
 }

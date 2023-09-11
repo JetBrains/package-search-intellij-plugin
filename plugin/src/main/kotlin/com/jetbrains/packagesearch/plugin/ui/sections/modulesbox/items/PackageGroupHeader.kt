@@ -1,8 +1,5 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -18,7 +15,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
@@ -74,7 +70,7 @@ fun PackageGroupHeader(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     badges.forEach {
-                        Text(
+                        LabelInfo(
                             modifier = Modifier.padding(horizontal = 4.dp),
                             text = it,
                         )

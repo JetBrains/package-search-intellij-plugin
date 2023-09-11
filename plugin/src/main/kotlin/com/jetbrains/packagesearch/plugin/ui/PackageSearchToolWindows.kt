@@ -25,14 +25,14 @@ fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
             .background(backgroundColor)
             .padding(top = 2.dp, bottom = 0.dp, start = 2.dp, end = 2.dp),
     ) {
-        val modulesState by LocalProjectService.current.modules.collectAsState()
+        val modulesState by LocalProjectService.current.moduleData.collectAsState()
         when (val moduleProvider = modulesState) {
             is ModulesState.Loading -> IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
             is ModulesState.Ready -> {
                 LocalIsActionPerformingState.current.value = false
                 PackageSearchPackagePanel(
                     isInfoBoxOpen = isInfoBoxOpen,
-                    tree = moduleProvider.modules.asTree(),
+                    tree = moduleProvider.moduleData.asTree(),
                 )
             }
         }

@@ -20,7 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.unit.dp
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.SearchData
 import com.jetbrains.packagesearch.plugin.ui.models.buildPackageGroups
@@ -41,12 +41,11 @@ import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 import java.awt.Cursor
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun PackageSearchPackagePanel(
     isInfoBoxOpen: Boolean,
-    tree: Tree<PackageSearchModule>,
+    tree: Tree<PackageSearchModuleData>,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
@@ -58,7 +57,7 @@ fun PackageSearchPackagePanel(
 
     var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }
 
-    var selectedModules by remember { mutableStateOf<List<PackageSearchModule>>(emptyList()) }
+    var selectedModules by remember { mutableStateOf<List<PackageSearchModuleData>>(emptyList()) }
     var searchResults by remember(selectedModules) { mutableStateOf<SearchData.Results>(SearchData.Results.Empty) }
     val declaredPackageGroups by derivedStateOf {
         buildPackageGroups(searchQuery) {
@@ -114,7 +113,7 @@ fun PackageSearchPackagePanel(
                             Column(
                                 modifier = Modifier.verticalScroll(infoBoxScrollState),
                             ) {
-                                PackageSearchInfoBox(infoBoxDetail, selectedModules)
+                                PackageSearchInfoBox(infoBoxDetail, selectedModules.map { it.module })
                             }
                             Box(modifier = Modifier.matchParentSize()) {
                                 VerticalScrollbar(
@@ -145,8 +144,8 @@ fun PackageSearchPackagePanel(
             is SearchData.MultipleModules ->
                 searchData.withResults(apiClient.trySearchPackages(json, searchData.searchParameters))
 
-            is SearchData.SingleWithVariantsModule -> searchData.withResults(
-                results = searchData.searchForVariant
+            is SearchData.SingleModuleWithVariants -> searchData.withResults(
+                results = searchData.searches
                     .map { it to async { apiClient.trySearchPackages(json, it.searchParameters) } }
                     .map { (searchForVariant, search) ->
                         searchForVariant.withResults(search.await())

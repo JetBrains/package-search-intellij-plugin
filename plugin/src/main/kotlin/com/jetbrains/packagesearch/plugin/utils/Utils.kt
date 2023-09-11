@@ -34,6 +34,8 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.insert
 import com.jetbrains.packagesearch.plugin.core.utils.collectIn
 import com.jetbrains.packagesearch.plugin.core.utils.flow
 import io.ktor.client.plugins.logging.Logger
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 
 internal val Project.nativeModules
@@ -101,10 +103,8 @@ inline fun <reified T : Any> SerializersModuleBuilder.polymorphic(
     builderAction: PolymorphicModuleBuilder<T>.() -> Unit,
 ) = polymorphic(T::class, baseSerializer, builderAction)
 
-fun <T> Flow<T>.startWithNull() = flow {
-    emit(null)
-    collectIn(this)
-}
+
+fun <T> Flow<T?>.startWithNull() = onStart { emit(null) }
 
 @Suppress("FunctionName")
 fun KtorDebugLogger() = object : Logger {
@@ -145,3 +145,12 @@ internal val Project.fileOpenedFlow: Flow<List<VirtualFile>>
             emit(buffer.toList())
         }
     }
+
+internal fun <T> Flow<T>.replayOn(vararg replayFlows: Flow<*>) = channelFlow {
+    val mutex = Mutex()
+    var last: T? = null
+    onEach { mutex.withLock { last = it } }
+        .onEach { send(it) }
+        .launchIn(this)
+    merge(*replayFlows).collect { mutex.withLock { last?.let { send(it) } } }
+}

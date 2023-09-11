@@ -51,7 +51,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
                     LocalPackageSearchApiClient provides IntelliJApplication.PackageSearchApiClientService.client,
                     LocalIsActionPerformingState provides mutableStateOf(false),
-                    LocalIsOnlyStableVersions provides mutableStateOf(true),
+                    LocalIsOnlyStableVersions provides project.PackageSearchProjectService.isStableOnlyVersions,
                     LocalGlobalPopupIdState provides mutableStateOf(null),
                 ) {
                     PackageSearchToolwindow(isInfoBoxOpen)

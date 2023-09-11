@@ -8,16 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.jetbrains.packagesearch.plugin.ui.LocalDependencyManagers
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
@@ -34,7 +32,6 @@ import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
-import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
 import org.jetbrains.jewel.painterResource
 
 
@@ -45,24 +42,21 @@ fun PackageSearchPackageList(
     isInfoBoxOpen: Boolean,
     onElementClick: (InfoBoxDetail?) -> Unit,
 ) {
-    val isStableOnly by LocalIsOnlyStableVersions.current
-    val dependencyManagers = LocalDependencyManagers.current
+    val isStableOnly by LocalIsOnlyStableVersions.current.collectAsState()
     val items = remember(packageGroups, packageGroupState.size) {
         buildPackageSearchPackageItemList {
             packageGroups.forEach { group ->
                 when (group) {
-                    is PackageGroup.Declared -> addFromGroup(
+                    is PackageGroup.Declared -> addFromDeclaredGroup(
                         group = group,
                         isExpanded = group.id !in packageGroupState,
                         isStableOnly = isStableOnly,
-                        dependencyManager = dependencyManagers.getValue(group.module)
                     )
 
-                    is PackageGroup.Remote -> addFromGroup(
+                    is PackageGroup.Remote -> addFromRemoteGroup(
                         group = group,
                         isGroupExpanded = group.id !in packageGroupState,
                         isStableOnly = isStableOnly,
-                        dependencyManagers = dependencyManagers
                     )
                 }
             }

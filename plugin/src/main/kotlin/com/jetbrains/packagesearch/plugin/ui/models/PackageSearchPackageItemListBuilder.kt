@@ -2,7 +2,6 @@ package com.jetbrains.packagesearch.plugin.ui.models
 
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
@@ -54,11 +53,10 @@ class PackageSearchPackageItemListBuilder {
         )
     )
 
-    fun addFromGroup(
+    fun addFromDeclaredGroup(
         group: PackageGroup.Declared,
         isExpanded: Boolean,
         isStableOnly: Boolean,
-        dependencyManager: PackageSearchDependencyManager,
     ) {
         addHeader(
             title = if (group is PackageGroup.Declared.FromVariant) group.variant.name else group.module.name,
@@ -76,7 +74,7 @@ class PackageSearchPackageItemListBuilder {
                                 ?: return@mapNotNull null
                             it.getUpdateData(newVersion)
                         }
-                        dependencyManager.updateDependencies(it, upgrades)
+                        group.dependencyManager.updateDependencies(it, upgrades)
                     }
                 }
             }
@@ -99,7 +97,7 @@ class PackageSearchPackageItemListBuilder {
                         val newVersion = declaredDependency.evaluateUpgrade()?.versionName
                         if (newVersion != null) {
                             PackageActionLink("Upgrade") {
-                                dependencyManager.updateDependencies(
+                                group.dependencyManager.updateDependencies(
                                     it,
                                     listOf(declaredDependency.getUpdateData(newVersion))
                                 )
@@ -111,11 +109,10 @@ class PackageSearchPackageItemListBuilder {
         }
     }
 
-    fun addFromGroup(
+    fun addFromRemoteGroup(
         group: PackageGroup.Remote,
         isGroupExpanded: Boolean,
         isStableOnly: Boolean,
-        dependencyManagers: Map<PackageSearchModule, PackageSearchDependencyManager>,
     ) {
         val compatibleVariantsText = if (group is PackageGroup.Remote.FromVariants) {
             val cardinality = group.compatibleVariants.size
@@ -148,48 +145,45 @@ class PackageSearchPackageItemListBuilder {
                             val latestVersion = apiPackage.getLatestVersion(isStableOnly).versionName
                             when (group) {
                                 is PackageGroup.Remote.FromBaseModule ->
-                                    dependencyManagers.getValue(group.module)
-                                        .addDependency(
-                                            context = it,
-                                            data = group.module.getInstallData(
-                                                apiPackage = apiPackage,
-                                                selectedVersion = latestVersion,
-                                                selectedScope = group.module.defaultScope
-                                            )
-                                        )
-
-                                is PackageGroup.Remote.FromVariants -> dependencyManagers.getValue(group.module)
-                                    .addDependency(
+                                    group.dependencyManager.addDependency(
                                         context = it,
-                                        data = group.compatibleVariants.first { it.isPrimary }
-                                            .getInstallData(
-                                                apiPackage = apiPackage,
-                                                selectedVersion = latestVersion,
-                                                selectedScope = group.module.defaultScope
-                                            )
+                                        data = group.module.getInstallData(
+                                            apiPackage = apiPackage,
+                                            selectedVersion = latestVersion,
+                                            selectedScope = group.module.defaultScope
+                                        )
                                     )
 
-                                is PackageGroup.Remote.FromMultipleModules -> group.modules
-                                    .forEach { module ->
-                                        dependencyManagers.getValue(module)
-                                            .addDependency(
-                                                context = it,
-                                                data = when (module) {
-                                                    is PackageSearchModule.Base ->
-                                                        module.getInstallData(
-                                                            apiPackage = apiPackage,
-                                                            selectedVersion = latestVersion,
-                                                            selectedScope = module.defaultScope
-                                                        )
+                                is PackageGroup.Remote.FromVariants -> group.dependencyManager.addDependency(
+                                    context = it,
+                                    data = group.compatibleVariants.first { it.isPrimary }
+                                        .getInstallData(
+                                            apiPackage = apiPackage,
+                                            selectedVersion = latestVersion,
+                                            selectedScope = group.module.defaultScope
+                                        )
+                                )
 
-                                                    is PackageSearchModule.WithVariants ->
-                                                        module.mainVariant.getInstallData(
-                                                            apiPackage = apiPackage,
-                                                            selectedVersion = latestVersion,
-                                                            selectedScope = module.defaultScope
-                                                        )
-                                                }
-                                            )
+                                is PackageGroup.Remote.FromMultipleModules -> group.moduleData
+                                    .forEach { (module, dependencyManager) ->
+                                        dependencyManager.addDependency(
+                                            context = it,
+                                            data = when (module) {
+                                                is PackageSearchModule.Base ->
+                                                    module.getInstallData(
+                                                        apiPackage = apiPackage,
+                                                        selectedVersion = latestVersion,
+                                                        selectedScope = module.defaultScope
+                                                    )
+
+                                                is PackageSearchModule.WithVariants ->
+                                                    module.mainVariant.getInstallData(
+                                                        apiPackage = apiPackage,
+                                                        selectedVersion = latestVersion,
+                                                        selectedScope = module.defaultScope
+                                                    )
+                                            }
+                                        )
                                     }
                             }
                         }

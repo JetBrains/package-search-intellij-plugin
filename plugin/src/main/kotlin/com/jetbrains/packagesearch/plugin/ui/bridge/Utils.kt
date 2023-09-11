@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.ui.bridge
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.ResourceLoader
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
 import org.jetbrains.jewel.foundation.tree.buildTree
 import java.awt.Desktop
@@ -28,38 +29,38 @@ fun UIDefaults.getComposeColorOrUnspecified(key: String): Color {
 }
 
 
-fun List<PackageSearchModule>.asTree() =
+fun List<PackageSearchModuleData>.asTree() =
     buildTree {
-        groupBy { it.identity.group }
+        groupBy { it.module.identity.group }
             .values
             .forEach {
-                val sortedItems = it.sortedBy { it.identity.path }
-                val roots = sortedItems.filter { it.identity.path == ":" }.toSet()
+                val sortedItems = it.sortedBy { it.module.identity.path }
+                val roots = sortedItems.filter { it.module.identity.path == ":" }.toSet()
                 roots.forEach { addNodes(sortedItems - roots, it, true) }
             }
     }
 
-fun TreeGeneratorScope<PackageSearchModule>.addNodes(
-    sortedItems: List<PackageSearchModule>,
-    currentData: PackageSearchModule,
+fun TreeGeneratorScope<PackageSearchModuleData>.addNodes(
+    sortedItems: List<PackageSearchModuleData>,
+    currentData: PackageSearchModuleData,
     isRoot: Boolean = false,
 ) {
     val children = sortedItems
         .filter {
             val toRemove = buildString {
-                append(currentData.identity.path)
+                append(currentData.module.identity.path)
                 if (!isRoot) append(":")
             }
-            it.identity.path.removePrefix(toRemove).run {
+            it.module.identity.path.removePrefix(toRemove).run {
                 isNotEmpty() && !contains(":")
             }
         }
     if (children.isNotEmpty()) {
-        addNode(currentData, id = currentData.identity) {
+        addNode(currentData, id = currentData.module.identity) {
             children.forEach { addNodes(sortedItems - children, it) }
         }
     } else {
-        addLeaf(currentData, id = currentData.identity)
+        addLeaf(currentData, id = currentData.module.identity)
     }
 }
 

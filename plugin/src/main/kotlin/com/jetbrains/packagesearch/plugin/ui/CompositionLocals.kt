@@ -11,6 +11,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.flow
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.isLightTheme
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 
@@ -30,23 +31,7 @@ val LocalIsActionPerformingState: ProvidableCompositionLocal<MutableState<Boolea
 val LocalPackageSearchApiClient: ProvidableCompositionLocal<PackageSearchApiClient> =
     staticCompositionLocalOf { error("No LocalPackageSearchApiClient provided") }
 
-val LocalDependencyManagers =
-    compositionLocalFrom { LocalProjectService.current.dependencyManagers.collectAsState().value }
-
-interface CompositionLocalProvider<T> {
-
-    @get:Composable
-    val current: T
-}
-
-fun <T> compositionLocalFrom(provide: @Composable () -> T) =
-    object : CompositionLocalProvider<T> {
-        override val current: T
-            @Composable
-            get() = provide()
-    }
-
-val LocalIsOnlyStableVersions: ProvidableCompositionLocal<MutableState<Boolean>> =
+val LocalIsOnlyStableVersions: ProvidableCompositionLocal<MutableStateFlow<Boolean>> =
     staticCompositionLocalOf { error("No LocalIsOnlyStableVersions provided") }
 
 val LocalGlobalPopupIdState: ProvidableCompositionLocal<MutableState<String?>> =

@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.LazyTree
 import org.jetbrains.jewel.LocalResourceLoader
@@ -23,8 +24,8 @@ import org.jetbrains.jewel.painterResource
 
 @Composable
 fun PackageSearchModulesTree(
-    tree: Tree<PackageSearchModule>,
-    onSelectionChange: (List<PackageSearchModule>) -> Unit = { },
+    tree: Tree<PackageSearchModuleData>,
+    onSelectionChange: (List<PackageSearchModuleData>) -> Unit = { },
 ) {
     LazyTree(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -45,10 +46,10 @@ fun PackageSearchModulesTree(
             }
             Icon(
                 modifier = Modifier.size(16.dp),
-                painter = painterResource(it.data.iconPath, LocalResourceLoader.current),
+                painter = painterResource(it.data.module.iconPath, LocalResourceLoader.current),
                 contentDescription = null,
             )
-            Text(it.data.name, softWrap = false)
+            Text(it.data.module.name, softWrap = false)
         }
     }
 }

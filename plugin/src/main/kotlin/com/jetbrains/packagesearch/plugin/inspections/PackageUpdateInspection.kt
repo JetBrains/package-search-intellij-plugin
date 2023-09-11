@@ -87,9 +87,6 @@ abstract class PackageSearchInspection : LocalInspectionTool() {
 class PackageUpdateInspection : PackageSearchInspection() {
 
     @JvmField
-    var onlyStable: Boolean = true
-
-    @JvmField
     var excludeList: MutableList<String> = mutableListOf()
 
     override fun getOptionsPane(): OptPane {
@@ -121,8 +118,15 @@ class PackageUpdateInspection : PackageSearchInspection() {
                 .any { declared.id.startsWith(it) }
         }
         .forEach {
-            val versionElement = file.getElementAt(it.declarationIndexes.versionStartIndex ?: return@forEach)
-            val targetVersion = if (onlyStable) it.latestVersion else it.latestVersion
+            val versionElement =
+                file.getElementAt(it.declarationIndexes.versionStartIndex ?: return@forEach)
+                    .takeIf { it != file }
+                    ?: return@forEach
+            val targetVersion = if (project.PackageSearchProjectService.isStableOnlyVersions.value) {
+                it.latestVersion
+            } else {
+                it.latestVersion
+            }
             val normalizedVersionIsGarbage = it.declaredVersion is NormalizedVersion.Garbage
             val declaredVersionIsMissing = it.declaredVersion == NormalizedVersion.Missing
             val declaredVersionIsUpToDate = it.declaredVersion >= targetVersion
@@ -224,7 +228,4 @@ internal fun LocalQuickFixOnPsiElement(
     override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) =
         action()
     override fun getPriority() = priority
-    override fun generatePreview(project: Project, previewDescriptor: ProblemDescriptor): IntentionPreviewInfo {
-        return super.generatePreview(project, previewDescriptor)
-    }
 }

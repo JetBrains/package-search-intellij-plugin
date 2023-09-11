@@ -4,11 +4,14 @@ package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.*
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoProvider
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppDataNodeProcessor
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
@@ -43,7 +46,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                 .toSet(),
             defaultScope = "implementation",
             availableScopes = commonConfigurations.toList(),
-            variants = getKMPVariants(context = context)
+            variants = getKMPVariants(context = context, projectDir = model.projectDir)
                 .associateBy { it.name }
                 .takeIf { it.isNotEmpty() }
                 ?: return null,
@@ -58,6 +61,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
 
     suspend fun Module.getKMPVariants(
         context: PackageSearchModuleBuilderContext,
+        projectDir: String,
     ): List<PackageSearchKotlinMultiplatformVariant> = coroutineScope {
         val dependenciesBlockVariant = async {
             PackageSearchKotlinMultiplatformVariant.DependenciesBlock(
@@ -71,6 +75,30 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                 }
             )
         }
+        val sourceSetPlatformMap = context.project.service<MppDataNodeProcessor.Cache>()
+            .state[projectDir]
+            ?.compilationsBySourceSet
+            ?.entries
+            ?.associateBy(
+                keySelector = { it.key.name },
+                valueTransform = {
+                    it.value.mapNotNull {
+                        when (it) {
+                            Android, Jvm, Wasm -> it.platformId
+                            Common -> null
+                            is Js -> when (it.compiler) {
+                                Js.Compiler.IR -> "jsIr"
+                                Js.Compiler.LEGACY -> "jsLegacy"
+                            }
+                            is Native -> when (it.target) {
+                                else -> it.target
+                            }
+                        }
+                    }
+                }
+            )
+            ?: emptyMap()
+
 
         val rawDeclaredSourceSetDependencies = MppDependencyModifier
             .dependenciesBySourceSet(this@getKMPVariants)
@@ -127,24 +155,24 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                     PackageSearchKotlinMultiplatformVariant.SourceSet(
                         name = sourceSetName,
                         declaredDependencies = declaredSourceSetDependencies[sourceSetName] ?: emptyList(),
-                        attributes = emptyList(), // TODO
+                        attributes = sourceSetPlatformMap[sourceSetName] ?: emptyList(),
                         compatiblePackageTypes = buildPackageTypes {
                             gradlePackages {
                                 kotlinMultiplatform {
                                     compilationTargets.forEach { compilationTarget ->
                                         when (compilationTarget) {
-                                            is MppCompilationInfoModel.Js -> when (compilationTarget.compiler) {
-                                                MppCompilationInfoModel.Js.Compiler.IR -> jsIr()
-                                                MppCompilationInfoModel.Js.Compiler.LEGACY -> jsLegacy()
+                                            is Js -> when (compilationTarget.compiler) {
+                                                Js.Compiler.IR -> jsIr()
+                                                Js.Compiler.LEGACY -> jsLegacy()
                                             }
 
-                                            is MppCompilationInfoModel.Native -> native(compilationTarget.platformId)
+                                            is Native -> native(compilationTarget.platformId)
                                             else -> {}
                                         }
                                     }
                                     when {
-                                        MppCompilationInfoModel.Android in compilationTargets -> android()
-                                        MppCompilationInfoModel.Jvm in compilationTargets -> jvm()
+                                        Android in compilationTargets -> android()
+                                        Jvm in compilationTargets -> jvm()
                                     }
                                 }
                             }

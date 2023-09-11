@@ -1,7 +1,9 @@
 package com.jetbrains.packagesearch.plugin.ui.models
 
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
@@ -18,6 +20,7 @@ sealed interface SearchData {
     data class SingleBaseModule(
         val searchParameters: SearchPackagesRequest,
         val module: PackageSearchModule.Base,
+        val dependencyManager: PackageSearchDependencyManager
     ) : SearchData {
 
         fun withResults(results: List<ApiPackage>) =
@@ -29,16 +32,18 @@ sealed interface SearchData {
         ) : SearchData.Results
     }
 
-    data class SingleWithVariantsModule(
-        val searchForVariant: List<SearchForVariants>,
+    data class SingleModuleWithVariants(
+        val searches: List<SearchForVariants>,
         val module: PackageSearchModule.WithVariants,
+        val dependencyManager: PackageSearchDependencyManager
     ) : SearchData {
 
         fun withResults(results: List<SearchForVariants.Results>) =
-            Results(module, results)
+            Results(module, dependencyManager, results)
 
         data class Results(
             val module: PackageSearchModule.WithVariants,
+            val dependencyManager: PackageSearchDependencyManager,
             val results: List<SearchForVariants.Results>,
         ) : SearchData.Results
 
@@ -59,7 +64,7 @@ sealed interface SearchData {
 
     data class MultipleModules(
         val searchParameters: SearchPackagesRequest,
-        val modules: List<PackageSearchModule>,
+        val modules: List<PackageSearchModuleData>,
     ) : SearchData {
 
         fun withResults(results: List<ApiPackage>) =
@@ -73,26 +78,27 @@ sealed interface SearchData {
 }
 
 internal fun buildSearchData(
-    selectedModules: List<PackageSearchModule>,
+    selectedModules: List<PackageSearchModuleData>,
     searchQuery: String,
 ) = when {
     selectedModules.isEmpty() || searchQuery.isEmpty() -> SearchData.Empty
-    selectedModules.size == 1 -> when (val module = selectedModules.first()) {
+    selectedModules.size == 1 -> when (val module = selectedModules.first().module) {
         is PackageSearchModule.Base -> SearchData.SingleBaseModule(
             searchParameters = SearchPackagesRequest(
                 packagesType = module.compatiblePackageTypes,
-                searchQuery = searchQuery,
+                searchQuery = searchQuery
             ),
             module = module,
+            dependencyManager = selectedModules.first().dependencyManager
         )
 
         is PackageSearchModule.WithVariants -> {
-            SearchData.SingleWithVariantsModule(
-                searchForVariant = module.variants
+            SearchData.SingleModuleWithVariants(
+                searches = module.variants
                     .values
                     .groupBy { it.compatiblePackageTypes }
                     .map { (compatiblePackages, supportedVariants) ->
-                        SearchData.SingleWithVariantsModule.SearchForVariants(
+                        SearchData.SingleModuleWithVariants.SearchForVariants(
                             searchParameters = SearchPackagesRequest(
                                 packagesType = compatiblePackages,
                                 searchQuery = searchQuery,
@@ -101,14 +107,14 @@ internal fun buildSearchData(
                         )
                     },
                 module = module,
+                dependencyManager = selectedModules.first().dependencyManager
             )
         }
     }
-
     else -> SearchData.MultipleModules(
         searchParameters = SearchPackagesRequest(
             packagesType = buildPackageTypes {
-                val types = selectedModules.map { it.compatiblePackageTypes }
+                val types = selectedModules.map { it.module.compatiblePackageTypes }
                 if (types.all { it.any { it is PackagesType.Maven } }) {
                     mavenPackages()
                 }
