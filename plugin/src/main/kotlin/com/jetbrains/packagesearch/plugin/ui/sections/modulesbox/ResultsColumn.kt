@@ -1,12 +1,14 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -123,7 +125,10 @@ fun PackageSearchPackageList(
                                 padding(top = 4.dp)
                             }.appendIf(items.getOrNull(index + 1) is Header) {
                                 padding(bottom = 4.dp)
-                            },
+                            }.onClick(
+                                interactionSource = remember { MutableInteractionSource() },
+                                onDoubleClick = { if (!isInfoBoxOpen) infoBoxOpenState = true })
+                            { item.infoBoxDetail.let(onElementClick) },
                         isActive = isActive,
                         isSelected = isSelected,
                         isCompact = isInfoBoxOpen,
