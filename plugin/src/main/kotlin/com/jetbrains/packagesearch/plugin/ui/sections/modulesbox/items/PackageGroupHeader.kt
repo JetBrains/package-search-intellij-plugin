@@ -31,7 +31,7 @@ fun PackageGroupHeader(
     groupSize: Int,
     isGroupExpanded: Boolean,
     toggleCollapse: () -> Unit,
-    onBadgesClick: () -> Unit = {},
+    onBadgesClick: () -> Unit = { },
     rightContent: (@Composable () -> Unit)? = null,
 ) {
     Row(

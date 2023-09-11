@@ -12,10 +12,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
@@ -62,6 +64,7 @@ fun PackageSearchPackageList(
             }
         }
     }
+    var infoBoxOpenState by LocalInfoBoxPanelOpenState.current
     SelectableLazyColumn(
         selectionMode = SelectionMode.Single,
         onSelectedIndexesChanged = {
@@ -90,13 +93,19 @@ fun PackageSearchPackageList(
                                 packageGroupState.add(item.groupId)
                             }
                         },
-                        onBadgesClick = { item.infoBoxDetail?.let(onElementClick) },
+                        onBadgesClick = {
+                            item.infoBoxDetail?.let(onElementClick)
+                            if (!isInfoBoxOpen) infoBoxOpenState = true
+                        },
                         rightContent = when {
                             item.actionContent != null -> item.actionContent
                             item.compatibleVariantsText != null -> {
                                 {
                                     LabelInfo(
-                                        modifier = Modifier.clickable { item.infoBoxDetail?.let(onElementClick) },
+                                        modifier = Modifier.clickable {
+                                            item.infoBoxDetail?.let(onElementClick)
+                                            if (!isInfoBoxOpen) infoBoxOpenState = true
+                                        },
                                         text = item.compatibleVariantsText,
                                     )
                                 }
