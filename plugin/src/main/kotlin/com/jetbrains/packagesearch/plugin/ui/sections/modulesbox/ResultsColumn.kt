@@ -34,7 +34,6 @@ import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.painterResource
 
-
 @Composable
 fun PackageSearchPackageList(
     packageGroups: List<PackageGroup>,
@@ -68,7 +67,7 @@ fun PackageSearchPackageList(
             val index = it.singleOrNull() ?: return@SelectableLazyColumn
             val item = items[index] as Package
             onElementClick(item.infoBoxDetail)
-        }
+        },
     ) {
         items.forEach { item ->
             when (item) {
@@ -92,13 +91,13 @@ fun PackageSearchPackageList(
                                 {
                                     LabelInfo(
                                         modifier = Modifier.clickable { item.infoBoxDetail?.let(onElementClick) },
-                                        text = item.compatibleVariantsText
+                                        text = item.compatibleVariantsText,
                                     )
                                 }
                             }
 
                             else -> null
-                        }
+                        },
 
                     )
                 }
@@ -117,7 +116,7 @@ fun PackageSearchPackageList(
                         },
                         editPackageContent = { item.editPackageContent() },
                         popupContent = item.popupContent?.let { { it() } },
-                        mainActionContent = item.mainActionContent
+                        mainActionContent = item.mainActionContent,
                     )
                 }
             }
@@ -130,7 +129,7 @@ fun NoResultsToShow() {
     Column(
         Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         LabelInfo("No supported dependencies were found.")
         LabelInfo("Search to add dependencies to the project.")
@@ -138,12 +137,12 @@ fun NoResultsToShow() {
             Icon(
                 painter = painterResource("icons/intui/question.svg", LocalResourceLoader.current),
                 modifier = Modifier.size(16.dp).padding(end = 4.dp),
-                contentDescription = null
+                contentDescription = null,
             )
             Link(
                 resourceLoader = LocalResourceLoader.current,
                 text = "Learn more",
-                onClick = { openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html") }
+                onClick = { openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html") },
             )
         }
     }

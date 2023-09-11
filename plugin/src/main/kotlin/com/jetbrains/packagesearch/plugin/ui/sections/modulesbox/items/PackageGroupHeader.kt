@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
@@ -34,17 +36,14 @@ fun PackageGroupHeader(
     Row(
         modifier
             .fillMaxWidth()
-            .padding(1.dp)
-            .height(28.dp),
+            .height(28.dp)
+            .background(pickComposeColorFromLaf("Plugins.SectionHeader.background"))
+            .padding(start = 8.dp, end = 2.dp),
         horizontalArrangement = SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row {
-            Box(
-                Modifier
-                    .padding(start = 8.dp)
-                    .onClick { toggleCollapse() }
-            ) {
+            Box(Modifier.onClick { toggleCollapse() }) {
                 val iconResource =
                     remember(isGroupExpanded) {
                         if (!isGroupExpanded) "icons/intui/chevronRight.svg" else "icons/intui/chevronDown.svg"
@@ -52,7 +51,7 @@ fun PackageGroupHeader(
                 Icon(
                     painter = painterResource(iconResource, LocalResourceLoader.current),
                     tint = Color.Gray,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
             Text(
@@ -67,7 +66,7 @@ fun PackageGroupHeader(
             if (badges.isNotEmpty()) {
                 Row(
                     modifier = Modifier.onClick { onBadgesClick() },
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     badges.forEach {
                         LabelInfo(
