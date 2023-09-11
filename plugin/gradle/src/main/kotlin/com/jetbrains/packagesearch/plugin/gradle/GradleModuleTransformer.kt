@@ -184,7 +184,7 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                         latestVersion = remoteInfo[declaredDependency.packageId]?.versions?.latest?.normalized
                             ?: NormalizedVersion.Missing,
                         remoteInfo = remoteInfo[declaredDependency.packageId]?.asMavenApiPackage(),
-                        iconPath = Icons.GRADLE,
+                        lightIconPath = Icons.GRADLE_LIGHT,
                         module = declaredDependency.groupId,
                         name = declaredDependency.artifactId,
                         configuration = declaredDependency.configuration,

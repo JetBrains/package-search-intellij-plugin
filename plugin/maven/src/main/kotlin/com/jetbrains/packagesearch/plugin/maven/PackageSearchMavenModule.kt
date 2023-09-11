@@ -40,7 +40,7 @@ data class PackageSearchMavenModule(
     override val compatiblePackageTypes: List<PackagesType>
 ) : PackageSearchModule.Base {
 
-    override val iconPath
+    override val lightIconPath
         get() = Icons.MAVEN
 
     override val identity = PackageSearchModule.Identity("maven", name)

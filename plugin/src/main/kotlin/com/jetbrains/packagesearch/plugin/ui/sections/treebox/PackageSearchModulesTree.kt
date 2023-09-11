@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.LazyTree
+import org.jetbrains.jewel.LocalIsDarkTheme
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.tree.InitialNodeStatus
@@ -42,9 +43,13 @@ fun PackageSearchModulesTree(
             if (it !is Tree.Element.Node) {
                 Spacer(modifier = Modifier.width(12.dp))
             }
+            val isDarkTheme = LocalIsDarkTheme.current
             Icon(
                 modifier = Modifier.size(16.dp),
-                painter = painterResource(it.data.module.iconPath, LocalResourceLoader.current),
+                painter = painterResource(
+                    if (isDarkTheme) it.data.module.darkIconPath else it.data.module.lightIconPath,
+                    LocalResourceLoader.current
+                ),
                 contentDescription = null,
             )
             Text(it.data.module.name, softWrap = false)

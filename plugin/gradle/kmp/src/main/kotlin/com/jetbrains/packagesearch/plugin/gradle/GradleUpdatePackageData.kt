@@ -43,11 +43,11 @@ data class PackageSearchKotlinMultiplatformModule(
     val packageSearchModel: PackageSearchGradleModel,
     val availableKnownRepositories: Map<String, ApiRepository>
 ) : PackageSearchModule.WithVariants {
-    override val iconPath
-        get() = Icons.GRADLE
+    override val lightIconPath
+        get() = Icons.KOTLIN
 
     override val compatiblePackageTypes: List<PackagesType>
-        get() = variants.commonMain.compatiblePackageTypes
+        get() = mainVariant.compatiblePackageTypes
 
     val defaultConfiguration
         get() = defaultScope

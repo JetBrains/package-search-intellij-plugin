@@ -32,6 +32,7 @@ import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageGr
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageRow
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.Link
+import org.jetbrains.jewel.LocalIsDarkTheme
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
@@ -47,6 +48,7 @@ fun PackageSearchPackageList(
     onElementClick: (InfoBoxDetail?) -> Unit,
 ) {
     val isStableOnly by LocalIsOnlyStableVersions.current.collectAsState()
+    val isDarkTheme = LocalIsDarkTheme.current
     val items = remember(packageGroups, packageGroupState.size) {
         buildPackageSearchPackageItemList {
             packageGroups.forEach { group ->
@@ -55,6 +57,7 @@ fun PackageSearchPackageList(
                         group = group,
                         isExpanded = group.id !in packageGroupState,
                         isStableOnly = isStableOnly,
+                        isDarkTheme = isDarkTheme
                     )
 
                     is PackageGroup.Remote -> addFromRemoteGroup(

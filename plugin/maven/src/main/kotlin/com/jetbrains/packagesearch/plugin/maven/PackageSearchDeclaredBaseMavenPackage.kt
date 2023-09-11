@@ -32,6 +32,6 @@ data class PackageSearchDeclaredBaseMavenPackage(
     override fun getRemoveData() =
         MavenRemovePackageData(this)
 
-    override val iconPath
+    override val lightIconPath
         get() = Icons.MAVEN
 }

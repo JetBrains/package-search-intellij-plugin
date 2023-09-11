@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.models
 
+import androidx.compose.ui.LocalSystemTheme
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
@@ -7,6 +8,8 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.getLatestVersion
+import org.jetbrains.jewel.LocalColorPalette
+import org.jetbrains.jewel.LocalIsDarkTheme
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 
 class PackageSearchPackageItemListBuilder {
@@ -57,6 +60,7 @@ class PackageSearchPackageItemListBuilder {
         group: PackageGroup.Declared,
         isExpanded: Boolean,
         isStableOnly: Boolean,
+        isDarkTheme: Boolean
     ) {
         addHeader(
             title = if (group is PackageGroup.Declared.FromVariant) group.variant.name else group.module.name,
@@ -82,7 +86,7 @@ class PackageSearchPackageItemListBuilder {
         if (isExpanded) {
             group.filteredDependencies.forEach { declaredDependency ->
                 addPackage(
-                    iconPath = declaredDependency.iconPath,
+                    iconPath = if (isDarkTheme) declaredDependency.darkIconPath else declaredDependency.lightIconPath,
                     title = declaredDependency.displayName,
                     subtitle = when {
                         group is PackageGroup.Declared.FromModuleWithVariantsCompact

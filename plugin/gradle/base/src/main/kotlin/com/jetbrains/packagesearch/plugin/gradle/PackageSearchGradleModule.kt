@@ -25,8 +25,11 @@ data class PackageSearchGradleModule(
     val packageSearchModel: PackageSearchGradleModel,
     val availableKnownRepositories: Map<String, ApiRepository>
 ) : PackageSearchModule.Base {
-    override val iconPath
-        get() = Icons.GRADLE
+    override val lightIconPath
+        get() = Icons.GRADLE_LIGHT
+
+    override val darkIconPath: String
+        get() = Icons.GRADLE_DARK
 
     val defaultConfiguration
         get() = defaultScope

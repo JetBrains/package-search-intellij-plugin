@@ -59,7 +59,7 @@ fun SearchRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            painterResource("icons/intui/search.svg", LocalResourceLoader.current),
+            painterResource("actions/search.svg", LocalResourceLoader.current),
             contentDescription = null,
         )
         TextField(
@@ -90,7 +90,7 @@ fun SearchRow(
                                 .pointerHoverIcon(PointerIcon(Cursor(Cursor.DEFAULT_CURSOR)))
                                 .clip(shape = RoundedCornerShape(10.dp)),
                         ) {
-                            val icon = if (isHovered) "icons/intui/closeHovered.svg" else "icons/intui/close.svg"
+                            val icon = if (isHovered) "ide/notification/closeHover.svg" else "ide/notification/closeHover.svg"
                             Icon(
                                 painter = painterResource(icon, LocalResourceLoader.current),
                                 modifier = Modifier.clickable { onSearchQueryChange("") },

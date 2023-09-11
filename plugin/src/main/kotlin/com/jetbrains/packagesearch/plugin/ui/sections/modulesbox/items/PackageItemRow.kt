@@ -199,7 +199,7 @@ fun PackageRow(
                 ) {
                     if (popupContent != null) {
                         Icon(
-                            painterResource("icons/intui/moreVertical.svg", LocalResourceLoader.current),
+                            painterResource("actions/more.svg", LocalResourceLoader.current),
                             contentDescription = null,
                         )
                         if (globalPopupId == actionPopupId) {
