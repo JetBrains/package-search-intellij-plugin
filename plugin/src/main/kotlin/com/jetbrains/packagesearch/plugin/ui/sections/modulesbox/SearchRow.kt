@@ -38,7 +38,7 @@ fun SearchRow(
     searchResultsCount: Int,
     onSearchQueryChange: (String) -> Unit,
 ) {
-    val borderColor = pickComposeColorFromLaf("IntelliJTheme.colors.borders.disabled")
+    val borderColor by pickComposeColorFromLaf("IntelliJTheme.colors.borders.disabled")
     Row(
         modifier = Modifier
             .fillMaxWidth()

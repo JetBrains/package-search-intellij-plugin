@@ -18,7 +18,7 @@ import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 
 @Composable
 fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
-    val backgroundColor by animateColorAsState(pickComposeColorFromLaf("Tree.background"))
+    val backgroundColor by animateColorAsState(pickComposeColorFromLaf("Tree.background").value)
     Box(
         modifier = Modifier
             .fillMaxSize()

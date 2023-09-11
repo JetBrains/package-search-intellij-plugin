@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -32,7 +33,7 @@ fun LabelInfo(
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current,
 ) {
-    val textColor =
+    val textColor by
         pickComposeColorFromLaf("TextField.inactiveForeground")
     Text(
         text = text,

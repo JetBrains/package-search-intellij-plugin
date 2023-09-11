@@ -37,7 +37,7 @@ fun PackageGroupHeader(
     Row(
         modifier
             .fillMaxWidth()
-            .background(pickComposeColorFromLaf("Plugins.SectionHeader.background"))
+            .background(pickComposeColorFromLaf("Plugins.SectionHeader.background").value)
             .padding(start = 8.dp, end = 2.dp)
             .height(28.dp),
         horizontalArrangement = SpaceBetween,
