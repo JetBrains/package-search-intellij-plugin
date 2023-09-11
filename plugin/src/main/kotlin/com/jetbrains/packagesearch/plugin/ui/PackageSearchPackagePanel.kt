@@ -52,7 +52,7 @@ fun PackageSearchPackagePanel(
 
     val splitPaneState = rememberSplitPaneState(.20f)
     val innerSplitPaneState = rememberSplitPaneState(.80f)
-    val splitterColor = pickComposeColorFromLaf("MainWindow.Tab.borderColor")
+    val splitterColor = pickComposeColorFromLaf("Borders.color")
     val infoBoxScrollState = rememberScrollState()
 
     var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }

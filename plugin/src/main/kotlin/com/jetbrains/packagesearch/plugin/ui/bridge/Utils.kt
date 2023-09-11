@@ -1,9 +1,13 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.ResourceLoader
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.intellij.ide.ui.LafManagerListener
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
+import com.jetbrains.packagesearch.plugin.core.utils.flow
+import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
 import org.jetbrains.jewel.foundation.tree.buildTree
 import java.awt.Desktop
@@ -71,8 +75,14 @@ fun openLinkInBrowser(url: String) {
 }
 
 
+@Composable
 fun pickComposeColorFromLaf(key: String) =
-    UIManager.getLookAndFeelDefaults().getComposeColor(key) ?: Color.Unspecified
+    LocalProjectService.current.project.messageBus
+        .flow(LafManagerListener.TOPIC) {
+            LafManagerListener {
+                trySend(UIManager.getLookAndFeelDefaults().getComposeColor(key) ?: Color.Unspecified)
+            }
+        }.collectAsState(UIManager.getLookAndFeelDefaults().getComposeColor(key) ?: Color.Unspecified)
 
 
 fun isLightTheme(): Boolean {

@@ -13,12 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.services.ModulesState
 import com.jetbrains.packagesearch.plugin.ui.bridge.asTree
+import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
-import org.jetbrains.jewel.styling.LocalMenuStyle
 
 @Composable
 fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
-    val backgroundColor by animateColorAsState(LocalMenuStyle.current.colors.background)
+    val backgroundColor by animateColorAsState(pickComposeColorFromLaf("Tree.background"))
     Box(
         modifier = Modifier
             .fillMaxSize()
