@@ -18,13 +18,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.SearchData
-import com.jetbrains.packagesearch.plugin.ui.models.buildPackageGroups
+import com.jetbrains.packagesearch.plugin.ui.models.buildDeclaredPackageGroups
+import com.jetbrains.packagesearch.plugin.ui.models.buildRemotePackageGroups
 import com.jetbrains.packagesearch.plugin.ui.models.buildSearchData
+import com.jetbrains.packagesearch.plugin.ui.models.plus
 import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageSearchInfoBox
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
 import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
@@ -39,7 +40,6 @@ import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
-import java.awt.Cursor
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -60,15 +60,16 @@ fun PackageSearchPackagePanel(
     var selectedModules by remember { mutableStateOf<List<PackageSearchModuleData>>(emptyList()) }
     var searchResults by remember(selectedModules) { mutableStateOf<SearchData.Results>(SearchData.Results.Empty) }
     val declaredPackageGroups by derivedStateOf {
-        buildPackageGroups(searchQuery) {
+        buildDeclaredPackageGroups(searchQuery) {
             setLocal(selectedModules)
         }
     }
     val remotePackageGroup by derivedStateOf {
-        buildPackageGroups(searchQuery) {
+        buildRemotePackageGroups(searchQuery) {
             setSearchResults(searchResults)
         }
     }
+
     val packageGroups by derivedStateOf {
         declaredPackageGroups + remotePackageGroup
     }
@@ -100,14 +101,14 @@ fun PackageSearchPackagePanel(
                 PackageSearchModulesTree(tree) { selectedModules = it }
             }
         }
-        defaultPKGSSplitter(splitterColor, cursor = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
+        defaultPKGSSplitter(splitterColor)
         second(500.dp) {
             if (isInfoBoxOpen) {
                 HorizontalSplitPane(Modifier.fillMaxSize(), innerSplitPaneState) {
                     first(minSize = 100.dp) {
                         PackageSearchCentralPanel()
                     }
-                    defaultPKGSSplitter(splitterColor, cursor = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
+                    defaultPKGSSplitter(splitterColor)
                     second(160.dp) {
                         Box {
                             Column(

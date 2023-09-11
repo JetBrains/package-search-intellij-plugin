@@ -38,6 +38,6 @@ data class PackageSearchGradleModule(
     ) = GradleInstallPackageData(
         apiPackage = apiPackage.asMavenApiPackage(),
         selectedVersion = selectedVersion,
-        selectedConfiguration = selectedScope ?: error("Scope is not selected")
+        selectedConfiguration = selectedScope ?: defaultConfiguration ?: error("Scope is not selected")
     )
 }

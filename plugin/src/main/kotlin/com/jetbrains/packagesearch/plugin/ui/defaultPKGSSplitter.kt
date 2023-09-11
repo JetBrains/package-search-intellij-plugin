@@ -10,10 +10,11 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.splitpane.SplitPaneScope
+import java.awt.Cursor
 
 fun SplitPaneScope.defaultPKGSSplitter(
     splitterColor: Color,
-    cursor: PointerIcon,
+    cursor: PointerIcon = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)),
     hidden: Boolean = false,
 ) {
     splitter {

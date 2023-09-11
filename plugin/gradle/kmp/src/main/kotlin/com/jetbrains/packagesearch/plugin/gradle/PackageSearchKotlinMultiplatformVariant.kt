@@ -71,9 +71,11 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     @Serializable
     data class DependenciesBlock(
         override val declaredDependencies: List<PackageSearchKotlinMultiplatformDeclaredDependency.Maven>,
-        override val attributes: List<String>,
         override val compatiblePackageTypes: List<PackagesType>,
     ) : PackageSearchKotlinMultiplatformVariant {
+
+        override val attributes: List<String>
+            get() = listOf(NAME)
 
         companion object {
             const val NAME = "dependencies block"
@@ -110,12 +112,14 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     @Serializable
     data class Cocoapods(
         override val declaredDependencies: List<PackageSearchKotlinMultiplatformDeclaredDependency.Cocoapods>,
-        override val attributes: List<String>,
         override val compatiblePackageTypes: List<PackagesType>,
     ) : PackageSearchKotlinMultiplatformVariant {
 
         override val isPrimary: Boolean
             get() = false
+
+        override val attributes: List<String>
+            get() = listOf(NAME)
 
         companion object {
             const val NAME = "cocoapods"

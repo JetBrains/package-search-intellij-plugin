@@ -1,3 +1,5 @@
+@file:Suppress("DialogTitleCapitalization")
+
 package com.jetbrains.packagesearch.plugin
 
 import androidx.compose.runtime.CompositionLocalProvider
@@ -7,6 +9,7 @@ import androidx.compose.runtime.setValue
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -29,21 +32,35 @@ import org.jetbrains.jewel.bridge.addComposeTab
 class PackageSearchToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         var isInfoBoxOpen by mutableStateOf(false)
-        toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(
-            listOf(
-                object : ToggleAction(
-                    PackageSearchBundle.message("packagesearch.actions.showDetails.text"),
-                    PackageSearchBundle.message("packagesearch.actions.showDetails.description"),
-                    AllIcons.Actions.PreviewDetails,
-                ) {
-                    override fun isSelected(e: AnActionEvent) = isInfoBoxOpen
-                    override fun setSelected(e: AnActionEvent, state: Boolean) {
-                        isInfoBoxOpen = state
-                    }
-                    override fun getActionUpdateThread() = ActionUpdateThread.BGT
-                },
-            ),
-        )
+        val toggleOnlyStableAction = object : ToggleAction(
+            PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable"),
+            PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable.description"),
+            AllIcons.Actions.PreviewDetails,
+        ) {
+            override fun isSelected(e: AnActionEvent) =
+                project.PackageSearchProjectService.isStableOnlyVersions.value
+
+            override fun setSelected(e: AnActionEvent, state: Boolean) {
+                project.PackageSearchProjectService.isStableOnlyVersions.value = state
+            }
+
+            override fun getActionUpdateThread() = ActionUpdateThread.BGT
+        }
+        val toggleInfoboxAction = object : ToggleAction(
+            PackageSearchBundle.message("packagesearch.actions.showDetails.text"),
+            PackageSearchBundle.message("packagesearch.actions.showDetails.description"),
+            AllIcons.Actions.PreviewDetails,
+        ) {
+            override fun isSelected(e: AnActionEvent) = isInfoBoxOpen
+            override fun setSelected(e: AnActionEvent, state: Boolean) {
+                isInfoBoxOpen = state
+            }
+
+            override fun getActionUpdateThread() = ActionUpdateThread.BGT
+        }
+        toolWindow.asSafely<ToolWindowEx>()?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
+        toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
+        System.setProperty("compose.swing.render.on.graphics", "true")
         toolWindow.addComposeTab("UX") {
             SwingBridgeTheme {
                 CompositionLocalProvider(

@@ -35,7 +35,7 @@ interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {
         get() = "$groupId:$artifactId"
 
     override val displayName: String
-        get() = remoteInfo?.name ?: "$groupId:$artifactId"
+        get() = remoteInfo?.name ?: artifactId
 }
 
 

@@ -7,8 +7,11 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 
-inline fun buildPackageGroups(searchFilter: String, builder: PackageGroupsBuilder.() -> Unit): List<PackageGroup> =
-    PackageGroupsBuilder(searchFilter).apply(builder).build()
+inline fun buildRemotePackageGroups(searchFilter: String, builder: PackageGroupsBuilder.() -> Unit) =
+    PackageGroupsBuilder(searchFilter).apply(builder).getRemotes()
+
+inline fun buildDeclaredPackageGroups(searchFilter: String, builder: PackageGroupsBuilder.() -> Unit) =
+    PackageGroupsBuilder(searchFilter).apply(builder).getDeclared()
 
 class PackageGroupsBuilder(private val searchQuery: String) {
 
@@ -121,13 +124,28 @@ class PackageGroupsBuilder(private val searchQuery: String) {
     }
 
     fun getDeclared() = Declared(declared)
-    fun getRemotes() = Remotes(remotes)
+
+    private val variantGroupComparator
+        get() = compareBy<PackageGroup.Remote> {
+            when (it) {
+                is PackageGroup.Remote.FromVariants -> it.badges.size
+                else -> 0
+            }
+        }
+            .thenBy {
+                when (it) {
+                    is PackageGroup.Remote.FromVariants -> it.compatibleVariants.joinToString()
+                    else -> ""
+                }
+            }
+
+    fun getRemotes() = Remotes(remotes.sortedWith(variantGroupComparator).reversed())
 }
 
-fun PackageGroupsBuilder.Declared.plus(remotes: PackageGroupsBuilder.Remotes) =
+operator fun PackageGroupsBuilder.Declared.plus(remotes: PackageGroupsBuilder.Remotes) =
     value + remotes.value
 
-fun PackageGroupsBuilder.Remotes.plus(declared: PackageGroupsBuilder.Declared) =
+operator fun PackageGroupsBuilder.Remotes.plus(declared: PackageGroupsBuilder.Declared) =
     declared.value + value
 
 fun findCommonStrings(lists: List<List<String>>): List<String> {
@@ -218,7 +236,7 @@ sealed interface PackageGroup {
         data class FromBaseModule(
             val module: PackageSearchModule.Base,
             override val packages: List<ApiPackage>,
-            val dependencyManager: PackageSearchDependencyManager
+            val dependencyManager: PackageSearchDependencyManager,
         ) : Remote {
             override val id: Id
                 get() = Id("Remote.FromBaseModule [module = ${module.identity}]")
@@ -231,7 +249,7 @@ sealed interface PackageGroup {
             override val packages: List<ApiPackage>,
             val badges: List<String>,
             val compatibleVariants: List<PackageSearchModuleVariant>,
-            val dependencyManager: PackageSearchDependencyManager
+            val dependencyManager: PackageSearchDependencyManager,
         ) : Remote {
             override val id: Id
                 get() = Id("Remote.FromVariant [module = ${module.identity}, variants = ${compatibleVariants.joinToString { it.name }}]")

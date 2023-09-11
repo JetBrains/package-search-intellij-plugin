@@ -8,16 +8,18 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
-import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
-import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.*
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Android
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Common
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Js
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Jvm
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Native
+import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Wasm
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoProvider
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppDataNodeProcessor
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
-import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
@@ -25,6 +27,8 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.kotlinMultiplatform
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
 
@@ -66,7 +70,6 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
         val dependenciesBlockVariant = async {
             PackageSearchKotlinMultiplatformVariant.DependenciesBlock(
                 declaredDependencies = getDeclaredDependencies(context).asKmpVariantDependencies(),
-                attributes = emptyList(),
                 compatiblePackageTypes = buildPackageTypes {
                     mavenPackages()
                     gradlePackages {
@@ -166,7 +169,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                                                 Js.Compiler.LEGACY -> jsLegacy()
                                             }
 
-                                            is Native -> native(compilationTarget.platformId)
+                                            is Native -> native(compilationTarget.target)
                                             else -> {}
                                         }
                                     }
