@@ -7,7 +7,11 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlText
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
@@ -16,6 +20,7 @@ import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
+import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
@@ -26,15 +31,19 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.idea.maven.dom.MavenDomUtil
 import org.jetbrains.idea.maven.project.MavenProject
 import org.jetbrains.idea.maven.project.MavenProjectsManager
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
+import org.jetbrains.packagesearch.maven.ProjectObjectModel
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import java.io.File
 import com.intellij.openapi.module.Module as NativeModule
 
 class MavenDependencyModel(
@@ -42,7 +51,7 @@ class MavenDependencyModel(
     val artifactId: String,
     val version: String?,
     val scope: String?,
-    val indexes: DependencyDeclarationIndexes
+    val indexes: DependencyDeclarationIndexes,
 ) {
 
     val packageId
@@ -95,13 +104,27 @@ class MavenModuleProvider : PackageSearchModuleProvider {
                 .mapUnit()
         )
 
+        private fun buildMavenParentHierarchy(pomFile: File): String {
+            val pom = XML.decodeFromString<ProjectObjectModel>(pomFile.readText())
+            val parentFile = pom.parent?.relativePath
+                ?.let { pomFile.parentFile.resolve(it) }
+                ?: return ":"
+            val projectName = pom.name ?: pom.artifactId ?: pomFile.parentFile.name
+            val parentHierarchy = buildMavenParentHierarchy(parentFile)
+            return parentHierarchy.suffixIfNot(":") + projectName
+        }
+
         suspend fun Module.toPackageSearch(
             context: PackageSearchModuleBuilderContext,
-            mavenProject: MavenProject
+            mavenProject: MavenProject,
         ): PackageSearchMavenModule {
             val declaredDependencies = getDeclaredDependencies(context)
             return PackageSearchMavenModule(
                 name = mavenProject.name ?: name,
+                identity = PackageSearchModule.Identity(
+                    group = "maven",
+                    path = buildMavenParentHierarchy(mavenProject.file.asRegularFile())
+                ),
                 buildFilePath = mavenProject.file.path,
                 declaredKnownRepositories = getDeclaredKnownRepositories(context),
                 declaredDependencies = declaredDependencies,
@@ -176,6 +199,7 @@ class MavenModuleProvider : PackageSearchModuleProvider {
                         artifactId = declaredDependency.artifactId,
                         scope = declaredDependency.scope,
                         declarationIndexes = declaredDependency.indexes,
+                        icon = remoteInfo[packageId]?.getIcon(declaredDependency.version) ?: Icons.MAVEN
                     )
                 }
         }
@@ -206,4 +230,6 @@ class MavenModuleProvider : PackageSearchModuleProvider {
             )
         }
 }
+
+
 

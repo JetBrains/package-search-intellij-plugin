@@ -4,16 +4,16 @@ package com.intellij.packageSearch.mppDependencyUpdater.resolved
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.BaseProjectDirectories.Companion.getBaseDirectories
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import org.gradle.plugins.ide.eclipse.model.Project
 
 object MppCompilationInfoProvider {
-  // Get a map of which source set is consumed by which compilation
-  fun sourceSetsMap(module: Module): Map<MppCompilationInfoModel.SourceSet, Set<MppCompilationInfoModel.Compilation>>? {
-    val projectPath = module.project.getBaseDirectories().firstOrNull()?.canonicalPath ?: return null
-
-    val model = module.project
-                  .service<MppDataNodeProcessor.Cache>()
-                  .state[projectPath] ?: return null
-
-    return model.compilationsBySourceSet
-  }
+    fun sourceSetsMap(project: com.intellij.openapi.project.Project, projectPath: String): Flow<MppCompilationInfoModel> {
+        return project.service<MppDataNodeProcessor.Cache>()
+            .state
+            .mapNotNull { it[projectPath] }
+    }
 }

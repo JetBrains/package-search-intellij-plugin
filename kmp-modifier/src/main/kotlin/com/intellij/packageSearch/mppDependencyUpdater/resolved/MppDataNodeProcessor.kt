@@ -15,6 +15,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.readBytes
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
@@ -40,8 +41,7 @@ class MppDataNodeProcessor : AbstractProjectDataService<MppCompilationInfoModel,
         .also { if (!it.exists()) it.createDirectories() }
         .resolve("gradlempp.proto.bin")
 
-    var state = load()
-      internal set
+    val state = MutableStateFlow(load())
 
     private fun load(): Map<String, MppCompilationInfoModel> =
       cacheFile.takeIf { it.exists() }
@@ -54,7 +54,7 @@ class MppDataNodeProcessor : AbstractProjectDataService<MppCompilationInfoModel,
       ?: emptyMap()
 
     override fun dispose() {
-      cacheFile.writeBytes(ProtoBuf.encodeToByteArray(state))
+      cacheFile.writeBytes(ProtoBuf.encodeToByteArray(state.value))
     }
   }
 
@@ -64,7 +64,7 @@ class MppDataNodeProcessor : AbstractProjectDataService<MppCompilationInfoModel,
     project: Project,
     modelsProvider: IdeModifiableModelsProvider
   ) {
-    project.service<Cache>().state = toImport.associate { it.data.projectDir to it.data }
+    project.service<Cache>().state.value = toImport.associate { it.data.projectDir to it.data }
     super.importData(toImport, projectData, project, modelsProvider)
   }
 }

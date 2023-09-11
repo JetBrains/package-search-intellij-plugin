@@ -75,14 +75,8 @@ fun openLinkInBrowser(url: String) {
 }
 
 
-@Composable
 fun pickComposeColorFromLaf(key: String) =
-    LocalProjectService.current.project.messageBus
-        .flow(LafManagerListener.TOPIC) {
-            LafManagerListener {
-                trySend(UIManager.getLookAndFeelDefaults().getComposeColor(key) ?: Color.Unspecified)
-            }
-        }.collectAsState(UIManager.getLookAndFeelDefaults().getComposeColor(key) ?: Color.Unspecified)
+    UIManager.getLookAndFeelDefaults().getComposeColor(key) ?: Color.Unspecified
 
 
 fun isLightTheme(): Boolean {

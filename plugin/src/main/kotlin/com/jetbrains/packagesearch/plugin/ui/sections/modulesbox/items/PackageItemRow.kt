@@ -70,7 +70,7 @@ fun PackageQuality.getIconResourcePath() = "icons/intui/quality/${name.lowercase
 internal fun DeclaredPackageMoreActionPopup(
     dependencyManager: PackageSearchDependencyManager,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    borderColor: Color = pickComposeColorFromLaf("OnePixelDivider.background").value,
+    borderColor: Color = pickComposeColorFromLaf("OnePixelDivider.background"),
     onDismissRequest: () -> Unit,
 ) {
     val context = LocalProjectService.current
@@ -168,8 +168,8 @@ fun PackageRow(
                 }
                 var hovered by remember(key1 = actionPopupId) { mutableStateOf(false) }
                 var globalPopupId by LocalGlobalPopupIdState.current
-                val bgColor by pickComposeColorFromLaf("ActionButton.hoverBackground")
-                val borderColor by pickComposeColorFromLaf("ActionButton.hoverBorderColor")
+                val bgColor = pickComposeColorFromLaf("ActionButton.hoverBackground")
+                val borderColor = pickComposeColorFromLaf("ActionButton.hoverBorderColor")
                 Box(
                     Modifier
                         .defaultMinSize(16.dp, 16.dp)
@@ -205,9 +205,9 @@ fun PackageRow(
                             contentDescription = null,
                         )
                         if (globalPopupId == actionPopupId) {
-                            val borderColor by pickComposeColorFromLaf("OnePixelDivider.background")
+                            val borderColor = pickComposeColorFromLaf("OnePixelDivider.background")
 
-                            val bgColor by pickComposeColorFromLaf("PopupMenu.background")
+                            val bgColor = pickComposeColorFromLaf("PopupMenu.background")
                             val contentOffsetX = with(LocalDensity.current) { 184.dp.toPx() + 1 }
 
                             Popup(

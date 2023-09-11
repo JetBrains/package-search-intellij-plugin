@@ -2,6 +2,7 @@ package com.jetbrains.packagesearch.plugin.ui.models
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 
 typealias Content = @Composable () -> Unit
 
@@ -23,7 +24,7 @@ sealed interface PackageSearchPackageListItem {
 
     @Stable
     data class Package(
-        val iconPath: String,
+        val icon: IconProvider.Icon,
         val title: String,
         val id: String,
         val subtitle: String? = null,

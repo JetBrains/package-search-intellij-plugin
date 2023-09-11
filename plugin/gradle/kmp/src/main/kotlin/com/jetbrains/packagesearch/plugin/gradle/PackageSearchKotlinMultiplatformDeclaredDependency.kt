@@ -36,10 +36,9 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val groupId: String,
         override val artifactId: String,
         override val variantName: String,
+        override val icon: IconProvider.Icon,
         val configuration: String,
     ) : PackageSearchKotlinMultiplatformDeclaredDependency(), PackageSearchDeclaredMavenPackage {
-        override val lightIconPath: String
-            get() = IconProvider.Icons.MAVEN
         override val scope
             get() = configuration
     }
@@ -56,7 +55,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val displayName: String,
         val name: String
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
-        override val lightIconPath: String
+        override val icon
             get() = IconProvider.Icons.COCOAPODS
 
         override val scope: String? = null
@@ -78,7 +77,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val displayName: String,
         val name: String
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
-        override val lightIconPath: String
+        override val icon
             get() = IconProvider.Icons.NPM
         override val scope: String
             get() = configuration

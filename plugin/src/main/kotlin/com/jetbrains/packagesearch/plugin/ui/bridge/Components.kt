@@ -33,8 +33,7 @@ fun LabelInfo(
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current,
 ) {
-    val textColor by
-        pickComposeColorFromLaf("TextField.inactiveForeground")
+    val textColor = pickComposeColorFromLaf("TextField.inactiveForeground")
     Text(
         text = text,
         modifier = modifier,

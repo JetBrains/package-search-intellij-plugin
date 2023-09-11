@@ -32,6 +32,7 @@ data class MavenRemovePackageData(
 @SerialName("maven")
 data class PackageSearchMavenModule(
     override val name: String,
+    override val identity: PackageSearchModule.Identity,
     override val buildFilePath: String,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
     override val declaredDependencies: List<PackageSearchDeclaredBaseMavenPackage>,
@@ -40,10 +41,9 @@ data class PackageSearchMavenModule(
     override val compatiblePackageTypes: List<PackagesType>
 ) : PackageSearchModule.Base {
 
-    override val lightIconPath
+    override val icon
         get() = Icons.MAVEN
 
-    override val identity = PackageSearchModule.Identity("maven", name)
 
     override fun getInstallData(
         apiPackage: ApiPackage,

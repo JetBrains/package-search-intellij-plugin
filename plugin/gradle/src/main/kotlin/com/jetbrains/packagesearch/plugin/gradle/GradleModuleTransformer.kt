@@ -20,6 +20,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.collectIn
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
+import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
@@ -30,6 +31,7 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.gradleSyncNotifierFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
@@ -40,6 +42,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.transform
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -76,7 +79,7 @@ class GradleDependencyModel(
         var result = groupId.hashCode()
         result = 31 * result + artifactId.hashCode()
         result = 31 * result + (version?.hashCode() ?: 0)
-        result = 31 * result + (configuration?.hashCode() ?: 0)
+        result = 31 * result + (configuration.hashCode())
         return result
     }
 }
@@ -184,7 +187,8 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                         latestVersion = remoteInfo[declaredDependency.packageId]?.versions?.latest?.normalized
                             ?: NormalizedVersion.Missing,
                         remoteInfo = remoteInfo[declaredDependency.packageId]?.asMavenApiPackage(),
-                        lightIconPath = Icons.GRADLE_LIGHT,
+                        icon = remoteInfo[declaredDependency.packageId]?.getIcon(declaredDependency.version)
+                            ?: Icons.MAVEN,
                         module = declaredDependency.groupId,
                         name = declaredDependency.artifactId,
                         configuration = declaredDependency.configuration,
@@ -242,14 +246,15 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                         .collectIn(this)
                 }
             }
-            .map { (model, buildFile) ->
-                nativeModule.transform(context, model, buildFile)
+            .transform { (model, buildFile) ->
+                transform(nativeModule, context, model, buildFile)
             }
     }
 
-    abstract suspend fun Module.transform(
+    abstract suspend fun FlowCollector<PackageSearchModuleData?>.transform(
+        module: Module,
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
         buildFile: Path?,
-    ): PackageSearchModuleData?
+    )
 }

@@ -21,6 +21,6 @@ intellij {
 }
 
 dependencies {
-    api(projects.plugin.core)
-    compileOnly(packageSearchCatalog.kotlinx.serialization.core)
+    implementation(projects.plugin.core)
+    implementation(packageSearchCatalog.packagesearch.build.systems.models)
 }

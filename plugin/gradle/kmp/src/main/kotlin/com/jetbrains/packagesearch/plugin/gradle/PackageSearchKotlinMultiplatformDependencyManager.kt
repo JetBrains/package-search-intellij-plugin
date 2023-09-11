@@ -5,7 +5,6 @@ import com.intellij.packageSearch.mppDependencyUpdater.MppDependency
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.MppModifierUpdateData
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
-import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager

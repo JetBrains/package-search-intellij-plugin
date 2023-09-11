@@ -37,7 +37,7 @@ fun PackageGroupHeader(
     Row(
         modifier
             .fillMaxWidth()
-            .background(pickComposeColorFromLaf("Plugins.SectionHeader.background").value)
+            .background(pickComposeColorFromLaf("Plugins.SectionHeader.background"))
             .padding(start = 8.dp, end = 2.dp)
             .height(28.dp),
         horizontalArrangement = SpaceBetween,
@@ -63,15 +63,13 @@ fun PackageGroupHeader(
                 text = groupSize.toString(),
             )
             if (badges.isNotEmpty()) {
-                Row(
+                Box(
                     modifier = Modifier.onClick { onBadgesClick() },
-                    verticalAlignment = Alignment.CenterVertically,
+                    contentAlignment = Alignment.Center,
                 ) {
-                    badges.forEach {
-                        LabelInfo(
-                            text = it,
-                        )
-                    }
+                    LabelInfo(
+                        text = badges.joinToString(" "),
+                    )
                 }
             }
         }

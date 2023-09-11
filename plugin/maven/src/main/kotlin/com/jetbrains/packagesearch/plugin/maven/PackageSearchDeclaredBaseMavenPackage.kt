@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.maven
 
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
@@ -19,7 +20,8 @@ data class PackageSearchDeclaredBaseMavenPackage(
     override val declarationIndexes: DependencyDeclarationIndexes,
     override val groupId: String,
     override val artifactId: String,
-    override val scope: String? = null
+    override val scope: String? = null,
+    override val icon: IconProvider.Icon
 ) : PackageSearchDeclaredMavenPackage {
 
     override fun getUpdateData(newVersion: String?, newScope: String?) =
@@ -32,6 +34,4 @@ data class PackageSearchDeclaredBaseMavenPackage(
     override fun getRemoveData() =
         MavenRemovePackageData(this)
 
-    override val lightIconPath
-        get() = Icons.MAVEN
 }

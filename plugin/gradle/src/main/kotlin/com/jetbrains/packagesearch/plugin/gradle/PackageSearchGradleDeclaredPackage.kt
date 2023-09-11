@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
@@ -16,7 +17,7 @@ data class PackageSearchGradleDeclaredPackage(
     override val latestVersion: NormalizedVersion,
     override val remoteInfo: ApiMavenPackage?,
     override val declarationIndexes: DependencyDeclarationIndexes,
-    override val lightIconPath: String,
+    override val icon: IconProvider.Icon,
     val module: String,
     val name: String,
     val configuration: String

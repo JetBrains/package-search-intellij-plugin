@@ -1,18 +1,19 @@
 package com.jetbrains.packagesearch.plugin.core.data
 
+import kotlinx.serialization.Serializable
+
 interface IconProvider {
 
+    @Serializable
+    data class Icon(val lightIconPath: String, val darkIconPath: String = lightIconPath)
+
     object Icons {
-        const val MAVEN = "icons/repositoryLibraryLogo.svg"
-        const val GRADLE_LIGHT = "icons/expui/gradle.svg"
-        const val GRADLE_DARK = "icons/expui/gradle_dark.svg"
-        const val COCOAPODS = "icons/cocoapods.svg"
-        const val NPM = "icons/npm.svg"
-        const val KOTLIN = "org/jetbrains/kotlin/idea/icons/kotlin.svg"
+        val MAVEN = Icon("icons/repositoryLibraryLogo.svg")
+        val GRADLE = Icon("icons/expui/gradle.svg", "icons/expui/gradle_dark.svg")
+        val COCOAPODS = Icon("icons/cocoapods.svg")
+        val NPM = Icon("icons/npm.svg")
+        val KOTLIN = Icon("org/jetbrains/kotlin/idea/icons/kotlin.svg")
     }
 
-    val lightIconPath: String
-
-    val darkIconPath: String
-        get() = lightIconPath
+    val icon: Icon
 }

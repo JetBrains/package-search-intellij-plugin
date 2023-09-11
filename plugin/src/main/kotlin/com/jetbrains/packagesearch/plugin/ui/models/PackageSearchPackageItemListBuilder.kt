@@ -4,10 +4,11 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
+import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.getLatestVersion
-import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.latestVersion
 
 class PackageSearchPackageItemListBuilder {
     private val list = mutableListOf<PackageSearchPackageListItem>()
@@ -32,7 +33,7 @@ class PackageSearchPackageItemListBuilder {
     )
 
     fun addPackage(
-        iconPath: String,
+        icon: IconProvider.Icon,
         title: String,
         subtitle: String? = null,
         id: String,
@@ -42,7 +43,7 @@ class PackageSearchPackageItemListBuilder {
         infoBoxDetail: InfoBoxDetail.Package,
     ) = list.add(
         PackageSearchPackageListItem.Package(
-            iconPath = iconPath,
+            icon = icon,
             title = title,
             subtitle = subtitle,
             id = id,
@@ -57,7 +58,6 @@ class PackageSearchPackageItemListBuilder {
         group: PackageGroup.Declared,
         isExpanded: Boolean,
         isStableOnly: Boolean,
-        isDarkTheme: Boolean
     ) {
         addHeader(
             title = if (group is PackageGroup.Declared.FromVariant) group.variant.name else group.module.name,
@@ -83,7 +83,7 @@ class PackageSearchPackageItemListBuilder {
         if (isExpanded) {
             group.filteredDependencies.forEach { declaredDependency ->
                 addPackage(
-                    iconPath = if (isDarkTheme) declaredDependency.darkIconPath else declaredDependency.lightIconPath,
+                    icon = declaredDependency.icon,
                     title = declaredDependency.displayName,
                     subtitle = when {
                         group is PackageGroup.Declared.FromModuleWithVariantsCompact
@@ -106,7 +106,6 @@ class PackageSearchPackageItemListBuilder {
                         }
                     },
                     popupContent = {
-
                         PackageActionLink("Remove") {
                             group.dependencyManager.removeDependency(
                                 it,
@@ -145,36 +144,52 @@ class PackageSearchPackageItemListBuilder {
         if (isGroupExpanded) {
             group.packages.forEach { apiPackage ->
                 addPackage(
-                    when (apiPackage) {
-                        is ApiMavenPackage -> IconProvider.Icons.MAVEN
-                    },
-                    apiPackage.name ?: apiPackage.coordinates,
-                    apiPackage.coordinates.takeIf { apiPackage.name != null },
+                    icon = apiPackage.getIcon(),
+                    title = apiPackage.name ?: apiPackage.coordinates,
+                    subtitle = apiPackage.coordinates.takeIf { apiPackage.name != null },
+                    id = "${group.id} ${apiPackage.id}",
                     mainActionContent = {
-                        PackageActionLink("Add") {
-                            val latestVersion = apiPackage.getLatestVersion(isStableOnly).versionName
-                            when (group) {
-                                is PackageGroup.Remote.FromBaseModule ->
-                                    group.dependencyManager.addDependency(
-                                        context = it,
-                                        data = group.module.getInstallData(
-                                            apiPackage = apiPackage,
-                                            selectedVersion = latestVersion,
-                                            selectedScope = group.module.defaultScope
-                                        )
-                                    )
-
-                                is PackageGroup.Remote.FromVariants -> group.dependencyManager.addDependency(
+                        val latestVersion = apiPackage.latestVersion.versionName
+                        when (group) {
+                            is PackageGroup.Remote.FromBaseModule -> PackageActionLink("Add") {
+                                group.dependencyManager.addDependency(
                                     context = it,
-                                    data = group.compatibleVariants.first { it.isPrimary }
-                                        .getInstallData(
-                                            apiPackage = apiPackage,
-                                            selectedVersion = latestVersion,
-                                            selectedScope = group.module.defaultScope
-                                        )
+                                    data = group.module.getInstallData(
+                                        apiPackage = apiPackage,
+                                        selectedVersion = latestVersion,
+                                        selectedScope = group.module.defaultScope
+                                    )
                                 )
+                            }
 
-                                is PackageGroup.Remote.FromMultipleModules -> group.moduleData
+                            is PackageGroup.Remote.FromVariants -> {
+                                val firstPrimaryVariant =
+                                    group.compatibleVariants.firstOrNull { it.isPrimary }
+                                        ?: group.compatibleVariants.firstOrNull()
+                                        ?: return@addPackage
+                                val compatibleVersion = apiPackage.versions
+                                    .all
+                                    .asSequence()
+                                    .filter { if (isStableOnly) it.value.normalized.isStable else true }
+                                    .firstOrNull { firstPrimaryVariant.isCompatible(apiPackage, it.key) }
+                                    ?.key
+                                if (compatibleVersion != null) {
+                                    PackageActionLink("Add") {
+                                        group.dependencyManager.addDependency(
+                                            context = it,
+                                            data = firstPrimaryVariant
+                                                .getInstallData(
+                                                    apiPackage = apiPackage,
+                                                    selectedVersion = compatibleVersion,
+                                                    selectedScope = group.module.defaultScope
+                                                )
+                                        )
+                                    }
+                                }
+                            }
+
+                            is PackageGroup.Remote.FromMultipleModules -> PackageActionLink("Add") {
+                                group.moduleData
                                     .forEach { (module, dependencyManager) ->
                                         dependencyManager.addDependency(
                                             context = it,
@@ -198,7 +213,6 @@ class PackageSearchPackageItemListBuilder {
                             }
                         }
                     },
-                    id = "${group.id} ${apiPackage.id}",
                     infoBoxDetail = InfoBoxDetail.Package.RemotePackage(apiPackage)
                 )
             }

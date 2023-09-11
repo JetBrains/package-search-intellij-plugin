@@ -75,7 +75,7 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     ) : PackageSearchKotlinMultiplatformVariant {
 
         override val attributes: List<String>
-            get() = listOf(NAME)
+            get() = emptyList()
 
         companion object {
             const val NAME = "dependencies block"

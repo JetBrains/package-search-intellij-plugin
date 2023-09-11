@@ -47,7 +47,7 @@ fun PackageSearchModulesTree(
             Icon(
                 modifier = Modifier.size(16.dp),
                 painter = painterResource(
-                    if (isDarkTheme) it.data.module.darkIconPath else it.data.module.lightIconPath,
+                    if (isDarkTheme) it.data.module.icon.darkIconPath else it.data.module.icon.lightIconPath,
                     LocalResourceLoader.current
                 ),
                 contentDescription = null,

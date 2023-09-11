@@ -48,7 +48,6 @@ fun PackageSearchPackageList(
     onElementClick: (InfoBoxDetail?) -> Unit,
 ) {
     val isStableOnly by LocalIsOnlyStableVersions.current.collectAsState()
-    val isDarkTheme = LocalIsDarkTheme.current
     val items = remember(packageGroups, packageGroupState.size) {
         buildPackageSearchPackageItemList {
             packageGroups.forEach { group ->
@@ -56,8 +55,7 @@ fun PackageSearchPackageList(
                     is PackageGroup.Declared -> addFromDeclaredGroup(
                         group = group,
                         isExpanded = group.id !in packageGroupState,
-                        isStableOnly = isStableOnly,
-                        isDarkTheme = isDarkTheme
+                        isStableOnly = isStableOnly
                     )
 
                     is PackageGroup.Remote -> addFromRemoteGroup(
@@ -135,7 +133,10 @@ fun PackageSearchPackageList(
                         isActive = isActive,
                         isSelected = isSelected,
                         isCompact = isInfoBoxOpen,
-                        packageIcon = painterResource(item.iconPath, LocalResourceLoader.current),
+                        packageIcon = painterResource(
+                            resourcePath = if (LocalIsDarkTheme.current) item.icon.darkIconPath else item.icon.lightIconPath,
+                            loader = LocalResourceLoader.current
+                        ),
                         actionPopupId = item.id,
                         packageNameContent = {
                             Text(item.title)

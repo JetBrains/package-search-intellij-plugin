@@ -24,6 +24,7 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
@@ -144,3 +145,10 @@ fun ApiPackage.asMavenApiPackage() =
         "Package $id is of type '${this::class.simpleName}' " +
                 "instead of '${ApiMavenPackage::class.simpleName}'"
     )
+
+fun ApiPackage.getIcon(forVersion: String? = null): IconProvider.Icon = when (this) {
+    is ApiMavenPackage -> when (versions.all[forVersion] ?: versions.latest) {
+        is ApiMavenPackage.GradleVersion -> IconProvider.Icons.GRADLE
+        else -> IconProvider.Icons.MAVEN
+    }
+}

@@ -33,7 +33,7 @@ fun PackageSearchCentralPanel(
         if (isLoading) {
             IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
         } else {
-            Divider(Modifier.fillMaxWidth(), color = pickComposeColorFromLaf("Borders.color").value)
+            Divider(Modifier.fillMaxWidth(), color = pickComposeColorFromLaf("Borders.color"))
             Box(
                 modifier = Modifier.fillMaxWidth()
                     .height(IntelliJTheme.horizontalProgressBarStyle.metrics.minHeight),

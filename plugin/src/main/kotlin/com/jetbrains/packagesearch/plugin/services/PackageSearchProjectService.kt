@@ -20,6 +20,7 @@ import com.jetbrains.packagesearch.plugin.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.utils.getNativeModulesStateFlow
 import com.jetbrains.packagesearch.plugin.utils.getRepositories
 import com.jetbrains.packagesearch.plugin.utils.interval
+import com.jetbrains.packagesearch.plugin.utils.logWarn
 import com.jetbrains.packagesearch.plugin.utils.replayOn
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
 import kotlinx.coroutines.CoroutineScope
