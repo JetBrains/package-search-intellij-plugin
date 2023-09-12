@@ -47,7 +47,7 @@ fun PackageGroupHeader(
             .fillMaxWidth()
             .background(backgroundColor)
             .padding(start = 8.dp, end = 2.dp)
-            .height(28.dp),
+            .height(24.dp),
         horizontalArrangement = SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

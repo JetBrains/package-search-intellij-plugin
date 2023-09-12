@@ -3,7 +3,6 @@ package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,7 +13,6 @@ import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
 import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
-import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 
@@ -36,24 +34,19 @@ fun PackageSearchCentralPanel(
                 .sumOf { it.size },
             onSearchQueryChange = onSearchQueryChange,
         )
+        Divider(Modifier.fillMaxWidth(), color = borderColor)
 
-        if (isLoading) {
-            IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
-        } else {
-            Divider(Modifier.fillMaxWidth(), color = borderColor)
-            Box(
-                modifier = Modifier.fillMaxWidth()
-                    .height(IntelliJTheme.horizontalProgressBarStyle.metrics.minHeight),
-            )
+        Box {
+            if (isLoading) IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
+            when {
+                packageGroups.isEmpty() && !isLoading -> NoResultsToShow()
+                packageGroups.isNotEmpty() -> PackageSearchPackageList(
+                    packageGroups = packageGroups,
+                    isInfoBoxOpen = isInfoBoxOpen,
+                    onElementClick = onElementClick,
+                )
+            }
         }
 
-        when {
-            packageGroups.isEmpty() && !isLoading -> NoResultsToShow()
-            packageGroups.isNotEmpty() -> PackageSearchPackageList(
-                packageGroups = packageGroups,
-                isInfoBoxOpen = isInfoBoxOpen,
-                onElementClick = onElementClick,
-            )
-        }
     }
 }

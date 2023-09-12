@@ -46,8 +46,8 @@ import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import kotlinx.coroutines.delay
 import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.Icon
@@ -184,7 +184,7 @@ fun PackageRow(
                                 .border(1.dp, borderColor)
                         }
                         .appendIf(popupContent != null) {
-                            pointerInput(key1 = actionPopupId) {
+                            pointerInput(key1 = actionPopupId, key2 = IntelliJTheme.globalColors ) {
                                 awaitPointerEventScope {
                                     while (true) {
                                         val event = awaitPointerEvent()
