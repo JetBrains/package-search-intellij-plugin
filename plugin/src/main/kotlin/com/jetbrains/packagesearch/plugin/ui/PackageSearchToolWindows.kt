@@ -1,6 +1,5 @@
 package com.jetbrains.packagesearch.plugin.ui
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,16 +8,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.services.ModulesState
 import com.jetbrains.packagesearch.plugin.ui.bridge.asTree
-import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
+import org.jetbrains.jewel.bridge.toComposeColor
+import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 
 @Composable
 fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
-    val backgroundColor = pickComposeColorFromLaf("Tree.background")
+
+    val backgroundColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.PanelBackground.toComposeColor()) }
     Box(
         modifier = Modifier
             .fillMaxSize()

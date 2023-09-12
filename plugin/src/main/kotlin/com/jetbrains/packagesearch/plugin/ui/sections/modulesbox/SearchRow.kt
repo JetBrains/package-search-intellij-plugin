@@ -23,12 +23,14 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import com.intellij.ui.JBColor
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.TextField
+import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.painterResource
+import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 import org.jetbrains.jewel.util.pxToDp
 import java.awt.Cursor
 
@@ -38,7 +40,7 @@ fun SearchRow(
     searchResultsCount: Int,
     onSearchQueryChange: (String) -> Unit,
 ) {
-    val borderColor = pickComposeColorFromLaf("IntelliJTheme.colors.borders.disabled")
+    val borderColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
     Row(
         modifier = Modifier
             .fillMaxWidth()

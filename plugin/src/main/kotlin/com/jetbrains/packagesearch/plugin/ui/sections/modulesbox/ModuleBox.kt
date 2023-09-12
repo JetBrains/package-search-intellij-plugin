@@ -5,13 +5,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
 import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.IntelliJTheme
+import org.jetbrains.jewel.bridge.toComposeColor
+import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 
 @Composable
 fun PackageSearchCentralPanel(
@@ -22,6 +27,8 @@ fun PackageSearchCentralPanel(
     onElementClick: (InfoBoxDetail?) -> Unit = {},
     onSearchQueryChange: (String) -> Unit = {},
 ) {
+    val borderColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
+
     Column {
         SearchRow(
             searchQuery = searchQuery,
@@ -33,7 +40,7 @@ fun PackageSearchCentralPanel(
         if (isLoading) {
             IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
         } else {
-            Divider(Modifier.fillMaxWidth(), color = pickComposeColorFromLaf("Borders.color"))
+            Divider(Modifier.fillMaxWidth(), color = borderColor)
             Box(
                 modifier = Modifier.fillMaxWidth()
                     .height(IntelliJTheme.horizontalProgressBarStyle.metrics.minHeight),

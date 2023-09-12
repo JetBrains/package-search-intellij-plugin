@@ -4,6 +4,7 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
 import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
@@ -106,12 +107,10 @@ class PackageSearchPackageItemListBuilder {
                         }
                     },
                     popupContent = {
-                        PackageActionLink("Remove") {
-                            group.dependencyManager.removeDependency(
-                                it,
-                                declaredDependency.getRemoveData()
-                            )
-                        }
+                        DeclaredPackageMoreActionPopup(
+                            group.dependencyManager,
+                            declaredDependency,
+                        )
                     }
                 )
             }

@@ -70,10 +70,10 @@ fun PackageQuality.getIconResourcePath() = "icons/intui/quality/${name.lowercase
 internal fun DeclaredPackageMoreActionPopup(
     dependencyManager: PackageSearchDependencyManager,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    borderColor: Color = pickComposeColorFromLaf("OnePixelDivider.background"),
-    onDismissRequest: () -> Unit,
+    borderColor: Color = pickComposeColorFromLaf("OnePixelDivider.background").value,
 ) {
     val context = LocalProjectService.current
+    val popupOpenStatus = LocalGlobalPopupIdState.current
     Column(
         Modifier
             .padding(vertical = 4.dp, horizontal = 12.dp),
@@ -101,7 +101,7 @@ internal fun DeclaredPackageMoreActionPopup(
                             packageSearchDeclaredPackage.getRemoveData(),
                         )
                     }
-                        .invokeOnCompletion { onDismissRequest() }
+                        .invokeOnCompletion { popupOpenStatus.value = null }
                 },
             )
         }
@@ -168,8 +168,8 @@ fun PackageRow(
                 }
                 var hovered by remember(key1 = actionPopupId) { mutableStateOf(false) }
                 var globalPopupId by LocalGlobalPopupIdState.current
-                val bgColor = pickComposeColorFromLaf("ActionButton.hoverBackground")
-                val borderColor = pickComposeColorFromLaf("ActionButton.hoverBorderColor")
+                val bgColor by pickComposeColorFromLaf("ActionButton.hoverBackground")
+                val borderColor by pickComposeColorFromLaf("ActionButton.hoverBorderColor")
                 Box(
                     Modifier
                         .defaultMinSize(16.dp, 16.dp)
@@ -207,7 +207,8 @@ fun PackageRow(
                         if (globalPopupId == actionPopupId) {
                             val borderColor = pickComposeColorFromLaf("OnePixelDivider.background")
 
-                            val bgColor = pickComposeColorFromLaf("PopupMenu.background")
+                            val bgColor by pickComposeColorFromLaf("ToolWindow.background")
+
                             val contentOffsetX = with(LocalDensity.current) { 184.dp.toPx() + 1 }
 
                             Popup(

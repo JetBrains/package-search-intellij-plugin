@@ -18,8 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.SearchData
 import com.jetbrains.packagesearch.plugin.ui.models.buildDeclaredPackageGroups
@@ -37,7 +37,9 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.compose.splitpane.HorizontalSplitPane
 import org.jetbrains.compose.splitpane.rememberSplitPaneState
 import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.tree.Tree
+import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 import kotlin.time.Duration.Companion.milliseconds
@@ -52,7 +54,8 @@ fun PackageSearchPackagePanel(
 
     val splitPaneState = rememberSplitPaneState(.20f)
     val innerSplitPaneState = rememberSplitPaneState(.80f)
-    val splitterColor = pickComposeColorFromLaf("Borders.color")
+    val splitterColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
+
     val infoBoxScrollState = rememberScrollState()
 
     var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }

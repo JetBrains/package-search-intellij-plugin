@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import org.jetbrains.jewel.Icon
+import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.painterResource
@@ -34,10 +36,17 @@ fun PackageGroupHeader(
     onBadgesClick: () -> Unit = { },
     rightContent: (@Composable () -> Unit)? = null,
 ) {
+    val backgroundColor by
+    if (IntelliJTheme.isDark) {
+        pickComposeColorFromLaf("ToolWindow.HeaderTab.selectedInactiveBackground")
+    } else {
+        pickComposeColorFromLaf("Tree.selectionInactiveBackground")
+    }
+
     Row(
         modifier
             .fillMaxWidth()
-            .background(pickComposeColorFromLaf("Plugins.SectionHeader.background"))
+            .background(backgroundColor)
             .padding(start = 8.dp, end = 2.dp)
             .height(28.dp),
         horizontalArrangement = SpaceBetween,
