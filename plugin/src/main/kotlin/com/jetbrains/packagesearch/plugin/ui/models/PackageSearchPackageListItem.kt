@@ -20,7 +20,24 @@ sealed interface PackageSearchPackageListItem {
         val infoBoxDetail: InfoBoxDetail.Badges? = null,
         val compatibleVariantsText: String? = null,
         val actionContent: Content? = null,
-    ) : PackageSearchPackageListItem
+    ) : PackageSearchPackageListItem {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Header
+
+            if (groupId != other.groupId) return false
+            if (title != other.title) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = title.hashCode()
+            result = 31 * result + groupId.hashCode()
+            return result
+        }
+    }
 
     @Stable
     data class Package(
@@ -32,6 +49,19 @@ sealed interface PackageSearchPackageListItem {
         val mainActionContent: Content = EmptyContent,
         val popupContent: Content? = null,
         val infoBoxDetail: InfoBoxDetail.Package,
-    ) : PackageSearchPackageListItem
+    ) : PackageSearchPackageListItem {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Package
+
+            return id == other.id
+        }
+
+        override fun hashCode(): Int {
+            return id.hashCode()
+        }
+    }
 
 }

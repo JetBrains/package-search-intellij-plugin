@@ -21,3 +21,13 @@ Content-Type: application/json
   ],
   "searchQuery": "whatever"
 }
+
+###
+GET https://api.dev.package-search.services.jetbrains.com/package-info-by-ids HTTP/2
+Content-Type: application/json
+
+{
+  "ids": [
+    "maven:io.ktor:ktor-client-core-jvm"
+  ]
+}

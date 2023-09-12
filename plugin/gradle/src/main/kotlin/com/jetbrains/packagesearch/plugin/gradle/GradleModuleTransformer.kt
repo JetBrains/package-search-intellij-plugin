@@ -24,17 +24,16 @@ import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
-import com.jetbrains.packagesearch.plugin.gradle.utils.dumbModeStateFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.getGradleModelRepository
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleSyncNotifierFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
+import com.jetbrains.packagesearch.plugin.gradle.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -43,6 +42,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.transformLatest
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -83,6 +83,7 @@ class GradleDependencyModel(
         return result
     }
 }
+
 abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
 
     companion object {
@@ -204,32 +205,31 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
     ): Flow<PackageSearchModuleData?> = when {
         nativeModule.isGradleSourceSet -> flowOf(null)
         else -> merge(
-            flowOf(Unit),
-            context.project.dumbModeStateFlow
-                .filterNot { it }
-                .mapUnit(),
+            context.project.smartModeFlow.mapUnit(),
             context.project.gradleSyncNotifierFlow,
         )
-            .mapNotNull { nativeModule.gradleIdentityPathOrNull }
-            .flatMapLatest {
-                flow {
-                    context.getGradleModelRepository()
-                        .find(
-                            NitriteFilters.Object.eq(
-                                path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath,
-                                value = it,
-                            ),
-                        )
-                        .singleOrNull()
-                        ?.data
-                        ?.let { emit(it) }
-                    context.getGradleModelRepository()
-                        .changes()
-                        .flatMapLatest { it.changedItems.asFlow().map { it.item.data } }
-                        .collectIn(this)
-                }
+            .mapNotNull {
+                nativeModule.gradleIdentityPathOrNull
             }
-            .filter { it.projectIdentityPath == nativeModule.gradleIdentityPathOrNull }
+            .transformLatest { gradleIdentityPath ->
+                context.getGradleModelRepository()
+                    .find(
+                        NitriteFilters.Object.eq(
+                            path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath,
+                            value = gradleIdentityPath,
+                        ),
+                    )
+                    .singleOrNull()
+                    ?.data
+                    ?.let { emit(it) }
+                context.getGradleModelRepository()
+                    .changes()
+                    .flatMapLatest { it.changedItems.asFlow().map { it.item.data } }
+                    .collectIn(this)
+            }
+            .filter {
+                it.projectIdentityPath == nativeModule.gradleIdentityPathOrNull
+            }
             .map { model ->
                 val basePath = model.projectDir.toNioPath()
                 val buildFile = basePath.resolve("build.gradle")

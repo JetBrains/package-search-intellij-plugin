@@ -16,6 +16,7 @@ import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import com.jetbrains.packagesearch.plugin.gradle.GradleModelCacheEntry
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onStart
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -45,20 +46,19 @@ val Project.gradleSyncNotifierFlow
         }
     }
 
-val Project.dumbModeStateFlow: Flow<Boolean>
+val Project.smartModeFlow: Flow<Boolean>
     get() = messageBus.flow(DumbService.DUMB_MODE) {
-        val l = object : DumbService.DumbModeListener {
+        object : DumbService.DumbModeListener {
             override fun enteredDumbMode() {
-                trySend(true)
+                trySend(false)
             }
 
             override fun exitDumbMode() {
-                trySend(false)
+                trySend(true)
             }
         }
-        trySend(DumbService.getInstance(this@dumbModeStateFlow).isDumb)
-        l
     }
+        .onStart { emit(!DumbService.isDumb(this@smartModeFlow)) }
 
 fun generateAvailableScope(
     declaredDependencies: List<PackageSearchGradleDeclaredPackage>,

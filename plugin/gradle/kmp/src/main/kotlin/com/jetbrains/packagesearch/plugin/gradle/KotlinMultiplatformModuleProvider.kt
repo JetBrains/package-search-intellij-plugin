@@ -70,7 +70,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
     }
 
     suspend fun Module.getKMPVariants(
-        compilationModel: MppCompilationInfoModel,
+        compilationModel: Map<MppCompilationInfoModel.SourceSet, Set<MppCompilationInfoModel.Compilation>>,
         context: PackageSearchModuleBuilderContext,
     ): List<PackageSearchKotlinMultiplatformVariant> = coroutineScope {
         val dependenciesBlockVariant = async {
@@ -137,9 +137,8 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                 }
 
         val sourceSetVariants = compilationModel
-            .compilationsBySourceSet
-            ?.mapKeys { it.key.name }
-            ?.map { (sourceSetName, compilationTargets) ->
+            .mapKeys { it.key.name }
+            .map { (sourceSetName, compilationTargets) ->
                 PackageSearchKotlinMultiplatformVariant.SourceSet(
                     name = sourceSetName,
                     declaredDependencies = declaredSourceSetDependencies[sourceSetName] ?: emptyList(),
@@ -181,7 +180,6 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                     compilerTargets = compilationTargets
                 )
             }
-            ?: emptyList()
 
         sourceSetVariants + dependenciesBlockVariant.await()
     }

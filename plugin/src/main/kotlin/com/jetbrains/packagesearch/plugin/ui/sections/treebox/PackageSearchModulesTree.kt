@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import org.jetbrains.jewel.Icon
+import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.LazyTree
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text

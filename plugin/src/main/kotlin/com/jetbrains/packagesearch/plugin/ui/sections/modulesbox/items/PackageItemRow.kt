@@ -46,6 +46,7 @@ import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import kotlinx.coroutines.delay
 import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Divider
@@ -61,6 +62,7 @@ import org.jetbrains.jewel.util.appendIf
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("unused")
 enum class PackageQuality {
@@ -306,7 +308,12 @@ fun PackageActionLink(
                 showProgress = true
                 service.coroutineScope.launch {
                     action(service)
-                }.invokeOnCompletion { showProgress = false }
+                }
+                    .invokeOnCompletion { showProgress = false }
+                service.coroutineScope.launch {
+                    delay(5.seconds)
+                    isActionPerforming = false
+                }
             },
         )
     }
