@@ -28,16 +28,14 @@ fun PackageSearchModulesTree(
     onSelectionChange: (List<PackageSearchModuleData>) -> Unit = { },
 ) {
     LazyTree(
-        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+        modifier = Modifier.padding(horizontal = 2.dp),
         initialNodeStatus = InitialNodeStatus.Open,
         tree = tree,
         resourceLoader = LocalResourceLoader.current,
         onSelectionChange = { onSelectionChange(it.map { it.data }) },
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 2.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
