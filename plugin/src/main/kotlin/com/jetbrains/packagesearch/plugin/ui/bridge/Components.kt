@@ -1,7 +1,7 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -12,6 +12,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.LocalTextStyle
 import org.jetbrains.jewel.Text
 
@@ -33,7 +34,7 @@ fun LabelInfo(
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current,
 ) {
-    val textColor by pickComposeColorFromLaf("TextField.inactiveForeground")
+    val textColor = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("TextField.inactiveForeground") }
     Text(
         text = text,
         modifier = modifier,

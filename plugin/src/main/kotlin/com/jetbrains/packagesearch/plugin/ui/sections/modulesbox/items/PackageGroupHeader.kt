@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,12 +35,12 @@ fun PackageGroupHeader(
     onBadgesClick: () -> Unit = { },
     rightContent: (@Composable () -> Unit)? = null,
 ) {
-    val backgroundColor by
-    if (IntelliJTheme.isDark) {
-        pickComposeColorFromLaf("ToolWindow.HeaderTab.selectedInactiveBackground")
-    } else {
-        pickComposeColorFromLaf("Tree.selectionInactiveBackground")
-    }
+    val backgroundColor =
+        if (IntelliJTheme.isDark) {
+            pickComposeColorFromLaf("ToolWindow.HeaderTab.selectedInactiveBackground")
+        } else {
+            pickComposeColorFromLaf("Tree.selectionInactiveBackground")
+        }
 
     Row(
         modifier

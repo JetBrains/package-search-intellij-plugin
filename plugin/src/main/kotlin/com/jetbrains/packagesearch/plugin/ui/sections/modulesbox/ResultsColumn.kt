@@ -135,7 +135,7 @@ fun PackageSearchPackageList(
                         isSelected = isSelected,
                         isCompact = isInfoBoxOpen,
                         packageIcon = painterResource(
-                            resourcePath = if (LocalIsDarkTheme.current) item.icon.darkIconPath else item.icon.lightIconPath,
+                            resourcePath = if (IntelliJTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath,
                             loader = LocalResourceLoader.current
                         ),
                         actionPopupId = item.id,

@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
@@ -45,9 +46,11 @@ import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.Icon
+import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.Link
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
@@ -70,7 +73,7 @@ fun PackageQuality.getIconResourcePath() = "icons/intui/quality/${name.lowercase
 internal fun DeclaredPackageMoreActionPopup(
     dependencyManager: PackageSearchDependencyManager,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    borderColor: Color = pickComposeColorFromLaf("OnePixelDivider.background").value,
+    borderColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") },
 ) {
     val context = LocalProjectService.current
     val popupOpenStatus = LocalGlobalPopupIdState.current
@@ -168,8 +171,9 @@ fun PackageRow(
                 }
                 var hovered by remember(key1 = actionPopupId) { mutableStateOf(false) }
                 var globalPopupId by LocalGlobalPopupIdState.current
-                val bgColor by pickComposeColorFromLaf("ActionButton.hoverBackground")
-                val borderColor by pickComposeColorFromLaf("ActionButton.hoverBorderColor")
+                val bgColor = remember(IntelliJTheme.isDark) { JBColor.background().toComposeColor() }
+                val borderColor =
+                    remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("ActionButton.hoverBorderColor") }
                 Box(
                     Modifier
                         .defaultMinSize(16.dp, 16.dp)
@@ -205,9 +209,8 @@ fun PackageRow(
                             contentDescription = null,
                         )
                         if (globalPopupId == actionPopupId) {
-                            val borderColor = pickComposeColorFromLaf("OnePixelDivider.background")
-
-                            val bgColor by pickComposeColorFromLaf("ToolWindow.background")
+                            val borderColor = remember(IntelliJTheme.isDark) { JBColor.border().toComposeColor() }
+                            val bgColor = remember(IntelliJTheme.isDark) { JBColor.background().toComposeColor() }
 
                             val contentOffsetX = with(LocalDensity.current) { 184.dp.toPx() + 1 }
 
@@ -222,7 +225,11 @@ fun PackageRow(
                                     modifier =
                                     Modifier.width(200.dp)
                                         .clip(shape = RoundedCornerShape(10.dp))
-                                        .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(10.dp))
+                                        .border(
+                                            width = 1.dp,
+                                            color = borderColor,
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
                                         .background(color = bgColor),
                                 ) {
                                     popupContent()
