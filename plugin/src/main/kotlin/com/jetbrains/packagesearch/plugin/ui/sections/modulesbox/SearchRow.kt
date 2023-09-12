@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -24,12 +26,16 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
+import org.jetbrains.jewel.GlobalColors
 import org.jetbrains.jewel.Icon
+import org.jetbrains.jewel.LocalGlobalColors
 import org.jetbrains.jewel.LocalResourceLoader
+import org.jetbrains.jewel.OutlineColors
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.TextField
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.painterResource
+import org.jetbrains.jewel.styling.LocalTextFieldStyle
 import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 import org.jetbrains.jewel.util.pxToDp
 import java.awt.Cursor
@@ -64,44 +70,62 @@ fun SearchRow(
             painterResource("actions/search.svg", LocalResourceLoader.current),
             contentDescription = null,
         )
-        TextField(
-            value = searchQuery,
-            onValueChange = onSearchQueryChange,
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            undecorated = true,
-            placeholder = {
-                Text(
-                    text = "Search",
-                    modifier = Modifier.padding(start = 4.pxToDp()),
-                )
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    var isHovered by remember { mutableStateOf(false) }
-                    Row {
-                        searchResultsCount.let {
-                            Text(
-                                text = "$it ${if (it == 1) "result" else "results"}",
-                                modifier = Modifier.padding(end = 4.pxToDp()),
-                            )
-                        }
-                        Box(
-                            Modifier
-                                .onPointerEvent(PointerEventType.Enter) { isHovered = true }
-                                .onPointerEvent(PointerEventType.Exit) { isHovered = false }
-                                .pointerHoverIcon(PointerIcon(Cursor(Cursor.DEFAULT_CURSOR)))
-                                .clip(shape = RoundedCornerShape(10.dp)),
-                        ) {
-                            val icon = if (isHovered) "ide/notification/closeHover.svg" else "ide/notification/closeHover.svg"
-                            Icon(
-                                painter = painterResource(icon, LocalResourceLoader.current),
-                                modifier = Modifier.clickable { onSearchQueryChange("") },
-                                contentDescription = null,
-                            )
+
+        val colors = LocalGlobalColors.current
+        val transparentFocus = remember(LocalGlobalColors.current) {
+            object : GlobalColors by colors {
+                override val outlines = object : OutlineColors by colors.outlines {
+                    override val focused = Color.Transparent
+                }
+            }
+        }
+
+        CompositionLocalProvider(
+            LocalGlobalColors provides transparentFocus,
+        ) {
+            TextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChange,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                undecorated = true,
+                style = LocalTextFieldStyle.current,
+                placeholder = {
+                    Text(
+                        text = "Search",
+                        modifier = Modifier.padding(start = 4.pxToDp()),
+                    )
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        var isHovered by remember { mutableStateOf(false) }
+                        Row {
+                            searchResultsCount.let {
+                                Text(
+                                    text = "$it ${if (it == 1) "result" else "results"}",
+                                    modifier = Modifier.padding(end = 4.pxToDp()),
+                                )
+                            }
+                            Box(
+                                Modifier
+                                    .onPointerEvent(PointerEventType.Enter) { isHovered = true }
+                                    .onPointerEvent(PointerEventType.Exit) { isHovered = false }
+                                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.DEFAULT_CURSOR)))
+                                    .clip(shape = RoundedCornerShape(10.dp)),
+                            ) {
+                                val icon =
+                                    if (isHovered) "ide/notification/closeHover.svg" else "ide/notification/closeHover.svg"
+                                Icon(
+                                    painter = painterResource(icon, LocalResourceLoader.current),
+                                    modifier = Modifier.clickable { onSearchQueryChange("") },
+                                    contentDescription = null,
+                                )
+                            }
                         }
                     }
-                }
-            },
-        )
+                },
+            )
+        }
+
     }
 }
+
