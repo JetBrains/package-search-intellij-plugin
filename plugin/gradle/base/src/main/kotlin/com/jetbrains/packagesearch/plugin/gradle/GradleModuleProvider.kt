@@ -6,23 +6,21 @@ import com.intellij.openapi.module.Module
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.gradle.utils.generateAvailableScope
+import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
+import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredKnownRepositories
 import kotlinx.coroutines.flow.FlowCollector
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.api.v3.search.libraryElements
-import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 
 class GradleModuleProvider : BaseGradleModuleProvider() {
 
     override suspend fun FlowCollector<PackageSearchModuleData?>.transform(
         module: Module,
         context: PackageSearchModuleBuilderContext,
-        model: PackageSearchGradleModel,
-        buildFile: Path?,
+        model: PackageSearchGradleModel
     ) {
         if (model.isKotlinMultiplatformApplied) emit(null)
         else {
@@ -35,17 +33,16 @@ class GradleModuleProvider : BaseGradleModuleProvider() {
 
             val configurationNames = model.configurations.map { it.name }
             val declaredDependencies = module.getDeclaredDependencies(context)
-            val availableScopes = generateAvailableScope(declaredDependencies, configurationNames)
             val packageSearchGradleModule = PackageSearchGradleModule(
                 name = model.projectName,
                 identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
-                buildFilePath = buildFile?.absolutePathString(),
+                buildFilePath = model.buildFilePath,
                 declaredKnownRepositories = module.getDeclaredKnownRepositories(context),
                 declaredDependencies = declaredDependencies,
                 availableKnownRepositories = availableKnownRepositories,
                 packageSearchModel = model,
                 defaultScope = "implementation".takeIf { it in configurationNames } ?: configurationNames.firstOrNull(),
-                availableScopes = availableScopes,
+                availableScopes = configurationNames,
                 compatiblePackageTypes = buildPackageTypes {
                     mavenPackages()
                     when {

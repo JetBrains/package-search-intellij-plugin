@@ -9,14 +9,13 @@ public interface PackageSearchGradleJavaModel extends Serializable {
     String getProjectIdentityPath();
     String getProjectName();
     List<Configuration> getConfigurations();
-
     List<String> getRepositoryUrls();
-
     String getRootProjectName();
-
     boolean isKotlinJvmApplied();
     boolean isKotlinAndroidApplied();
     boolean isKotlinMultiplatformApplied();
+    String getBuildFilePath();
+    String getRootProjectPath();
 
     interface Configuration extends Serializable {
         String getName();

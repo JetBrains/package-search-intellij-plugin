@@ -13,6 +13,7 @@ import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepo
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
+import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
@@ -20,8 +21,6 @@ import com.jetbrains.packagesearch.plugin.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.utils.getNativeModulesStateFlow
 import com.jetbrains.packagesearch.plugin.utils.getRepositories
 import com.jetbrains.packagesearch.plugin.utils.interval
-import com.jetbrains.packagesearch.plugin.utils.logWarn
-import com.jetbrains.packagesearch.plugin.utils.replayOn
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

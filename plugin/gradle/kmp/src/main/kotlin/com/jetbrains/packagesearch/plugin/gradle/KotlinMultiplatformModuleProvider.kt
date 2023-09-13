@@ -20,6 +20,8 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.getIcon
+import com.jetbrains.packagesearch.plugin.gradle.utils.commonConfigurations
+import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -29,8 +31,6 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.kotlinMultiplatform
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import java.nio.file.Path
-import kotlin.io.path.absolutePathString
 
 class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
 
@@ -38,7 +38,6 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
         module: Module,
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
-        buildFile: Path?,
     ) {
         if (!model.isKotlinMultiplatformApplied) emit(null)
         else MppCompilationInfoProvider.sourceSetsMap(context.project, model.projectDir)
@@ -46,7 +45,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                 val pkgsModule = PackageSearchKotlinMultiplatformModule(
                     name = model.projectName,
                     identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
-                    buildFilePath = buildFile?.absolutePathString(),
+                    buildFilePath = model.buildFilePath,
                     declaredKnownRepositories = context.knownRepositories - DependencyModifierService
                         .getInstance(context.project)
                         .declaredRepositories(module)

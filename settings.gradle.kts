@@ -66,7 +66,3 @@ gradleEnterprise {
         publishAlwaysIf(isCi)
     }
 }
-//include("kmp-modifier:src:test:java")
-//findProject(":kmp-modifier:src:test:java")?.name = "java"
-//include("kmp-modifier:src:testSrc")
-//findProject(":kmp-modifier:src:testSrc")?.name = "testSrc"

@@ -30,7 +30,7 @@ class CoroutineObjectRepository<T : Any> @PKGSInternalAPI constructor(
     override val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : CoroutineWrapper() {
 
-    data class Change<T>(val changeType: ChangeType, val changedItems: List<T>)
+    data class Change<T>(val changeType: ChangeType, val changedItems: Flow<T>)
     data class Item<T>(val changeTimestamp: Instant, val changeType: ChangeType, val item: T)
 
     val documentCollection

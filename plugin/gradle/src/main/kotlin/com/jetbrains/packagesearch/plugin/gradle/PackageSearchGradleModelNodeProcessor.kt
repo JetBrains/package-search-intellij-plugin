@@ -52,8 +52,8 @@ class PackageSearchGradleModelNodeProcessor :
                 items.forEach { cacheEntry ->
                     gradleModelRepository.await().update(
                         filter = NitriteFilters.Object.eq(
-                            path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath,
-                            value = cacheEntry.data.projectIdentityPath
+                            value = cacheEntry.data.projectIdentityPath,
+                            path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath
                         ),
                         update = cacheEntry,
                         upsert = true

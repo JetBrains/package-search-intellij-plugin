@@ -145,12 +145,3 @@ internal val Project.fileOpenedFlow: Flow<List<VirtualFile>>
             emit(buffer.toList())
         }
     }
-
-internal fun <T> Flow<T>.replayOn(vararg replayFlows: Flow<*>) = channelFlow {
-    val mutex = Mutex()
-    var last: T? = null
-    onEach { mutex.withLock { last = it } }
-        .onEach { send(it) }
-        .launchIn(this)
-    merge(*replayFlows).collect { mutex.withLock { last?.let { send(it) } } }
-}

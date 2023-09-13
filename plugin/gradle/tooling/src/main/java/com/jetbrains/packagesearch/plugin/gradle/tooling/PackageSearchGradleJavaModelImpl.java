@@ -9,13 +9,13 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
 
     private final List<String> repositories;
     private final String projectIdentityPath;
-
     boolean isKotlinJvmApplied;
     boolean isKotlinMultiplatformApplied;
     boolean isKotlinAndroidApplied;
-    private String projectName;
-    private String rootProjectName;
-
+    private final String projectName;
+    private final String rootProjectName;
+    private final String buildFilePath;
+    private final String rootProjectPath;
 
     public PackageSearchGradleJavaModelImpl(
             String projectDir,
@@ -26,7 +26,9 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
             List<String> repositories,
             boolean isKotlinJvmApplied,
             boolean isKotlinMultiplatformApplied,
-            boolean isKotlinAndroidApplied
+            boolean isKotlinAndroidApplied,
+            String buildFilePath,
+            String rootProjectPath
     ) {
         this.projectDir = projectDir;
         this.configurations = configurations;
@@ -37,8 +39,19 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         this.isKotlinAndroidApplied = isKotlinAndroidApplied;
         this.projectName = projectName;
         this.rootProjectName = rootProjectName;
+        this.buildFilePath = buildFilePath;
+        this.rootProjectPath = rootProjectPath;
     }
 
+    @Override
+    public String getRootProjectPath() {
+        return rootProjectPath;
+    }
+
+    @Override
+    public String getBuildFilePath() {
+        return buildFilePath;
+    }
 
     @Override
     public String getProjectDir() {
@@ -82,10 +95,6 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
     @Override
     public String getRootProjectName() {
         return rootProjectName;
-    }
-
-    public void setRootProjectName(String rootProjectName) {
-        this.rootProjectName = rootProjectName;
     }
 
     static public class DependencyImpl implements Dependency {

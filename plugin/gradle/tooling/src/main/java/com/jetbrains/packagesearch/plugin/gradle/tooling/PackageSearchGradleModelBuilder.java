@@ -56,6 +56,12 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
         String projectIdentityPath = GradleVersion.current().compareTo(GradleVersion.version("3.3")) >= 0 ?
                 ((ProjectInternal) project).getIdentityPath().getPath() : project.getPath();
 
+        String buildFilePath = null;
+
+        if (project.getBuildFile().exists()) {
+            buildFilePath = project.getBuildFile().getAbsolutePath();
+        }
+
         return new PackageSearchGradleJavaModelImpl(
                 project.getProjectDir().getAbsolutePath(),
                 project.getName(),
@@ -65,7 +71,9 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
                 repositories,
                 project.getPluginManager().hasPlugin("org.jetbrains.kotlin.jvm"),
                 project.getPluginManager().hasPlugin("org.jetbrains.kotlin.multiplatform"),
-                project.getPluginManager().hasPlugin("org.jetbrains.kotlin.android")
+                project.getPluginManager().hasPlugin("org.jetbrains.kotlin.android"),
+                buildFilePath,
+                project.getRootProject().getProjectDir().getAbsolutePath()
         );
     }
 

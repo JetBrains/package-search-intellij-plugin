@@ -1,7 +1,6 @@
 package com.jetbrains.packagesearch.plugin.gradle.utils
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
-import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
@@ -9,14 +8,17 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
+import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.flow
-import com.jetbrains.packagesearch.plugin.gradle.BaseGradleModuleProvider
 import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import com.jetbrains.packagesearch.plugin.gradle.GradleModelCacheEntry
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
+import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.singleOrNull
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -60,24 +62,6 @@ val Project.smartModeFlow: Flow<Boolean>
     }
         .onStart { emit(!DumbService.isDumb(this@smartModeFlow)) }
 
-fun generateAvailableScope(
-    declaredDependencies: List<PackageSearchGradleDeclaredPackage>,
-    configurationNames: List<String>,
-): List<String> {
-    val usedConfigurations = declaredDependencies.map { it.configuration }
-    return BaseGradleModuleProvider.commonConfigurations
-        .filter { it !in configurationNames }
-        .plus(usedConfigurations)
-        .distinct()
-}
-
-val ArtifactDependencySpec.mavenId: String?
-    get() {
-        val group = group ?: return null
-        val artifactId = name
-        return "maven:$group:$artifactId"
-    }
-
 private fun ArtifactDependencyModel.getDependencyDeclarationIndexes(): DependencyDeclarationIndexes =
     DependencyDeclarationIndexes(
         declarationStartIndex = psiElement
@@ -98,3 +82,12 @@ fun ArtifactDependencyModel.toGradleDependencyModel() =
         configuration = configurationName(),
         indexes = getDependencyDeclarationIndexes(),
     )
+
+internal fun NitriteFilters.Object.gradleModel(identityPath: String) = eq(
+    path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath,
+    value = identityPath,
+)
+
+internal suspend fun CoroutineObjectRepository<GradleModelCacheEntry>.gradleModel(forIdentityPath: String) =
+    find(NitriteFilters.Object.gradleModel(forIdentityPath)).singleOrNull()?.data
+

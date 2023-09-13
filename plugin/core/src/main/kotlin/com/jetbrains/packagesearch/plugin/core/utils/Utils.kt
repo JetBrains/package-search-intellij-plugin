@@ -32,6 +32,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import java.nio.file.Path
@@ -151,4 +153,13 @@ fun ApiPackage.getIcon(forVersion: String? = null): IconProvider.Icon = when (th
         is ApiMavenPackage.GradleVersion -> IconProvider.Icons.GRADLE
         else -> IconProvider.Icons.MAVEN
     }
+}
+
+fun <T> Flow<T>.replayOn(vararg replayFlows: Flow<*>) = channelFlow {
+    val mutex = Mutex()
+    var last: T? = null
+    onEach { mutex.withLock { last = it } }
+        .onEach { send(it) }
+        .launchIn(this)
+    merge(*replayFlows).collect { mutex.withLock { last?.let { send(it) } } }
 }

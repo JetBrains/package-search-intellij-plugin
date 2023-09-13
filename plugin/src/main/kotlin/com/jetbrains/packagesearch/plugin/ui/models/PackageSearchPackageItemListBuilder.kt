@@ -82,7 +82,7 @@ class PackageSearchPackageItemListBuilder {
             }
         )
         if (isExpanded) {
-            group.filteredDependencies.forEach { declaredDependency ->
+            group.filteredDependencies.forEachIndexed { index, declaredDependency ->
                 addPackage(
                     icon = declaredDependency.icon,
                     title = declaredDependency.displayName,
@@ -94,14 +94,14 @@ class PackageSearchPackageItemListBuilder {
                     },
                     // TODO modify package content
                     infoBoxDetail = InfoBoxDetail.Package.DeclaredPackage(declaredDependency, group.module),
-                    id = "${group.id} ${declaredDependency.id}",
+                    id = "$index ${group.id} ${declaredDependency.id}",
                     mainActionContent = {
                         val newVersion = declaredDependency.evaluateUpgrade()?.versionName
                         if (newVersion != null) {
                             PackageActionLink("Upgrade") {
                                 group.dependencyManager.updateDependencies(
-                                    it,
-                                    listOf(declaredDependency.getUpdateData(newVersion))
+                                    context = it,
+                                    data = listOf(declaredDependency.getUpdateData(newVersion))
                                 )
                             }
                         }
@@ -141,12 +141,12 @@ class PackageSearchPackageItemListBuilder {
             compatibleVariantsText = compatibleVariantsText
         )
         if (isGroupExpanded) {
-            group.packages.forEach { apiPackage ->
+            group.packages.forEachIndexed { index, apiPackage ->
                 addPackage(
                     icon = apiPackage.getIcon(),
                     title = apiPackage.name ?: apiPackage.coordinates,
                     subtitle = apiPackage.coordinates.takeIf { apiPackage.name != null },
-                    id = "${group.id} ${apiPackage.id}",
+                    id = "$index ${group.id} ${apiPackage.id}",
                     mainActionContent = {
                         val latestVersion = apiPackage.latestVersion.versionName
                         when (group) {

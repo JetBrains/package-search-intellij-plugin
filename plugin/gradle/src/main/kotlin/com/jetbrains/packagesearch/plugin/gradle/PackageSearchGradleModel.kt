@@ -12,7 +12,9 @@ data class PackageSearchGradleModel(
     val isKotlinMultiplatformApplied: Boolean,
     val projectIdentityPath: String,
     val projectName: String,
-    val rootProjectName: String
+    val rootProjectName: String,
+    val buildFilePath: String?,
+    val rootProjectPath: String
 ) {
 
     @Serializable

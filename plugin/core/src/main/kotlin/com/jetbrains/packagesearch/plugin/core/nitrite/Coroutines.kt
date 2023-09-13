@@ -7,6 +7,8 @@ import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.Instant
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -29,13 +31,13 @@ inline fun <reified T : Any> CoroutineObjectRepository(
 fun <T: Any> ChangeInfo.asKotlin(documentFormat: NitriteDocumentFormat, type: KType) =
     CoroutineObjectRepository.Change(
         changeType,
-        changedItems.map {
+        changedItems.asFlow().map {
             val serializer =
                 documentFormat.serializersModule.serializer(type) as KSerializer<T>
             CoroutineObjectRepository.Item(
-                Instant.fromEpochMilliseconds(it.changeTimestamp),
-                it.changeType,
-                documentFormat.decodeFromDocument(serializer, it.document)
+                changeTimestamp = Instant.fromEpochMilliseconds(it.changeTimestamp),
+                changeType = it.changeType,
+                item = documentFormat.decodeFromDocument(serializer, it.document)
             )
         }
     )
