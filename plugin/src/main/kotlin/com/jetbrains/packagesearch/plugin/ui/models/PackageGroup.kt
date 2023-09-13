@@ -24,11 +24,18 @@ class PackageGroupsBuilder(private val searchQuery: String) {
     private var remotes = emptyList<PackageGroup.Remote>()
     private var declared = emptyList<PackageGroup.Declared>()
 
-    fun setSearchResults(data: SearchData.Results) {
+    fun setSearchResults(data: SearchData.Results, selectedModules: List<PackageSearchModuleData>) {
         remotes = when (data) {
             SearchData.Results.Empty -> return
             is SearchData.SingleBaseModule.Results -> {
-                val declaredDependencyIds = data.searchData.module.declaredDependencies.map { it.id }
+                val declaredDependencyIds = selectedModules.singleOrNull()
+                    ?.let { it.module as? PackageSearchModule.Base }
+                    ?.declaredDependencies
+                    ?.map { it.id }
+                    ?: data.searchData
+                        .module
+                        .declaredDependencies
+                        .map { it.id }
                 listOf(
                     PackageGroup.Remote.FromBaseModule(
                         module = data.searchData.module,

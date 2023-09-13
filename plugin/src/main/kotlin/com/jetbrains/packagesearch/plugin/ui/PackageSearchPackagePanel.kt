@@ -30,6 +30,7 @@ import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageSearchInfoB
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
 import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
 import com.jetbrains.packagesearch.plugin.utils.logError
+import com.jetbrains.packagesearch.plugin.utils.logWarn
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
@@ -39,6 +40,7 @@ import org.jetbrains.compose.splitpane.rememberSplitPaneState
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.tree.Tree
+import org.jetbrains.jewel.foundation.tree.TreeState
 import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
@@ -47,6 +49,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun PackageSearchPackagePanel(
     isInfoBoxOpen: Boolean,
+    state: TreeState,
     tree: Tree<PackageSearchModuleData>,
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -61,7 +64,11 @@ fun PackageSearchPackagePanel(
     var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }
 
     var selectedModules by remember { mutableStateOf<List<PackageSearchModuleData>>(emptyList()) }
-    var searchResults by remember(selectedModules) { mutableStateOf<SearchData.Results>(SearchData.Results.Empty) }
+    var searchResults by remember { mutableStateOf<SearchData.Results>(SearchData.Results.Empty) }
+    val selectedModulesIdentity by derivedStateOf {
+        selectedModules.map { it.module.identity }
+    }
+    remember(selectedModulesIdentity) { searchResults = SearchData.Results.Empty }
     val declaredPackageGroups by derivedStateOf {
         buildDeclaredPackageGroups(searchQuery) {
             setLocal(selectedModules)
@@ -69,7 +76,7 @@ fun PackageSearchPackagePanel(
     }
     val remotePackageGroup by derivedStateOf {
         buildRemotePackageGroups(searchQuery) {
-            setSearchResults(searchResults)
+            setSearchResults(searchResults, selectedModules)
         }
     }
 
@@ -87,6 +94,12 @@ fun PackageSearchPackagePanel(
                 Text("Select one or more modules on the left to show declared dependencies")
             }
         } else {
+            logWarn {
+                buildString {
+                    appendLine("groups:")
+                    packageGroups.forEach { appendLine(" - ${it.id}") }
+                }
+            }
             PackageSearchCentralPanel(
                 isLoading = isSearching,
                 isInfoBoxOpen = isInfoBoxOpen,
@@ -101,7 +114,7 @@ fun PackageSearchPackagePanel(
     HorizontalSplitPane(Modifier.fillMaxSize(), splitPaneState) {
         first(100.dp) {
             Column(Modifier.fillMaxSize()) {
-                PackageSearchModulesTree(tree) { selectedModules = it }
+                PackageSearchModulesTree(tree, state) { selectedModules = it }
             }
         }
         defaultPKGSSplitter(splitterColor)
@@ -137,9 +150,15 @@ fun PackageSearchPackagePanel(
     val json = LocalJson.current
     val apiClient = LocalPackageSearchApiClient.current
 
-    LaunchedEffect(selectedModules, searchQuery) {
-        delay(250.milliseconds)
+    LaunchedEffect(selectedModulesIdentity, searchQuery) {
+        if (searchQuery.isBlank()) {
+            searchResults = SearchData.Results.Empty
+            isSearching = false
+            return@LaunchedEffect
+        }
         isSearching = true
+        delay(250.milliseconds)
+        logWarn { "searching '$searchQuery' for ${selectedModules.joinToString { it.module.name }}" }
         searchResults = when (val searchData = buildSearchData(selectedModules, searchQuery)) {
             SearchData.Empty -> SearchData.Results.Empty
             is SearchData.SingleBaseModule ->

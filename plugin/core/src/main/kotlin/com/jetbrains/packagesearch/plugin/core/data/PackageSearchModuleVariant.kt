@@ -1,13 +1,12 @@
 package com.jetbrains.packagesearch.plugin.core.data
 
-import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
 interface PackageSearchModuleVariant : PackageInstallDataProvider {
 
     data class Terminology(val singular: String, val plural: String) {
-        fun getForCardinality(count: Int) = if (count >= 1) plural else singular
+        fun getForCardinality(count: Int) = if (count > 1) plural else singular
 
         companion object {
             val DEFAULT = Terminology("variant", "variants")

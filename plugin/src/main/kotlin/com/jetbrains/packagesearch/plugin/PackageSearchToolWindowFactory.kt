@@ -9,6 +9,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -29,9 +30,9 @@ import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import org.jetbrains.jewel.bridge.SwingBridgeTheme
 import org.jetbrains.jewel.bridge.addComposeTab
 
-class PackageSearchToolWindowFactory : ToolWindowFactory {
+class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        var isInfoBoxOpen = mutableStateOf(false)
+        val isInfoBoxOpen = mutableStateOf(false)
         val toggleOnlyStableAction = object : ToggleAction(
             PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable"),
             PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable.description"),

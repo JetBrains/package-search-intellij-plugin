@@ -15,19 +15,20 @@ import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.LazyTree
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.foundation.tree.InitialNodeStatus
 import org.jetbrains.jewel.foundation.tree.Tree
+import org.jetbrains.jewel.foundation.tree.TreeState
 import org.jetbrains.jewel.painterResource
 import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 
 @Composable
 fun PackageSearchModulesTree(
     tree: Tree<PackageSearchModuleData>,
+    state: TreeState,
     onSelectionChange: (List<PackageSearchModuleData>) -> Unit = { },
 ) {
     LazyTree(
-        initialNodeStatus = InitialNodeStatus.Open,
         tree = tree,
+        treeState = state,
         resourceLoader = LocalResourceLoader.current,
         onSelectionChange = { onSelectionChange(it.map { it.data }) },
     ) {

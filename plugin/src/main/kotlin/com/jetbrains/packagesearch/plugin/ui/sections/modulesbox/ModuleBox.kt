@@ -37,7 +37,6 @@ fun PackageSearchCentralPanel(
         Divider(Modifier.fillMaxWidth(), color = borderColor)
 
         Box {
-            if (isLoading) IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
             when {
                 packageGroups.isEmpty() && !isLoading -> NoResultsToShow()
                 packageGroups.isNotEmpty() -> PackageSearchPackageList(
@@ -46,6 +45,7 @@ fun PackageSearchCentralPanel(
                     onElementClick = onElementClick,
                 )
             }
+            if (isLoading) IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
         }
 
     }

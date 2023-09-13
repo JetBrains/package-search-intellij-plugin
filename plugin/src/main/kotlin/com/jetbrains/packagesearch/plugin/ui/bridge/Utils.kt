@@ -1,13 +1,10 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.ResourceLoader
-import com.intellij.ide.ui.LafManagerListener
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.core.utils.flow
-import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
+import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
 import org.jetbrains.jewel.foundation.tree.buildTree
 import java.awt.Desktop
@@ -32,19 +29,28 @@ fun UIDefaults.getComposeColorOrUnspecified(key: String): Color {
     }
 }
 
+data class PackageSearchTreeData(
+    val tree: Tree<PackageSearchModuleData>,
+    val nodesIds: Set<PackageSearchModule.Identity>,
+)
 
-fun List<PackageSearchModuleData>.asTree() =
-    buildTree {
+fun List<PackageSearchModuleData>.asTree(): PackageSearchTreeData {
+    val nodesIds = mutableSetOf<PackageSearchModule.Identity>()
+    val tree= buildTree {
         groupBy { it.module.identity.group }
             .values
             .forEach {
                 val sortedItems = it.sortedBy { it.module.identity.path }
                 val roots = sortedItems.filter { it.module.identity.path == ":" }.toSet()
-                roots.forEach { addNodes(sortedItems - roots, it, true) }
+                nodesIds.addAll(roots.map { it.module.identity })
+                roots.forEach { addNodes(nodesIds, sortedItems - roots, it, true) }
             }
     }
+    return PackageSearchTreeData(tree, nodesIds.toSet())
+}
 
 fun TreeGeneratorScope<PackageSearchModuleData>.addNodes(
+    nodesIds: MutableSet<PackageSearchModule.Identity>,
     sortedItems: List<PackageSearchModuleData>,
     currentData: PackageSearchModuleData,
     isRoot: Boolean = false,
@@ -60,8 +66,9 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addNodes(
             }
         }
     if (children.isNotEmpty()) {
+        nodesIds.add(currentData.module.identity)
         addNode(currentData, id = currentData.module.identity) {
-            children.forEach { addNodes(sortedItems - children, it) }
+            children.forEach { addNodes(nodesIds,sortedItems - children, it) }
         }
     } else {
         addLeaf(currentData, id = currentData.module.identity)
