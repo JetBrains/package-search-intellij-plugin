@@ -15,6 +15,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.util.asSafely
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
@@ -57,7 +58,8 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
 
             override fun getActionUpdateThread() = ActionUpdateThread.BGT
         }
-        toolWindow.asSafely<ToolWindowEx>()?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
+        toolWindow.asSafely<ToolWindowEx>()
+            ?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
         toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
         System.setProperty("compose.swing.render.on.graphics", "true")
         toolWindow.addComposeTab("UX") {
@@ -66,7 +68,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory {
                     LocalProjectService provides project.PackageSearchProjectService,
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
                     LocalPackageSearchApiClient provides IntelliJApplication.PackageSearchApiClientService.client,
-                    LocalIsActionPerformingState provides mutableStateOf(false),
+                    LocalIsActionPerformingState provides mutableStateOf(ActionState(false)),
                     LocalInfoBoxPanelOpenState provides isInfoBoxOpen,
                     LocalIsOnlyStableVersions provides project.PackageSearchProjectService.isStableOnlyVersions,
                     LocalGlobalPopupIdState provides mutableStateOf(null),

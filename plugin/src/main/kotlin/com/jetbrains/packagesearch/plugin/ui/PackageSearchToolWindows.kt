@@ -33,7 +33,7 @@ fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
         when (val moduleProvider = modulesState) {
             is ModulesState.Loading -> IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
             is ModulesState.Ready -> {
-                LocalIsActionPerformingState.current.value = false
+                LocalIsActionPerformingState.current.value = ActionState(false)
                 PackageSearchPackagePanel(
                     isInfoBoxOpen = isInfoBoxOpen,
                     tree = moduleProvider.moduleData.asTree(),

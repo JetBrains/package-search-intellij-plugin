@@ -2,6 +2,7 @@ package com.jetbrains.packagesearch.plugin.ui
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.application.Application
@@ -23,11 +24,14 @@ val LocalProjectCoroutineScope = staticCompositionLocalOf<CoroutineScope> {
     error("No ProjectCoroutineScope provided")
 }
 
-val LocalIsActionPerformingState: ProvidableCompositionLocal<MutableState<Boolean>> =
-    staticCompositionLocalOf { error("No LocalPackageSearchApiClient provided") }
+@Stable
+data class ActionState(val isPerforming: Boolean, val actionId: String? = null)
+
+val LocalIsActionPerformingState: ProvidableCompositionLocal<MutableState<ActionState>> =
+    staticCompositionLocalOf { error("No LocalIsActionPerformingState provided") }
 
 val LocalInfoBoxPanelOpenState: ProvidableCompositionLocal<MutableState<Boolean>> =
-    staticCompositionLocalOf { error("No LocalPackageSearchApiClient provided") }
+    staticCompositionLocalOf { error("No LocalInfoBoxPanelOpenState provided") }
 
 val LocalPackageSearchApiClient: ProvidableCompositionLocal<PackageSearchApiClient> =
     staticCompositionLocalOf { error("No LocalPackageSearchApiClient provided") }

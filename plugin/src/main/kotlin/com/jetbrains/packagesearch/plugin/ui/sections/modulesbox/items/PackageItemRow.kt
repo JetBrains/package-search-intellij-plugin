@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
+import ai.grazie.utils.mpp.UUID
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -39,8 +40,8 @@ import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
+import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
@@ -93,20 +94,33 @@ internal fun DeclaredPackageMoreActionPopup(
         )
         Divider(color = borderColor)
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            var isActionPerforming by LocalIsActionPerformingState.current
+            val service = LocalProjectService.current
+            val isActionPerforming = LocalIsActionPerformingState.current
             Link(
                 resourceLoader = LocalResourceLoader.current,
                 text = "Remove",
-                enabled = !isActionPerforming,
+                enabled = !isActionPerforming.value.isPerforming,
                 onClick = {
-                    isActionPerforming = true
+                    val id = UUID.random().text
+                    isActionPerforming.value = ActionState(true, id)
                     context.coroutineScope.launch {
                         dependencyManager.removeDependency(
                             context,
                             packageSearchDeclaredPackage.getRemoveData(),
                         )
+                    }.invokeOnCompletion {
+                        it?.let {
+                            System.err.println(it.stackTraceToString())
+                        }
+                        popupOpenStatus.value = null
                     }
-                        .invokeOnCompletion { popupOpenStatus.value = null }
+                    service.coroutineScope.launch {
+                        delay(5.seconds)
+                        if (isActionPerforming.value.actionId == id) {
+                            System.err.println("Remove action has been cancelled due a time out")
+                            isActionPerforming.value = ActionState(false)
+                        }
+                    }
                 },
             )
         }
@@ -174,8 +188,7 @@ fun PackageRow(
                 var hovered by remember(key1 = actionPopupId) { mutableStateOf(false) }
                 var globalPopupId by LocalGlobalPopupIdState.current
                 val bgColor = remember(IntelliJTheme.isDark) { JBColor.background().toComposeColor() }
-                val borderColor =
-                    remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("ActionButton.hoverBorderColor") }
+                val borderColor = remember(IntelliJTheme.isDark) { JBColor.border().toComposeColor() }
                 Box(
                     Modifier
                         .defaultMinSize(16.dp, 16.dp)
@@ -184,7 +197,7 @@ fun PackageRow(
                                 .border(1.dp, borderColor)
                         }
                         .appendIf(popupContent != null) {
-                            pointerInput(key1 = actionPopupId, key2 = IntelliJTheme.globalColors ) {
+                            pointerInput(key1 = actionPopupId, key2 = IntelliJTheme.globalColors) {
                                 awaitPointerEventScope {
                                     while (true) {
                                         val event = awaitPointerEvent()
@@ -211,9 +224,6 @@ fun PackageRow(
                             contentDescription = null,
                         )
                         if (globalPopupId == actionPopupId) {
-                            val borderColor = remember(IntelliJTheme.isDark) { JBColor.border().toComposeColor() }
-                            val bgColor = remember(IntelliJTheme.isDark) { JBColor.background().toComposeColor() }
-
                             val contentOffsetX = with(LocalDensity.current) { 184.dp.toPx() + 1 }
 
                             Popup(
@@ -246,51 +256,12 @@ fun PackageRow(
 }
 
 @Composable
-fun UpgradePackageActionLink(
-    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    dependencyManager: PackageSearchDependencyManager,
-) {
-    val upgrade = packageSearchDeclaredPackage.evaluateUpgrade() ?: return
-    PackageActionLink("Upgrade") { context ->
-        dependencyManager.updateDependencies(
-            context = context,
-            data = listOf(
-                packageSearchDeclaredPackage.getUpdateData(
-                    newVersion = upgrade.versionName,
-                    newScope = packageSearchDeclaredPackage.scope,
-                ),
-            ),
-        )
-    }
-}
-
-@Composable
-fun InstallPackageActionLink(
-    apiPackage: ApiPackage,
-    module: PackageSearchModule.WithVariants,
-    variant: PackageSearchModuleVariant,
-    dependencyManager: PackageSearchDependencyManager,
-) {
-    val version = apiPackage.latestVersion
-    PackageActionLink("Add") { context ->
-        dependencyManager.addDependency(
-            context = context,
-            data = variant.getInstallData(
-                apiPackage = apiPackage,
-                selectedVersion = version.versionName,
-                selectedScope = module.defaultScope,
-            ),
-        )
-    }
-}
-
-@Composable
 fun PackageActionLink(
     text: String,
     action: suspend (PackageSearchKnownRepositoriesContext) -> Unit,
 ) {
     var showProgress by remember { mutableStateOf(false) }
-    var isActionPerforming by LocalIsActionPerformingState.current
+    val isActionPerforming = LocalIsActionPerformingState.current
     val service = LocalProjectService.current
     when {
         showProgress -> CircularProgressIndicator(
@@ -301,18 +272,26 @@ fun PackageActionLink(
 
         else -> Link(
             resourceLoader = LocalResourceLoader.current,
-            enabled = !isActionPerforming,
+            enabled = !isActionPerforming.value.isPerforming,
             text = text, // TODO localize
             onClick = {
-                isActionPerforming = true
+                val id = UUID.random().text
+                isActionPerforming.value = ActionState(true, id)
                 showProgress = true
                 service.coroutineScope.launch {
                     action(service)
+                }.invokeOnCompletion {
+                    it?.let {
+                        System.err.println(it.stackTraceToString())
+                    }
+                    showProgress = false
                 }
-                    .invokeOnCompletion { showProgress = false }
                 service.coroutineScope.launch {
                     delay(5.seconds)
-                    isActionPerforming = false
+                    if (isActionPerforming.value.actionId == id) {
+                        System.err.println("Remove action has been cancelled due a time out")
+                        isActionPerforming.value = ActionState(false)
+                    }
                 }
             },
         )
