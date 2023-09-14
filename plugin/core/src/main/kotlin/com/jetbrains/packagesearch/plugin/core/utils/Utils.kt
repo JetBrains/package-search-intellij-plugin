@@ -3,12 +3,15 @@
 package com.jetbrains.packagesearch.plugin.core.utils
 
 import com.intellij.buildsystem.model.DeclaredDependency
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.AreaInstance
 import com.intellij.openapi.extensions.ExtensionPointListener
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginDescriptor
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryManager
@@ -16,6 +19,7 @@ import com.intellij.openapi.util.registry.RegistryValue
 import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -50,13 +54,17 @@ fun <T : Any, R> MessageBus.flow(
     awaitClose { connection.disconnect() }
 }
 
-val Project.filesChangedEventFlow: Flow<MutableList<out VFileEvent>>
-    get() = messageBus.flow(VirtualFileManager.VFS_CHANGES) {
-        object : BulkFileListener {
-            override fun after(events: MutableList<out VFileEvent>) {
-                trySend(events)
-            }
-        }
+val Project.filesChangedEventFlow: Flow<List<VFileEvent>>
+    get() = callbackFlow {
+        val parentDisposable = Disposable {}
+        VirtualFileManager.getInstance().addAsyncFileListener(
+            {
+                trySend(it.toList())
+                null
+            },
+            parentDisposable
+        )
+        awaitClose { parentDisposable.dispose() }
     }
 
 fun VirtualFileListener(action: (VirtualFileEvent) -> Unit) =
@@ -162,4 +170,39 @@ fun <T> Flow<T>.replayOn(vararg replayFlows: Flow<*>) = channelFlow {
         .onEach { send(it) }
         .launchIn(this)
     merge(*replayFlows).collect { mutex.withLock { last?.let { send(it) } } }
+}
+
+val Project.fileOpenedFlow: Flow<List<VirtualFile>>
+    get() = flow {
+        val buffer: MutableList<VirtualFile> = FileEditorManager.getInstance(this@fileOpenedFlow).openFiles
+            .toMutableList()
+        emit(buffer.toList())
+        messageBus.flow(FileEditorManagerListener.FILE_EDITOR_MANAGER) {
+            object : FileEditorManagerListener {
+                override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+                    trySend(FileEditorEvent.FileOpened(file))
+                }
+
+                override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+                    trySend(FileEditorEvent.FileClosed(file))
+                }
+            }
+        }.collect {
+            when (it) {
+                is FileEditorEvent.FileClosed -> buffer.remove(it.file)
+                is FileEditorEvent.FileOpened -> buffer.add(it.file)
+            }
+            emit(buffer.toList())
+        }
+    }
+
+internal sealed interface FileEditorEvent {
+
+    val file: VirtualFile
+
+    @JvmInline
+    value class FileOpened(override val file: VirtualFile) : FileEditorEvent
+
+    @JvmInline
+    value class FileClosed(override val file: VirtualFile) : FileEditorEvent
 }

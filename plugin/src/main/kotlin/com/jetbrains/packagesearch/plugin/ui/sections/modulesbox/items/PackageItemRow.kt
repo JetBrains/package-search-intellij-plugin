@@ -182,7 +182,7 @@ fun PackageRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(Modifier.width(74.dp), horizontalArrangement = Arrangement.End) {
+                Row(Modifier.defaultMinSize(74.dp), horizontalArrangement = Arrangement.End) {
                     mainActionContent?.invoke()
                 }
                 var hovered by remember(key1 = actionPopupId) { mutableStateOf(false) }

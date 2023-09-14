@@ -75,13 +75,13 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     ) : PackageSearchKotlinMultiplatformVariant {
 
         override val attributes: List<String>
-            get() = listOf(NAME)
+            get() = emptyList()
 
         companion object {
             const val NAME = "dependencies block"
         }
 
-        override val name: String = ""
+        override val name: String = NAME
         override val variantTerminology = null
 
         override val isPrimary: Boolean

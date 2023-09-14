@@ -30,7 +30,6 @@ import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageSearchInfoB
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
 import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
 import com.jetbrains.packagesearch.plugin.utils.logError
-import com.jetbrains.packagesearch.plugin.utils.logWarn
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
@@ -94,12 +93,6 @@ fun PackageSearchPackagePanel(
                 Text("Select one or more modules on the left to show declared dependencies")
             }
         } else {
-            logWarn {
-                buildString {
-                    appendLine("groups:")
-                    packageGroups.forEach { appendLine(" - ${it.id}") }
-                }
-            }
             PackageSearchCentralPanel(
                 isLoading = isSearching,
                 isInfoBoxOpen = isInfoBoxOpen,
@@ -158,7 +151,6 @@ fun PackageSearchPackagePanel(
         }
         isSearching = true
         delay(250.milliseconds)
-        logWarn { "searching '$searchQuery' for ${selectedModules.joinToString { it.module.name }}" }
         searchResults = when (val searchData = buildSearchData(selectedModules, searchQuery)) {
             SearchData.Empty -> SearchData.Results.Empty
             is SearchData.SingleBaseModule ->

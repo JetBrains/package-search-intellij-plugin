@@ -47,24 +47,21 @@ fun PackageSearchPackageList(
     isInfoBoxOpen: Boolean,
     onElementClick: (InfoBoxDetail?) -> Unit,
 ) {
-    val isDark= IntelliJTheme.isDark
     val isStableOnly by LocalIsOnlyStableVersions.current.collectAsState()
-    val items = remember(packageGroups, packageGroupState.size) {
-        buildPackageSearchPackageItemList {
-            packageGroups.forEach { group ->
-                when (group) {
-                    is PackageGroup.Declared -> addFromDeclaredGroup(
-                        group = group,
-                        isExpanded = group.id !in packageGroupState,
-                        isStableOnly = isStableOnly,
-                    )
+    val items = buildPackageSearchPackageItemList {
+        packageGroups.forEach { group ->
+            when (group) {
+                is PackageGroup.Declared -> addFromDeclaredGroup(
+                    group = group,
+                    isExpanded = group.id !in packageGroupState,
+                    isStableOnly = isStableOnly,
+                )
 
-                    is PackageGroup.Remote -> addFromRemoteGroup(
-                        group = group,
-                        isGroupExpanded = group.id !in packageGroupState,
-                        isStableOnly = isStableOnly,
-                    )
-                }
+                is PackageGroup.Remote -> addFromRemoteGroup(
+                    group = group,
+                    isGroupExpanded = group.id !in packageGroupState,
+                    isStableOnly = isStableOnly,
+                )
             }
         }
     }

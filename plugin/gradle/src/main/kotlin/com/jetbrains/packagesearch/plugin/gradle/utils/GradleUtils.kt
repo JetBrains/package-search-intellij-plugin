@@ -2,10 +2,12 @@ package com.jetbrains.packagesearch.plugin.gradle.utils
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.externalSystem.DependencyModifierService
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
@@ -18,9 +20,12 @@ import com.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.merge
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -77,12 +82,14 @@ fun getModuleChangesFlow(
             }
         )
     }
+
     val buildFileChanges = context
         .project
         .filesChangedEventFlow
-        .flatMapLatest { it.map { it.path }.asFlow() }
+        .flatMapConcat { it.map { it.path }.asFlow() }
         .filter { filePath -> allFiles.any { filePath == it } }
         .mapUnit()
+
     return merge(
         watchExternalFileChanges(globalGradlePropertiesPath),
         buildFileChanges,

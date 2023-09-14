@@ -19,8 +19,6 @@ sealed interface SearchData {
 
     data class SingleBaseModule(
         val searchParameters: SearchPackagesRequest,
-        val module: PackageSearchModule.Base,
-        val dependencyManager: PackageSearchDependencyManager
     ) : SearchData {
 
         fun withResults(results: List<ApiPackage>) =
@@ -34,16 +32,13 @@ sealed interface SearchData {
 
     data class SingleModuleWithVariants(
         val searches: List<SearchForVariants>,
-        val module: PackageSearchModule.WithVariants,
         val dependencyManager: PackageSearchDependencyManager
     ) : SearchData {
 
         fun withResults(results: List<SearchForVariants.Results>) =
-            Results(module, dependencyManager, results)
+            Results(results)
 
         data class Results(
-            val module: PackageSearchModule.WithVariants,
-            val dependencyManager: PackageSearchDependencyManager,
             val results: List<SearchForVariants.Results>,
         ) : SearchData.Results
 
@@ -64,7 +59,6 @@ sealed interface SearchData {
 
     data class MultipleModules(
         val searchParameters: SearchPackagesRequest,
-        val modules: List<PackageSearchModuleData>,
     ) : SearchData {
 
         fun withResults(results: List<ApiPackage>) =
@@ -87,9 +81,7 @@ internal fun buildSearchData(
             searchParameters = SearchPackagesRequest(
                 packagesType = module.compatiblePackageTypes,
                 searchQuery = searchQuery
-            ),
-            module = module,
-            dependencyManager = selectedModules.first().dependencyManager
+            )
         )
 
         is PackageSearchModule.WithVariants -> {
@@ -106,7 +98,6 @@ internal fun buildSearchData(
                             compatibleVariants = supportedVariants,
                         )
                     },
-                module = module,
                 dependencyManager = selectedModules.first().dependencyManager
             )
         }
@@ -130,6 +121,5 @@ internal fun buildSearchData(
             },
             searchQuery = searchQuery,
         ),
-        modules = selectedModules,
     )
 }

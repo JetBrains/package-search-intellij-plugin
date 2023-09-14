@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.transformLatest
 import com.intellij.openapi.module.Module as NativeModule
 
 abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
@@ -55,7 +56,7 @@ abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
                     .map { model }
                     .onStart { emit(model) }
             }
-            .transform { model ->
+            .transformLatest { model ->
                 transform(nativeModule, context, model)
             }
     }

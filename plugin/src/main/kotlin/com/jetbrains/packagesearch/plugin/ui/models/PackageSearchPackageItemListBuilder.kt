@@ -4,11 +4,10 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
 import com.jetbrains.packagesearch.plugin.core.utils.getIcon
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.getLatestVersion
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.latestVersion
 
 class PackageSearchPackageItemListBuilder {
@@ -146,7 +145,21 @@ class PackageSearchPackageItemListBuilder {
                     icon = apiPackage.getIcon(),
                     title = apiPackage.name ?: apiPackage.coordinates,
                     subtitle = apiPackage.coordinates.takeIf { apiPackage.name != null },
-                    id = "$index ${group.id} ${apiPackage.id}",
+                    id = buildString {
+                        append(index)
+                        append(" ")
+                        append(group.id)
+                        append(" ")
+                        append(apiPackage.id)
+                        append(" ")
+                        if (group is PackageGroup.Remote.FromVariants) {
+                            append(
+                                group.compatibleVariants
+                                    .filter { it.declaredDependencies.any { apiPackage.id == it.id } }
+                                    .joinToString { it.name }
+                            )
+                        }
+                    },
                     mainActionContent = {
                         val latestVersion = apiPackage.latestVersion.versionName
                         when (group) {
@@ -163,8 +176,10 @@ class PackageSearchPackageItemListBuilder {
 
                             is PackageGroup.Remote.FromVariants -> {
                                 val firstPrimaryVariant =
-                                    group.compatibleVariants.firstOrNull { it.isPrimary }
-                                        ?: group.compatibleVariants.firstOrNull()
+                                    group.compatibleVariants
+                                        .firstOrNull { it.isPrimary && it.declaredDependencies.none { it.id == apiPackage.id } }
+                                        ?: group.compatibleVariants
+                                            .firstOrNull { it.declaredDependencies.none { it.id == apiPackage.id } }
                                         ?: return@addPackage
                                 val compatibleVersion = apiPackage.versions
                                     .all
@@ -173,7 +188,7 @@ class PackageSearchPackageItemListBuilder {
                                     .firstOrNull { firstPrimaryVariant.isCompatible(apiPackage, it.key) }
                                     ?.key
                                 if (compatibleVersion != null) {
-                                    PackageActionLink("Add") {
+                                    PackageActionLink("Add to ${firstPrimaryVariant.name}") {
                                         group.dependencyManager.addDependency(
                                             context = it,
                                             data = firstPrimaryVariant

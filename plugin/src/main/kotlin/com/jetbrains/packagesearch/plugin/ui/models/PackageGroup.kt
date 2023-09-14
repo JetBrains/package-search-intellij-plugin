@@ -28,40 +28,47 @@ class PackageGroupsBuilder(private val searchQuery: String) {
         remotes = when (data) {
             SearchData.Results.Empty -> return
             is SearchData.SingleBaseModule.Results -> {
-                val declaredDependencyIds = selectedModules.singleOrNull()
-                    ?.let { it.module as? PackageSearchModule.Base }
-                    ?.declaredDependencies
-                    ?.map { it.id }
-                    ?: data.searchData
-                        .module
-                        .declaredDependencies
-                        .map { it.id }
-                listOf(
-                    PackageGroup.Remote.FromBaseModule(
-                        module = data.searchData.module,
-                        packages = data.results.filter { it.id !in declaredDependencyIds },
-                        dependencyManager = data.searchData.dependencyManager
-                    ),
-                )
+                val selectedModuleData = selectedModules.singleOrNull()
+                val module = selectedModuleData
+                    ?.module as? PackageSearchModule.Base
+                    ?: return
+
+                module.declaredDependencies
+                    .map { it.id }
+                    .let { declaredDependencyIds ->
+                        listOf(
+                            PackageGroup.Remote.FromBaseModule(
+                                module = module,
+                                packages = data.results.filter { it.id !in declaredDependencyIds },
+                                dependencyManager = selectedModuleData.dependencyManager
+                            )
+                        )
+                    }
             }
 
             is SearchData.MultipleModules.Results -> listOf(
                 PackageGroup.Remote.FromMultipleModules(
-                    moduleData = data.searchData.modules,
+                    moduleData = selectedModules,
                     packages = data.results,
                 ),
             )
 
-            is SearchData.SingleModuleWithVariants.Results ->
-                data.results.map {
+            is SearchData.SingleModuleWithVariants.Results -> {
+                val selectedModuleData = selectedModules.singleOrNull()
+                val module = selectedModuleData
+                    ?.module as? PackageSearchModule.WithVariants
+                    ?: return
+                data.results.map { results ->
+                    val variantNames = results.searchData.compatibleVariants.map { it.name }
                     PackageGroup.Remote.FromVariants(
-                        module = data.module,
-                        packages = it.results,
-                        badges = findCommonStrings(it.searchData.compatibleVariants.map { it.attributes }),
-                        compatibleVariants = it.searchData.compatibleVariants,
-                        dependencyManager = data.dependencyManager
+                        module = module,
+                        packages = results.results,
+                        badges = findCommonStrings(results.searchData.compatibleVariants.map { it.attributes }),
+                        compatibleVariants = module.variants.filterKeys { it in variantNames }.values.toList(),
+                        dependencyManager = selectedModuleData.dependencyManager
                     )
                 }
+            }
         }
     }
 
@@ -113,8 +120,8 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                                 it.declaredDependencies
                                     .filter {
                                         it.id.contains(searchQuery, true) || it.displayName.contains(
-                                            searchQuery,
-                                            true,
+                                            other = searchQuery,
+                                            ignoreCase = true,
                                         )
                                     }
                             },

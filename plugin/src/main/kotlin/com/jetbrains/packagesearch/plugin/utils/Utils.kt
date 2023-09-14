@@ -111,37 +111,5 @@ fun KtorDebugLogger() = object : Logger {
     override fun log(message: String) = logDebug(message)
 }
 
-internal sealed interface FileEditorEvent {
 
-    val file: VirtualFile
 
-    @JvmInline
-    value class FileOpened(override val file: VirtualFile) : FileEditorEvent
-
-    @JvmInline
-    value class FileClosed(override val file: VirtualFile) : FileEditorEvent
-}
-
-internal val Project.fileOpenedFlow: Flow<List<VirtualFile>>
-    get() = flow {
-        val buffer: MutableList<VirtualFile> = FileEditorManager.getInstance(this@fileOpenedFlow).openFiles
-            .toMutableList()
-        emit(buffer.toList())
-        messageBus.flow(FileEditorManagerListener.FILE_EDITOR_MANAGER) {
-            object : FileEditorManagerListener {
-                override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
-                    trySend(FileEditorEvent.FileOpened(file))
-                }
-
-                override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-                    trySend(FileEditorEvent.FileClosed(file))
-                }
-            }
-        }.collect {
-            when (it) {
-                is FileEditorEvent.FileClosed -> buffer.remove(it.file)
-                is FileEditorEvent.FileOpened -> buffer.add(it.file)
-            }
-            emit(buffer.toList())
-        }
-    }
