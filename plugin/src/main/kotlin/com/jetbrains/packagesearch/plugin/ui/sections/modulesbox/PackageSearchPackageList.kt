@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.onClick
@@ -137,8 +138,13 @@ fun PackageSearchPackageList(
                         ),
                         actionPopupId = item.id,
                         packageNameContent = {
-                            Text(item.title)
-                            item.subtitle?.let { LabelInfo(it) }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(item.title, maxLines = 1)
+                                item.subtitle?.let { LabelInfo(it, Modifier.weight(1f), maxLines = 1) }
+                            }
                         },
                         editPackageContent = { item.editPackageContent() },
                         popupContent = item.popupContent?.let { { it() } },

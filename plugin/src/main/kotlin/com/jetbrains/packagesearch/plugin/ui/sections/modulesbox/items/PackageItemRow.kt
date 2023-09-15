@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -154,22 +153,20 @@ fun PackageRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(Modifier.size(16.dp)) {
-                if (packageIcon != null) {
-                    Icon(
-                        painter = packageIcon,
-                        modifier = Modifier.fillMaxSize(),
-                        contentDescription = null,
-                    )
-                }
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(2f)) {
+            if (packageIcon != null) {
+                Icon(
+                    painter = packageIcon,
+                    modifier = Modifier.size(16.dp),
+                    contentDescription = null,
+                )
+            } else Box(Modifier.size(16.dp)) {}
             packageNameContent()
         }
+        if (!isCompact && editPackageContent != null) {
+            Row(modifier.weight(1f)) {editPackageContent()}
+        }
         Row {
-            if (!isCompact && editPackageContent != null) {
-                editPackageContent()
-            }
             // enable when package quality will be live
 //            Icon(
 //                painterResource(packageSearchQuality.getIconResourcePath(), LocalResourceLoader.current),
@@ -177,12 +174,13 @@ fun PackageRow(
 //            )
             Row(
                 Modifier
-                    .defaultMinSize(90.dp, 16.dp)
-                    .padding(start = 8.dp, end = 4.dp),
+//                    .defaultMinSize(90.dp, 16.dp)
+                    .padding(start = 8.dp, end = 4.dp)
+                ,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(Modifier.defaultMinSize(74.dp), horizontalArrangement = Arrangement.End) {
+                Row(Modifier.defaultMinSize(42.dp), horizontalArrangement = Arrangement.End) {
                     mainActionContent?.invoke()
                 }
                 var hovered by remember(key1 = actionPopupId) { mutableStateOf(false) }
