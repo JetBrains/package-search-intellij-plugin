@@ -164,19 +164,24 @@ fun PackageRow(
             packageNameContent()
         }
         if (!isCompact && editPackageContent != null) {
-            Row(modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {editPackageContent()}
+            Row(
+                modifier.weight(1f).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) { editPackageContent() }
         }
-        Row {
+        Row(
+            modifier = Modifier
+                .defaultMinSize(90.dp, 16.dp)
+                .padding(start = 8.dp, end = 4.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             // enable when package quality will be live
 //            Icon(
 //                painterResource(packageSearchQuality.getIconResourcePath(), LocalResourceLoader.current),
 //                contentDescription = null
 //            )
             Row(
-                Modifier
-                    .defaultMinSize(90.dp, 16.dp)
-                    .padding(start = 8.dp, end = 4.dp)
-                ,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

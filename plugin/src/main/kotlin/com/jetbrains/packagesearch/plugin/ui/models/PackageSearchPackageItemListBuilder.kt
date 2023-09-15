@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
@@ -356,12 +357,20 @@ fun ScopeSelectionDropdown(
                             }
                         }
                     }) {
-                    Text(it)
+                    Text(
+                        text = it,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         },
     ) {
-        Text(actualScope)
+        Text(
+            text = actualScope,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -395,7 +404,11 @@ fun VersionSelectionDropdown(
                             }
                         }
                     }) {
-                    Text(text = "${selectedVersion.versionName} → ${it.versionName}")
+                    Text(
+                        text = "${selectedVersion.versionName} → ${it.versionName}",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         },
@@ -407,7 +420,7 @@ fun VersionSelectionDropdown(
                 append(availableVersions.first().versionName)
             }
         }
-        Text(text)
+        Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
