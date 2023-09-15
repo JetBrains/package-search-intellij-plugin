@@ -26,9 +26,9 @@ Supports Maven and Gradle projects.
                     secondary="false"
                     canCloseContents="true"
                     factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
-        <registryKey defaultValue="false"
-                     description="Uses localhost as host in Package Search"
-                     key="org.jetbrains.packagesearch.localhost"
+        <registryKey defaultValue="true"
+                     description="Uses Sonatype APIS instead of package Search APIs"
+                     key="org.jetbrains.packagesearch.sonatype"
                      restartRequired="false"/>
         <registryKey id="packagesearch.plugin.debug.logging"
                      key="packagesearch.plugin.debug.logging"

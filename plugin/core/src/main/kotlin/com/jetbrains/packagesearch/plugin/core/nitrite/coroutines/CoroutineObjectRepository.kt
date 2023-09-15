@@ -21,7 +21,9 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.DocumentPathBuilder
 import com.jetbrains.packagesearch.plugin.core.nitrite.asKotlin
 import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
+import kotlin.reflect.KProperty
 import kotlin.reflect.KType
+import org.dizitart.no2.NitriteId
 
 class CoroutineObjectRepository<T : Any> @PKGSInternalAPI constructor(
     val synchronous: ObjectRepository<T>,
@@ -37,6 +39,9 @@ class CoroutineObjectRepository<T : Any> @PKGSInternalAPI constructor(
         get() = CoroutineNitriteCollection(synchronous.documentCollection)
 
     private val indexMutex = Mutex()
+
+    suspend fun findById(id: Long): T? = dispatch { synchronous.getById(NitriteId.createId(id)) }
+    suspend fun findById(id: Int): T? = findById(id.toLong())
 
     suspend fun find(filter: ObjectFilter? = null, findOptions: FindOptions? = null): Flow<T> =
         withContext(dispatcher) {
@@ -76,6 +81,13 @@ class CoroutineObjectRepository<T : Any> @PKGSInternalAPI constructor(
     ) = indexMutex.withLock {
         val field = path.build()
         dispatch { if (!synchronous.hasIndex(field)) synchronous.createIndex(field, indexOptions) }
+    }
+
+    suspend fun createIndex(
+        indexOptions: IndexOptions,
+        path: KProperty<*>,
+    ) = indexMutex.withLock {
+        dispatch { if (!synchronous.hasIndex(path.name)) synchronous.createIndex(path.name, indexOptions) }
     }
 
 }

@@ -27,49 +27,12 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
-
-suspend fun <T> windowedBuilderContext(
-    project: Project,
-    knownRepositories: Map<String, ApiRepository>,
-    packagesCache: PackageSearchApiPackageCache,
-    projectCaches: CoroutineNitrite,
-    applicationCaches: CoroutineNitrite,
-    action: suspend CoroutineScope.(context: PackageSearchModuleBuilderContext) -> T,
-): T = coroutineScope {
-    windowedBuilderContext(
-        project = project,
-        knownRepositories = knownRepositories,
-        projectCaches = projectCaches,
-        applicationCaches = applicationCaches,
-        packagesCache = packagesCache,
-    ) {
-        action(this@coroutineScope, this)
-    }
-}
-
-inline fun <T> CoroutineScope.windowedBuilderContext(
-    project: Project,
-    knownRepositories: Map<String, ApiRepository>,
-    packagesCache: PackageSearchApiPackageCache,
-    projectCaches: CoroutineNitrite,
-    applicationCaches: CoroutineNitrite,
-    action: PackageSearchModuleBuilderContext.() -> T,
-): T {
-    val context = WindowedModuleBuilderContext(
-        project = project,
-        knownRepositories = knownRepositories,
-        packagesCache = packagesCache,
-        coroutineScope = this,
-        projectCaches = projectCaches,
-        applicationCaches = applicationCaches,
-    )
-    return context.action()
-}
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 
 class WindowedModuleBuilderContext(
     override val project: Project,
     override val knownRepositories: Map<String, ApiRepository>,
-    private val packagesCache: PackageSearchApiPackagesContext,
+    private val packagesCache: PackageSearchApi,
     override val coroutineScope: CoroutineScope,
     override val projectCaches: CoroutineNitrite,
     override val applicationCaches: CoroutineNitrite,

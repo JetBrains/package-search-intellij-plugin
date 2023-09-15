@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.core.services
 
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
@@ -8,7 +9,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.CoroutineScope
 
-@Service(Service.Level.PROJECT)
+@Service(Level.PROJECT)
 class PackageSearchProjectCachesService(project: Project, coroutineScope: CoroutineScope) {
 
     @PKGSInternalAPI

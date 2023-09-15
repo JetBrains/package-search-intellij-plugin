@@ -7,12 +7,13 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.application.Application
 import com.jetbrains.packagesearch.plugin.core.utils.flow
+import com.jetbrains.packagesearch.plugin.services.PackageSearchApiClientType
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.isLightTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 
 val LocalJson = staticCompositionLocalOf { Json { prettyPrint = true } }
 
@@ -33,7 +34,7 @@ val LocalIsActionPerformingState: ProvidableCompositionLocal<MutableState<Action
 val LocalInfoBoxPanelOpenState: ProvidableCompositionLocal<MutableState<Boolean>> =
     staticCompositionLocalOf { error("No LocalInfoBoxPanelOpenState provided") }
 
-val LocalPackageSearchApiClient: ProvidableCompositionLocal<PackageSearchApiClient> =
+val LocalPackageSearchApiClient: ProvidableCompositionLocal<PackageSearchApi> =
     staticCompositionLocalOf { error("No LocalPackageSearchApiClient provided") }
 
 val LocalIsOnlyStableVersions: ProvidableCompositionLocal<MutableStateFlow<Boolean>> =

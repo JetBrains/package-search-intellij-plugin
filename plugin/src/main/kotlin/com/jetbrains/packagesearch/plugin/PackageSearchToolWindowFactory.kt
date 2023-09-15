@@ -3,6 +3,8 @@
 package com.jetbrains.packagesearch.plugin
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -26,6 +28,8 @@ import com.jetbrains.packagesearch.plugin.ui.LocalProjectCoroutineScope
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import org.jetbrains.jewel.bridge.SwingBridgeTheme
 import org.jetbrains.jewel.bridge.addComposeTab
@@ -64,11 +68,15 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
         System.setProperty("compose.swing.render.on.graphics", "true")
         toolWindow.addComposeTab("UX") {
+            val apiClient: PackageSearchApiPackageCache? by IntelliJApplication.PackageSearchApplicationCachesService
+                .apiPackageCache
+                .collectAsState(null)
+            if (apiClient == null) return@addComposeTab
             SwingBridgeTheme {
                 CompositionLocalProvider(
                     LocalProjectService provides project.PackageSearchProjectService,
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
-                    LocalPackageSearchApiClient provides IntelliJApplication.PackageSearchApiClientService.client,
+                    LocalPackageSearchApiClient provides apiClient!!,
                     LocalIsActionPerformingState provides mutableStateOf(ActionState(false)),
                     LocalInfoBoxPanelOpenState provides isInfoBoxOpen,
                     LocalIsOnlyStableVersions provides project.PackageSearchProjectService.isStableOnlyVersions,

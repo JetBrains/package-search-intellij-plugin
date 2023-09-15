@@ -30,6 +30,7 @@ import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageSearchInfoB
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
 import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
 import com.jetbrains.packagesearch.plugin.utils.logError
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
@@ -41,9 +42,8 @@ import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.jewel.foundation.tree.TreeState
 import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun PackageSearchPackagePanel(
@@ -171,7 +171,7 @@ fun PackageSearchPackagePanel(
     }
 }
 
-private suspend fun PackageSearchApiClient.trySearchPackages(json: Json, request: SearchPackagesRequest) =
+private suspend fun PackageSearchApi.trySearchPackages(json: Json, request: SearchPackagesRequest) =
     runCatching { searchPackages(request) }
         .onFailure {
             logError(it) {

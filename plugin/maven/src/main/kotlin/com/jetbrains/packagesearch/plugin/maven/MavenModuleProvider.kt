@@ -7,9 +7,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlText
-import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
@@ -22,7 +20,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
-import com.jetbrains.packagesearch.plugin.core.utils.registryStateFlow
+import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
@@ -35,7 +33,6 @@ import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.idea.maven.dom.MavenDomUtil
 import org.jetbrains.idea.maven.project.MavenProject
 import org.jetbrains.idea.maven.project.MavenProjectsManager
-import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
@@ -45,40 +42,6 @@ import org.jetbrains.packagesearch.maven.ProjectObjectModel
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import java.io.File
 import com.intellij.openapi.module.Module as NativeModule
-
-class MavenDependencyModel(
-    val groupId: String,
-    val artifactId: String,
-    val version: String?,
-    val scope: String?,
-    val indexes: DependencyDeclarationIndexes,
-) {
-
-    val packageId
-        get() = "maven:$groupId:$artifactId"
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as MavenDependencyModel
-
-        if (groupId != other.groupId) return false
-        if (artifactId != other.artifactId) return false
-        if (version != other.version) return false
-        if (scope != other.scope) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = groupId.hashCode()
-        result = 31 * result + artifactId.hashCode()
-        result = 31 * result + (version?.hashCode() ?: 0)
-        result = 31 * result + (scope?.hashCode() ?: 0)
-        return result
-    }
-}
 
 class MavenModuleProvider : PackageSearchModuleProvider {
 
@@ -96,12 +59,7 @@ class MavenModuleProvider : PackageSearchModuleProvider {
                 .flatMapLatest { it.map { it.path }.asFlow() }
                 .filter { it == pomPath }
                 .mapUnit(),
-            IntelliJApplication.registryStateFlow(
-                context.coroutineScope,
-                "org.jetbrains.packagesearch.localhost",
-                false
-            )
-                .mapUnit()
+            IntelliJApplication.registryFlow("org.jetbrains.packagesearch.sonatype",).mapUnit()
         )
 
         private fun buildMavenParentHierarchy(pomFile: File): String {

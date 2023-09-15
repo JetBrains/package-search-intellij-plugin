@@ -3,21 +3,27 @@
 package com.jetbrains.packagesearch.plugin.utils
 
 import com.intellij.ProjectTopics
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.Function
-import com.jetbrains.packagesearch.plugin.core.nitrite.asCacheEntry
+import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import com.jetbrains.packagesearch.plugin.core.nitrite.insert
-import com.jetbrains.packagesearch.plugin.core.utils.collectIn
 import com.jetbrains.packagesearch.plugin.core.utils.flow
+import io.ktor.client.plugins.logging.Logger
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Clock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.modules.PolymorphicModuleBuilder
@@ -25,17 +31,6 @@ import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.modules.polymorphic
 import org.dizitart.no2.objects.filters.ObjectFilters
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import com.jetbrains.packagesearch.plugin.core.nitrite.ApiRepositoryCacheEntry
-import com.jetbrains.packagesearch.plugin.core.nitrite.asCacheEntry
-import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
-import com.jetbrains.packagesearch.plugin.core.nitrite.insert
-import com.jetbrains.packagesearch.plugin.core.utils.collectIn
-import com.jetbrains.packagesearch.plugin.core.utils.flow
-import io.ktor.client.plugins.logging.Logger
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 
 internal val Project.nativeModules
@@ -67,20 +62,20 @@ internal val Project.nativeModulesFlow: Flow<NativeModules>
         }
     }
 
-fun <T> interval(
+fun interval(
     interval: Duration,
-    emitOnStart: Boolean = true,
-    function: suspend () -> T,
+    emitOnStart: Boolean = false,
 ) = flow {
     if (emitOnStart) {
-        emit(function())
+        emit(Unit)
     }
     while (true) {
         delay(interval)
-        emit(function())
+        emit(Unit)
     }
 }
 
+// todo the _id must be a Long
 suspend fun getRepositories(
     repoCache: CoroutineObjectRepository<ApiRepositoryCacheEntry>,
     apiClient: PackageSearchApiClient,

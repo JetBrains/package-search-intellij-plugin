@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.core.nitrite
 
+import com.intellij.openapi.client.ClientType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -26,20 +27,6 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocu
 private val NitriteContext.kotlinxMapperOrNull
     get() = nitriteMapper as? KotlinxNitriteMapper
 
-@Serializable
-data class ApiPackageCacheEntry(
-    val data: ApiPackage,
-    @SerialName("_id") val id: Long? = null,
-    val lastUpdate: Instant = Clock.System.now(),
-)
-
-@Serializable
-data class ApiRepositoryCacheEntry(
-    val data: List<ApiRepository>,
-    @SerialName("_id") val id: Long? = null,
-    val lastUpdate: Instant = Clock.System.now(),
-)
-
 inline fun <reified T : Any> ObjectRepository<T>.coroutine(documentFormat: NitriteDocumentFormat) =
     CoroutineObjectRepository(this, documentFormat)
 
@@ -48,9 +35,6 @@ suspend inline fun <reified T : Any> CoroutineObjectRepository<T>.insert(items: 
 
 suspend inline fun <reified T : Any> CoroutineObjectRepository<T>.insert(item: T): WriteResult =
     insert(arrayOf(item))
-
-fun ApiPackage.asCacheEntry() = ApiPackageCacheEntry(this)
-fun List<ApiRepository>.asCacheEntry() = ApiRepositoryCacheEntry(this)
 
 fun Nitrite.asCoroutine(documentFormat: NitriteDocumentFormat? = null) =
     CoroutineNitrite(

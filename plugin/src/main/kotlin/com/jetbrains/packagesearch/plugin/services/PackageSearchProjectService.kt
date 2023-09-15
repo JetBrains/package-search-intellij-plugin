@@ -15,13 +15,14 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.getNativeModulesStateFlow
-import com.jetbrains.packagesearch.plugin.utils.getRepositories
 import com.jetbrains.packagesearch.plugin.utils.interval
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
+import kotlin.io.path.absolutePathString
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,9 +39,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.packagesearch.api.v3.ApiRepository
-import kotlin.io.path.absolutePathString
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.seconds
 
 @Service(Level.PROJECT)
 class PackageSearchProjectService(
@@ -52,29 +50,28 @@ class PackageSearchProjectService(
     internal val isStableOnlyVersions = MutableStateFlow(true)
 
     val knownRepositoriesStateFlow =
-        interval(1.days) {
-            getRepositories(
-                repoCache = IntelliJApplication.PackageSearchApplicationCachesService.getRepositoryCache(),
-                apiClient = IntelliJApplication.PackageSearchApiClientService.client
-            )
-        }
+        IntelliJApplication.PackageSearchApplicationCachesService
+            .apiPackageCache
+            .replayOn(interval(1.days))
+            .map { it.getKnownRepositories().associateBy { it.id } }
             .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     override val knownRepositories: Map<String, ApiRepository>
         get() = knownRepositoriesStateFlow.value
 
-    private val contextFlow = knownRepositoriesStateFlow
-        .map {
-            WindowedModuleBuilderContext(
-                project = project,
-                knownRepositories = it,
-                packagesCache = IntelliJApplication.PackageSearchApplicationCachesService.getApiPackageCache(),
-                coroutineScope = coroutineScope,
-                projectCaches = project.PackageSearchProjectCachesService.cache.await(),
-                applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache.await(),
-            )
-        }
-        .shareIn(coroutineScope, SharingStarted.Eagerly)
+    private val contextFlow = combine(
+        knownRepositoriesStateFlow,
+        IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache
+    ) { repositories, client ->
+        WindowedModuleBuilderContext(
+            project = project,
+            knownRepositories = repositories,
+            packagesCache = client,
+            coroutineScope = coroutineScope,
+            projectCaches = project.PackageSearchProjectCachesService.cache.await(),
+            applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache.await(),
+        )
+    }.shareIn(coroutineScope, SharingStarted.Eagerly)
 
     val moduleData = combine(
         project.getNativeModulesStateFlow(coroutineScope),

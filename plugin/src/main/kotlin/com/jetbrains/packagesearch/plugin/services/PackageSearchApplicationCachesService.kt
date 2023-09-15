@@ -2,20 +2,26 @@ package com.jetbrains.packagesearch.plugin.services
 
 import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.Service.Level
 import com.intellij.util.application
-import io.ktor.util.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import org.dizitart.no2.IndexOptions
-import org.dizitart.no2.IndexType
-import org.jetbrains.packagesearch.api.v3.ApiPackage
-import com.jetbrains.packagesearch.plugin.core.nitrite.*
+import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
+import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
+import com.jetbrains.packagesearch.plugin.utils.ApiPackageCacheEntry
+import com.jetbrains.packagesearch.plugin.utils.ApiRepositoryCacheEntry
+import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import kotlin.io.path.absolutePathString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import org.dizitart.no2.IndexOptions
+import org.dizitart.no2.IndexType
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 
-@Service(Service.Level.APP)
+@Service(Level.APP)
 class PackageSearchApplicationCachesService(coroutineScope: CoroutineScope) {
 
     @PKGSInternalAPI
@@ -29,7 +35,7 @@ class PackageSearchApplicationCachesService(coroutineScope: CoroutineScope) {
     suspend inline fun <reified T : Any> getRepository(key: String) =
         cache.await().getRepository<T>(key)
 
-    private val apiPackageCache = coroutineScope.async {
+    suspend fun getPackagesRepository() =
         getRepository<ApiPackageCacheEntry>("packages")
             .also {
                 it.createIndex(
@@ -41,12 +47,22 @@ class PackageSearchApplicationCachesService(coroutineScope: CoroutineScope) {
                     path = ApiPackageCacheEntry::data / ApiPackage::idHash
                 )
             }
-            .let { PackageSearchApiPackageCache(it, application.PackageSearchApiClientService.client) }
-    }
 
-    suspend fun getApiPackageCache() = apiPackageCache.await()
+    suspend fun getSearchesRepository() =
+        getRepository<ApiSearchEntry>("searches")
+            .also {
+                it.createIndex(
+                    indexOptions = IndexOptions.indexOptions(IndexType.Unique),
+                    path = ApiSearchEntry::searchHash
+                )
+            }
 
     suspend fun getRepositoryCache() =
         getRepository<ApiRepositoryCacheEntry>("repositories")
+
+    val apiPackageCache = application.PackageSearchApiClientService.client
+        .map { PackageSearchApiPackageCache(getPackagesRepository(), getSearchesRepository(), it.client) }
+
+
 }
 

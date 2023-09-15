@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.server
+package com.jetbrains.packagesearch.mock
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -7,26 +7,49 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.transform
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import nl.adaptivity.xmlutil.serialization.XML
-import org.jetbrains.packagesearch.api.v3.*
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
+import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
+import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiRepository
+import org.jetbrains.packagesearch.api.v3.Author
+import org.jetbrains.packagesearch.api.v3.LicenseFile
 import org.jetbrains.packagesearch.api.v3.Licenses
+import org.jetbrains.packagesearch.api.v3.VersionsContainer
+import org.jetbrains.packagesearch.api.v3.Vulnerability
 import org.jetbrains.packagesearch.gradle.File
 import org.jetbrains.packagesearch.gradle.GradleMetadata
 import org.jetbrains.packagesearch.gradle.Variant
-import org.jetbrains.packagesearch.maven.*
 import org.jetbrains.packagesearch.maven.Dependency
+import org.jetbrains.packagesearch.maven.Developer
+import org.jetbrains.packagesearch.maven.GoogleMavenCentralMirror
+import org.jetbrains.packagesearch.maven.License
+import org.jetbrains.packagesearch.maven.PomResolver
+import org.jetbrains.packagesearch.maven.ProjectObjectModel
+import org.jetbrains.packagesearch.maven.buildGradleMetadataUrl
 import org.jetbrains.packagesearch.maven.central.MavenCentralApiResponse
+import org.jetbrains.packagesearch.maven.dependencies
+import org.jetbrains.packagesearch.maven.developers
+import org.jetbrains.packagesearch.maven.licenses
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.packagesearch.gradle.Dependency as GradleMetadataDependency
-
 
 fun Dependency.toApiModel() = version?.let {
     org.jetbrains.packagesearch.api.v3.Dependency(
@@ -107,53 +130,62 @@ fun ContentNegotiation.Config.xml(xml: XML) {
 data class MavenCoordinateWithVersions(
     val groupId: String,
     val artifactId: String,
-    val versions: Map<String, Metadata>
+    val versions: Map<String, Metadata>,
 ) {
     data class Metadata(
         val pom: ProjectObjectModel,
         val gradleMetadata: GradleMetadata?,
         val publicationDate: Instant,
-        val artifacts: List<String>
+        val artifacts: List<String>,
     )
 }
 
 suspend fun HttpClient.getMavenCentralInfo(
     groupId: String,
-    artifactId: String
+    artifactId: String,
 ) = get("https://search.maven.org/solrsearch/select?q=g:$groupId+AND+a:$artifactId&core=gav&rows=5&wt=json")
     .body<MavenCentralApiResponse>()
     .takeIf { it.response.docs.isNotEmpty() }
 
 suspend fun HttpClient.getBuildSystemsMetadata(
     mavenCentralApiResponse: MavenCentralApiResponse,
-    pomSolver: PomResolver
+    pomSolver: PomResolver,
 ) = MavenCoordinateWithVersions(
-    mavenCentralApiResponse.response.docs.first().g,
-    mavenCentralApiResponse.response.docs.first().a,
+    mavenCentralApiResponse.response.docs.first().groupId,
+    mavenCentralApiResponse.response.docs.first().artifactId,
     mavenCentralApiResponse.response.docs
         .asFlow()
         .buffer()
-        .mapNotNull { doc ->
-            coroutineScope {
-                val pomJob = async { pomSolver.resolve(doc.g, doc.a, doc.v) }
-                val gradleMetadata = runCatching {
-                    get(GoogleMavenCentralMirror.buildGradleMetadataUrl(doc.g, doc.a, doc.v))
-                        .body<GradleMetadata>()
-                }.getOrNull()
-                val pom = pomJob.await() ?: return@coroutineScope null
-                doc.v to MavenCoordinateWithVersions.Metadata(
-                    gradleMetadata = gradleMetadata,
-                    pom = pom,
-                    publicationDate = Instant.fromEpochMilliseconds(doc.timestamp),
-                    artifacts = doc.ec.map { "${doc.g}-${doc.v}-$it" }
-                )
-            }
+        .mapNotNullScoped { doc ->
+            val version = doc.version ?: return@mapNotNullScoped null
+            val pomJob = async { pomSolver.resolve(doc.groupId, doc.artifactId, version) }
+            val gradleMetadataUrl = GoogleMavenCentralMirror.buildGradleMetadataUrl(
+                groupId = doc.groupId,
+                artifactId = doc.artifactId,
+                version = version
+            )
+            val gradleMetadata = runCatching { get(gradleMetadataUrl).body<GradleMetadata>() }
+                .getOrNull()
+            val pom = pomJob.await() ?: return@mapNotNullScoped null
+            version to MavenCoordinateWithVersions.Metadata(
+                gradleMetadata = gradleMetadata,
+                pom = pom,
+                publicationDate = Instant.fromEpochMilliseconds(doc.timestamp),
+                artifacts = doc.ec.map { "${doc.groupId}-$version-$it" }
+            )
         }
         .toList()
         .toMap()
 )
 
-fun MavenCoordinateWithVersions.toApiModels(): ApiPackage {
+inline fun <T, R : Any> Flow<T>.mapNotNullScoped(
+    crossinline transform: suspend CoroutineScope.(value: T) -> R?,
+): Flow<R> = transform { value ->
+    val transformed = coroutineScope { transform(value) } ?: return@transform
+    emit(transformed)
+}
+
+fun MavenCoordinateWithVersions.toMavenApiModel(): ApiMavenPackage {
     val mavenVersions = versions
         .mapValues { (version, metadata) ->
             val (pom, gradleMetadata) = metadata
@@ -205,7 +237,7 @@ fun MavenCoordinateWithVersions.toApiModels(): ApiPackage {
 
 }
 
-suspend fun PomResolver.toApiModels(ids: Iterable<String>) =
+suspend fun PomResolver.toMavenApiModel(ids: Iterable<String>) =
     ids.asFlow()
         .filter { it.startsWith("maven:") }
         .map { it.removePrefix("maven:") }
@@ -214,7 +246,7 @@ suspend fun PomResolver.toApiModels(ids: Iterable<String>) =
         .mapNotNull { httpClient.getMavenCentralInfo(it.first, it.second) }
         .buffer()
         .map { httpClient.getBuildSystemsMetadata(it, this) }
-        .map { it.toApiModels() }
+        .map { it.toMavenApiModel() }
         .toList()
 
 internal var HttpTimeout.HttpTimeoutCapabilityConfiguration.requestTimeout: Duration?
@@ -226,7 +258,22 @@ internal var HttpTimeout.HttpTimeoutCapabilityConfiguration.requestTimeout: Dura
 internal fun HttpRequestRetry.Configuration.constantDelay(
     delay: Duration = 1.seconds,
     randomization: Duration = 1.seconds,
-    respectRetryAfterHeader: Boolean = true
+    respectRetryAfterHeader: Boolean = true,
 ) {
     constantDelay(delay.inWholeMilliseconds, randomization.inWholeMilliseconds, respectRetryAfterHeader)
 }
+
+val MAVEN_CENTRAL_API_REPOSITORY
+    get() = listOf<ApiRepository>(
+        ApiMavenRepository(
+            id = "maven-central",
+            lastChecked = Clock.System.now(),
+            url = "https://repo.maven.apache.org/maven2",
+            alternateUrls = emptyList(),
+            friendlyName = "Maven Central",
+            userFacingUrl = null,
+            packageCount = 0,
+            artifactCount = 0,
+            namedLinks = null
+        )
+    )

@@ -26,7 +26,9 @@ if (file(".gitsubmoduleinit").run { !exists() }) {
 }
 
 include(
-    ":packagesearch-api-mock-server",
+    ":api-mock",
+    ":api-mock:api-mock-client",
+    ":api-mock:api-mock-server",
     ":plugin",
     ":plugin:core",
     ":plugin:gradle",

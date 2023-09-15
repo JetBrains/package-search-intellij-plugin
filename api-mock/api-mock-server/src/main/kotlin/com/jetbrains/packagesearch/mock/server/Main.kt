@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.server
+package com.jetbrains.packagesearch.mock.server
 
 import io.ktor.server.application.*
 import io.ktor.server.cio.*

@@ -156,6 +156,9 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                         }
                     },
                     compatiblePackageTypes = buildPackageTypes {
+                        if (compilationTargets.singleOrNull() == Jvm) {
+                            mavenPackages()
+                        }
                         gradlePackages {
                             kotlinMultiplatform {
                                 compilationTargets.forEach { compilationTarget ->

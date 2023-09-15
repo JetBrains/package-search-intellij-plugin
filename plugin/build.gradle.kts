@@ -24,8 +24,13 @@ packagesearch {
     isRunIdeEnabled = true
 }
 
+configurations.api {
+    isCanBeResolved = true
+}
+
 dependencies {
     compileOnly(packageSearchCatalog.kotlinx.serialization.core)
+    api(projects.apiMock.apiMockClient)
     implementation(compose.desktop.linux_arm64)
     implementation(compose.desktop.linux_x64)
     implementation(compose.desktop.macos_arm64)
@@ -55,5 +60,10 @@ tasks {
             ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
 
         channels = listOf("INTERNAL-EAP")
+    }
+
+    register<Sync>("exctractApi") {
+        from(configurations.api)
+        into(layout.buildDirectory.dir("api"))
     }
 }

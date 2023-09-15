@@ -23,14 +23,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ProducerScope
@@ -135,14 +132,14 @@ fun StringBuilder.appendEscaped(text: String) =
 val IntelliJApplication
     get() = application
 
-fun Application.registryStateFlow(scope: CoroutineScope, key: String, defaultValue: Boolean = false) =
+fun Application.registryFlow(key: String, defaultValue: Boolean = false) =
     messageBus.flow(RegistryManager.TOPIC) {
         object : RegistryValueListener {
             override fun afterValueChanged(value: RegistryValue) {
                 if (value.key == key) trySend(Registry.`is`(key, defaultValue))
             }
         }
-    }.stateIn(scope, SharingStarted.WhileSubscribed(), Registry.`is`(key, defaultValue))
+    }.onStart { emit( Registry.`is`(key, defaultValue)) }
 
 suspend fun <T> Flow<T>.collectIn(flowCollector: FlowCollector<T>) =
     collect { flowCollector.emit(it) }
