@@ -43,6 +43,10 @@ data class PackageSearchKotlinMultiplatformModule(
     val packageSearchModel: PackageSearchGradleModel,
     val availableKnownRepositories: Map<String, ApiRepository>
 ) : PackageSearchModule.WithVariants {
+
+    override val dependencyMustHaveAScope: Boolean
+        get() = true
+
     override val icon
         get() = Icons.KOTLIN
 

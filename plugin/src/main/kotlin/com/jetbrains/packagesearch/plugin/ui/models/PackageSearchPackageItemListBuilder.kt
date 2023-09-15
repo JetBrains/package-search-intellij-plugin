@@ -3,6 +3,8 @@ package com.jetbrains.packagesearch.plugin.ui.models
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -26,6 +28,8 @@ import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredP
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.latestVersion
+import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Dropdown
@@ -36,8 +40,6 @@ import org.jetbrains.jewel.styling.DropdownColors
 import org.jetbrains.jewel.styling.DropdownStyle
 import org.jetbrains.jewel.styling.LocalDropdownStyle
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import java.util.*
-import kotlin.time.Duration.Companion.seconds
 
 class PackageSearchPackageItemListBuilder {
     private val list = mutableListOf<PackageSearchPackageListItem>()
@@ -122,12 +124,15 @@ class PackageSearchPackageItemListBuilder {
                     },
                     modifyPackageContent = {
                         val service = LocalProjectService.current
-
-                        val actualScope = declaredDependency.scope!!
-                        val availableScope = group.module.availableScopes - actualScope
-
-                        Row(modifier = Modifier.defaultMinSize(100.dp, 0.dp), horizontalArrangement = Arrangement.End) {
-                            ScopeSelectionDropdown(availableScope, actualScope) { newScope: String ->
+                        Row(
+                            modifier = Modifier.defaultMinSize(100.dp, 0.dp),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            ScopeSelectionDropdown(
+                                group.module.availableScopes,
+                                declaredDependency.scope,
+                                group.module.dependencyMustHaveAScope
+                            ) { newScope: String? ->
                                 group.dependencyManager.updateDependencies(
                                     context = service,
                                     data = listOf(
@@ -152,13 +157,23 @@ class PackageSearchPackageItemListBuilder {
                                 ?.filter { if (onlyStable) it.isStable else true }
                                 ?.let { it - declaredDependency.declaredVersion }
                                 ?: emptyList()
-                        Row(modifier = Modifier.defaultMinSize(130.dp, 0.dp), horizontalArrangement = Arrangement.End) {
-                            VersionSelectionDropdown(declaredVersion, availableVersions) { newVersion: String ->
-                                group.dependencyManager.updateDependencies(
-                                    context = service,
-                                    data = listOf(declaredDependency.getUpdateData(newVersion = newVersion))
-                                )
-                            }
+
+                        val latestStable = declaredDependency.latestStableVersion
+                        val latestVersion = when {
+                            onlyStable && latestStable != null -> latestStable
+                            else -> declaredDependency.latestVersion
+                        }
+
+
+                        VersionSelectionDropdown(
+                            declaredVersion,
+                            availableVersions,
+                            latestVersion
+                        ) { newVersion: String ->
+                            group.dependencyManager.updateDependencies(
+                                context = service,
+                                data = listOf(declaredDependency.getUpdateData(newVersion = newVersion))
+                            )
                         }
                     },
                     infoBoxDetail = InfoBoxDetail.Package.DeclaredPackage(declaredDependency, group.module),
@@ -308,7 +323,7 @@ class PackageSearchPackageItemListBuilder {
 
 
 @Composable
-private fun pkgsdropdownStyle(): DropdownStyle {
+private fun packageSearchDropdownStyle(): DropdownStyle {
     val currentStyle = LocalDropdownStyle.current
     return remember(LocalDropdownStyle.current) {
         object : DropdownStyle by currentStyle {
@@ -332,8 +347,9 @@ private fun pkgsdropdownStyle(): DropdownStyle {
 @Composable
 fun ScopeSelectionDropdown(
     availableScope: List<String>,
-    actualScope: String,
-    updateLambda: suspend (newScope: String) -> Unit,
+    actualScope: String?,
+    mustHaveScope: Boolean,
+    updateLambda: suspend (newScope: String?) -> Unit,
 ) {
     val actionId = UUID.randomUUID().toString()
     var actionPerforming by LocalIsActionPerformingState.current
@@ -342,8 +358,28 @@ fun ScopeSelectionDropdown(
     Dropdown(
         enabled = !actionPerforming.isPerforming,
         resourceLoader = LocalResourceLoader.current,
-        style = pkgsdropdownStyle(),
+        style = packageSearchDropdownStyle(),
         menuContent = {
+            if (!mustHaveScope && actualScope != null) {
+                selectableItem(
+                    selected = false,
+                    onClick = {
+                        actionPerforming = ActionState(true, actionId)
+                        scope.launch { updateLambda(null) }
+                        scope.launch {
+                            delay(5.seconds)
+                            if (actionPerforming.actionId == actionId) {
+                                actionPerforming = ActionState(false)
+                            }
+                        }
+                    }) {
+                    Text(
+                        text = "[default]",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
             availableScope.forEach {
                 selectableItem(
                     selected = false,
@@ -365,13 +401,14 @@ fun ScopeSelectionDropdown(
                 }
             }
         },
-    ) {
-        Text(
-            text = actualScope,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
+        content = {
+            Text(
+                text = actualScope ?: "[default]",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+    )
 }
 
 
@@ -379,15 +416,16 @@ fun ScopeSelectionDropdown(
 fun VersionSelectionDropdown(
     selectedVersion: NormalizedVersion,
     availableVersions: List<NormalizedVersion>,
+    latestVersion: NormalizedVersion,
     updateLambda: suspend (newScope: String) -> Unit,
 ) {
     val actionId = UUID.randomUUID().toString()
     var actionPerforming by LocalIsActionPerformingState.current
     val scope = LocalProjectService.current.coroutineScope
     Dropdown(
-        enabled = !actionPerforming.isPerforming,
+        enabled = !actionPerforming.isPerforming && availableVersions.isNotEmpty(),
         resourceLoader = LocalResourceLoader.current,
-        style = pkgsdropdownStyle(),
+        style = packageSearchDropdownStyle(),
         menuContent = {
             availableVersions.forEach {
                 selectableItem(
@@ -405,7 +443,7 @@ fun VersionSelectionDropdown(
                         }
                     }) {
                     Text(
-                        text = "${selectedVersion.versionName} → ${it.versionName}",
+                        text = it.versionName,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -415,12 +453,14 @@ fun VersionSelectionDropdown(
     ) {
         val text = buildString {
             append(selectedVersion.versionName)
-            if (availableVersions.isNotEmpty()) {
+            if (latestVersion > selectedVersion) {
                 append(" → ")
                 append(availableVersions.first().versionName)
             }
         }
-        Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Row(modifier = Modifier.width(100.dp), horizontalArrangement = Arrangement.End) {
+            Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 

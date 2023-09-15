@@ -27,7 +27,7 @@ data class PackageSearchDeclaredBaseMavenPackage(
     override fun getUpdateData(newVersion: String?, newScope: String?) =
         MavenUpdatePackageData(
             installedPackage = this,
-            newVersion = newVersion,
+            newVersion = newVersion ?: declaredVersion.versionName,
             newScope = newScope
         )
 

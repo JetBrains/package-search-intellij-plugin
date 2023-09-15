@@ -41,6 +41,9 @@ data class PackageSearchMavenModule(
     override val compatiblePackageTypes: List<PackagesType>
 ) : PackageSearchModule.Base {
 
+    override val dependencyMustHaveAScope: Boolean
+        get() = false
+
     override val icon
         get() = Icons.MAVEN
 

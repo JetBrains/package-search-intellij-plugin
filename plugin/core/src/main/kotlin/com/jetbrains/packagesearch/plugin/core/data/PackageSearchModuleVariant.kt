@@ -19,6 +19,7 @@ interface PackageSearchModuleVariant : PackageInstallDataProvider {
     val attributes: List<String>
     val compatiblePackageTypes: List<PackagesType>
     val isPrimary: Boolean
+    val dependencyMustHaveAScope: Boolean
 
 
     fun isCompatible(dependency: ApiPackage, version: String): Boolean

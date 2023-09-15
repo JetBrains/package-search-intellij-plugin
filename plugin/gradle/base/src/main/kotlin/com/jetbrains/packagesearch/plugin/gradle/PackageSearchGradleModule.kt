@@ -25,6 +25,10 @@ data class PackageSearchGradleModule(
     val packageSearchModel: PackageSearchGradleModel,
     val availableKnownRepositories: Map<String, ApiRepository>
 ) : PackageSearchModule.Base {
+
+    override val dependencyMustHaveAScope: Boolean
+        get() = true
+
     override val icon
         get() = Icons.GRADLE
 

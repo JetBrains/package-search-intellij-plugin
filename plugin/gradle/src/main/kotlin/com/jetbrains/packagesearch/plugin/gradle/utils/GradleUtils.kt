@@ -119,10 +119,10 @@ suspend fun Module.getDeclaredDependencies(
         .map { it.packageId }
         .distinct()
 
-    val isLocalhost = Registry.`is`("org.jetbrains.packagesearch.localhost", false)
+    val isSonatype = Registry.`is`("org.jetbrains.packagesearch.sonatype")
 
     val remoteInfo =
-        if (!isLocalhost) {
+        if (!isSonatype) {
             context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
         } else {
             context.getPackageInfoByIds(distinctIds.toSet())

@@ -105,8 +105,8 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
             .distinct()
             .map { it.packageId }
 
-        val isLocalhost = Registry.`is`("org.jetbrains.packagesearch.localhost", false)
-        val dependencyInfo = if (!isLocalhost) {
+        val isSonatype = Registry.`is`("org.jetbrains.packagesearch.sonatype")
+        val dependencyInfo = if (!isSonatype) {
             context.getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
         } else {
             context.getPackageInfoByIds(packageIds.toSet())

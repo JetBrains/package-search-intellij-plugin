@@ -22,6 +22,7 @@ sealed interface PackageSearchModule : IconProvider {
     val availableScopes: List<String>
     val defaultScope: String?
     val compatiblePackageTypes: List<PackagesType>
+    val dependencyMustHaveAScope: Boolean
 
     interface WithVariants : PackageSearchModule {
         val variants: Map<String, PackageSearchModuleVariant>
@@ -36,9 +37,9 @@ sealed interface PackageSearchModule : IconProvider {
     data class Identity(val group: String, val path: String)
 }
 
-fun PackageSearchModule.getPackageTypes()= when(this){
+fun PackageSearchModule.getPackageTypes() = when (this) {
     is PackageSearchModule.Base -> compatiblePackageTypes
-    is PackageSearchModule.WithVariants->{
+    is PackageSearchModule.WithVariants -> {
         variants.entries.flatMap { it.value.compatiblePackageTypes }
     }
 }
@@ -52,12 +53,12 @@ interface PackageSearchDependencyManager {
 
     suspend fun addDependency(
         context: PackageSearchKnownRepositoriesContext,
-        data: InstallPackageData
+        data: InstallPackageData,
     )
 
     suspend fun removeDependency(
         context: ProjectContext,
-        data: RemovePackageData
+        data: RemovePackageData,
     )
 }
 
@@ -77,5 +78,9 @@ interface RemovePackageData {
 }
 
 interface PackageInstallDataProvider {
-    fun getInstallData(apiPackage: ApiPackage, selectedVersion: String, selectedScope: String? = null): InstallPackageData
+    fun getInstallData(
+        apiPackage: ApiPackage,
+        selectedVersion: String,
+        selectedScope: String? = null,
+    ): InstallPackageData
 }

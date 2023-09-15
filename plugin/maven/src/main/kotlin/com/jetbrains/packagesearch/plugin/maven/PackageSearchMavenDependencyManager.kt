@@ -24,7 +24,6 @@ class PackageSearchMavenDependencyManager(
     ) {
         data.asSequence()
             .filterIsInstance<MavenUpdatePackageData>()
-            .filter { it.newScope != null || it.newVersion != null }
             .map { (installedPackage, version, scope) ->
                 val oldDescriptor = UnifiedDependency(
                     groupId = installedPackage.groupId,
@@ -36,7 +35,7 @@ class PackageSearchMavenDependencyManager(
                     groupId = installedPackage.groupId,
                     artifactId = installedPackage.artifactId,
                     version = version ?: installedPackage.declaredVersion.versionName,
-                    configuration = scope ?: installedPackage.scope
+                    configuration = scope
                 )
                 oldDescriptor to newDescriptor
             }

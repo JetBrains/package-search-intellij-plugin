@@ -13,6 +13,9 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 @Serializable
 sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVariant {
 
+    override val dependencyMustHaveAScope: Boolean
+        get() = true
+
     @Serializable
     data class SourceSet(
         override val name: String,

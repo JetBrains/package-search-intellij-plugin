@@ -3,7 +3,6 @@
 package com.jetbrains.packagesearch.plugin.core.utils
 
 import com.intellij.buildsystem.model.DeclaredDependency
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.AreaInstance
@@ -29,15 +28,23 @@ import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
-import kotlinx.coroutines.CoroutineScope
+import java.nio.file.Path
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import java.nio.file.Path
 
 @RequiresOptIn("This API is internal and you should not use it.")
 annotation class PKGSInternalAPI
@@ -53,15 +60,14 @@ fun <T : Any, R> MessageBus.flow(
 
 val Project.filesChangedEventFlow: Flow<List<VFileEvent>>
     get() = callbackFlow {
-        val parentDisposable = Disposable {}
         VirtualFileManager.getInstance().addAsyncFileListener(
             {
                 trySend(it.toList())
                 null
             },
-            parentDisposable
+            this@filesChangedEventFlow
         )
-        awaitClose { parentDisposable.dispose() }
+        awaitClose { }
     }
 
 fun VirtualFileListener(action: (VirtualFileEvent) -> Unit) =
@@ -101,7 +107,7 @@ val DeclaredDependency.packageId: String
 
 fun <T : Any> ExtensionPointName<T>.extensionsFlow(
     areaInstance: AreaInstance? = null,
-    initial: Boolean = true
+    initial: Boolean = true,
 ) = channelFlow {
     if (initial) send(extensionList)
     val listener = ExtensionPointListener<T> { _, _, _ ->
@@ -139,7 +145,7 @@ fun Application.registryFlow(key: String, defaultValue: Boolean = false) =
                 if (value.key == key) trySend(Registry.`is`(key, defaultValue))
             }
         }
-    }.onStart { emit( Registry.`is`(key, defaultValue)) }
+    }.onStart { emit(Registry.`is`(key, defaultValue)) }
 
 suspend fun <T> Flow<T>.collectIn(flowCollector: FlowCollector<T>) =
     collect { flowCollector.emit(it) }
