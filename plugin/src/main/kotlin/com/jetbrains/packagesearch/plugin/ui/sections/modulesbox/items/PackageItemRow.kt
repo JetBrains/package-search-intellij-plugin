@@ -153,7 +153,7 @@ fun PackageRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(2f)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(2f).fillMaxWidth()) {
             if (packageIcon != null) {
                 Icon(
                     painter = packageIcon,
@@ -164,7 +164,7 @@ fun PackageRow(
             packageNameContent()
         }
         if (!isCompact && editPackageContent != null) {
-            Row(modifier.weight(1f)) {editPackageContent()}
+            Row(modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {editPackageContent()}
         }
         Row {
             // enable when package quality will be live
@@ -174,7 +174,7 @@ fun PackageRow(
 //            )
             Row(
                 Modifier
-//                    .defaultMinSize(90.dp, 16.dp)
+                    .defaultMinSize(90.dp, 16.dp)
                     .padding(start = 8.dp, end = 4.dp)
                 ,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

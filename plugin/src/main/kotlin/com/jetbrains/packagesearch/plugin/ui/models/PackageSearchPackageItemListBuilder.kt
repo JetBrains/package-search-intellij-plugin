@@ -1,14 +1,42 @@
 package com.jetbrains.packagesearch.plugin.ui.models
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.utils.getIcon
+import com.jetbrains.packagesearch.plugin.ui.ActionState
+import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
+import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
+import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.latestVersion
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.jetbrains.jewel.Dropdown
+import org.jetbrains.jewel.DropdownState
+import org.jetbrains.jewel.LocalResourceLoader
+import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.styling.DropdownColors
+import org.jetbrains.jewel.styling.DropdownStyle
+import org.jetbrains.jewel.styling.LocalDropdownStyle
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import java.util.*
+import kotlin.time.Duration.Companion.seconds
 
 class PackageSearchPackageItemListBuilder {
     private val list = mutableListOf<PackageSearchPackageListItem>()
@@ -91,7 +119,47 @@ class PackageSearchPackageItemListBuilder {
 
                         else -> declaredDependency.coordinates.takeIf { it != declaredDependency.displayName }
                     },
-                    // TODO modify package content
+                    modifyPackageContent = {
+                        val service = LocalProjectService.current
+
+                        val actualScope = declaredDependency.scope!!
+                        val availableScope = group.module.availableScopes - actualScope
+
+                        Row(modifier = Modifier.defaultMinSize(100.dp, 0.dp), horizontalArrangement = Arrangement.End) {
+                            ScopeSelectionDropdown(availableScope, actualScope) { newScope: String ->
+                                group.dependencyManager.updateDependencies(
+                                    context = service,
+                                    data = listOf(
+                                        declaredDependency.getUpdateData(
+                                            newVersion = null,
+                                            newScope = newScope
+                                        )
+                                    )
+                                )
+                            }
+                        }
+
+
+                        val onlyStable = LocalIsOnlyStableVersions.current.value
+                        val declaredVersion = declaredDependency.declaredVersion
+                        val availableVersions =
+                            declaredDependency.remoteInfo
+                                ?.versions
+                                ?.all
+                                ?.values
+                                ?.map { it.normalized }
+                                ?.filter { if (onlyStable) it.isStable else true }
+                                ?.let { it - declaredDependency.declaredVersion }
+                                ?: emptyList()
+                        Row(modifier = Modifier.defaultMinSize(130.dp, 0.dp), horizontalArrangement = Arrangement.End) {
+                            VersionSelectionDropdown(declaredVersion, availableVersions) { newVersion: String ->
+                                group.dependencyManager.updateDependencies(
+                                    context = service,
+                                    data = listOf(declaredDependency.getUpdateData(newVersion = newVersion))
+                                )
+                            }
+                        }
+                    },
                     infoBoxDetail = InfoBoxDetail.Package.DeclaredPackage(declaredDependency, group.module),
                     id = "$index ${group.id} ${declaredDependency.id}",
                     mainActionContent = {
@@ -115,6 +183,7 @@ class PackageSearchPackageItemListBuilder {
             }
         }
     }
+
 
     fun addFromRemoteGroup(
         group: PackageGroup.Remote,
@@ -234,6 +303,112 @@ class PackageSearchPackageItemListBuilder {
     }
 
     fun build() = list.toList()
+}
+
+
+@Composable
+private fun pkgsdropdownStyle(): DropdownStyle {
+    val currentStyle = LocalDropdownStyle.current
+    return remember(LocalDropdownStyle.current) {
+        object : DropdownStyle by currentStyle {
+            override val colors: DropdownColors
+                get() = object : DropdownColors by currentStyle.colors {
+
+                    @Composable
+                    override fun backgroundFor(state: DropdownState): State<Color> {
+                        return mutableStateOf(Color.Transparent)
+                    }
+
+                    @Composable
+                    override fun borderFor(state: DropdownState): State<Color> {
+                        return mutableStateOf(Color.Transparent)
+                    }
+                }
+        }
+    }
+}
+
+@Composable
+fun ScopeSelectionDropdown(
+    availableScope: List<String>,
+    actualScope: String,
+    updateLambda: suspend (newScope: String) -> Unit,
+) {
+    val actionId = UUID.randomUUID().toString()
+    var actionPerforming by LocalIsActionPerformingState.current
+    val scope = LocalProjectService.current.coroutineScope
+
+    Dropdown(
+        enabled = !actionPerforming.isPerforming,
+        resourceLoader = LocalResourceLoader.current,
+        style = pkgsdropdownStyle(),
+        menuContent = {
+            availableScope.forEach {
+                selectableItem(
+                    selected = false,
+                    onClick = {
+                        actionPerforming = ActionState(true, actionId)
+                        scope.launch { updateLambda(it) }
+                        scope.launch {
+                            delay(5.seconds)
+                            if (actionPerforming.actionId == actionId) {
+                                actionPerforming = ActionState(false)
+                            }
+                        }
+                    }) {
+                    Text(it)
+                }
+            }
+        },
+    ) {
+        Text(actualScope)
+    }
+}
+
+
+@Composable
+fun VersionSelectionDropdown(
+    selectedVersion: NormalizedVersion,
+    availableVersions: List<NormalizedVersion>,
+    updateLambda: suspend (newScope: String) -> Unit,
+) {
+    val actionId = UUID.randomUUID().toString()
+    var actionPerforming by LocalIsActionPerformingState.current
+    val scope = LocalProjectService.current.coroutineScope
+    Dropdown(
+        enabled = !actionPerforming.isPerforming,
+        resourceLoader = LocalResourceLoader.current,
+        style = pkgsdropdownStyle(),
+        menuContent = {
+            availableVersions.forEach {
+                selectableItem(
+                    selected = false,
+                    onClick = {
+                        actionPerforming = ActionState(true, actionId)
+                        scope.launch {
+                            updateLambda(it.versionName)
+                        }
+                        scope.launch {
+                            delay(5.seconds)
+                            if (actionPerforming.actionId == actionId) {
+                                actionPerforming = ActionState(false)
+                            }
+                        }
+                    }) {
+                    Text(text = "${selectedVersion.versionName} → ${it.versionName}")
+                }
+            }
+        },
+    ) {
+        val text = buildString {
+            append(selectedVersion.versionName)
+            if (availableVersions.isNotEmpty()) {
+                append(" → ")
+                append(availableVersions.first().versionName)
+            }
+        }
+        Text(text)
+    }
 }
 
 inline fun buildPackageSearchPackageItemList(builder: PackageSearchPackageItemListBuilder.() -> Unit) =

@@ -146,7 +146,11 @@ fun PackageSearchPackageList(
                                 item.subtitle?.let { LabelInfo(it, Modifier.weight(1f), maxLines = 1) }
                             }
                         },
-                        editPackageContent = { item.editPackageContent() },
+                        editPackageContent = {
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                item.editPackageContent()
+                            }
+                        },
                         popupContent = item.popupContent?.let { { it() } },
                         mainActionContent = item.mainActionContent,
                     )
