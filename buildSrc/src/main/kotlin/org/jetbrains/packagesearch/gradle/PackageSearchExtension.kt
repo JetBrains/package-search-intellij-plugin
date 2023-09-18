@@ -71,7 +71,7 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
     val librariesToKeep = project.objects.listProperty<String>()
 
     val intellijVersion = project.objects.property<String>()
-        .convention("232-SNAPSHOT")
+        .convention("2023.2.2")
 
     val detektFile = project.objects.fileProperty()
 
