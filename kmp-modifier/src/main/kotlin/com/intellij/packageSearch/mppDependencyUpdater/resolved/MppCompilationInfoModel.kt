@@ -6,13 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MppCompilationInfoModel(
   val projectDir: String,
-  val compilationsBySourceSet: Map<SourceSet, Set<Compilation>>
+  val compilationsBySourceSetName: Map<String, Set<Compilation>>
 ) {
-
-  @Serializable
-  data class SourceSet(
-    val name: String,
-  )
 
   @Serializable
   sealed interface Compilation {

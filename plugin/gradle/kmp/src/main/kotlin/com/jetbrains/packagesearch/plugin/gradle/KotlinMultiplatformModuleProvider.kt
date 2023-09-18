@@ -39,37 +39,37 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
     ) {
-        if (!model.isKotlinMultiplatformApplied) emit(null)
-        else MppCompilationInfoProvider.sourceSetsMap(context.project, model.projectDir)
-            .collect { compilationModel ->
-                val pkgsModule = PackageSearchKotlinMultiplatformModule(
-                    name = model.projectName,
-                    identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
-                    buildFilePath = model.buildFilePath,
-                    declaredKnownRepositories = context.knownRepositories - DependencyModifierService
-                        .getInstance(context.project)
-                        .declaredRepositories(module)
-                        .mapNotNull { it.id }
-                        .toSet(),
-                    defaultScope = "implementation",
-                    availableScopes = commonConfigurations.toList(),
-                    variants = module.getKMPVariants(context = context, compilationModel = compilationModel)
-                        .associateBy { it.name },
-                    packageSearchModel = model,
-                    availableKnownRepositories = context.knownRepositories
-                )
-                emit(
-                    PackageSearchModuleData(
-                        module = pkgsModule,
-                        dependencyManager = PackageSearchKotlinMultiplatformDependencyManager(pkgsModule, module)
+        if (model.isKotlinMultiplatformApplied)
+            MppCompilationInfoProvider.sourceSetsMap(context.project, model.projectDir)
+                .collect { compilationModel ->
+                    val pkgsModule = PackageSearchKotlinMultiplatformModule(
+                        name = model.projectName,
+                        identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
+                        buildFilePath = model.buildFilePath,
+                        declaredKnownRepositories = context.knownRepositories - DependencyModifierService
+                            .getInstance(context.project)
+                            .declaredRepositories(module)
+                            .mapNotNull { it.id }
+                            .toSet(),
+                        defaultScope = "implementation",
+                        availableScopes = commonConfigurations.toList(),
+                        variants = module.getKMPVariants(context = context, compilationModel = compilationModel)
+                            .associateBy { it.name },
+                        packageSearchModel = model,
+                        availableKnownRepositories = context.knownRepositories
                     )
-                )
-            }
+                    emit(
+                        PackageSearchModuleData(
+                            module = pkgsModule,
+                            dependencyManager = PackageSearchKotlinMultiplatformDependencyManager(pkgsModule, module)
+                        )
+                    )
+                }
 
     }
 
     suspend fun Module.getKMPVariants(
-        compilationModel: Map<MppCompilationInfoModel.SourceSet, Set<MppCompilationInfoModel.Compilation>>,
+        compilationModel: Map<String, Set<MppCompilationInfoModel.Compilation>>,
         context: PackageSearchModuleBuilderContext,
     ): List<PackageSearchKotlinMultiplatformVariant> = coroutineScope {
         val dependenciesBlockVariant = async {
@@ -136,7 +136,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                 }
 
         val sourceSetVariants = compilationModel
-            .mapKeys { it.key.name }
+            .mapKeys { it.key }
             .map { (sourceSetName, compilationTargets) ->
                 PackageSearchKotlinMultiplatformVariant.SourceSet(
                     name = sourceSetName,

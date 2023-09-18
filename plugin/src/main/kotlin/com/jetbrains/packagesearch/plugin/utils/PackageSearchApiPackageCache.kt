@@ -50,11 +50,14 @@ class PackageSearchApiPackageCache(
         val cachedEntry = searchCache.find(NitriteFilters.Object.eq(ApiSearchEntry::searchHash, sha))
             .singleOrNull()
 
-        if (cachedEntry != null && cachedEntry.lastUpdate + maxAge > Clock.System.now()) {
+        if (cachedEntry != null) {
             if (cachedEntry.lastUpdate + maxAge > Clock.System.now()) {
-                return getPackageInfoByIds(cachedEntry.packagesIds.toSet()).values.toList()
+                val ids = cachedEntry.packagesIds.toSet()
+                    .takeIf { it.isNotEmpty() }
+                    ?: return emptyList()
+                return getPackageInfoByIds(ids).values.toList()
             }
-            searchCache.remove(cachedEntry)
+            searchCache.remove(NitriteFilters.Object.eq(ApiSearchEntry::searchHash, sha))
         }
 
         val searchResult = apiClient.searchPackageIds(request)

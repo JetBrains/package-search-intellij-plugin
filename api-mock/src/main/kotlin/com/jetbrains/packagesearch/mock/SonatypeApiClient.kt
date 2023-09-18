@@ -5,13 +5,11 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.CIOEngineConfig
-import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.core.Closeable
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.asFlow
@@ -52,17 +50,13 @@ class SonatypeApiClient(
                 })
                 xml(xml)
             }
-            install(HttpRequestRetry) {
-                maxRetries = 10
-                constantDelay(500.milliseconds, 100.milliseconds, false)
-            }
             install(HttpTimeout) {
                 requestTimeout = 10.seconds
             }
-            install(HttpRequestRetry) {
-                retryOnServerErrors(maxRetries = 5)
-                delayMillis { 500 }
-            }
+//            install(HttpRequestRetry) {
+//                retryOnExceptionOrServerErrors(maxRetries = 5)
+//                delayMillis { 500 }
+//            }
             additionalConfig()
         }
 
@@ -74,13 +68,13 @@ class SonatypeApiClient(
     }
 
 
-    private fun getSearchUrl(searchQuery: String, rows: Int = 50) =
+    private fun getSearchUrl(searchQuery: String, rows: Int = 5) =
         "https://search.maven.org/solrsearch/select?q=$searchQuery&rows=$rows&wt=json"
 
     private fun getPackageInfoUrl(groupId: String, artifactId: String, rows: Int = 5) =
         "https://search.maven.org/solrsearch/select?q=g:$groupId+AND+a:$artifactId&core=gav&rows=$rows&wt=json"
 
-    suspend fun searchPackages(query: String, packagesCount: Int = 50): MavenCentralApiResponse =
+    suspend fun searchPackages(query: String, packagesCount: Int = 5): MavenCentralApiResponse =
         httpClient.get(getSearchUrl(query, packagesCount)).body()
 
     suspend fun getPackageInfo(groupId: String, artifactId: String, versionCount: Int = 5): MavenCentralApiResponse =
@@ -93,7 +87,7 @@ class SonatypeApiClient(
 
     suspend fun searchApiMavenPackages(
         query: String,
-        packagesCount: Int = 25,
+        packagesCount: Int = 5,
         versionCount: Int = 5,
         onTransformError: suspend FlowCollector<ApiMavenPackage>.(cause: Throwable) -> Unit = {},
     ): List<ApiMavenPackage> = searchPackages(query, packagesCount)

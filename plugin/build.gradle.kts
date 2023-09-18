@@ -19,7 +19,8 @@ packagesearch {
         "androidx.compose.ui.ExperimentalComposeUiApi",
         "org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi",
         "org.jetbrains.jewel.ExperimentalJewelApi",
-        "androidx.compose.foundation.ExperimentalFoundationApi"
+        "androidx.compose.foundation.ExperimentalFoundationApi",
+        "kotlin.io.encoding.ExperimentalEncodingApi"
     )
     isRunIdeEnabled = true
 }

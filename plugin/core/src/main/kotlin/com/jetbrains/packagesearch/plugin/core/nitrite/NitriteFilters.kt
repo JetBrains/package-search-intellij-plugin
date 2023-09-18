@@ -1,8 +1,6 @@
 package com.jetbrains.packagesearch.plugin.core.nitrite
 
 import kotlin.reflect.KProperty
-import org.dizitart.no2.Document
-import org.dizitart.no2.mapper.NitriteMapper
 import org.dizitart.no2.objects.ObjectFilter
 import org.dizitart.no2.objects.filters.ObjectFilters
 
@@ -12,7 +10,7 @@ object NitriteFilters {
         fun eq(path: DocumentPathBuilder, value: Any): ObjectFilter =
             ObjectFilters.eq(path.build(), value)
 
-        fun eq(path: KProperty<*>, value: Any): ObjectFilter =
+        fun <T> eq(path: KProperty<T>, value: T): ObjectFilter =
             ObjectFilters.eq(path.name, value)
 
         fun `in`(path: DocumentPathBuilder, value: Array<Any>): ObjectFilter =

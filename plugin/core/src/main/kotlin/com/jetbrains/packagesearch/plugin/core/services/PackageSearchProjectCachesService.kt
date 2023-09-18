@@ -7,20 +7,19 @@ import com.intellij.openapi.project.getProjectDataPath
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import kotlin.io.path.absolutePathString
-import kotlinx.coroutines.CoroutineScope
 
 @Service(Level.PROJECT)
-class PackageSearchProjectCachesService(project: Project, coroutineScope: CoroutineScope) {
+class PackageSearchProjectCachesService(project: Project) {
 
     @PKGSInternalAPI
-    val cache = coroutineScope.buildDefaultNitrate(
+    val cache = buildDefaultNitrate(
         path = project.getProjectDataPath("packagesearch")
             .resolve("cache.db")
             .apply { parent.toFile().mkdirs() }
             .absolutePathString()
     )
 
-    suspend inline fun <reified T : Any> getRepository(key: String) =
-        cache.await().getRepository<T>(key)
+    inline fun <reified T : Any> getRepository(key: String) =
+        cache.getRepository<T>(key)
 
 }

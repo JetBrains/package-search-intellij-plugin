@@ -41,7 +41,6 @@ class PackageSearchSonatypeApiClient(
             .map { (_, groupId, artifactId) ->
                 sonatypeApiClient.getApiMavenPackage(groupId, artifactId)
             }
-            .buffer()
             .catch {  }
             .toList()
             .associateBy { it.id }
@@ -57,7 +56,6 @@ class PackageSearchSonatypeApiClient(
             .response
             .docs
             .map { "maven:${it.groupId}:${it.artifactId}" }
-
 
     override suspend fun searchProjects(request: SearchProjectRequest): List<ApiProject> =
         emptyList()

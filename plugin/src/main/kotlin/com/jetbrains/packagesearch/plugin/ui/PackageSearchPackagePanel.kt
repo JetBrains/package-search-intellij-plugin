@@ -159,13 +159,18 @@ fun PackageSearchPackagePanel(
             is SearchData.MultipleModules ->
                 searchData.withResults(apiClient.trySearchPackages(json, searchData.searchParameters))
 
-            is SearchData.SingleModuleWithVariants -> searchData.withResults(
-                results = searchData.searches
-                    .map { it to async { apiClient.trySearchPackages(json, it.searchParameters) } }
-                    .map { (searchForVariant, search) ->
-                        searchForVariant.withResults(search.await())
-                    },
-            )
+            is SearchData.SingleModuleWithVariants -> {
+                val searchMap = searchData
+                    .searches
+                    .map { it.searchParameters }
+                    .distinct()
+                    .associateWith { async { apiClient.trySearchPackages(json, it) } }
+
+                searchData.withResults(
+                    results = searchData.searches
+                        .map { it.withResults(searchMap.getValue(it.searchParameters).await()) }
+                )
+            }
         }
         isSearching = false
     }

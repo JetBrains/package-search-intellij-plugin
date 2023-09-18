@@ -27,7 +27,6 @@ import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchApiClient
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectCoroutineScope
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
@@ -68,15 +67,14 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
         System.setProperty("compose.swing.render.on.graphics", "true")
         toolWindow.addComposeTab("UX") {
-            val apiClient: PackageSearchApiPackageCache? by IntelliJApplication.PackageSearchApplicationCachesService
+            val apiClient: PackageSearchApiPackageCache by IntelliJApplication.PackageSearchApplicationCachesService
                 .apiPackageCache
-                .collectAsState(null)
-            if (apiClient == null) return@addComposeTab
+                .collectAsState()
             SwingBridgeTheme {
                 CompositionLocalProvider(
                     LocalProjectService provides project.PackageSearchProjectService,
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
-                    LocalPackageSearchApiClient provides apiClient!!,
+                    LocalPackageSearchApiClient provides apiClient,
                     LocalIsActionPerformingState provides mutableStateOf(ActionState(false)),
                     LocalInfoBoxPanelOpenState provides isInfoBoxOpen,
                     LocalIsOnlyStableVersions provides project.PackageSearchProjectService.isStableOnlyVersions,

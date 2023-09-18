@@ -26,16 +26,15 @@ class PackageGroupsBuilder(private val searchQuery: String) {
 
     fun setSearchResults(data: SearchData.Results, selectedModules: List<PackageSearchModuleData>) {
         remotes = when (data) {
-            SearchData.Results.Empty -> return
+            SearchData.Results.Empty -> emptyList()
             is SearchData.SingleBaseModule.Results -> {
                 val selectedModuleData = selectedModules.singleOrNull()
                 val module = selectedModuleData
                     ?.module as? PackageSearchModule.Base
-                    ?: return
 
-                module.declaredDependencies
-                    .map { it.id }
-                    .let { declaredDependencyIds ->
+                module?.declaredDependencies
+                    ?.map { it.id }
+                    ?.let { declaredDependencyIds ->
                         listOf(
                             PackageGroup.Remote.FromBaseModule(
                                 module = module,
@@ -43,7 +42,7 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                                 dependencyManager = selectedModuleData.dependencyManager
                             )
                         )
-                    }
+                    } ?: emptyList()
             }
 
             is SearchData.MultipleModules.Results -> listOf(
@@ -76,29 +75,34 @@ class PackageGroupsBuilder(private val searchQuery: String) {
         declared = when {
             selectedModules.isEmpty() -> emptyList()
             selectedModules.size == 1 -> when (val module = selectedModules.first().module) {
-                is PackageSearchModule.Base -> listOf(
-                    PackageGroup.Declared.FromBaseModule(
-                        module = module,
-                        filteredDependencies = module.declaredDependencies
-                            .filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) },
-                        dependencyManager = selectedModules.first().dependencyManager
-                    ),
-                )
+                is PackageSearchModule.Base -> {
+                    val filteredDependencies = module.declaredDependencies
+                        .filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) }
+                    if (filteredDependencies.isEmpty()) emptyList()
+                    else listOf(
+                        PackageGroup.Declared.FromBaseModule(
+                            module = module,
+                            filteredDependencies = filteredDependencies,
+                            dependencyManager = selectedModules.first().dependencyManager
+                        )
+                    )
+                }
 
                 is PackageSearchModule.WithVariants ->
                     module.variants
                         .mapNotNull { (_, variant) ->
-                            if (variant.declaredDependencies.isEmpty()) return@mapNotNull null
+                            val filteredDependencies = variant.declaredDependencies
+                                .filter {
+                                    it.id.contains(searchQuery, true) || it.displayName.contains(
+                                        other = searchQuery,
+                                        ignoreCase = true,
+                                    )
+                                }
+                            if (filteredDependencies.isEmpty()) return@mapNotNull null
                             PackageGroup.Declared.FromVariant(
                                 module = module,
                                 variant = variant,
-                                filteredDependencies = variant.declaredDependencies
-                                    .filter {
-                                        it.id.contains(searchQuery, true) || it.displayName.contains(
-                                            other = searchQuery,
-                                            ignoreCase = true,
-                                        )
-                                    },
+                                filteredDependencies = filteredDependencies,
                                 dependencyManager = selectedModules.first().dependencyManager
                             )
                         }

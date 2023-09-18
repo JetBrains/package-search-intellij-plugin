@@ -68,8 +68,8 @@ class PackageSearchProjectService(
             knownRepositories = repositories,
             packagesCache = client,
             coroutineScope = coroutineScope,
-            projectCaches = project.PackageSearchProjectCachesService.cache.await(),
-            applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache.await(),
+            projectCaches = project.PackageSearchProjectCachesService.cache,
+            applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache,
         )
     }.shareIn(coroutineScope, SharingStarted.Eagerly)
 

@@ -11,11 +11,11 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinPlatform
 private val LOG = logger<MppGradleProjectResolver>()
 
 class MppGradleProjectResolver : KotlinMppGradleProjectResolverExtension {
-  private fun KotlinMppGradleProjectResolver.Context.compilationToSourceSetMap(): Map<MppCompilationInfoModel.SourceSet, Set<MppCompilationInfoModel.Compilation>> =
+  private fun KotlinMppGradleProjectResolver.Context.compilationToSourceSetMap(): Map<String, Set<MppCompilationInfoModel.Compilation>> =
     mppModel.targets.flatMap { target ->
       target.compilations.flatMap { compilation ->
         compilation.allSourceSets.map { sourceSet ->
-          compilation.toCompilationModel()?.let { MppCompilationInfoModel.SourceSet(sourceSet.name) to it }
+          compilation.toCompilationModel()?.let { sourceSet.name to it }
         }
       }
     }
