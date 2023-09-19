@@ -2,6 +2,7 @@
     <id>com.jetbrains.packagesearch.intellij-plugin</id>
     <name>Package Search</name>
     <vendor>JetBrains</vendor>
+    <resource-bundle>messages.packageSearchBundle</resource-bundle>
 
     <description><![CDATA[
 Find and manage dependencies for JVM and Kotlin Multiplatform projects.
@@ -21,10 +22,11 @@ Supports Maven and Gradle projects.
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="PackageSearch"
+        <toolWindow id="Package Search"
                     anchor="bottom"
                     secondary="false"
                     canCloseContents="true"
+                    icon="PlatformDependencyToolwindowIcons.ArtifactSmall"
                     factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
         <registryKey defaultValue="true"
                      description="Uses Sonatype APIS instead of package Search APIs"

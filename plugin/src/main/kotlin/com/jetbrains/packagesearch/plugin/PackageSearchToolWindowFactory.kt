@@ -35,6 +35,7 @@ import org.jetbrains.jewel.bridge.addComposeTab
 
 class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+        System.setProperty("compose.swing.render.on.graphics", "true")
         val isInfoBoxOpen = mutableStateOf(false)
         val toggleOnlyStableAction = object : ToggleAction(
             PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable"),
@@ -65,8 +66,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.asSafely<ToolWindowEx>()
             ?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
         toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
-        System.setProperty("compose.swing.render.on.graphics", "true")
-        toolWindow.addComposeTab("UX") {
+        toolWindow.addComposeTab(PackageSearchBundle.message("packagesearch.title.tab")) {
             val apiClient: PackageSearchApiPackageCache by IntelliJApplication.PackageSearchApplicationCachesService
                 .apiPackageCache
                 .collectAsState()

@@ -155,7 +155,7 @@ suspend fun HttpClient.getBuildSystemsMetadata(
         .buffer()
         .mapNotNullScoped { doc ->
             val version = doc.version ?: return@mapNotNullScoped null
-            val pomJob = async { pomSolver.resolve(doc.groupId, doc.artifactId, version) }
+            val pomJob = async { pomSolver.getPom(doc.groupId, doc.artifactId, version) }
             val gradleMetadataUrl = GoogleMavenCentralMirror.buildGradleMetadataUrl(
                 groupId = doc.groupId,
                 artifactId = doc.artifactId,

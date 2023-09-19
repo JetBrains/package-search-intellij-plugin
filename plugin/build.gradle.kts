@@ -68,7 +68,8 @@ tasks {
         version = System.getenv("PLUGIN_VERSION") ?: project.version.toString()
     }
 
-    val zipShadowPlugin by registering(Zip::class) {
+    val buildShadowPlugin by registering(Zip::class) {
+        group = "intellij"
         from(shadowJar) {
             into("com.jetbrains.packagesearch.intellij-plugin/lib")
         }
@@ -78,7 +79,7 @@ tasks {
 
     register<PublishPluginTask>("publishShadowPlugin") {
         group = "publishing"
-        distributionFile = zipShadowPlugin.flatMap { it.archiveFile }
+        distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
         toolboxEnterprise = true
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
