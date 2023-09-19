@@ -17,9 +17,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
 import kotlinx.datetime.Clock
@@ -236,18 +233,6 @@ fun MavenCoordinateWithVersions.toMavenApiModel(): ApiMavenPackage {
     )
 
 }
-
-suspend fun PomResolver.toMavenApiModel(ids: Iterable<String>) =
-    ids.asFlow()
-        .filter { it.startsWith("maven:") }
-        .map { it.removePrefix("maven:") }
-        .map { it.split(":").let { it[0] to it[1] } }
-        .buffer()
-        .mapNotNull { pomProvider.httpClient.getMavenCentralInfo(it.first, it.second) }
-        .buffer()
-        .map { pomProvider.httpClient.getBuildSystemsMetadata(it, this) }
-        .map { it.toMavenApiModel() }
-        .toList()
 
 internal var HttpTimeout.HttpTimeoutCapabilityConfiguration.requestTimeout: Duration?
     get() = requestTimeoutMillis?.milliseconds

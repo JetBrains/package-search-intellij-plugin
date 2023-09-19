@@ -67,7 +67,7 @@ gradleEnterprise {
             ?: extra.properties["gradleEnterpriseAccessKey"]?.toString()
         publishAlwaysIf(isCi)
         buildScanPublished {
-            File("build-scan-url.txt").writeText(buildScanUri.toString())
+            file("build-scan-url.txt").writeText(buildScanUri.toString())
         }
     }
 }
