@@ -65,6 +65,7 @@ tasks {
     patchPluginXml {
         sinceBuild = "232.2.*"
         untilBuild = "233.*"
+        version = System.getenv("PLUGIN_VERSION") ?: project.version.toString()
     }
 
     val zipShadowPlugin by registering(Zip::class) {
