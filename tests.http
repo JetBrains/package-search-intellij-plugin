@@ -1,1 +1,1 @@
-GET https://maven-central.storage-download.googleapis.com/maven2/com/google/guava/guava/32.1.1-android/guava-32.1.1-android.module
+GET https://maven-central.storage-download.googleapis.com/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.module

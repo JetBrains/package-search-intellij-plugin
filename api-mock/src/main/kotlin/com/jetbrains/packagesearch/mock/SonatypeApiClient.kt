@@ -21,6 +21,7 @@ import kotlinx.serialization.json.Json
 import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.maven.GoogleMavenCentralMirror
+import org.jetbrains.packagesearch.maven.HttpClientMavenPomProvider
 import org.jetbrains.packagesearch.maven.MavenUrlBuilder
 import org.jetbrains.packagesearch.maven.PomResolver
 import org.jetbrains.packagesearch.maven.central.MavenCentralApiResponse
@@ -64,7 +65,7 @@ class SonatypeApiClient(
             xml: XML,
             httpClient: HttpClient,
             repositories: List<MavenUrlBuilder> = listOf(GoogleMavenCentralMirror),
-        ) = PomResolver(repositories, xml, httpClient)
+        ) = PomResolver(HttpClientMavenPomProvider(repositories, httpClient, xml), xml)
     }
 
 

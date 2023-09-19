@@ -9,14 +9,13 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Android
-import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Common
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Js
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Jvm
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Native
-import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Wasm
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoProvider
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.getIcon
@@ -31,6 +30,114 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.kotlinMultiplatform
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+
+object KMPAttributes {
+    val iosArm64 = Attribute.StringAttribute("ios_arm64")
+    val iosX64 = Attribute.StringAttribute("ios_x64")
+    val ios = Attribute.NestedAttribute("iOS", listOf(iosArm64, iosX64))
+
+    val macosX64 = Attribute.StringAttribute("macos_x64")
+    val macosArm64 = Attribute.StringAttribute("macos_arm64")
+    val macos = Attribute.NestedAttribute("macOs", listOf(macosX64, macosArm64))
+
+    val watchosArm32 = Attribute.StringAttribute("watchos_arm32")
+    val watchosArm64 = Attribute.StringAttribute("watchos_arm64")
+    val watchosX64 = Attribute.StringAttribute("watchos_x64")
+    val watchosDevice = Attribute.NestedAttribute("watchOs", listOf(watchosArm32, watchosArm64))
+    val watchos = Attribute.NestedAttribute("watchOs", listOf(watchosDevice, watchosX64))
+
+    val tvosArm64 = Attribute.StringAttribute("tvos_arm64")
+    val tvosX64 = Attribute.StringAttribute("tvos_x64")
+    val tvos = Attribute.NestedAttribute("tvOs", listOf(tvosArm64, tvosX64))
+
+    val apple = Attribute.NestedAttribute("Apple", listOf(ios, macos, watchos, tvos))
+
+    val jsLegacy = Attribute.StringAttribute("jsLegacy")
+    val jsIr = Attribute.StringAttribute("jsIr")
+    val js = Attribute.NestedAttribute("JavaScript", listOf(jsLegacy, jsIr))
+
+    val linuxArm64 = Attribute.StringAttribute("linuxArm64")
+    val linuxX64 = Attribute.StringAttribute("linuxX64")
+    val linux = Attribute.NestedAttribute("Linux", listOf(linuxArm64, linuxX64))
+
+    val android = Attribute.StringAttribute("android")
+
+    val androidArm32 = Attribute.StringAttribute("androidArm32")
+    val androidArm64 = Attribute.StringAttribute("androidArm64")
+    val androidX64 = Attribute.StringAttribute("androidX64")
+    val androidX86 = Attribute.StringAttribute("androidX86")
+    val androidNative =
+        Attribute.NestedAttribute("Android Native", listOf(androidArm32, androidArm64, androidX64, androidX86))
+
+}
+
+fun Set<MppCompilationInfoModel.Compilation>.buildAttributes() = buildList {
+    val rawStrings = this@buildAttributes.mapNotNull {
+        when (it) {
+            is Js -> when (it.compiler) {
+                Js.Compiler.IR -> "jsIr"
+                Js.Compiler.LEGACY -> "jsLegacy"
+            }
+
+            is Native -> it.target
+            MppCompilationInfoModel.Common -> null
+            else -> it.platformId
+        }
+    }
+        .toMutableSet()
+
+    val hasIos = KMPAttributes.ios in rawStrings
+    val hasMacOs = KMPAttributes.macos in rawStrings
+    val hasTvOs = KMPAttributes.tvos in rawStrings
+    val hasWatchOs = KMPAttributes.watchos in rawStrings
+
+    val hasApple = hasIos && hasMacOs && hasTvOs && hasWatchOs
+
+    val hasJs = KMPAttributes.js in rawStrings
+    val hasAndroidNative = KMPAttributes.androidNative in rawStrings
+    val hasLinux = KMPAttributes.linux in rawStrings
+    when {
+        hasApple -> {
+            add(KMPAttributes.apple)
+            rawStrings.removeAll(KMPAttributes.apple.flatten())
+        }
+
+        else -> {
+            if (hasIos) {
+                add(KMPAttributes.ios)
+                rawStrings.removeAll(KMPAttributes.ios.flatten())
+            }
+            if (hasMacOs) {
+                add(KMPAttributes.macos)
+                rawStrings.removeAll(KMPAttributes.macos.flatten())
+            }
+            if (hasTvOs) {
+                add(KMPAttributes.tvos)
+                rawStrings.removeAll(KMPAttributes.tvos.flatten())
+            }
+            if (hasWatchOs) {
+                add(KMPAttributes.watchos)
+                rawStrings.removeAll(KMPAttributes.watchos.flatten())
+            }
+        }
+    }
+    if (hasJs) {
+        add(KMPAttributes.js)
+        rawStrings.removeAll(KMPAttributes.js.flatten())
+    }
+    if (hasAndroidNative) {
+        add(KMPAttributes.androidNative)
+        rawStrings.removeAll(KMPAttributes.androidNative.flatten())
+    }
+    if (hasLinux) {
+        add(KMPAttributes.linux)
+        rawStrings.removeAll(KMPAttributes.linux.flatten())
+    }
+    addAll(rawStrings.map { Attribute.StringAttribute(it) })
+}
+
+operator fun Set<String>.contains(attribute: Attribute.NestedAttribute): Boolean =
+    attribute.flatten().all { it in this }
 
 class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
 
@@ -61,7 +168,11 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                     emit(
                         PackageSearchModuleData(
                             module = pkgsModule,
-                            dependencyManager = PackageSearchKotlinMultiplatformDependencyManager(pkgsModule, module)
+                            dependencyManager = PackageSearchKotlinMultiplatformDependencyManager(
+                                model,
+                                pkgsModule,
+                                module
+                            )
                         )
                     )
                 }
@@ -141,20 +252,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                 PackageSearchKotlinMultiplatformVariant.SourceSet(
                     name = sourceSetName,
                     declaredDependencies = declaredSourceSetDependencies[sourceSetName] ?: emptyList(),
-                    attributes = compilationTargets.mapNotNull {
-                        when (it) {
-                            Android, Jvm, Wasm -> it.platformId
-                            Common -> null
-                            is Js -> when (it.compiler) {
-                                Js.Compiler.IR -> "jsIr"
-                                Js.Compiler.LEGACY -> "jsLegacy"
-                            }
-
-                            is Native -> when (it.target) {
-                                else -> it.target
-                            }
-                        }
-                    },
+                    attributes = compilationTargets.buildAttributes(),
                     compatiblePackageTypes = buildPackageTypes {
                         if (compilationTargets.singleOrNull() == Jvm) {
                             mavenPackages()
@@ -203,3 +301,12 @@ fun List<PackageSearchGradleDeclaredPackage>.asKmpVariantDependencies() =
             icon = it.icon
         )
     }
+
+fun Attribute.NestedAttribute.flatten() = buildSet {
+    val queue = mutableListOf(this@flatten)
+    while (queue.isNotEmpty()) {
+        val next = queue.removeFirst()
+        addAll(next.children.filterIsInstance<Attribute.StringAttribute>().map { it.value })
+        queue.addAll(next.children.filterIsInstance<Attribute.NestedAttribute>())
+    }
+}

@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.core.data
 
+import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
@@ -16,12 +17,40 @@ interface PackageSearchModuleVariant : PackageInstallDataProvider {
     val name: String
     val variantTerminology: Terminology?
     val declaredDependencies: List<PackageSearchDeclaredPackage.WithVariant>
-    val attributes: List<String>
+    val attributes: List<Attribute>
     val compatiblePackageTypes: List<PackagesType>
     val isPrimary: Boolean
     val dependencyMustHaveAScope: Boolean
 
+    @Serializable
+    sealed interface Attribute {
+
+        val value: String
+
+        @JvmInline
+        @Serializable
+        value class StringAttribute(override val value: String) : Attribute
+
+        data class NestedAttribute(override val value: String, val children: List<Attribute>) : Attribute
+    }
 
     fun isCompatible(dependency: ApiPackage, version: String): Boolean
 
 }
+
+fun PackageSearchModuleVariant.Attribute.NestedAttribute.flatten() = buildSet {
+    val queue = mutableListOf(this@flatten)
+    while (queue.isNotEmpty()) {
+        val next = queue.removeFirst()
+        addAll(next.children.filterIsInstance<PackageSearchModuleVariant.Attribute.StringAttribute>().map { it.value })
+        queue.addAll(next.children.filterIsInstance<PackageSearchModuleVariant.Attribute.NestedAttribute>())
+    }
+}
+
+fun List<PackageSearchModuleVariant.Attribute>.flatten() =
+    flatMap {
+        when (it) {
+            is PackageSearchModuleVariant.Attribute.NestedAttribute -> it.flatten()
+            is PackageSearchModuleVariant.Attribute.StringAttribute -> listOf(it.value)
+        }
+    }.toSet()

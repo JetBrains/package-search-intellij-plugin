@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.jetbrains.intellij.tasks.PublishPluginTask
+
+
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.idea.gradle.plugin)
@@ -31,7 +34,7 @@ configurations.api {
 
 dependencies {
     compileOnly(packageSearchCatalog.kotlinx.serialization.core)
-    api(projects.apiMock.apiMockClient)
+    implementation(projects.apiMock.apiMockClient)
     implementation(compose.desktop.linux_arm64)
     implementation(compose.desktop.linux_x64)
     implementation(compose.desktop.macos_arm64)
@@ -54,17 +57,31 @@ dependencies {
 }
 
 tasks {
-    publishPlugin {
+
+    buildSearchableOptions {
+        enabled = false
+    }
+
+    shadowJar {
+        archiveBaseName.set("packagesearch-plugin")
+    }
+
+    val zipShadowPlugin by registering(Zip::class) {
+        from(shadowJar) {
+            into("com.jetbrains.packagesearch.intellij-plugin/lib")
+        }
+        archiveFileName.set("packagesearch-plugin.zip")
+        destinationDirectory = layout.buildDirectory.dir("distributions")
+    }
+
+    register<PublishPluginTask>("publishShadowPlugin") {
+        dependsOn(zipShadowPlugin)
+        distributionFile = zipShadowPlugin.flatMap { it.archiveFile }
         toolboxEnterprise = true
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
             ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
-
         channels = listOf("INTERNAL-EAP")
     }
 
-    register<Sync>("exctractApi") {
-        from(configurations.api)
-        into(layout.buildDirectory.dir("api"))
-    }
 }

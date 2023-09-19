@@ -3,7 +3,6 @@ package com.jetbrains.packagesearch.plugin.ui.models
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -94,7 +93,7 @@ class PackageSearchPackageItemListBuilder {
             title = if (group is PackageGroup.Declared.FromVariant) group.variant.name else group.module.name,
             count = group.size,
             groupId = group.id,
-            badges = if (group is PackageGroup.Declared.FromVariant) group.variant.attributes else emptyList(),
+            badges = if (group is PackageGroup.Declared.FromVariant) group.variant.attributes.map { it.value } else emptyList(),
             infoBoxDetail = if (group is PackageGroup.Declared.FromVariant) InfoBoxDetail.Badges.Variant(group.variant) else null,
             actionContent = {
                 val count = group.filteredDependencies

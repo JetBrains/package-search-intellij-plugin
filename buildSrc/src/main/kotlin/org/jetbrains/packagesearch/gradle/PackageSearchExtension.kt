@@ -64,7 +64,8 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
                 "kotlin-stdlib",
                 "slf4j",
                 "kotlin-reflect",
-                "kotlinx-coroutines"
+                "kotlinx-coroutines",
+                "logback",
             )
         }
 

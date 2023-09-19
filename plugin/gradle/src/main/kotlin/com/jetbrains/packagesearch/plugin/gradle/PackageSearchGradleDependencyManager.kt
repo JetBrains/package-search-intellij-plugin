@@ -5,18 +5,25 @@ package com.jetbrains.packagesearch.plugin.gradle
 import com.intellij.buildsystem.model.unified.UnifiedDependency
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.writeAction
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.module.Module
-import org.jetbrains.packagesearch.api.v3.ApiRepository
-import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
 import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import java.nio.file.Paths
+import kotlin.io.path.writeText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.jetbrains.kotlin.idea.configuration.GRADLE_SYSTEM_ID
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 class PackageSearchGradleDependencyManager(
-    private val nativeModule: Module
+    private val gradleModel: PackageSearchGradleModel,
+    private val nativeModule: Module,
 ) : PackageSearchDependencyManager {
 
     suspend fun updateGradleDependencies(
@@ -58,7 +65,7 @@ class PackageSearchGradleDependencyManager(
 
     override suspend fun addDependency(
         context: PackageSearchKnownRepositoriesContext,
-        data: InstallPackageData
+        data: InstallPackageData,
     ) {
         val gradleData = data as? GradleInstallPackageData ?: return
         installGradleDependencies(context, gradleData)
@@ -74,15 +81,39 @@ class PackageSearchGradleDependencyManager(
             version = data.selectedVersion,
             configuration = data.selectedConfiguration
         )
-        writeAction {
-            DependencyModifierService.getInstance(context.project)
-                .addDependency(nativeModule, descriptor)
+        if (gradleModel.buildFilePath == null) {
+            withContext(Dispatchers.IO) {
+                Paths.get(gradleModel.projectDir)
+                    .resolve("build.gradle.kts")
+                    .writeText(
+                        """
+                            dependencies {
+                                ${descriptor.toGradleDependencyString()}
+                            }
+                        """.trimIndent()
+                    )
+            }
+            nativeModule.project.basePath?.let {
+                ExternalSystemUtil.refreshProject(
+                    /* project = */ nativeModule.project,
+                    /* externalSystemId = */ GRADLE_SYSTEM_ID,
+                    /* externalProjectPath = */ it,
+                    /* isPreviewMode = */ false,
+                    /* progressExecutionMode = */ ProgressExecutionMode.IN_BACKGROUND_ASYNC
+                )
+            }
+
+        } else {
+            writeAction {
+                DependencyModifierService.getInstance(context.project)
+                    .addDependency(nativeModule, descriptor)
+            }
         }
     }
 
     override suspend fun removeDependency(
         context: ProjectContext,
-        data: RemovePackageData
+        data: RemovePackageData,
     ) {
         val gradleData = data as? GradleRemovePackageData ?: return
         removeGradleDependencies(context, gradleData)
@@ -90,7 +121,7 @@ class PackageSearchGradleDependencyManager(
 
     suspend fun removeGradleDependencies(
         context: ProjectContext,
-        data: GradleRemovePackageData
+        data: GradleRemovePackageData,
     ) {
         val descriptor = UnifiedDependency(
             groupId = data.declaredPackage.groupId,
@@ -105,3 +136,6 @@ class PackageSearchGradleDependencyManager(
         }
     }
 }
+
+private fun UnifiedDependency.toGradleDependencyString() =
+    """$scope("${coordinates.groupId}:${coordinates.artifactId}:${coordinates.version}")"""

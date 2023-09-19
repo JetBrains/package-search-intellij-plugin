@@ -29,7 +29,7 @@ import com.jetbrains.packagesearch.plugin.ui.models.plus
 import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageSearchInfoBox
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
 import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
-import com.jetbrains.packagesearch.plugin.utils.logError
+import com.jetbrains.packagesearch.plugin.utils.logInfo
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -73,6 +73,7 @@ fun PackageSearchPackagePanel(
             setLocal(selectedModules)
         }
     }
+
     val remotePackageGroup by derivedStateOf {
         buildRemotePackageGroups(searchQuery) {
             setSearchResults(searchResults, selectedModules)
@@ -179,7 +180,7 @@ fun PackageSearchPackagePanel(
 private suspend fun PackageSearchApi.trySearchPackages(json: Json, request: SearchPackagesRequest) =
     runCatching { searchPackages(request) }
         .onFailure {
-            logError(it) {
+            logInfo(throwable = it) {
                 """
 Error while searching. Request:
 |----------------

@@ -43,6 +43,9 @@ data class MppCompilationInfoModel(
     override val platformId = "native"
   }
 
+  @Serializable
+  data class Unknown(override val platformId: String) : Compilation
+
   /**
     Compatibility with NMPP (see [org.jetbrains.kotlin.idea.projectModel.KotlinPlatform.COMMON]
   **/

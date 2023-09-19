@@ -1,12 +1,16 @@
 package com.jetbrains.packagesearch.mock
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
+import io.ktor.http.ContentType
+import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -44,11 +48,7 @@ import org.jetbrains.packagesearch.maven.buildGradleMetadataUrl
 import org.jetbrains.packagesearch.maven.central.MavenCentralApiResponse
 import org.jetbrains.packagesearch.maven.dependencies
 import org.jetbrains.packagesearch.maven.developers
-import org.jetbrains.packagesearch.maven.licenses
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.packagesearch.gradle.Dependency as GradleMetadataDependency
 
 fun Dependency.toApiModel() = version?.let {
@@ -200,7 +200,7 @@ fun MavenCoordinateWithVersions.toMavenApiModel(): ApiMavenPackage {
                     description = pom.description,
                     authors = pom.developers.map { it.toApiModel() },
                     scmUrl = pom.scm?.url,
-                    licenses = pom.licenses.toApiModel()
+//                    licenses = pom.licenses.toApiModel()
                 )
 
                 else -> ApiMavenPackage.GradleVersion(
@@ -215,7 +215,7 @@ fun MavenCoordinateWithVersions.toMavenApiModel(): ApiMavenPackage {
                     description = pom.description,
                     authors = pom.developers.map { it.toApiModel() },
                     scmUrl = pom.scm?.url,
-                    licenses = pom.licenses.toApiModel()
+//                    licenses = pom.licenses.toApiModel()
                 )
             }
         }
@@ -243,9 +243,9 @@ suspend fun PomResolver.toMavenApiModel(ids: Iterable<String>) =
         .map { it.removePrefix("maven:") }
         .map { it.split(":").let { it[0] to it[1] } }
         .buffer()
-        .mapNotNull { httpClient.getMavenCentralInfo(it.first, it.second) }
+        .mapNotNull { pomProvider.httpClient.getMavenCentralInfo(it.first, it.second) }
         .buffer()
-        .map { httpClient.getBuildSystemsMetadata(it, this) }
+        .map { pomProvider.httpClient.getBuildSystemsMetadata(it, this) }
         .map { it.toMavenApiModel() }
         .toList()
 

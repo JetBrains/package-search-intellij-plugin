@@ -107,7 +107,10 @@ class PackageSearchProjectService(
             project.fileOpenedFlow,
             moduleDataByBuildFile.map { it.keys }
         ) { openedFiles, buildFiles ->
-            openedFiles.filter { it.toNioPath().absolutePathString() in buildFiles }
+            openedFiles.filter {
+                kotlin.runCatching { it.toNioPath().absolutePathString() in buildFiles }
+                    .getOrDefault(false)
+            }
         }
             .replayOn(isStableOnlyVersions)
             .flatMapMerge { it.asFlow() }

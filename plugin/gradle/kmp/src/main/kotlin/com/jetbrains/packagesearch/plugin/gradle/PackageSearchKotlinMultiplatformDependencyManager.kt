@@ -4,21 +4,22 @@ import com.intellij.openapi.module.Module
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependency
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.MppModifierUpdateData
-import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
-import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
 import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 class PackageSearchKotlinMultiplatformDependencyManager(
+    model: PackageSearchGradleModel,
     private val module: PackageSearchKotlinMultiplatformModule,
-    private val nativeModule: Module
+    private val nativeModule: Module,
 ) : PackageSearchDependencyManager {
 
-    private val baseDependencyManager = PackageSearchGradleDependencyManager(nativeModule)
+    private val baseDependencyManager = PackageSearchGradleDependencyManager(model, nativeModule)
 
     override suspend fun updateDependencies(
         context: PackageSearchKnownRepositoriesContext,

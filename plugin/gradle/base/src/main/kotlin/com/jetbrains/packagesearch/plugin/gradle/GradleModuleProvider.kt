@@ -83,7 +83,7 @@ class GradleModuleProvider : BaseGradleModuleProvider() {
             emit(
                 PackageSearchModuleData(
                     module = packageSearchGradleModule,
-                    dependencyManager = PackageSearchGradleDependencyManager(module)
+                    dependencyManager = PackageSearchGradleDependencyManager(model, module)
                 )
             )
         }

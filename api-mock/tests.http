@@ -9,17 +9,19 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8081/api/v3/search-packages
+GET https://api.dev.package-search.services.jetbrains.com/search-packages
 Accept: application/json
 Content-Type: application/json
 
 {
   "packagesType": [
     {
-      "type": "maven"
+      "type": "gradle",
+      "mustBeRootPublication": true,
+      "variants": []
     }
   ],
-  "searchQuery": "whatever"
+  "searchQuery": "ktor"
 }
 
 ###
@@ -28,6 +30,6 @@ Content-Type: application/json
 
 {
   "ids": [
-    "maven:io.ktor:ktor-client-core-jvm"
+    "maven:io.ktor:ktor-client-core"
   ]
 }

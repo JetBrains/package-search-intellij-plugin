@@ -62,7 +62,7 @@ class PackageGroupsBuilder(private val searchQuery: String) {
                     PackageGroup.Remote.FromVariants(
                         module = module,
                         packages = results.results,
-                        badges = findCommonStrings(results.searchData.compatibleVariants.map { it.attributes }),
+                        badges = results.searchData.compatibleVariants.first().attributes.map { it.value },
                         compatibleVariants = module.variants.filterKeys { it in variantNames }.values.toList(),
                         dependencyManager = selectedModuleData.dependencyManager
                     )

@@ -3,12 +3,12 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenVersion
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 
 @Serializable
 sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVariant {
@@ -20,9 +20,9 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     data class SourceSet(
         override val name: String,
         override val declaredDependencies: List<PackageSearchKotlinMultiplatformDeclaredDependency>,
-        override val attributes: List<String>,
+        override val attributes: List<PackageSearchModuleVariant.Attribute>,
         override val compatiblePackageTypes: List<PackagesType>,
-        val compilerTargets: Set<MppCompilationInfoModel.Compilation>
+        val compilerTargets: Set<MppCompilationInfoModel.Compilation>,
     ) : PackageSearchKotlinMultiplatformVariant {
 
         companion object {
@@ -77,7 +77,7 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val compatiblePackageTypes: List<PackagesType>,
     ) : PackageSearchKotlinMultiplatformVariant {
 
-        override val attributes: List<String>
+        override val attributes: List<PackageSearchModuleVariant.Attribute>
             get() = emptyList()
 
         companion object {
@@ -121,8 +121,8 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val isPrimary: Boolean
             get() = false
 
-        override val attributes: List<String>
-            get() = listOf(NAME)
+        override val attributes: List<PackageSearchModuleVariant.Attribute>
+            get() = listOf(PackageSearchModuleVariant.Attribute.StringAttribute(NAME))
 
         companion object {
             const val NAME = "cocoapods"
