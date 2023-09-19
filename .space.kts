@@ -20,6 +20,3 @@ job("Publish snapshots") {
         env["CI"] = "true"
     }
 }
-
-
-// toolbox-enterprise-token

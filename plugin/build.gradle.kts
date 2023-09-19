@@ -28,10 +28,6 @@ packagesearch {
     isRunIdeEnabled = true
 }
 
-configurations.api {
-    isCanBeResolved = true
-}
-
 dependencies {
     compileOnly(packageSearchCatalog.kotlinx.serialization.core)
     implementation(projects.apiMock.apiMockClient)
@@ -66,6 +62,11 @@ tasks {
         archiveBaseName.set("packagesearch-plugin")
     }
 
+    patchPluginXml {
+        sinceBuild = "232.2.*"
+        untilBuild = "233.*"
+    }
+
     val zipShadowPlugin by registering(Zip::class) {
         from(shadowJar) {
             into("com.jetbrains.packagesearch.intellij-plugin/lib")
@@ -75,7 +76,7 @@ tasks {
     }
 
     register<PublishPluginTask>("publishShadowPlugin") {
-        dependsOn(zipShadowPlugin)
+        group = "publishing"
         distributionFile = zipShadowPlugin.flatMap { it.archiveFile }
         toolboxEnterprise = true
         host = "https://tbe.labs.jb.gg/"
