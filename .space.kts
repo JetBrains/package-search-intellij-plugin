@@ -1,3 +1,5 @@
+import java.io.File
+
 job("Publish snapshots") {
     startOn {
         gitPush {
@@ -27,6 +29,15 @@ job("Publish plugin") {
     }
     startOn { }
     host("Run Gradle") {
+
+        env["PLUGIN_VERSION"] = "{{ version }}"
+        env["IS_SNAPSHOT"] = "true"
+        env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"
+        env["MAVEN_SPACE_PASSWORD"] = "{{ project:jetbrains_team_registry_key }}"
+        env["GRADLE_ENTERPRISE_KEY"] = "{{ project:gradle_enterprise_access_key }}"
+        env["TOOLBOX_ENTERPRISE_TOKEN"] = "{{ project:toolbox-enterprise-token }}"
+        env["CI"] = "true"
+
         kotlinScript { api ->
             api.space().projects.automation.deployments.start(
                 project = api.projectIdentifier(),
@@ -36,16 +47,19 @@ job("Publish plugin") {
                 syncWithAutomationJob = true
             )
         }
+
         shellScript {
-            content = "./gradlew publish :plugin:publishPlugin"
+            content = "./gradlew :plugin:publishShadowPlugin"
         }
-        env["PLUGIN_VERSION"] = "{{ version }}"
-        env["IS_SNAPSHOT"] = "true"
-        env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"
-        env["MAVEN_SPACE_PASSWORD"] = "{{ project:jetbrains_team_registry_key }}"
-        env["GRADLE_ENTERPRISE_KEY"] = "{{ project:gradle_enterprise_access_key }}"
-        env["TOOLBOX_ENTERPRISE_TOKEN"] = "{{ project:toolbox-enterprise-token }}"
-        env["CI"] = "true"
+
+        kotlinScript { api ->
+            api.space().projects.automation.deployments.update(
+                project = api.projectIdentifier(),
+                targetIdentifier = TargetIdentifier.Key("pkgs-plugin-deploy"),
+                deploymentIdentifier = DeploymentIdentifier.Version(api.parameters["version"]!!),
+                externalLink = ExternalLink("Build scan", File("build-scan-url.txt").readLines().first())
+            )
+        }
     }
 
 }

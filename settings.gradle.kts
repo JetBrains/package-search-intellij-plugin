@@ -66,5 +66,8 @@ gradleEnterprise {
         accessKey = System.getenv("GRADLE_ENTERPRISE_KEY")
             ?: extra.properties["gradleEnterpriseAccessKey"]?.toString()
         publishAlwaysIf(isCi)
+        buildScanPublished {
+            File("build-scan-url.txt").writeText(buildScanUri.toString())
+        }
     }
 }
