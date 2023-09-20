@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,10 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
 import com.jetbrains.packagesearch.plugin.ui.models.PackageSearchPackageListItem.Header
@@ -34,9 +33,7 @@ import com.jetbrains.packagesearch.plugin.ui.models.buildPackageSearchPackageIte
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageGroupHeader
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageRow
 import java.awt.Cursor
-import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.IntelliJTheme
-import org.jetbrains.jewel.Link
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
@@ -176,17 +173,6 @@ fun NoResultsToShow() {
     ) {
         LabelInfo("No supported dependencies were found.")
         LabelInfo("Search to add dependencies to the project.")
-        Row {
-            Icon(
-                painter = painterResource("icons/intui/question.svg", LocalResourceLoader.current),
-                modifier = Modifier.size(16.dp).padding(end = 4.dp),
-                contentDescription = null,
-            )
-            Link(
-                resourceLoader = LocalResourceLoader.current,
-                text = "Learn more",
-                onClick = { openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html") },
-            )
-        }
+        LearnMoreLink()
     }
 }

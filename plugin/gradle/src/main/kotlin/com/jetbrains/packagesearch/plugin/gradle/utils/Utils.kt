@@ -1,6 +1,9 @@
 package com.jetbrains.packagesearch.plugin.gradle.utils
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.intellij.openapi.extensions.ExtensionPointListener
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.extensions.PluginDescriptor
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
@@ -14,9 +17,11 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.flow
 import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import com.jetbrains.packagesearch.plugin.gradle.GradleModelCacheEntry
-import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.singleOrNull
 import org.jetbrains.kotlin.psi.psiUtil.parents
@@ -36,7 +41,7 @@ val Module.gradleIdentityPathOrNull: String?
         ?.data
         ?.gradleIdentityPathOrNull
 
-suspend fun PackageSearchModuleBuilderContext.getGradleModelRepository(): CoroutineObjectRepository<GradleModelCacheEntry> =
+fun PackageSearchModuleBuilderContext.getGradleModelRepository(): CoroutineObjectRepository<GradleModelCacheEntry> =
     projectCaches.getRepository<GradleModelCacheEntry>("gradle")
 
 val Project.gradleSyncNotifierFlow
@@ -47,6 +52,41 @@ val Project.gradleSyncNotifierFlow
             }
         }
     }
+
+val <T : Any> ExtensionPointName<T>.availableExtensionsFlow: FlowWithInitialValue<List<T>>
+    get() {
+        val extensionPointListener = callbackFlow<List<T>> {
+            val buffer = extensions.toMutableSet()
+            trySend(buffer.toList())
+            val listener = object : ExtensionPointListener<T> {
+                override fun extensionAdded(extension: T, pluginDescriptor: PluginDescriptor) {
+                    super.extensionAdded(extension, pluginDescriptor)
+                    buffer.add(extension)
+                    trySend(buffer.toList())
+                }
+
+                override fun extensionRemoved(extension: T, pluginDescriptor: PluginDescriptor) {
+                    super.extensionRemoved(extension, pluginDescriptor)
+                    buffer.remove(extension)
+                    trySend(buffer.toList())
+                }
+            }
+            addExtensionPointListener(listener)
+            awaitClose { removeExtensionPointListener(listener) }
+        }
+        return extensionPointListener.withInitialValue(extensions.toList())
+    }
+
+class FlowWithInitialValue<T> internal constructor(val initialValue: T, private val delegate: Flow<T>) : Flow<T> {
+    override suspend fun collect(collector: FlowCollector<T>) {
+        collector.emit(initialValue)
+        delegate.collect(collector)
+    }
+}
+
+fun <T> Flow<T>.withInitialValue(initialValue: T) =
+    FlowWithInitialValue(initialValue, this)
+
 
 val Project.smartModeFlow: Flow<Boolean>
     get() = messageBus.flow(DumbService.DUMB_MODE) {

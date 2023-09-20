@@ -28,8 +28,8 @@ import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.Author
-import org.jetbrains.packagesearch.api.v3.LicenseFile
 import org.jetbrains.packagesearch.api.v3.Licenses
+import org.jetbrains.packagesearch.api.v3.PomLicenseFile
 import org.jetbrains.packagesearch.api.v3.VersionsContainer
 import org.jetbrains.packagesearch.api.v3.Vulnerability
 import org.jetbrains.packagesearch.gradle.File
@@ -65,7 +65,7 @@ fun List<License>.toApiModel() = firstOrNull()?.toApiModel()?.let {
 }
 
 fun License.toApiModel() = url?.let {
-    LicenseFile(
+    PomLicenseFile(
         name = name,
         url = it
     )

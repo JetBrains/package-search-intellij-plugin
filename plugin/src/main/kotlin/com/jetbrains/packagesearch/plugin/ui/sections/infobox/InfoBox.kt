@@ -235,7 +235,7 @@ fun PackageOverviewInfo(
                     resourceLoader = LocalResourceLoader.current,
                     onClick = {
                         scope.launch {
-                            openLinkInBrowser(it.mainLicense.htmlUrl ?: it.mainLicense.url)
+                            openLinkInBrowser(it.mainLicense.url)
                         }
                     },
                 )
@@ -246,7 +246,7 @@ fun PackageOverviewInfo(
                         resourceLoader = LocalResourceLoader.current,
                         onClick = {
                             scope.launch {
-                                openLinkInBrowser(otherLicense.htmlUrl ?: otherLicense.url)
+                                openLinkInBrowser(otherLicense.url)
                             }
                         },
                     )
