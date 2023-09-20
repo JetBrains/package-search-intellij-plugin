@@ -20,10 +20,9 @@ class GradleModuleProvider : BaseGradleModuleProvider() {
     override suspend fun FlowCollector<PackageSearchModuleData?>.transform(
         module: Module,
         context: PackageSearchModuleBuilderContext,
-        model: PackageSearchGradleModel
+        model: PackageSearchGradleModel,
     ) {
-        if (model.isKotlinMultiplatformApplied) emit(null)
-        else {
+        if (!model.isKotlinMultiplatformApplied) {
             val availableKnownRepositories =
                 model.repositories.toSet().let { availableGradleRepositories ->
                     context.knownRepositories.filterValues {

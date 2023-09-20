@@ -83,6 +83,7 @@ class PackageSearchApiPackageCache(
         apiCall: suspend (Set<String>) -> Map<String, ApiPackage>,
         query: (Set<String>) -> ObjectFilter,
     ): Map<String, ApiPackage> = cachesMutex.withLock {
+        if (ids.isEmpty()) return emptyMap()
         val localDatabaseResults = apiPackageCache.find(query(ids))
             .filter { Clock.System.now() < it.lastUpdate + maxAge }
             .map { it.data }

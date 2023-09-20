@@ -8,29 +8,20 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.util.Function
-import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
-import com.jetbrains.packagesearch.plugin.core.nitrite.insert
 import com.jetbrains.packagesearch.plugin.core.utils.flow
 import io.ktor.client.plugins.logging.Logger
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.datetime.Clock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.modules.polymorphic
-import org.dizitart.no2.objects.filters.ObjectFilters
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 
 
 internal val Project.nativeModules
@@ -74,21 +65,6 @@ fun interval(
         emit(Unit)
     }
 }
-
-// todo the _id must be a Long
-suspend fun getRepositories(
-    repoCache: CoroutineObjectRepository<ApiRepositoryCacheEntry>,
-    apiClient: PackageSearchApiClient,
-    expireDuration: Duration = 14.days,
-) =
-    repoCache.find(ObjectFilters.eq("_id", "knownRepositories"))
-        .filter { it.lastUpdate + expireDuration < Clock.System.now() }
-        .map { it.data }
-        .firstOrNull()
-        ?.associateBy { it.id }
-        ?: apiClient.getKnownRepositories()
-            .also { repoCache.insert(it.asCacheEntry()) }
-            .associateBy { it.id }
 
 typealias NativeModules = List<Module>
 typealias NativeModule = Module
