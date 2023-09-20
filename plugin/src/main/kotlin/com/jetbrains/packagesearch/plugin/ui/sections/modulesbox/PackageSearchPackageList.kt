@@ -19,6 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
@@ -31,6 +33,7 @@ import com.jetbrains.packagesearch.plugin.ui.models.PackageSearchPackageListItem
 import com.jetbrains.packagesearch.plugin.ui.models.buildPackageSearchPackageItemList
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageGroupHeader
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageRow
+import java.awt.Cursor
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.Link
@@ -104,10 +107,14 @@ fun PackageSearchPackageList(
                             item.compatibleVariantsText != null -> {
                                 {
                                     LabelInfo(
-                                        modifier = Modifier.clickable {
-                                            item.infoBoxDetail?.let(onElementClick)
-                                            if (!isInfoBoxOpen) infoBoxOpenState = true
-                                        },
+                                        modifier = Modifier
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }) {
+                                                item.infoBoxDetail?.let(onElementClick)
+                                                if (!isInfoBoxOpen) infoBoxOpenState = true
+                                            }
+                                            .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
                                         text = item.compatibleVariantsText,
                                     )
                                 }
