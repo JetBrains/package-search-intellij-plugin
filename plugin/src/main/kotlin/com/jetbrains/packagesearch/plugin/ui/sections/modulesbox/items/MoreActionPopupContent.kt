@@ -110,6 +110,7 @@ internal fun DeclaredPackageMoreActionPopup(
                         enabled = !isActionPerforming.value.isPerforming
                     ) {
                         goToSource(service, virtualFile, packageSearchDeclaredPackage)
+                        popupOpenStatus.value = null
                     },
                 horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically
             ) {

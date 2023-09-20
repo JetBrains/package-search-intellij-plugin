@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 import ai.grazie.utils.mpp.UUID
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -26,13 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.intellij.openapi.components.service
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
@@ -50,10 +50,11 @@ import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.Link
 import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.painterResource
+import org.jetbrains.jewel.bridge.SwingBridgeService
+import org.jetbrains.jewel.bridge.retrieveStatelessIcon
 import org.jetbrains.jewel.styling.LocalLazyTreeStyle
 import org.jetbrains.jewel.styling.LocalLinkStyle
-import org.jetbrains.jewel.util.appendIf
+import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
@@ -128,40 +129,24 @@ fun PackageRow(
                 var globalPopupId by LocalGlobalPopupIdState.current
                 val bgColor = remember(IntelliJTheme.isDark) { JBColor.background().toComposeColor() }
                 val borderColor = remember(IntelliJTheme.isDark) { JBColor.border().toComposeColor() }
-                Box(
-                    Modifier
-                        .defaultMinSize(16.dp, 16.dp)
-                        .appendIf(hovered || globalPopupId == actionPopupId) {
-                            background(bgColor)
-                                .border(1.dp, borderColor)
-                        }
-                        .appendIf(popupContent != null) {
-                            pointerInput(key1 = actionPopupId, key2 = IntelliJTheme.globalColors) {
-                                awaitPointerEventScope {
-                                    while (true) {
-                                        val event = awaitPointerEvent()
-                                        when (event.type) {
-                                            PointerEventType.Enter -> hovered = true
-                                            PointerEventType.Exit -> hovered = false
-                                            PointerEventType.Press -> {
-                                                globalPopupId =
-                                                    if (globalPopupId == actionPopupId) {
-                                                        null
-                                                    } else {
-                                                        actionPopupId
-                                                    }
-                                            }
-                                        }
+                Box(Modifier.clip(RoundedCornerShape(2.dp))) {// do not remove this box! it is needed for popup to work without glitches
+                    if (popupContent != null) {
+                        val svgLoader = service<SwingBridgeService>().svgLoader
+                        val painterProvider = retrieveStatelessIcon("actions/more.svg", svgLoader, IntUiTheme.iconData)
+                        val painter by painterProvider.getPainter(LocalResourceLoader.current)
+                        Icon(
+                            modifier = Modifier
+                                .clickable {
+                                    globalPopupId = if (globalPopupId == actionPopupId) {
+                                        null
+                                    } else {
+                                        actionPopupId
                                     }
                                 }
-                            }
-                        },
-                ) {
-                    if (popupContent != null) {
-                        Icon(
-                            painterResource("actions/more.svg", LocalResourceLoader.current),
-                            contentDescription = null,
+                                .padding(2.dp),
+                            painter = painter, contentDescription = null
                         )
+
                         if (globalPopupId == actionPopupId) {
                             val contentOffsetX = with(LocalDensity.current) { 184.dp.toPx() + 1 }
 
