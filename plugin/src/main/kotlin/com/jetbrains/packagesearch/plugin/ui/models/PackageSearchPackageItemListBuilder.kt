@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.ui.models
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -12,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
@@ -190,7 +192,7 @@ class PackageSearchPackageItemListBuilder {
                     },
                     popupContent = {
                         DeclaredPackageMoreActionPopup(
-                            group.dependencyManager,
+                            group,
                             declaredDependency,
                         )
                     }
@@ -330,6 +332,11 @@ private fun packageSearchDropdownStyle(): DropdownStyle {
                 get() = object : DropdownColors by currentStyle.colors {
 
                     @Composable
+                    override fun iconTintFor(state: DropdownState): State<Color> {
+                        return if (!state.isEnabled) mutableStateOf(Color.Transparent) else super.iconTintFor(state)
+                    }
+
+                    @Composable
                     override fun backgroundFor(state: DropdownState): State<Color> {
                         return mutableStateOf(Color.Transparent)
                     }
@@ -355,7 +362,7 @@ fun ScopeSelectionDropdown(
     val scope = LocalProjectService.current.coroutineScope
 
     Dropdown(
-        enabled = !actionPerforming.isPerforming,
+        enabled = !actionPerforming.isPerforming && availableScope.isNotEmpty(),
         resourceLoader = LocalResourceLoader.current,
         style = packageSearchDropdownStyle(),
         menuContent = {
@@ -442,6 +449,8 @@ fun VersionSelectionDropdown(
                         }
                     }) {
                     Text(
+                        modifier = Modifier.defaultMinSize(80.dp, 0.dp).padding(vertical = 4.dp),
+                        textAlign = TextAlign.Center,
                         text = it.versionName,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

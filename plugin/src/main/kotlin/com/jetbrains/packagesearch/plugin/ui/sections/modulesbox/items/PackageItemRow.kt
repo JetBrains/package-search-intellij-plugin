@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
@@ -30,100 +29,37 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
-import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
+import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.Link
 import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.painterResource
 import org.jetbrains.jewel.styling.LocalLazyTreeStyle
 import org.jetbrains.jewel.styling.LocalLinkStyle
 import org.jetbrains.jewel.util.appendIf
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import kotlin.math.roundToInt
-import kotlin.time.Duration.Companion.seconds
 
 @Suppress("unused")
 enum class PackageQuality {
     Unknown, Bad, Warning, Good
-}
-
-fun PackageQuality.getIconResourcePath() = "icons/intui/quality/${name.lowercase()}.svg"
-
-@Composable
-internal fun DeclaredPackageMoreActionPopup(
-    dependencyManager: PackageSearchDependencyManager,
-    packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    borderColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") },
-) {
-    val context = LocalProjectService.current
-    val popupOpenStatus = LocalGlobalPopupIdState.current
-    Column(
-        Modifier
-            .padding(vertical = 4.dp, horizontal = 12.dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(
-            modifier = Modifier.width(176.dp),
-            text = "Other Actions",
-            textAlign = TextAlign.Center,
-            softWrap = false,
-        )
-        Divider(color = borderColor)
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            val service = LocalProjectService.current
-            val isActionPerforming = LocalIsActionPerformingState.current
-            Link(
-                resourceLoader = LocalResourceLoader.current,
-                text = "Remove",
-                enabled = !isActionPerforming.value.isPerforming,
-                onClick = {
-                    val id = UUID.random().text
-                    isActionPerforming.value = ActionState(true, id)
-                    context.coroutineScope.launch {
-                        dependencyManager.removeDependency(
-                            context,
-                            packageSearchDeclaredPackage.getRemoveData(),
-                        )
-                    }.invokeOnCompletion {
-                        it?.let {
-                            System.err.println(it.stackTraceToString())
-                        }
-                        popupOpenStatus.value = null
-                    }
-                    service.coroutineScope.launch {
-                        delay(5.seconds)
-                        if (isActionPerforming.value.actionId == id) {
-                            System.err.println("Remove action has been cancelled due a time out")
-                            isActionPerforming.value = ActionState(false)
-                        }
-                    }
-                },
-            )
-        }
-    }
 }
 
 @Composable
@@ -297,25 +233,6 @@ fun PackageActionLink(
                     }
                 }
             },
-        )
-    }
-}
-
-@Composable
-fun InstallPackageActionLink(
-    apiPackage: ApiPackage,
-    module: PackageSearchModule.Base,
-    dependencyManager: PackageSearchDependencyManager,
-) {
-    val version = apiPackage.latestVersion
-    PackageActionLink("Add") { context ->
-        dependencyManager.addDependency(
-            context = context,
-            data = module.getInstallData(
-                apiPackage = apiPackage,
-                selectedVersion = version.versionName,
-                selectedScope = module.defaultScope,
-            ),
         )
     }
 }
