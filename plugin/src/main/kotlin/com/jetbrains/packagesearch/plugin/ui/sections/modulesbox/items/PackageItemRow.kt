@@ -40,7 +40,7 @@ import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
-import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
+import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
@@ -201,7 +201,7 @@ fun PackageActionLink(
 ) {
     var showProgress by remember { mutableStateOf(false) }
     val isActionPerforming = LocalIsActionPerformingState.current
-    val service = LocalProjectService.current
+    val service = LocalPackageSearchService.current
     when {
         showProgress -> CircularProgressIndicator(
             modifier = Modifier.size(16.dp),

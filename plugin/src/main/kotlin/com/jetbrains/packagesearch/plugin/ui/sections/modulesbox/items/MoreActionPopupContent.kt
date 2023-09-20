@@ -31,7 +31,7 @@ import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
-import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
+import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
 import kotlin.time.Duration.Companion.seconds
@@ -55,10 +55,10 @@ internal fun DeclaredPackageMoreActionPopup(
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
     borderColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") },
 ) {
-    val context = LocalProjectService.current
+    val context = LocalPackageSearchService.current
     val popupOpenStatus = LocalGlobalPopupIdState.current
     val svgLoader = service<SwingBridgeService>().svgLoader
-    val service = LocalProjectService.current
+    val service = LocalPackageSearchService.current
     val isActionPerforming = LocalIsActionPerformingState.current
 
     Column(

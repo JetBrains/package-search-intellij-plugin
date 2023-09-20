@@ -24,8 +24,8 @@ import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchApiClient
+import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.LocalProjectCoroutineScope
-import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
@@ -72,7 +72,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
                 .collectAsState()
             SwingBridgeTheme {
                 CompositionLocalProvider(
-                    LocalProjectService provides project.PackageSearchProjectService,
+                    LocalPackageSearchService provides project.PackageSearchProjectService,
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
                     LocalPackageSearchApiClient provides apiClient,
                     LocalIsActionPerformingState provides mutableStateOf(ActionState(false)),

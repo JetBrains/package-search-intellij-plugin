@@ -23,7 +23,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.latestStableOrNull
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
+import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
@@ -105,7 +105,7 @@ fun PackageOverviewInfo(
             .filter { it.normalized.versionName != selectedVersion?.versionName }
     }
 
-    val projectService = LocalProjectService.current
+    val projectService = LocalPackageSearchService.current
     val actions by derivedStateOf {
 //        selectedPackage.getPackageActions(selectedModules, projectService, selectedModules.first().dependencyManager)
     }
@@ -136,7 +136,7 @@ fun PackageOverviewInfo(
 
     var selectedScope: String? by remember { mutableStateOf(null) }
 
-    val projectService = LocalProjectService.current
+    val projectService = LocalPackageSearchService.current
     val actions by derivedStateOf {
 //        selectedPackage.getPackageActions(selectedModules, projectService, selectedVersion.versionName, selectedScope)
     }

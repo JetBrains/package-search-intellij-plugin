@@ -24,7 +24,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
-import com.jetbrains.packagesearch.plugin.ui.LocalProjectService
+import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
@@ -124,7 +124,7 @@ class PackageSearchPackageItemListBuilder {
                         else -> declaredDependency.coordinates.takeIf { it != declaredDependency.displayName }
                     },
                     modifyPackageContent = {
-                        val service = LocalProjectService.current
+                        val service = LocalPackageSearchService.current
                         Row(
                             modifier = Modifier.width(160.dp),
                             horizontalArrangement = Arrangement.End
@@ -359,7 +359,7 @@ fun ScopeSelectionDropdown(
 ) {
     val actionId = UUID.randomUUID().toString()
     var actionPerforming by LocalIsActionPerformingState.current
-    val scope = LocalProjectService.current.coroutineScope
+    val scope = LocalPackageSearchService.current.coroutineScope
 
     Dropdown(
         enabled = !actionPerforming.isPerforming && availableScope.isNotEmpty(),
@@ -428,7 +428,7 @@ fun VersionSelectionDropdown(
 ) {
     val actionId = UUID.randomUUID().toString()
     var actionPerforming by LocalIsActionPerformingState.current
-    val scope = LocalProjectService.current.coroutineScope
+    val scope = LocalPackageSearchService.current.coroutineScope
     Dropdown(
         enabled = !actionPerforming.isPerforming && availableVersions.isNotEmpty(),
         resourceLoader = LocalResourceLoader.current,

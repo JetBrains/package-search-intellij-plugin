@@ -128,7 +128,6 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                         )
                     }
                 }
-
         val sourceSetVariants = compilationModel
             .mapKeys { it.key }
             .map { (sourceSetName, compilationTargets) ->
@@ -139,8 +138,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                     compatiblePackageTypes = buildPackageTypes {
                         if (compilationTargets.singleOrNull() == Jvm) {
                             mavenPackages()
-                        }
-                        gradlePackages {
+                        } else gradlePackages {
                             kotlinMultiplatform {
                                 compilationTargets.forEach { compilationTarget ->
                                     when (compilationTarget) {

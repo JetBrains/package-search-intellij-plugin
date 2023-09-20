@@ -7,7 +7,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.application.Application
 import com.jetbrains.packagesearch.plugin.core.utils.flow
-import com.jetbrains.packagesearch.plugin.services.PackageSearchApiClientType
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.bridge.isLightTheme
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +16,7 @@ import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 
 val LocalJson = staticCompositionLocalOf { Json { prettyPrint = true } }
 
-val LocalProjectService = staticCompositionLocalOf<PackageSearchProjectService> {
+val LocalPackageSearchService = staticCompositionLocalOf<PackageSearchProjectService> {
     error("No ProjectService provided")
 }
 

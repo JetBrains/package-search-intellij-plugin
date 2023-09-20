@@ -15,6 +15,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
+import com.jetbrains.packagesearch.plugin.gradle.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.getNativeModulesStateFlow
@@ -24,12 +25,12 @@ import kotlin.io.path.absolutePathString
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
@@ -85,8 +86,20 @@ class PackageSearchProjectService(
         }
     }
         .flatMapLatest { combine(it) { it.filterNotNull() } }
-        .filter { it.isNotEmpty() }
-        .map { ModulesState.Ready(it) }
+        .combine(project.smartModeFlow) { module, isSmartMode ->
+            when {
+                isSmartMode -> when {
+                    module.isEmpty() -> ModulesState.NoModules
+                    else -> ModulesState.Ready(module)
+                }
+
+                module.isNotEmpty() -> ModulesState.Ready(module)
+                else -> {
+                    delay(2.seconds)
+                    ModulesState.Loading
+                }
+            }
+        }
         .debounce(1.seconds)
         .stateIn(coroutineScope, SharingStarted.Eagerly, ModulesState.Loading)
 
@@ -130,5 +143,5 @@ sealed interface ModulesState {
 
     data object Loading : ModulesState
     data class Ready(val moduleData: List<PackageSearchModuleData>) : ModulesState
+    data object NoModules : ModulesState
 }
-
