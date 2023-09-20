@@ -21,6 +21,7 @@ ktor = "2.3.3"
 logback = "1.4.7"
 nitrite = "3.4.4"
 packagesearchApiModels = "3.0.0-SNAPSHOT"
+jewel = "1.0.0-SNAPSHOT"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
@@ -35,9 +36,9 @@ gradle-intellij-platform-plugin = { module = "org.jetbrains.intellij.plugins:gra
 ij-platform-core-ui = { module = "com.jetbrains.intellij.platform:core-ui", version.ref = "idea" }
 ij-platform-ide-core = { module = "com.jetbrains.intellij.platform:ide-core", version.ref = "idea" }
 ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", version.ref = "idea" }
-jewel-core = { module = "org.jetbrains.jewel:core" }
-jewel-intUi-Standalone = { module = "org.jetbrains.jewel:int-ui-standalone" }
-jewel-bridge = { module = "org.jetbrains.jewel:ide-laf-bridge" }
+jewel-core = { module = "org.jetbrains.jewel:jewel-core", version.ref = "jewel" }
+jewel-intUi-Standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
+jewel-bridge = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }

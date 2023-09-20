@@ -1,6 +1,6 @@
 import java.io.File
 
-job("Publish snapshots") {
+job("Publish jar snapshots") {
     startOn {
         gitPush {
             enabled = true
@@ -12,7 +12,7 @@ job("Publish snapshots") {
     // of the host machine. Our gradle build interacts with git!
     host("Run Gradle") {
         shellScript {
-            content = "./gradlew publish :plugin:publishPlugin"
+            content = "./gradlew publish"
         }
         env["IS_SNAPSHOT"] = "true"
         env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"

@@ -2,6 +2,8 @@
 
 package org.jetbrains.packagesearch.gradle
 
+import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.plugins.ExtraPropertiesExtension
@@ -9,10 +11,19 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.assign
+import org.gradle.kotlin.dsl.extra
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.getValue
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.provideDelegate
+import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.registering
+import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
 import org.jetbrains.kotlin.util.suffixIfNot
 
 fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.Publication) {
@@ -30,14 +41,17 @@ fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.
                     archiveClassifier = "javadoc"
                     destinationDirectory = layout.buildDirectory.dir("artifacts")
                 }
+                val shadowJar = tasks.named<ShadowJar>("shadowJar")
                 extensions.withType<PublishingExtension> {
                     repositories {
                         pkgsSpace(project)
                     }
                     publications {
                         register<MavenPublication>(project.name) {
+                            extensions.getByType<ShadowExtension>().component(this)
                             artifact(javadocJar)
                             artifact(sourcesJar)
+                            artifact(shadowJar)
                             from(components["kotlin"])
                             afterEvaluate {
                                 groupId = publicationExtension.groupId.get()
