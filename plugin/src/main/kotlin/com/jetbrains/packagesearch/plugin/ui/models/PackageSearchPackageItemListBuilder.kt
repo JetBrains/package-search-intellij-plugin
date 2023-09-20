@@ -126,7 +126,7 @@ class PackageSearchPackageItemListBuilder {
                     modifyPackageContent = {
                         val service = LocalProjectService.current
                         Row(
-                            modifier = Modifier.defaultMinSize(100.dp, 0.dp),
+                            modifier = Modifier.width(160.dp),
                             horizontalArrangement = Arrangement.End
                         ) {
                             ScopeSelectionDropdown(
@@ -402,7 +402,8 @@ fun ScopeSelectionDropdown(
                     Text(
                         text = it,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.End
                     )
                 }
             }
