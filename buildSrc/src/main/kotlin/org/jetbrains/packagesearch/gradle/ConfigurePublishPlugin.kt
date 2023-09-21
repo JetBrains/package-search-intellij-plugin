@@ -2,8 +2,7 @@
 
 package org.jetbrains.packagesearch.gradle
 
-import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import java.util.Locale
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.plugins.ExtraPropertiesExtension
@@ -14,7 +13,6 @@ import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.provideDelegate
@@ -41,19 +39,17 @@ fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.
                     archiveClassifier = "javadoc"
                     destinationDirectory = layout.buildDirectory.dir("artifacts")
                 }
-                val shadowJar = tasks.named<ShadowJar>("shadowJar")
                 extensions.withType<PublishingExtension> {
                     repositories {
                         pkgsSpace(project)
                     }
                     publications {
-                        register<MavenPublication>(project.name) {
-                            extensions.getByType<ShadowExtension>().component(this)
+                        val publicationName = project.name
+                            .replace(Regex(""""-([\w\W])""")) { it.groupValues[1].uppercase(Locale.getDefault()) }
+
+                        register<MavenPublication>(publicationName) {
                             artifact(javadocJar)
                             artifact(sourcesJar)
-                            artifact(shadowJar) {
-                                classifier = "shadow"
-                            }
                             from(components["kotlin"])
                             afterEvaluate {
                                 groupId = publicationExtension.groupId.get()
@@ -97,4 +93,4 @@ fun RepositoryHandler.pkgsSpace(project: Project) {
 }
 
 fun ExtraPropertiesExtension.getStringOrNull(key: String) =
-        runCatching { get(key)?.toString() }.getOrNull()
+    runCatching { get(key)?.toString() }.getOrNull()
