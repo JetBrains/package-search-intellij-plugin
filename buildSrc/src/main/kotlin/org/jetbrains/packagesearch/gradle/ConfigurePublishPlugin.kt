@@ -50,7 +50,7 @@ fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.
                         register<MavenPublication>(publicationName) {
                             artifact(javadocJar)
                             artifact(sourcesJar)
-                            from(components["kotlin"])
+                            from(components["java"])
                             afterEvaluate {
                                 groupId = publicationExtension.groupId.get()
                                 artifactId = publicationExtension.artifactId.get()

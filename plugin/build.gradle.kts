@@ -63,7 +63,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild = "232.*"
+        sinceBuild = "232"
         untilBuild = "233.*"
         version = System.getenv("PLUGIN_VERSION") ?: project.version.toString()
     }
