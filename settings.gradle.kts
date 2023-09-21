@@ -43,7 +43,7 @@ include(
 includeBuild("jewel") {
     dependencySubstitution {
         substitute(module("org.jetbrains.jewel:jewel-core")).using(project(":core"))
-        substitute(module("org.jetbrains.jewel:jewel-int-ui-standalone")).using(project(":themes:int-ui:int-ui-standalone"))
+        substitute(module("org.jetbrains.jewel:jewel-int-ui-standalone")).using(project(":int-ui:int-ui-standalone"))
         substitute(module("org.jetbrains.jewel:jewel-ide-laf-bridge")).using(project(":ide-laf-bridge"))
     }
 }

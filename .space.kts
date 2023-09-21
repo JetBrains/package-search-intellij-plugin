@@ -11,6 +11,12 @@ job("Publish jar snapshots") {
     // gradlew uses a container which isolates the git configuration
     // of the host machine. Our gradle build interacts with git!
     host("Run Gradle") {
+        cache {
+            localPath = "**/.gradle"
+        }
+        cache {
+            localPath = "**/build"
+        }
         shellScript {
             content = "./gradlew publish"
         }

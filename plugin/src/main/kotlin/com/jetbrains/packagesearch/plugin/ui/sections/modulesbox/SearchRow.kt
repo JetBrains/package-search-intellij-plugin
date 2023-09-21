@@ -26,6 +26,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
+import java.awt.Cursor
 import org.jetbrains.jewel.GlobalColors
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.LocalGlobalColors
@@ -37,8 +38,6 @@ import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.painterResource
 import org.jetbrains.jewel.styling.LocalTextFieldStyle
 import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
-import org.jetbrains.jewel.util.pxToDp
-import java.awt.Cursor
 
 @Composable
 fun SearchRow(
@@ -92,7 +91,7 @@ fun SearchRow(
                 placeholder = {
                     Text(
                         text = "Search",
-                        modifier = Modifier.padding(start = 4.pxToDp()),
+                        modifier = Modifier.padding(start = 4.dp),
                     )
                 },
                 trailingIcon = {
@@ -102,7 +101,7 @@ fun SearchRow(
                             searchResultsCount.let {
                                 Text(
                                     text = "$it ${if (it == 1) "result" else "results"}",
-                                    modifier = Modifier.padding(end = 4.pxToDp()),
+                                    modifier = Modifier.padding(end = 4.dp),
                                 )
                             }
                             Box(

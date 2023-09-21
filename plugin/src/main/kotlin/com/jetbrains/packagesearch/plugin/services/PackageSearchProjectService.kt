@@ -92,15 +92,14 @@ class PackageSearchProjectService(
                     module.isEmpty() -> ModulesState.NoModules
                     else -> ModulesState.Ready(module)
                 }
-
                 module.isNotEmpty() -> ModulesState.Ready(module)
                 else -> {
-                    delay(2.seconds)
+                    delay(15.seconds)
                     ModulesState.Loading
                 }
             }
         }
-        .debounce(1.seconds)
+        .debounce(2.seconds)
         .stateIn(coroutineScope, SharingStarted.Eagerly, ModulesState.Loading)
 
     internal val moduleDataByBuildFile = moduleData
