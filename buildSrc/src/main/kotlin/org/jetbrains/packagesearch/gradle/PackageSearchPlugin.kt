@@ -3,12 +3,16 @@
 package org.jetbrains.packagesearch.gradle
 
 import com.github.jengelman.gradle.plugins.shadow.ShadowPlugin
+import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.create
 
-class PackageSearchPlugin : Plugin<Project> {
+class PackageSearchPlugin @Inject constructor(
+    private val softwareComponentFactory: SoftwareComponentFactory,
+) : Plugin<Project> {
     override fun apply(target: Project): Unit = with(target) {
         apply<ShadowPlugin>()
         val packageSearchExtension =
@@ -22,10 +26,9 @@ class PackageSearchPlugin : Plugin<Project> {
         configureJavaPlugin(packageSearchJavaExtension)
         configureKotlinJvmPlugin(packageSearchExtension)
         configureGradleIntellijPlugin(packageSearchExtension)
-        configurePublishPlugin(packageSearchPublicationExtension)
+        configurePublishPlugin(packageSearchPublicationExtension, softwareComponentFactory)
         configureLinting(packageSearchExtension)
     }
-
 
 }
 

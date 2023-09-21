@@ -2,18 +2,28 @@
 
 package org.jetbrains.packagesearch.gradle
 
+import com.github.jengelman.gradle.plugins.shadow.ShadowBasePlugin
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.util.Locale
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.component.SoftwareComponent
+import org.gradle.api.component.SoftwareComponentFactory
+import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.internal.artifact.AbstractMavenArtifact
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.jvm.tasks.Jar
+import org.gradle.kotlin.dsl.artifacts
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getValue
+import org.gradle.kotlin.dsl.getting
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.register
@@ -24,7 +34,10 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.util.suffixIfNot
 
-fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.Publication) {
+fun Project.configurePublishPlugin(
+    publicationExtension: PackageSearchExtension.Publication,
+    softwareComponentFactory: SoftwareComponentFactory,
+) {
     plugins.withId("org.gradle.maven-publish") {
         plugins.withId("org.jetbrains.dokka") {
             plugins.withId("org.jetbrains.kotlin.jvm") {
@@ -39,6 +52,17 @@ fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.
                     archiveClassifier = "javadoc"
                     destinationDirectory = layout.buildDirectory.dir("artifacts")
                 }
+                val shadowComponent = softwareComponentFactory.adhoc("shadow")
+                tasks.named<ShadowJar>("shadowJar") {
+                    archiveClassifier = null
+                    destinationDirectory = layout.buildDirectory.dir("artifacts/shadow")
+                }
+                val shadowRuntimeElements by configurations.getting
+                shadowComponent.addVariantsFromConfiguration(shadowRuntimeElements) {
+                    mapToMavenScope("runtime")
+                }
+                val kotlin by components
+                val rootComponent = kotlin.addRemoteVariants(setOf(shadowComponent))
                 extensions.withType<PublishingExtension> {
                     repositories {
                         pkgsSpace(project)
@@ -47,10 +71,26 @@ fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.
                         val publicationName = project.name
                             .replace(Regex(""""-([\w\W])""")) { it.groupValues[1].uppercase(Locale.getDefault()) }
 
+                        register<MavenPublication>(publicationName + "Shadow") {
+                            from(shadowComponent)
+                            afterEvaluate {
+                                groupId = publicationExtension.groupId.get()
+                                artifactId = publicationExtension.artifactId.get() + "-shadow"
+                                version = evaluateSpaceVersion(publicationExtension)
+                                afterEvaluate {
+                                    groupId = publicationExtension.groupId.get()
+                                    artifactId = publicationExtension.artifactId.get() + "-shadow"
+                                    version = evaluateSpaceVersion(publicationExtension)
+                                    pom {
+                                        publicationExtension.pomAction.get().invoke(this)
+                                    }
+                                }
+                            }
+                        }
                         register<MavenPublication>(publicationName) {
                             artifact(javadocJar)
                             artifact(sourcesJar)
-                            from(components["java"])
+                            from(rootComponent)
                             afterEvaluate {
                                 groupId = publicationExtension.groupId.get()
                                 artifactId = publicationExtension.artifactId.get()
@@ -94,3 +134,8 @@ fun RepositoryHandler.pkgsSpace(project: Project) {
 
 fun ExtraPropertiesExtension.getStringOrNull(key: String) =
     runCatching { get(key)?.toString() }.getOrNull()
+
+fun SoftwareComponent.addRemoteVariants(variants: Set<SoftwareComponent>): ComponentWithVariants =
+    object : ComponentWithVariants, SoftwareComponentInternal by this as SoftwareComponentInternal {
+        override fun getVariants(): Set<SoftwareComponent> = variants
+    }
