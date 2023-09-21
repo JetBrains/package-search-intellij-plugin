@@ -51,7 +51,9 @@ fun Project.configurePublishPlugin(publicationExtension: PackageSearchExtension.
                             extensions.getByType<ShadowExtension>().component(this)
                             artifact(javadocJar)
                             artifact(sourcesJar)
-                            artifact(shadowJar)
+                            artifact(shadowJar) {
+                                classifier = "shadow"
+                            }
                             from(components["kotlin"])
                             afterEvaluate {
                                 groupId = publicationExtension.groupId.get()
