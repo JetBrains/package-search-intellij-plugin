@@ -11,22 +11,6 @@ job("Publish jar snapshots") {
     // gradlew uses a container which isolates the git configuration
     // of the host machine. Our gradle build interacts with git!
     host("Run Gradle") {
-        cache {
-            storeKey = "root-gradle-cache"
-            localPath = ".gradle"
-        }
-        cache {
-            storeKey = "jewel-gradle-cache"
-            localPath = "jewel/.gradle"
-        }
-        cache {
-            storeKey = "buildSrc-gradle-cache"
-            localPath = "buildSrc/.gradle"
-        }
-        cache {
-            storeKey = "api-models-gradle-cache"
-            localPath = "package-search-api-models/.gradle"
-        }
         shellScript {
             content = "./gradlew publish"
         }
