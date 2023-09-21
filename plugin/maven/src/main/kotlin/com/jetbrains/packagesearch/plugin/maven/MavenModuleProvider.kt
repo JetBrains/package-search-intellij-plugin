@@ -22,6 +22,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
+import java.io.File
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -38,9 +39,10 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
+import org.jetbrains.packagesearch.maven.POM_XML_NAMESPACE
 import org.jetbrains.packagesearch.maven.ProjectObjectModel
+import org.jetbrains.packagesearch.maven.decodeFromString
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import java.io.File
 import com.intellij.openapi.module.Module as NativeModule
 
 class MavenModuleProvider : PackageSearchModuleProvider {
@@ -62,8 +64,14 @@ class MavenModuleProvider : PackageSearchModuleProvider {
             IntelliJApplication.registryFlow("org.jetbrains.packagesearch.sonatype",).mapUnit()
         )
 
+        val xml = XML {
+            defaultPolicy {
+                ignoreUnknownChildren()
+            }
+        }
+
         private fun buildMavenParentHierarchy(pomFile: File): String {
-            val pom = XML.decodeFromString<ProjectObjectModel>(pomFile.readText())
+            val pom = xml.decodeFromString<ProjectObjectModel>(POM_XML_NAMESPACE, pomFile.readText())
             val parentFile = pom.parent?.relativePath
                 ?.let { pomFile.parentFile.resolve(it) }
                 ?: return ":"
