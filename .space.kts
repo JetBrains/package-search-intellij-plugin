@@ -12,12 +12,20 @@ job("Publish jar snapshots") {
     // of the host machine. Our gradle build interacts with git!
     host("Run Gradle") {
         cache {
-            storeKey = "gradle-cache"
-            localPath = "**/.gradle"
+            storeKey = "root-gradle-cache"
+            localPath = ".gradle"
         }
         cache {
-            storeKey = "gradle-build-caches"
-            localPath = "**/build"
+            storeKey = "jewel-gradle-cache"
+            localPath = "jewel/.gradle"
+        }
+        cache {
+            storeKey = "buildSrc-gradle-cache"
+            localPath = "buildSrc/.gradle"
+        }
+        cache {
+            storeKey = "api-models-gradle-cache"
+            localPath = "package-search-api-models/.gradle"
         }
         shellScript {
             content = "./gradlew publish"
