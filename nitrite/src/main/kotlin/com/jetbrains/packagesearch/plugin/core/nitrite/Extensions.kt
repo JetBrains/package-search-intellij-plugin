@@ -4,14 +4,12 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitri
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
 import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormatBuilder
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
+import java.io.File
 import org.dizitart.no2.Nitrite
 import org.dizitart.no2.NitriteBuilder
 import org.dizitart.no2.NitriteContext
 import org.dizitart.no2.WriteResult
 import org.dizitart.no2.objects.ObjectRepository
-import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersionWeakCache
 
 private val NitriteContext.kotlinxMapperOrNull
     get() = nitriteMapper as? KotlinxNitriteMapper
@@ -39,15 +37,20 @@ fun NitriteBuilder.kotlinxNitriteMapper(
 
 fun buildDefaultNitrate(
     path: String,
-    nitriteMapperConf: NitriteDocumentFormatBuilder.() -> Unit = {
-        ignoreUnknownKeys = true
-        serializersModule = SerializersModule {
-            contextual(NormalizedVersionWeakCache)
-        }
-    },
+    nitriteMapperConf: NitriteDocumentFormatBuilder.() -> Unit = {},
 ) = Nitrite.builder()
     .kotlinxNitriteMapper(builderAction = nitriteMapperConf)
     .filePath(path)
+    .compressed()
+    .openOrCreate()
+    .asCoroutine()
+
+fun buildDefaultNitrate(
+    file: File,
+    nitriteMapperConf: NitriteDocumentFormatBuilder.() -> Unit = {},
+) = Nitrite.builder()
+    .kotlinxNitriteMapper(builderAction = nitriteMapperConf)
+    .filePath(file)
     .compressed()
     .openOrCreate()
     .asCoroutine()

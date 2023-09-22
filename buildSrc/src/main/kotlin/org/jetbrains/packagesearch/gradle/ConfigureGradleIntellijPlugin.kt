@@ -26,8 +26,8 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
                 }
             }
             named<PrepareSandboxTask>("prepareSandbox") {
-                from(shadowJar)
-                exclude { it.name != shadowJar.get().archiveFile.get().asFile.name }
+                pluginJar = shadowJar.flatMap { it.archiveFile }
+                runtimeClasspathFiles = objects.fileCollection()
             }
             named("runIde") {
                 onlyIf { packageSearchExtension.isRunIdeEnabled.get() }

@@ -11,6 +11,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginDescriptor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryManager
@@ -40,7 +41,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
@@ -145,7 +145,7 @@ fun Application.registryFlow(key: String, defaultValue: Boolean = false) =
                 if (value.key == key) trySend(Registry.`is`(key, defaultValue))
             }
         }
-    }.onStart { emit(Registry.`is`(key, defaultValue)) }
+    }.withInitialValue(Registry.`is`(key, defaultValue))
 
 suspend fun <T> Flow<T>.collectIn(flowCollector: FlowCollector<T>) =
     collect { flowCollector.emit(it) }
@@ -176,27 +176,30 @@ fun <T> Flow<T>.replayOn(vararg replayFlows: Flow<*>) = channelFlow {
 }
 
 val Project.fileOpenedFlow: Flow<List<VirtualFile>>
-    get() = flow {
-        val buffer: MutableList<VirtualFile> = FileEditorManager.getInstance(this@fileOpenedFlow).openFiles
-            .toMutableList()
-        emit(buffer.toList())
-        messageBus.flow(FileEditorManagerListener.FILE_EDITOR_MANAGER) {
-            object : FileEditorManagerListener {
-                override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
-                    trySend(FileEditorEvent.FileOpened(file))
-                }
-
-                override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-                    trySend(FileEditorEvent.FileClosed(file))
-                }
-            }
-        }.collect {
-            when (it) {
-                is FileEditorEvent.FileClosed -> buffer.remove(it.file)
-                is FileEditorEvent.FileOpened -> buffer.add(it.file)
-            }
+    get() {
+        val flow = flow {
+            val buffer: MutableList<VirtualFile> = FileEditorManager.getInstance(this@fileOpenedFlow).openFiles
+                .toMutableList()
             emit(buffer.toList())
+            messageBus.flow(FileEditorManagerListener.FILE_EDITOR_MANAGER) {
+                object : FileEditorManagerListener {
+                    override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+                        trySend(FileEditorEvent.FileOpened(file))
+                    }
+
+                    override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+                        trySend(FileEditorEvent.FileClosed(file))
+                    }
+                }
+            }.collect {
+                when (it) {
+                    is FileEditorEvent.FileClosed -> buffer.remove(it.file)
+                    is FileEditorEvent.FileOpened -> buffer.add(it.file)
+                }
+                emit(buffer.toList())
+            }
         }
+        return flow.withInitialValue(FileEditorManager.getInstance(this@fileOpenedFlow).openFiles.toList())
     }
 
 internal sealed interface FileEditorEvent {
@@ -209,3 +212,51 @@ internal sealed interface FileEditorEvent {
     @JvmInline
     value class FileClosed(override val file: VirtualFile) : FileEditorEvent
 }
+
+val <T : Any> ExtensionPointName<T>.availableExtensionsFlow: FlowWithInitialValue<List<T>>
+    get() {
+        val extensionPointListener = callbackFlow {
+            val buffer = extensions.toMutableSet()
+            trySend(buffer.toList())
+            val listener = object : ExtensionPointListener<T> {
+                override fun extensionAdded(extension: T, pluginDescriptor: PluginDescriptor) {
+                    super.extensionAdded(extension, pluginDescriptor)
+                    buffer.add(extension)
+                    trySend(buffer.toList())
+                }
+
+                override fun extensionRemoved(extension: T, pluginDescriptor: PluginDescriptor) {
+                    super.extensionRemoved(extension, pluginDescriptor)
+                    buffer.remove(extension)
+                    trySend(buffer.toList())
+                }
+            }
+            addExtensionPointListener(listener)
+            awaitClose { removeExtensionPointListener(listener) }
+        }
+        return extensionPointListener.withInitialValue(extensions.toList())
+    }
+
+class FlowWithInitialValue<T> internal constructor(val initialValue: T, private val delegate: Flow<T>) : Flow<T> {
+    override suspend fun collect(collector: FlowCollector<T>) {
+        collector.emit(initialValue)
+        delegate.collect(collector)
+    }
+}
+
+fun <T> Flow<T>.withInitialValue(initialValue: T) =
+    FlowWithInitialValue(initialValue, this)
+
+val Project.smartModeFlow: FlowWithInitialValue<Boolean>
+    get() = messageBus.flow(DumbService.DUMB_MODE) {
+        object : DumbService.DumbModeListener {
+            override fun enteredDumbMode() {
+                trySend(false)
+            }
+
+            override fun exitDumbMode() {
+                trySend(true)
+            }
+        }
+    }
+        .withInitialValue(!DumbService.isDumb(this@smartModeFlow))

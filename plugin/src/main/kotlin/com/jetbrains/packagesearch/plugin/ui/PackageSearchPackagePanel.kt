@@ -41,7 +41,7 @@ import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.jewel.foundation.tree.TreeState
-import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.intui.standalone.IntUiTheme
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 

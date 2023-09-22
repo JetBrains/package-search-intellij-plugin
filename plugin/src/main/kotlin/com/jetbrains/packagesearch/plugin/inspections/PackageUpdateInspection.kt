@@ -20,7 +20,6 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.PriorityAction.Priority.HIGH
 import com.intellij.codeInsight.intention.PriorityAction.Priority.LOW
-import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalQuickFix
@@ -28,11 +27,11 @@ import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.codeInspection.options.OptPane
-import com.intellij.codeInspection.options.OptPane.checkbox
 import com.intellij.codeInspection.options.OptPane.pane
 import com.intellij.codeInspection.options.OptPane.stringList
 import com.intellij.codeInspection.util.InspectionMessage
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.toNioPath
 import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -42,6 +41,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.Nls
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -54,7 +54,7 @@ abstract class PackageSearchInspection : LocalInspectionTool() {
         isOnTheFly: Boolean
     ): Array<ProblemDescriptor> {
         val moduleData = file.project.PackageSearchProjectService
-            .moduleDataByBuildFile.value[file.virtualFile.path] ?: return emptyArray()
+            .moduleDataByBuildFile.value[file.virtualFile.path.toNioPath().absolutePathString()] ?: return emptyArray()
 
         val problemsHolder = ProblemsHolder(manager, file, isOnTheFly)
 
@@ -91,10 +91,6 @@ class PackageUpdateInspection : PackageSearchInspection() {
 
     override fun getOptionsPane(): OptPane {
         return pane(
-            checkbox(
-                "onlyStable",
-                PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable")
-            ),
             stringList(
                 "excludeList",
                 PackageSearchBundle.message("packagesearch.inspection.upgrade.excluded.dependencies")
@@ -123,7 +119,7 @@ class PackageUpdateInspection : PackageSearchInspection() {
                     .takeIf { it != file }
                     ?: return@forEach
             val targetVersion = if (project.PackageSearchProjectService.isStableOnlyVersions.value) {
-                it.latestVersion
+                it.latestStableVersion
             } else {
                 it.latestVersion
             }

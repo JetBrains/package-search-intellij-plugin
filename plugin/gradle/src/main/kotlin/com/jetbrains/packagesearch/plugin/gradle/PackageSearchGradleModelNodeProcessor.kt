@@ -11,8 +11,10 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
 import com.intellij.openapi.project.Project
+import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
+import com.jetbrains.packagesearch.plugin.core.nitrite.div
+import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -20,9 +22,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.dizitart.no2.IndexOptions
 import org.dizitart.no2.IndexType
-import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
-import com.jetbrains.packagesearch.plugin.core.nitrite.div
-import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 
 
 class PackageSearchGradleModelNodeProcessor :
@@ -36,21 +35,28 @@ class PackageSearchGradleModelNodeProcessor :
     }
 
     @Service(PROJECT)
-    private class Cache(private val project: Project, private val coroutineScope: CoroutineScope) {
-        private val gradleModelRepository = coroutineScope.async {
-            project.PackageSearchProjectCachesService
-                .getRepository<GradleModelCacheEntry>("gradle")
-                .also {
-                    it.createIndex(
-                        indexOptions = IndexOptions.indexOptions(IndexType.Unique),
-                        path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath
-                    )
-                }
+    class Cache(project: Project, private val coroutineScope: CoroutineScope) {
+
+        private val gradleModelRepository = project.PackageSearchProjectCachesService
+            .getRepository<GradleModelCacheEntry>("gradle")
+
+        init {
+            coroutineScope.launch {
+                gradleModelRepository.createIndex(
+                    indexOptions = IndexOptions.indexOptions(IndexType.Unique),
+                    path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath
+                )
+            }
         }
+
+        suspend fun clean() {
+            gradleModelRepository.remove(NitriteFilters.Object.ALL)
+        }
+
         fun update(items: List<GradleModelCacheEntry>) {
             coroutineScope.launch {
                 items.forEach { cacheEntry ->
-                    gradleModelRepository.await().update(
+                    gradleModelRepository.update(
                         filter = NitriteFilters.Object.eq(
                             value = cacheEntry.data.projectIdentityPath,
                             path = GradleModelCacheEntry::data / PackageSearchGradleModel::projectIdentityPath

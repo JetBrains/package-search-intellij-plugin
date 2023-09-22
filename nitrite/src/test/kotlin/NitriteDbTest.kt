@@ -1,34 +1,30 @@
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.dizitart.no2.Nitrite
-import org.jetbrains.packagesearch.api.v3.ApiPackage
 import com.jetbrains.packagesearch.plugin.core.nitrite.*
-import org.junit.jupiter.api.BeforeAll
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.days
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.runTest
+import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.junit.jupiter.api.BeforeAll
 
 class NitriteDbTest {
 
     companion object {
 
-        val db = Nitrite.builder()
-            .kotlinxNitriteMapper()
-            .filePath(File(System.getenv("DB_PATH")).apply { parentFile.mkdirs() })
-            .openOrCreate()
-            .asCoroutine()
+        val db = buildDefaultNitrate(
+            System.getenv("DB_PATH")
+                ?.let { File(it) }
+                ?.apply { parentFile.mkdirs() }
+                ?: error("DB_PATH env variable is not set")
+        )
 
         @JvmStatic
         @BeforeAll
         fun insertPackages(): Unit = runTest {
-            val repository = db.getRepository<ApiPackageCacheEntry>("packages")
+            val repository = db.getRepository<TestEntry>("entries")
             repository.documentCollection.removeAll()
-            repository.insert(NitriteDocumentFormatTest.getPackageInfoResponse.packages.map { it.asCacheEntry() })
+            repository.insert(Array(20) { TestEntry() })
         }
     }
 

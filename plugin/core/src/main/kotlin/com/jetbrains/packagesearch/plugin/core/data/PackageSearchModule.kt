@@ -4,6 +4,7 @@ package com.jetbrains.packagesearch.plugin.core.data
 
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
+import java.nio.file.Path
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
@@ -17,7 +18,7 @@ sealed interface PackageSearchModule : IconProvider {
 
     val name: String
     val identity: Identity
-    val buildFilePath: String?
+    val buildFilePath: Path?
     val declaredKnownRepositories: Map<String, ApiRepository>
     val availableScopes: List<String>
     val defaultScope: String?

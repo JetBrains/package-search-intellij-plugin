@@ -16,7 +16,7 @@ interface PackageSearchDeclaredPackage : IconProvider {
     val displayName: String
     val coordinates: String
     val declaredVersion: NormalizedVersion
-    val latestStableVersion: NormalizedVersion?
+    val latestStableVersion: NormalizedVersion
     val latestVersion: NormalizedVersion
     val remoteInfo: ApiPackage?
     val declarationIndexes: DependencyDeclarationIndexes

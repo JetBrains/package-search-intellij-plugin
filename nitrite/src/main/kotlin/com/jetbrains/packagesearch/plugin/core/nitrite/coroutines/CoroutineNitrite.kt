@@ -15,6 +15,7 @@ class CoroutineNitrite internal constructor(
 
     fun getCollection(key: String) =
         synchronous.getCollection(key).coroutine()
+
 }
 
 fun NitriteCollection.coroutine() =

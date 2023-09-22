@@ -1,15 +1,24 @@
 package com.jetbrains.packagesearch.plugin.core.nitrite.coroutines
 
+import com.jetbrains.packagesearch.plugin.core.nitrite.DocumentPathBuilder
+import com.jetbrains.packagesearch.plugin.core.nitrite.asKotlin
+import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
+import kotlin.reflect.KProperty
+import kotlin.reflect.KType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import org.dizitart.no2.FindOptions
 import org.dizitart.no2.IndexOptions
+import org.dizitart.no2.NitriteId
 import org.dizitart.no2.RemoveOptions
 import org.dizitart.no2.WriteResult
 import org.dizitart.no2.event.ChangeListener
@@ -17,15 +26,11 @@ import org.dizitart.no2.event.ChangeType
 import org.dizitart.no2.objects.ObjectFilter
 import org.dizitart.no2.objects.ObjectRepository
 import org.dizitart.no2.objects.filters.ObjectFilters
-import com.jetbrains.packagesearch.plugin.core.nitrite.DocumentPathBuilder
-import com.jetbrains.packagesearch.plugin.core.nitrite.asKotlin
-import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
-import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
-import kotlin.reflect.KProperty
-import kotlin.reflect.KType
-import org.dizitart.no2.NitriteId
 
-class CoroutineObjectRepository<T : Any> @PKGSInternalAPI constructor(
+@RequiresOptIn("This API is internal and you should not use it.")
+annotation class InternalAPI
+
+class CoroutineObjectRepository<T : Any> @InternalAPI constructor(
     val synchronous: ObjectRepository<T>,
     val type: KType,
     private val documentFormat: NitriteDocumentFormat,
@@ -61,10 +66,10 @@ class CoroutineObjectRepository<T : Any> @PKGSInternalAPI constructor(
     suspend fun insert(items: Array<T>): WriteResult =
         dispatch { synchronous.insert(items) }
 
-    suspend fun update(filter: ObjectFilter, update: T, upsert: Boolean = false) =
+    suspend fun update(filter: ObjectFilter, update: T, upsert: Boolean = false): WriteResult =
         dispatch { synchronous.update(filter, update, upsert) }
 
-    suspend fun removeAll() = dispatch { synchronous.remove(ObjectFilters.ALL) }
+    suspend fun removeAll(): WriteResult = dispatch { synchronous.remove(ObjectFilters.ALL) }
 
     suspend fun remove(filter: ObjectFilter, removeOptions: RemoveOptions? = null): WriteResult =
         dispatch {

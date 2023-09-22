@@ -52,6 +52,14 @@ dependencies {
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
 }
 
+val tooling by configurations.creating {
+    isCanBeResolved = true
+}
+
+dependencies {
+    tooling(projects.plugin.gradle.tooling)
+}
+
 tasks {
 
     buildSearchableOptions {
@@ -68,9 +76,16 @@ tasks {
         version = System.getenv("PLUGIN_VERSION") ?: project.version.toString()
     }
 
+    prepareSandbox {
+        runtimeClasspathFiles = files(shadowJar, tooling)
+    }
+
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
         from(shadowJar) {
+            into("com.jetbrains.packagesearch.intellij-plugin/lib")
+        }
+        from(tooling) {
             into("com.jetbrains.packagesearch.intellij-plugin/lib")
         }
         archiveFileName.set("packagesearch-plugin.zip")

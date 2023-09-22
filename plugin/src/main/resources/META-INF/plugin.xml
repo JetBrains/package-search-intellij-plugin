@@ -22,6 +22,8 @@ Supports Maven and Gradle projects.
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
+        <recoveryAction
+                implementation="com.jetbrains.packagesearch.plugin.services.CleanPackageSearchApplicationCacheAction"/>
         <toolWindow id="Package Search"
                     anchor="bottom"
                     secondary="false"

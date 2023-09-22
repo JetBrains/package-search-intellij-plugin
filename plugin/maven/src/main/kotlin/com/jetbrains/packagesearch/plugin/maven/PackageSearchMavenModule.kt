@@ -2,15 +2,19 @@
 
 package com.jetbrains.packagesearch.plugin.maven
 
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
+import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
+import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
+import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
+import java.nio.file.Path
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
-import com.jetbrains.packagesearch.plugin.core.data.*
-import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
-import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 
 data class MavenUpdatePackageData(
     override val installedPackage: PackageSearchDeclaredBaseMavenPackage,
@@ -33,12 +37,12 @@ data class MavenRemovePackageData(
 data class PackageSearchMavenModule(
     override val name: String,
     override val identity: PackageSearchModule.Identity,
-    override val buildFilePath: String,
+    override val buildFilePath: Path?,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
     override val declaredDependencies: List<PackageSearchDeclaredBaseMavenPackage>,
     override val defaultScope: String? = null,
     override val availableScopes: List<String>,
-    override val compatiblePackageTypes: List<PackagesType>
+    override val compatiblePackageTypes: List<PackagesType>,
 ) : PackageSearchModule.Base {
 
     override val dependencyMustHaveAScope: Boolean

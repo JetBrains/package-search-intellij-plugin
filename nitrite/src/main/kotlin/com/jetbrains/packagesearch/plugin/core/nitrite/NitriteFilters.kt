@@ -21,5 +21,8 @@ object NitriteFilters {
 
         fun `in`(path: String, value: Collection<Any>): ObjectFilter =
             ObjectFilters.`in`(path, *value.toTypedArray())
+
+        val ALL
+            get() = ObjectFilters.ALL
     }
 }

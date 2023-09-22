@@ -46,8 +46,8 @@ import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.bridge.SwingBridgeService
 import org.jetbrains.jewel.bridge.retrieveStatelessIcon
 import org.jetbrains.jewel.foundation.onHover
+import org.jetbrains.jewel.intui.standalone.IntUiTheme
 import org.jetbrains.jewel.styling.LocalLazyTreeStyle
-import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 
 @Composable
 internal fun DeclaredPackageMoreActionPopup(

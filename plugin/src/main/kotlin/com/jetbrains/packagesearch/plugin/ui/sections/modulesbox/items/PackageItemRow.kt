@@ -52,11 +52,12 @@ import org.jetbrains.jewel.Link
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.bridge.SwingBridgeService
 import org.jetbrains.jewel.bridge.retrieveStatelessIcon
+import org.jetbrains.jewel.intui.standalone.IntUiTheme
 import org.jetbrains.jewel.styling.LocalLazyTreeStyle
 import org.jetbrains.jewel.styling.LocalLinkStyle
-import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion.Missing
 
 @Suppress("unused")
 enum class PackageQuality {
@@ -132,7 +133,11 @@ fun PackageRow(
                 Box(Modifier.clip(RoundedCornerShape(2.dp))) {// do not remove this box! it is needed for popup to work without glitches
                     if (popupContent != null) {
                         val svgLoader = service<SwingBridgeService>().svgLoader
-                        val painterProvider = retrieveStatelessIcon("actions/more.svg", svgLoader, IntUiTheme.iconData)
+                        val painterProvider = retrieveStatelessIcon(
+                            iconPath = "actions/more.svg",
+                            svgLoader = svgLoader,
+                            iconData = IntUiTheme.iconData
+                        )
                         val painter by painterProvider.getPainter(LocalResourceLoader.current)
                         Icon(
                             modifier = Modifier
@@ -224,7 +229,7 @@ fun PackageActionLink(
 
 fun PackageSearchDeclaredPackage.evaluateUpgrade(stableOnly: Boolean): NormalizedVersion? {
     val targetVersion = if (stableOnly) latestStableVersion else latestVersion
-    return if (targetVersion?.let { declaredVersion < it } == true) targetVersion else null
+    return if (declaredVersion !is Missing && declaredVersion < targetVersion) targetVersion else null
 }
 
 @Composable

@@ -10,8 +10,8 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.util.Function
+import com.jetbrains.packagesearch.plugin.core.utils.FlowWithInitialValue
 import com.jetbrains.packagesearch.plugin.core.utils.flow
-import com.jetbrains.packagesearch.plugin.gradle.utils.FlowWithInitialValue
 import io.ktor.client.plugins.logging.Logger
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope

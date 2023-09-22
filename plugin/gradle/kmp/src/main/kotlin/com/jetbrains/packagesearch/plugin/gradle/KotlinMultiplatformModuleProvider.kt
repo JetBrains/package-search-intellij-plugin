@@ -5,6 +5,7 @@ package com.jetbrains.packagesearch.plugin.gradle
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
@@ -43,7 +44,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
                     val pkgsModule = PackageSearchKotlinMultiplatformModule(
                         name = model.projectName,
                         identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
-                        buildFilePath = model.buildFilePath,
+                        buildFilePath = model.buildFilePath?.toNioPath(),
                         declaredKnownRepositories = context.knownRepositories - DependencyModifierService
                             .getInstance(context.project)
                             .declaredRepositories(module)

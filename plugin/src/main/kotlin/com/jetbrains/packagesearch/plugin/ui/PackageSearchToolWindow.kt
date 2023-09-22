@@ -22,7 +22,7 @@ import com.jetbrains.packagesearch.plugin.ui.bridge.asTree
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.tree.rememberTreeState
-import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.intui.standalone.IntUiTheme
 
 @Composable
 fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {

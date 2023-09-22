@@ -1,10 +1,10 @@
 package com.jetbrains.packagesearch.plugin.core.nitrite
 
+import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
+import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormatBuilder
 import kotlinx.serialization.serializer
 import org.dizitart.no2.Document
 import org.dizitart.no2.mapper.NitriteMapper
-import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
-import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormatBuilder
 
 fun KotlinxNitriteMapper(
     from: NitriteDocumentFormat = NitriteDocumentFormat.Default,

@@ -2,7 +2,7 @@
 assertk = "0.26.1"
 caffeine = "3.1.6"
 commonsCodec = "1.16.0"
-composeDesktop = "1.5.1"
+composeDesktop = "1.5.10-beta01"
 coroutines = "1.7.1"
 detekt = "1.23.0"
 dokka = "1.8.20"

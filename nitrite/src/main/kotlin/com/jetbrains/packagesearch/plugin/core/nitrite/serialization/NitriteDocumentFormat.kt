@@ -1,8 +1,21 @@
 package com.jetbrains.packagesearch.plugin.core.nitrite.serialization
 
-import kotlinx.serialization.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Polymorphic
+import kotlinx.serialization.SerialFormat
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNames
+import kotlinx.serialization.json.JsonNamingStrategy
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import org.dizitart.no2.Document

@@ -18,8 +18,8 @@ import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.tree.Tree
 import org.jetbrains.jewel.foundation.tree.TreeState
+import org.jetbrains.jewel.intui.standalone.IntUiTheme
 import org.jetbrains.jewel.painterResource
-import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 
 @Composable
 fun PackageSearchModulesTree(

@@ -20,16 +20,16 @@ import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel
+import java.nio.file.Paths
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
 
 val gradleHomePathString: String
     get() = System.getenv("GRADLE_HOME") ?: System.getProperty("user.home")
@@ -66,15 +66,15 @@ fun getModuleChangesFlow(
 ): Flow<Unit> {
     val allFiles = buildSet {
         if (model.buildFilePath != null) {
-            add(model.buildFilePath)
+            add(model.buildFilePath.toNioPath())
         }
         val rootDirPath = Paths.get(model.rootProjectPath)
         val projectDirPath = Paths.get(model.projectDir)
         addAll(
             knownGradleAncillaryFilesFiles.flatMap {
                 listOf(
-                    rootDirPath.resolve(it).absolutePathString(),
-                    projectDirPath.resolve(it).absolutePathString(),
+                    rootDirPath.resolve(it),
+                    projectDirPath.resolve(it),
                 )
             }
         )
@@ -84,6 +84,7 @@ fun getModuleChangesFlow(
         .project
         .filesChangedEventFlow
         .flatMapConcat { it.map { it.path }.asFlow() }
+        .map { Paths.get(it) }
         .filter { filePath -> allFiles.any { filePath == it } }
         .mapUnit()
 

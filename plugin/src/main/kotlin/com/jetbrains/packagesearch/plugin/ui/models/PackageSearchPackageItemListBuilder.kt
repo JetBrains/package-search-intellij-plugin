@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
@@ -41,6 +42,7 @@ import org.jetbrains.jewel.styling.DropdownColors
 import org.jetbrains.jewel.styling.DropdownStyle
 import org.jetbrains.jewel.styling.LocalDropdownStyle
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion.Missing
 
 class PackageSearchPackageItemListBuilder {
     private val list = mutableListOf<PackageSearchPackageListItem>()
@@ -161,15 +163,14 @@ class PackageSearchPackageItemListBuilder {
 
                         val latestStable = declaredDependency.latestStableVersion
                         val latestVersion = when {
-                            onlyStable && latestStable != null -> latestStable
+                            onlyStable && latestStable !is Missing -> latestStable
                             else -> declaredDependency.latestVersion
                         }
 
-
                         VersionSelectionDropdown(
-                            declaredVersion,
-                            availableVersions,
-                            latestVersion
+                            declaredVersion = declaredVersion,
+                            availableVersions = availableVersions,
+                            latestVersion = latestVersion
                         ) { newVersion: String ->
                             group.dependencyManager.updateDependencies(
                                 context = service,
@@ -191,10 +192,7 @@ class PackageSearchPackageItemListBuilder {
                         }
                     },
                     popupContent = {
-                        DeclaredPackageMoreActionPopup(
-                            group,
-                            declaredDependency,
-                        )
+                        DeclaredPackageMoreActionPopup(group, declaredDependency)
                     }
                 )
             }
@@ -380,7 +378,7 @@ fun ScopeSelectionDropdown(
                         }
                     }) {
                     Text(
-                        text = "[default]",
+                        text = PackageSearchBundle.message("packagesearch.ui.missingScope"),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -421,7 +419,7 @@ fun ScopeSelectionDropdown(
 
 @Composable
 fun VersionSelectionDropdown(
-    selectedVersion: NormalizedVersion,
+    declaredVersion: NormalizedVersion,
     availableVersions: List<NormalizedVersion>,
     latestVersion: NormalizedVersion,
     updateLambda: suspend (newScope: String) -> Unit,
@@ -461,10 +459,15 @@ fun VersionSelectionDropdown(
         },
     ) {
         val text = buildString {
-            append(selectedVersion.versionName)
-            if (latestVersion > selectedVersion) {
-                append(" → ")
-                append(availableVersions.first().versionName)
+            when {
+                declaredVersion is Missing -> append(PackageSearchBundle.message("packagesearch.ui.missingVersion"))
+                else -> {
+                    append(declaredVersion.versionName)
+                    if (latestVersion > declaredVersion) {
+                        append(" → ")
+                        append(availableVersions.first().versionName)
+                    }
+                }
             }
         }
         Row(modifier = Modifier.width(100.dp), horizontalArrangement = Arrangement.End) {

@@ -14,7 +14,7 @@ import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
 import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.bridge.toComposeColor
-import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.intui.standalone.IntUiTheme
 
 @Composable
 fun PackageSearchCentralPanel(

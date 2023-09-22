@@ -35,9 +35,9 @@ import org.jetbrains.jewel.OutlineColors
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.TextField
 import org.jetbrains.jewel.bridge.toComposeColor
+import org.jetbrains.jewel.intui.standalone.IntUiTheme
 import org.jetbrains.jewel.painterResource
 import org.jetbrains.jewel.styling.LocalTextFieldStyle
-import org.jetbrains.jewel.themes.intui.standalone.IntUiTheme
 
 @Composable
 fun SearchRow(

@@ -21,7 +21,7 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
-import com.jetbrains.packagesearch.plugin.gradle.utils.availableExtensionsFlow
+import com.jetbrains.packagesearch.plugin.core.utils.availableExtensionsFlow
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import com.jetbrains.packagesearch.plugin.utils.collectAsState

@@ -21,13 +21,15 @@ import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
+import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
+import java.nio.file.Path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import nl.adaptivity.xmlutil.serialization.XML
@@ -55,13 +57,14 @@ class MavenModuleProvider : PackageSearchModuleProvider {
 
         val commonScopes = listOf("compile", "provided", "runtime", "test", "system", "import")
 
-        fun getModuleChangesFlow(context: ProjectContext, pomPath: String): Flow<Unit> = merge(
+        fun getModuleChangesFlow(context: ProjectContext, pomPath: Path): Flow<Unit> = merge(
             watchExternalFileChanges(mavenSettingsFilePath),
             context.project.filesChangedEventFlow
                 .flatMapLatest { it.map { it.path }.asFlow() }
+                .map { it.toNioPath() }
                 .filter { it == pomPath }
                 .mapUnit(),
-            IntelliJApplication.registryFlow("org.jetbrains.packagesearch.sonatype",).mapUnit()
+            IntelliJApplication.registryFlow("org.jetbrains.packagesearch.sonatype").mapUnit()
         )
 
         val xml = XML {
@@ -91,7 +94,7 @@ class MavenModuleProvider : PackageSearchModuleProvider {
                     group = "maven",
                     path = buildMavenParentHierarchy(mavenProject.file.asRegularFile())
                 ),
-                buildFilePath = mavenProject.file.path,
+                buildFilePath = mavenProject.file.path.toNioPath(),
                 declaredKnownRepositories = getDeclaredKnownRepositories(context),
                 declaredDependencies = declaredDependencies,
                 availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.scope }).distinct(),
@@ -184,12 +187,15 @@ class MavenModuleProvider : PackageSearchModuleProvider {
     override fun provideModule(
         context: PackageSearchModuleBuilderContext,
         nativeModule: NativeModule,
-    ): Flow<PackageSearchModuleData?> = flow {
-        val mavenProject = context.project.findMavenProjectFor(nativeModule) ?: return@flow
-        emit(nativeModule.toPackageSearch(context, mavenProject))
-        getModuleChangesFlow(context, mavenProject.file.path)
-            .collect { emit(nativeModule.toPackageSearch(context, mavenProject)) }
-    }
+    ): Flow<PackageSearchModuleData?> = nativeModule.project
+        .smartModeFlow
+        .flatMapLatest {
+            when (val mavenProject = context.project.findMavenProjectFor(nativeModule)) {
+                null -> emptyFlow()
+                else -> getModuleChangesFlow(context, mavenProject.file.path.toNioPath())
+                    .map { nativeModule.toPackageSearch(context, mavenProject) }
+            }
+        }
         .map {
             PackageSearchModuleData(
                 module = it,

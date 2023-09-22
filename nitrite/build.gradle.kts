@@ -3,7 +3,6 @@
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.dokka)
-    id(packageSearchCatalog.plugins.idea.gradle.plugin)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     `build-config`
     `maven-publish`
@@ -12,13 +11,14 @@ plugins {
 packagesearch {
     publication {
         isEnabled = true
-        artifactId = "packagesearch-plugin-core"
+        artifactId = "packagesearch-nitrite"
     }
 }
 
 dependencies {
-    api(projects.nitrite)
-    api(packageSearchCatalog.packagesearch.api.client)
+    api(packageSearchCatalog.kotlinx.serialization.json)
+    api(packageSearchCatalog.kotlinx.coroutines.core)
+    api(packageSearchCatalog.kotlinx.datetime)
     api(packageSearchCatalog.nitrite) {
         exclude(group = "com.fasterxml.jackson.core")
         exclude(group = "com.squareup.okhttp3")
@@ -28,6 +28,16 @@ dependencies {
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
     testImplementation(packageSearchCatalog.kotlinx.coroutines.test)
     testImplementation(kotlin("test-junit5"))
+}
+
+kotlin {
+    sourceSets {
+        all {
+            languageSettings {
+                optIn("com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.InternalAPI")
+            }
+        }
+    }
 }
 
 tasks {

@@ -7,13 +7,13 @@ import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBui
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleProvider
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
+import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.getGradleModelRepository
 import com.jetbrains.packagesearch.plugin.gradle.utils.getModuleChangesFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleIdentityPathOrNull
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleModel
 import com.jetbrains.packagesearch.plugin.gradle.utils.gradleSyncNotifierFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
-import com.jetbrains.packagesearch.plugin.gradle.utils.smartModeFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.filter
@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.transformLatest
 import com.intellij.openapi.module.Module as NativeModule
 
