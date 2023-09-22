@@ -54,7 +54,7 @@ abstract class PackageSearchInspection : LocalInspectionTool() {
         isOnTheFly: Boolean
     ): Array<ProblemDescriptor> {
         val moduleData = file.project.PackageSearchProjectService
-            .moduleDataByBuildFile.value[file.virtualFile.path.toNioPath().absolutePathString()] ?: return emptyArray()
+            .moduleDataByBuildFile.value[file.virtualFile.path.toNioPath()] ?: return emptyArray()
 
         val problemsHolder = ProblemsHolder(manager, file, isOnTheFly)
 
