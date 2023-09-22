@@ -67,7 +67,7 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         get() = getRepository<ApiRepositoryCacheEntry>("repositories")
 
     val apiClientTypeStateFlow = IntelliJApplication
-        .registryFlow("org.jetbrains.packagesearch.sonatype")
+        .registryFlow("packagesearch.sonatype.api.client")
         .map { if (it) PackageSearchApiClientType.Sonatype(sonatypeCacheRepository) else PackageSearchApiClientType.Dev }
         .stateIn(coroutineScope, SharingStarted.Eagerly, PackageSearchApiClientType.Sonatype(sonatypeCacheRepository))
 

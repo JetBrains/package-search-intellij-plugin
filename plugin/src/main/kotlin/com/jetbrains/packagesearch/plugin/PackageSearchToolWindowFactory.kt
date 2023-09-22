@@ -11,6 +11,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -18,6 +19,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.util.asSafely
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
@@ -30,6 +32,10 @@ import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.jetbrains.jewel.bridge.SwingBridgeTheme
 import org.jetbrains.jewel.bridge.addComposeTab
 
@@ -63,9 +69,24 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
 
             override fun getActionUpdateThread() = ActionUpdateThread.BGT
         }
-        toolWindow.asSafely<ToolWindowEx>()
-            ?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
-        toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
+
+        IntelliJApplication
+            .registryFlow("packagesearch.package.details")
+            .onEach {
+                if (it) {
+                    toolWindow.asSafely<ToolWindowEx>()
+                        ?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
+                    toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
+                } else {
+                    isInfoBoxOpen.value = false
+                    toolWindow.asSafely<ToolWindowEx>()
+                        ?.setAdditionalGearActions(DefaultActionGroup(toggleOnlyStableAction))
+                    toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(emptyList())
+                }
+            }
+            .flowOn(Dispatchers.EDT)
+            .launchIn(project.PackageSearchProjectService.coroutineScope)
+
         toolWindow.addComposeTab(PackageSearchBundle.message("packagesearch.title.tab")) {
             val apiClient: PackageSearchApiPackageCache by IntelliJApplication.PackageSearchApplicationCachesService
                 .apiPackageCache

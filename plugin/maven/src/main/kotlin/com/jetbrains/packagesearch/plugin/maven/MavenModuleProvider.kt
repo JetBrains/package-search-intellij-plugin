@@ -64,7 +64,7 @@ class MavenModuleProvider : PackageSearchModuleProvider {
                 .map { it.toNioPath() }
                 .filter { it == pomPath }
                 .mapUnit(),
-            IntelliJApplication.registryFlow("org.jetbrains.packagesearch.sonatype").mapUnit()
+            IntelliJApplication.registryFlow("packagesearch.sonatype.api.client").mapUnit()
         )
 
         val xml = XML {
@@ -145,7 +145,7 @@ class MavenModuleProvider : PackageSearchModuleProvider {
                 .map { it.packageId }
                 .distinct()
 
-            val isSonatype = Registry.`is`("org.jetbrains.packagesearch.sonatype")
+            val isSonatype = Registry.`is`("packagesearch.sonatype.api.client")
 
             val remoteInfo =
                 if (isSonatype) {

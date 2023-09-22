@@ -32,7 +32,11 @@ Supports Maven and Gradle projects.
                     factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
         <registryKey defaultValue="true"
                      description="Uses Sonatype APIS instead of package Search APIs"
-                     key="org.jetbrains.packagesearch.sonatype"
+                     key="packagesearch.sonatype.api.client"
+                     restartRequired="false"/>
+        <registryKey defaultValue="false"
+                     description="Allow to open package details in the package Search tool window"
+                     key="packagesearch.package.details"
                      restartRequired="false"/>
         <registryKey id="packagesearch.plugin.debug.logging"
                      key="packagesearch.plugin.debug.logging"

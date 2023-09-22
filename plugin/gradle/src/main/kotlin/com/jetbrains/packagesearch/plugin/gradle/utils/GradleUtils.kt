@@ -91,7 +91,7 @@ fun getModuleChangesFlow(
     return merge(
         watchExternalFileChanges(globalGradlePropertiesPath),
         buildFileChanges,
-        IntelliJApplication.registryFlow("org.jetbrains.packagesearch.sonatype").mapUnit(),
+        IntelliJApplication.registryFlow("packagesearch.sonatype.api.client").mapUnit(),
     )
 }
 
@@ -120,7 +120,7 @@ suspend fun Module.getDeclaredDependencies(
         .map { it.packageId }
         .distinct()
 
-    val isSonatype = Registry.`is`("org.jetbrains.packagesearch.sonatype")
+    val isSonatype = Registry.`is`("packagesearch.sonatype.api.client")
 
     val remoteInfo =
         if (!isSonatype) {

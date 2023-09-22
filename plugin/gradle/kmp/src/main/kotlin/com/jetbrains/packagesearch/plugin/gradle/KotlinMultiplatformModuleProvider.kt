@@ -100,7 +100,7 @@ class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
             .distinct()
             .map { it.packageId }
 
-        val isSonatype = Registry.`is`("org.jetbrains.packagesearch.sonatype")
+        val isSonatype = Registry.`is`("packagesearch.sonatype.api.client")
         val dependencyInfo = if (!isSonatype) {
             context.getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
         } else {
