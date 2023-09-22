@@ -99,7 +99,7 @@ tasks {
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
             ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
-        channels = listOf("INTERNAL-EAP")
+        channels = listOf("Release")
     }
 
 }
