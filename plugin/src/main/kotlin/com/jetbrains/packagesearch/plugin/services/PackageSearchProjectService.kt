@@ -27,13 +27,13 @@ import com.jetbrains.packagesearch.plugin.utils.startWithNull
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineLatest
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
@@ -45,8 +45,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import org.apache.tools.ant.taskdefs.Execute.launch
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 @Service(Level.PROJECT)
@@ -74,6 +72,16 @@ class PackageSearchProjectService(
     override val knownRepositories: Map<String, ApiRepository>
         get() = knownRepositoriesStateFlow.value
 
+    private val arePackagesBeingDownloaded = Channel<Boolean>(onBufferOverflow = DROP_OLDEST)
+
+    private val isLoadingFlow
+        get() = combine(
+            arePackagesBeingDownloaded.consumeAsFlow(),
+            project.smartModeFlow
+        ) { arePackagesBeingDownloaded, isSmartMode ->
+            arePackagesBeingDownloaded || isSmartMode
+        }
+
     private val contextFlow = combine(
         knownRepositoriesStateFlow,
         IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache
@@ -85,6 +93,7 @@ class PackageSearchProjectService(
             coroutineScope = coroutineScope,
             projectCaches = project.PackageSearchProjectCachesService.cache,
             applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache,
+            isLoadingChannel = arePackagesBeingDownloaded,
         )
     }.shareIn(coroutineScope, SharingStarted.Eagerly)
 
@@ -101,24 +110,22 @@ class PackageSearchProjectService(
             }
         }
 
+
+
     val moduleData =
         restartChannel.consumeAsFlow()
             .withInitialValue(Unit)
             .flatMapLatest { moduleProvidersList }
             .onEach { Observation.awaitConfigurationPredicates(project) }
             .flatMapLatest { combine(it) { it.filterNotNull() } }
-            .combine(project.smartModeFlow) { module, isSmartMode ->
+            .combine(isLoadingFlow) { module, isLoading ->
                 when {
-                    isSmartMode -> when {
-                        module.isEmpty() -> ModulesState.NoModules
-                        else -> ModulesState.Ready(module)
-                    }
-
                     module.isNotEmpty() -> ModulesState.Ready(module)
+                    !isLoading -> ModulesState.NoModules
                     else -> ModulesState.Loading
                 }
             }
-            .debounce(2.seconds)
+            .debounce(1.seconds)
             .stateIn(coroutineScope, SharingStarted.Eagerly, ModulesState.Loading)
 
     internal val moduleDataByBuildFile = moduleData

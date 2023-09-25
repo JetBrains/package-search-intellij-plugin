@@ -23,7 +23,8 @@ packagesearch {
         "org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi",
         "org.jetbrains.jewel.ExperimentalJewelApi",
         "androidx.compose.foundation.ExperimentalFoundationApi",
-        "kotlin.io.encoding.ExperimentalEncodingApi"
+        "kotlin.io.encoding.ExperimentalEncodingApi",
+        "kotlin.ExperimentalStdlibApi"
     )
     isRunIdeEnabled = true
 }
@@ -73,7 +74,9 @@ tasks {
     patchPluginXml {
         sinceBuild = "233.0"
         untilBuild = "233.*"
-        version = System.getenv("PLUGIN_VERSION") ?: project.version.toString()
+        version = System.getenv("JB_SPACE_EXECUTION_NUMBER")
+            ?.let { "1.0.$it" }
+            ?: project.version.toString()
     }
 
     prepareSandbox {

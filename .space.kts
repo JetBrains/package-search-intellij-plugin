@@ -24,13 +24,9 @@ job("Publish jar snapshots") {
 }
 
 job("Publish plugin") {
-    parameters {
-        text("version")
-    }
     startOn { }
     host("Run Gradle") {
 
-        env["PLUGIN_VERSION"] = "{{ version }}"
         env["IS_SNAPSHOT"] = "true"
         env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"
         env["MAVEN_SPACE_PASSWORD"] = "{{ project:jetbrains_team_registry_key }}"

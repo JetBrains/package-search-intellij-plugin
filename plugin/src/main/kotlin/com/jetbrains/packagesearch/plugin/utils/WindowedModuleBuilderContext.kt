@@ -24,9 +24,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchApiPackagesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineNitrite
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.Runnable
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 
 class WindowedModuleBuilderContext(
@@ -36,6 +41,7 @@ class WindowedModuleBuilderContext(
     override val coroutineScope: CoroutineScope,
     override val projectCaches: CoroutineNitrite,
     override val applicationCaches: CoroutineNitrite,
+    private val isLoadingChannel: Channel<Boolean>,
 ) : PackageSearchModuleBuilderContext {
 
     private val idRequestsChannel = Channel<Request>()
@@ -68,15 +74,27 @@ class WindowedModuleBuilderContext(
         }
         .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
 
+    private var executions = 0
+    private var execMutex = Mutex()
+
     private suspend fun Flow<Response>.awaitResponse(
         packageIds: Set<String>,
         requestChannel: Channel<Request>,
     ): Map<String, ApiPackage> = coroutineScope {
+        execMutex.withLock {
+            executions++
+            isLoadingChannel.send(true)
+        }
         val id = UUID.randomUUID().toString()
         val res = async(start = CoroutineStart.UNDISPATCHED) {
-            filter { id in it.ids }
+            val res = filter { id in it.ids }
                 .map { it.packages }
                 .first()
+            execMutex.withLock {
+                executions--
+                isLoadingChannel.send(executions > 0)
+            }
+            res
         }
         requestChannel.send(Request(id, packageIds))
         res.await()
