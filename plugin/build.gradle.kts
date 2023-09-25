@@ -75,7 +75,7 @@ tasks {
         sinceBuild = "233.0"
         untilBuild = "233.*"
         version = System.getenv("JB_SPACE_EXECUTION_NUMBER")
-            ?.let { "1.0.$it" }
+            ?.let { "300.0.$it" }
             ?: project.version.toString()
     }
 
