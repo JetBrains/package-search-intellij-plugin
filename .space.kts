@@ -49,8 +49,9 @@ job("Publish plugin") {
         }
 
         kotlinScript { api ->
-            val link = File("build-scan-url.txt")
-                .takeIf { it.exists() }
+            val link = File(".").walkTopDown()
+                .maxDepth(2)
+                .find { it.name == "build-scan-url.txt" }
                 ?.readLines()
                 ?.first()
             if (link != null) {
