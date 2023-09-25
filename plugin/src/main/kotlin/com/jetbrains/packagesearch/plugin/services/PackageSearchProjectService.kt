@@ -3,6 +3,7 @@
 package com.jetbrains.packagesearch.plugin.services
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.ide.observation.Observation
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
@@ -27,6 +28,7 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +45,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import org.apache.tools.ant.taskdefs.Execute.launch
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 @Service(Level.PROJECT)
@@ -101,6 +105,7 @@ class PackageSearchProjectService(
         restartChannel.consumeAsFlow()
             .withInitialValue(Unit)
             .flatMapLatest { moduleProvidersList }
+            .onEach { Observation.awaitConfigurationPredicates(project) }
             .flatMapLatest { combine(it) { it.filterNotNull() } }
             .combine(project.smartModeFlow) { module, isSmartMode ->
                 when {
@@ -110,10 +115,7 @@ class PackageSearchProjectService(
                     }
 
                     module.isNotEmpty() -> ModulesState.Ready(module)
-                    else -> {
-                        delay(15.seconds)
-                        ModulesState.Loading
-                    }
+                    else -> ModulesState.Loading
                 }
             }
             .debounce(2.seconds)
@@ -155,6 +157,10 @@ class PackageSearchProjectService(
             }
             .launchIn(coroutineScope)
     }
+}
+
+inline fun <T> Iterable<T>.withEach(function: T.() -> Unit) = map {
+    it.apply(function)
 }
 
 sealed interface ModulesState {

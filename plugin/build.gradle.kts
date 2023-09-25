@@ -71,7 +71,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild = "232"
+        sinceBuild = "233.0"
         untilBuild = "233.*"
         version = System.getenv("PLUGIN_VERSION") ?: project.version.toString()
     }
@@ -99,7 +99,7 @@ tasks {
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
             ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
-        channels = listOf("Stable")
+        channels = listOf("INTERNAL-EAP")
     }
 
 }
