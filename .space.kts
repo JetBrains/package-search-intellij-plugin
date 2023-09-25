@@ -53,12 +53,18 @@ job("Publish plugin") {
         }
 
         kotlinScript { api ->
-            api.space().projects.automation.deployments.update(
-                project = api.projectIdentifier(),
-                targetIdentifier = TargetIdentifier.Key("pkgs-plugin-deploy"),
-                deploymentIdentifier = DeploymentIdentifier.Version(api.parameters["version"]!!),
-                externalLink = ExternalLink("Build scan", File("build-scan-url.txt").readLines().first())
-            )
+            val link = File("build-scan-url.txt")
+                .takeIf { it.exists() }
+                ?.readLines()
+                ?.first()
+            if (link != null) {
+                api.space().projects.automation.deployments.update(
+                    project = api.projectIdentifier(),
+                    targetIdentifier = TargetIdentifier.Key("pkgs-plugin-deploy"),
+                    deploymentIdentifier = DeploymentIdentifier.Version(api.parameters["version"]!!),
+                    externalLink = ExternalLink("Build scan", link)
+                )
+            }
         }
     }
 
