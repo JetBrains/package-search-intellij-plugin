@@ -38,7 +38,7 @@ job("Publish plugin") {
             api.space().projects.automation.deployments.start(
                 project = api.projectIdentifier(),
                 targetIdentifier = TargetIdentifier.Key("pkgs-plugin-deploy"),
-                version = api.parameters["version"]!!,
+                version = "1.0.${api.executionNumber()}",
                 // automatically update deployment status based on a status of a job
                 syncWithAutomationJob = true
             )
@@ -57,7 +57,7 @@ job("Publish plugin") {
                 api.space().projects.automation.deployments.update(
                     project = api.projectIdentifier(),
                     targetIdentifier = TargetIdentifier.Key("pkgs-plugin-deploy"),
-                    deploymentIdentifier = DeploymentIdentifier.Version(api.parameters["version"]!!),
+                    deploymentIdentifier = DeploymentIdentifier.Version("1.0.${api.executionNumber()}"),
                     externalLink = ExternalLink("Build scan", link)
                 )
             }
