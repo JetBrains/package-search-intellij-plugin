@@ -4,7 +4,6 @@ package com.jetbrains.packagesearch.plugin.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import com.intellij.ProjectTopics
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
@@ -12,15 +11,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.Function
 import com.jetbrains.packagesearch.plugin.core.utils.FlowWithInitialValue
 import com.jetbrains.packagesearch.plugin.core.utils.flow
+import com.jetbrains.packagesearch.plugin.core.utils.withInitialValue
 import io.ktor.client.plugins.logging.Logger
 import kotlin.time.Duration
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.SerializersModuleBuilder
@@ -30,13 +27,8 @@ import kotlinx.serialization.modules.polymorphic
 internal val Project.nativeModules
     get() = ModuleManager.getInstance(this).modules.toList()
 
-internal fun Project.getNativeModulesStateFlow(
-    coroutineScope: CoroutineScope,
-    sharingStarted: SharingStarted = SharingStarted.WhileSubscribed(),
-) = nativeModulesFlow.stateIn(coroutineScope, sharingStarted, nativeModules)
-
 internal val Project.nativeModulesFlow: Flow<NativeModules>
-    get() = messageBus.flow(ProjectTopics.MODULES) {
+    get() = messageBus.flow(ModuleListener.TOPIC) {
         object : ModuleListener {
             override fun modulesAdded(project: Project, modules: NativeModules) {
                 trySend(nativeModules)
@@ -54,7 +46,7 @@ internal val Project.nativeModulesFlow: Flow<NativeModules>
                 trySend(nativeModules)
             }
         }
-    }
+    }.withInitialValue(nativeModules)
 
 fun interval(
     interval: Duration,

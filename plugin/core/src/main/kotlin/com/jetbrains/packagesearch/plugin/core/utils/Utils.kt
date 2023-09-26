@@ -107,9 +107,7 @@ val DeclaredDependency.packageId: String
 
 fun <T : Any> ExtensionPointName<T>.extensionsFlow(
     areaInstance: AreaInstance? = null,
-    initial: Boolean = true,
 ) = channelFlow {
-    if (initial) send(extensionList)
     val listener = ExtensionPointListener<T> { _, _, _ ->
         trySend(extensionList)
     }
@@ -119,7 +117,7 @@ fun <T : Any> ExtensionPointName<T>.extensionsFlow(
         addExtensionPointListener(listener)
     }
     awaitClose { removeExtensionPointListener(listener) }
-}
+}.withInitialValue(extensionList)
 
 fun <T> ExtensionPointListener(onChange: (T, PluginDescriptor, Boolean) -> Unit) =
     object : ExtensionPointListener<T> {

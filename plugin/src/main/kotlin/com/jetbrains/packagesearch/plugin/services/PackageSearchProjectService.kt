@@ -21,8 +21,8 @@ import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.core.utils.withInitialValue
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.utils.getNativeModulesStateFlow
 import com.jetbrains.packagesearch.plugin.utils.interval
+import com.jetbrains.packagesearch.plugin.utils.nativeModulesFlow
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
@@ -33,15 +33,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combineLatest
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -77,29 +78,30 @@ class PackageSearchProjectService(
     private val isLoadingFlow
         get() = combine(
             arePackagesBeingDownloaded.consumeAsFlow(),
-            project.smartModeFlow
+            project.smartModeFlow,
         ) { arePackagesBeingDownloaded, isSmartMode ->
             arePackagesBeingDownloaded || isSmartMode
         }
 
-    private val contextFlow = combine(
-        knownRepositoriesStateFlow,
-        IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache
-    ) { repositories, client ->
-        WindowedModuleBuilderContext(
-            project = project,
-            knownRepositories = repositories,
-            packagesCache = client,
-            coroutineScope = coroutineScope,
-            projectCaches = project.PackageSearchProjectCachesService.cache,
-            applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache,
-            isLoadingChannel = arePackagesBeingDownloaded,
-        )
-    }.shareIn(coroutineScope, SharingStarted.Eagerly)
+    private val contextFlow
+        get() = combine(
+            knownRepositoriesStateFlow,
+            IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache
+        ) { repositories, client ->
+            WindowedModuleBuilderContext(
+                project = project,
+                knownRepositories = repositories,
+                packagesCache = client,
+                coroutineScope = coroutineScope,
+                projectCaches = project.PackageSearchProjectCachesService.cache,
+                applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache,
+                isLoadingChannel = arePackagesBeingDownloaded,
+            )
+        }
 
     private val moduleProvidersList
         get() = combine(
-            project.getNativeModulesStateFlow(coroutineScope),
+            project.nativeModulesFlow,
             PackageSearchModuleBaseTransformerUtils.extensionsFlow,
             contextFlow
         ) { nativeModules, transformerExtensions, context ->
@@ -110,14 +112,16 @@ class PackageSearchProjectService(
             }
         }
 
+    private val restartFlow = restartChannel.consumeAsFlow()
+        .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
 
-
-    val moduleData =
-        restartChannel.consumeAsFlow()
+    private val moduleDataFlow
+        get() = restartFlow
             .withInitialValue(Unit)
             .flatMapLatest { moduleProvidersList }
             .onEach { Observation.awaitConfigurationPredicates(project) }
             .flatMapLatest { combine(it) { it.filterNotNull() } }
+            .distinctUntilChanged()
             .combine(isLoadingFlow) { module, isLoading ->
                 when {
                     module.isNotEmpty() -> ModulesState.Ready(module)
@@ -126,7 +130,11 @@ class PackageSearchProjectService(
                 }
             }
             .debounce(1.seconds)
-            .stateIn(coroutineScope, SharingStarted.Eagerly, ModulesState.Loading)
+
+    val moduleData = merge(
+        moduleDataFlow,
+        restartFlow.map { ModulesState.Loading }
+    ).stateIn(coroutineScope, SharingStarted.Eagerly, ModulesState.Loading)
 
     internal val moduleDataByBuildFile = moduleData
         .filterIsInstance<ModulesState.Ready>()
@@ -164,10 +172,6 @@ class PackageSearchProjectService(
             }
             .launchIn(coroutineScope)
     }
-}
-
-inline fun <T> Iterable<T>.withEach(function: T.() -> Unit) = map {
-    it.apply(function)
 }
 
 sealed interface ModulesState {
