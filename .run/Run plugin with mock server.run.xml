@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run plugin with mock server" type="CompoundRunConfigurationType">
-    <toRun name="[MOCK] Package Search Plugin" type="GradleRunConfiguration" />
-    <toRun name="Mock Api Server" type="JetRunConfigurationType" />
-    <method v="2" />
-  </configuration>
-</component>
