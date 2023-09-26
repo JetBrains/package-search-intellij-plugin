@@ -75,7 +75,7 @@ class SonatypeApiClient(
     private fun getPackageInfoUrl(groupId: String, artifactId: String, rows: Int = 5) =
         "https://search.maven.org/solrsearch/select?q=g:$groupId+AND+a:$artifactId&core=gav&rows=$rows&wt=json"
 
-    suspend fun searchPackages(query: String, packagesCount: Int = 5): MavenCentralApiResponse =
+    suspend fun searchPackages(query: String, packagesCount: Int = 25): MavenCentralApiResponse =
         httpClient.get(getSearchUrl(query, packagesCount)).body()
 
     suspend fun getPackageInfo(groupId: String, artifactId: String, versionCount: Int = 5): MavenCentralApiResponse =
@@ -88,7 +88,7 @@ class SonatypeApiClient(
 
     suspend fun searchApiMavenPackages(
         query: String,
-        packagesCount: Int = 5,
+        packagesCount: Int = 25,
         versionCount: Int = 5,
         onTransformError: suspend FlowCollector<ApiMavenPackage>.(cause: Throwable) -> Unit = {},
     ): List<ApiMavenPackage> = searchPackages(query, packagesCount)
