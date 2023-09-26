@@ -4,15 +4,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.ResourceLoader
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import org.jetbrains.jewel.foundation.tree.Tree
-import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
-import org.jetbrains.jewel.foundation.tree.buildTree
 import java.awt.Desktop
 import java.io.InputStream
 import java.net.URI
 import java.util.jar.JarFile
 import javax.swing.UIDefaults
 import javax.swing.UIManager
+import org.jetbrains.jewel.foundation.tree.Tree
+import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
+import org.jetbrains.jewel.foundation.tree.buildTree
 
 fun java.awt.Color.toComposeColor(): Color {
     return Color(red, green, blue, alpha)
@@ -43,13 +43,20 @@ fun List<PackageSearchModuleData>.asTree(): PackageSearchTreeData {
                 val sortedItems = it.sortedBy { it.module.identity.path }
                 val roots = sortedItems.filter { it.module.identity.path == ":" }.toSet()
                 nodesIds.addAll(roots.map { it.module.identity })
-                roots.forEach { addNodes(nodesIds, sortedItems - roots, it, true) }
+                roots.forEach { packageSearchModuleData ->
+                    addElements(
+                        nodesIds = nodesIds,
+                        sortedItems = sortedItems - roots,
+                        currentData = packageSearchModuleData,
+                        isRoot = true
+                    )
+                }
             }
     }
     return PackageSearchTreeData(tree, nodesIds.toSet())
 }
 
-fun TreeGeneratorScope<PackageSearchModuleData>.addNodes(
+fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
     nodesIds: MutableSet<PackageSearchModule.Identity>,
     sortedItems: List<PackageSearchModuleData>,
     currentData: PackageSearchModuleData,
@@ -65,10 +72,17 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addNodes(
                 isNotEmpty() && !contains(":")
             }
         }
+        .toSet()
     if (children.isNotEmpty()) {
         nodesIds.add(currentData.module.identity)
         addNode(currentData, id = currentData.module.identity) {
-            children.forEach { addNodes(nodesIds,sortedItems - children, it) }
+            children.forEach {
+                addElements(
+                    nodesIds = nodesIds,
+                    sortedItems = sortedItems - children,
+                    currentData = it
+                )
+            }
         }
     } else {
         addLeaf(currentData, id = currentData.module.identity)

@@ -26,7 +26,7 @@ import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleDat
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
-import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
+import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Dropdown
 import org.jetbrains.jewel.ExternalLink

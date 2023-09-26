@@ -25,11 +25,11 @@ import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
-import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
-import com.jetbrains.packagesearch.plugin.ui.models.PackageSearchPackageListItem.Header
-import com.jetbrains.packagesearch.plugin.ui.models.PackageSearchPackageListItem.Package
-import com.jetbrains.packagesearch.plugin.ui.models.buildPackageSearchPackageItemList
+import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
+import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
+import com.jetbrains.packagesearch.plugin.ui.model.PackageSearchPackageListItem.Header
+import com.jetbrains.packagesearch.plugin.ui.model.PackageSearchPackageListItem.Package
+import com.jetbrains.packagesearch.plugin.ui.model.buildPackageSearchPackageItemList
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageGroupHeader
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageRow
 import java.awt.Cursor

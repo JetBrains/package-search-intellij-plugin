@@ -9,8 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.intellij.ui.JBColor
-import com.jetbrains.packagesearch.plugin.ui.models.InfoBoxDetail
-import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
+import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
+import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
 import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.bridge.toComposeColor

@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.models
+package com.jetbrains.packagesearch.plugin.ui.model
 
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule

@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.models
+package com.jetbrains.packagesearch.plugin.ui.model
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable

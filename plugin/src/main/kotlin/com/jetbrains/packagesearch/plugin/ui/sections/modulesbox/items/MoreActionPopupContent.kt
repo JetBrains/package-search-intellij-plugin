@@ -33,7 +33,7 @@ import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import com.jetbrains.packagesearch.plugin.ui.models.PackageGroup
+import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
 import kotlin.io.path.absolutePathString
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers

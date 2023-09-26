@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.models
+package com.jetbrains.packagesearch.plugin.ui.model
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
