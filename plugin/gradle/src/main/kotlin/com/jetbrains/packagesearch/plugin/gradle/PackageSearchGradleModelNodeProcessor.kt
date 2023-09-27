@@ -50,7 +50,7 @@ class PackageSearchGradleModelNodeProcessor :
         }
 
         suspend fun clean() {
-            gradleModelRepository.remove(NitriteFilters.Object.ALL)
+            gradleModelRepository.removeAll()
         }
 
         fun update(items: List<GradleModelCacheEntry>) {

@@ -180,7 +180,8 @@ fun NoResultsToShow() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        LabelInfo(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.empty.noSupportedDependencyFound"))
+        LabelInfo(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.empty.noSupportedDependencyFound.l1"))
+        LabelInfo(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.empty.noSupportedDependencyFound.l2"))
         LearnMoreLink()
     }
 }

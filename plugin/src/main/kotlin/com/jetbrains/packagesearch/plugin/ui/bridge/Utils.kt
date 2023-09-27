@@ -34,18 +34,15 @@ data class PackageSearchTreeData(
     val nodesIds: Set<PackageSearchModule.Identity>,
 )
 
-fun List<PackageSearchModuleData>.asTree(): PackageSearchTreeData {
-    val nodesIds = mutableSetOf<PackageSearchModule.Identity>()
+fun List<PackageSearchModuleData>.asTree(): Tree<PackageSearchModuleData> {
     val tree= buildTree {
         groupBy { it.module.identity.group }
             .values
             .forEach {
                 val sortedItems = it.sortedBy { it.module.identity.path }
                 val roots = sortedItems.filter { it.module.identity.path == ":" }.toSet()
-                nodesIds.addAll(roots.map { it.module.identity })
                 roots.forEach { packageSearchModuleData ->
                     addElements(
-                        nodesIds = nodesIds,
                         sortedItems = sortedItems - roots,
                         currentData = packageSearchModuleData,
                         isRoot = true
@@ -53,11 +50,10 @@ fun List<PackageSearchModuleData>.asTree(): PackageSearchTreeData {
                 }
             }
     }
-    return PackageSearchTreeData(tree, nodesIds.toSet())
+    return tree
 }
 
 fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
-    nodesIds: MutableSet<PackageSearchModule.Identity>,
     sortedItems: List<PackageSearchModuleData>,
     currentData: PackageSearchModuleData,
     isRoot: Boolean = false,
@@ -74,11 +70,9 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
         }
         .toSet()
     if (children.isNotEmpty()) {
-        nodesIds.add(currentData.module.identity)
         addNode(currentData, id = currentData.module.identity) {
             children.forEach {
                 addElements(
-                    nodesIds = nodesIds,
                     sortedItems = sortedItems - children,
                     currentData = it
                 )

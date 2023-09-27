@@ -147,33 +147,36 @@ suspend fun HttpClient.getMavenCentralInfo(
 suspend fun HttpClient.getBuildSystemsMetadata(
     mavenCentralApiResponse: MavenCentralApiResponse,
     pomSolver: PomResolver,
-) = MavenCoordinateWithVersions(
-    mavenCentralApiResponse.response.docs.first().groupId,
-    mavenCentralApiResponse.response.docs.first().artifactId,
-    mavenCentralApiResponse.response.docs
-        .asFlow()
-        .buffer()
-        .mapNotNullScoped { doc ->
-            val version = doc.version ?: return@mapNotNullScoped null
-            val pomJob = async { pomSolver.getPom(doc.groupId, doc.artifactId, version) }
-            val gradleMetadataUrl = GoogleMavenCentralMirror.buildGradleMetadataUrl(
-                groupId = doc.groupId,
-                artifactId = doc.artifactId,
-                version = version
-            )
-            val gradleMetadata = runCatching { get(gradleMetadataUrl).body<GradleMetadata>() }
-                .getOrNull()
-            val pom = pomJob.await() ?: return@mapNotNullScoped null
-            version to MavenCoordinateWithVersions.Metadata(
-                gradleMetadata = gradleMetadata,
-                pom = pom,
-                publicationDate = Instant.fromEpochMilliseconds(doc.timestamp),
-                artifacts = doc.ec.map { "${doc.groupId}-$version-$it" }
-            )
-        }
-        .toList()
-        .toMap()
-)
+): MavenCoordinateWithVersions? {
+    val firstDoc = mavenCentralApiResponse.response.docs.firstOrNull() ?: return null
+    return MavenCoordinateWithVersions(
+        firstDoc.groupId,
+        firstDoc.artifactId,
+        mavenCentralApiResponse.response.docs
+            .asFlow()
+            .buffer()
+            .mapNotNullScoped { doc ->
+                val version = doc.version ?: return@mapNotNullScoped null
+                val pomJob = async { pomSolver.getPom(doc.groupId, doc.artifactId, version) }
+                val gradleMetadataUrl = GoogleMavenCentralMirror.buildGradleMetadataUrl(
+                    groupId = doc.groupId,
+                    artifactId = doc.artifactId,
+                    version = version
+                )
+                val gradleMetadata = runCatching { get(gradleMetadataUrl).body<GradleMetadata>() }
+                    .getOrNull()
+                val pom = pomJob.await() ?: return@mapNotNullScoped null
+                version to MavenCoordinateWithVersions.Metadata(
+                    gradleMetadata = gradleMetadata,
+                    pom = pom,
+                    publicationDate = Instant.fromEpochMilliseconds(doc.timestamp),
+                    artifacts = doc.ec.map { "${doc.groupId}-$version-$it" }
+                )
+            }
+            .toList()
+            .toMap()
+    )
+}
 
 inline fun <T, R : Any> Flow<T>.mapNotNullScoped(
     crossinline transform: suspend CoroutineScope.(value: T) -> R?,

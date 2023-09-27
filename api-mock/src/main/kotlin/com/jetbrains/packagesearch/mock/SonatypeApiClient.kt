@@ -5,6 +5,7 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.cio.CIOEngineConfig
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
 import nl.adaptivity.xmlutil.serialization.XML
@@ -54,10 +56,10 @@ class SonatypeApiClient(
             install(HttpTimeout) {
                 requestTimeout = 10.seconds
             }
-//            install(HttpRequestRetry) {
-//                retryOnExceptionOrServerErrors(maxRetries = 5)
-//                delayMillis { 500 }
-//            }
+            install(HttpRequestRetry) {
+                retryOnExceptionOrServerErrors(maxRetries = 5)
+                delayMillis { 500 }
+            }
             additionalConfig()
         }
 
@@ -81,10 +83,10 @@ class SonatypeApiClient(
     suspend fun getPackageInfo(groupId: String, artifactId: String, versionCount: Int = 5): MavenCentralApiResponse =
         httpClient.get(getPackageInfoUrl(groupId, artifactId, versionCount)).body()
 
-    suspend fun getApiMavenPackage(groupId: String, artifactId: String, versionCount: Int = 5): ApiMavenPackage =
+    suspend fun getApiMavenPackage(groupId: String, artifactId: String, versionCount: Int = 25): ApiMavenPackage? =
         httpClient.get(getPackageInfoUrl(groupId, artifactId, versionCount)).body<MavenCentralApiResponse>()
             .let { httpClient.getBuildSystemsMetadata(it, pomResolver) }
-            .toMavenApiModel()
+            ?.toMavenApiModel()
 
     suspend fun searchApiMavenPackages(
         query: String,
@@ -98,7 +100,7 @@ class SonatypeApiClient(
         .buffer()
         .map { getPackageInfo(it.groupId, it.artifactId, versionCount) }
         .buffer()
-        .map { httpClient.getBuildSystemsMetadata(it, pomResolver) }
+        .mapNotNull { httpClient.getBuildSystemsMetadata(it, pomResolver) }
         .buffer()
         .map { it.toMavenApiModel() }
         .catch(onTransformError)

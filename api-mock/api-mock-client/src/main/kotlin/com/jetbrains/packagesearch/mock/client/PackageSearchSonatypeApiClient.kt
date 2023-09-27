@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -23,7 +24,8 @@ import org.jetbrains.packagesearch.maven.PomResolver
 class PackageSearchSonatypeApiClient(
     xml: XML = SonatypeApiClient.DEFAULT_XML,
     httpClient: HttpClient = SonatypeApiClient.defaultHttpClient(xml),
-    pomResolver: PomResolver = SonatypeApiClient.defaultPomResolver(xml, httpClient)
+    pomResolver: PomResolver = SonatypeApiClient.defaultPomResolver(xml, httpClient),
+    private val onError: suspend (cause: Throwable) -> Unit = {},
 ) : PackageSearchApi, Closeable {
 
     private val sonatypeApiClient = SonatypeApiClient(xml, httpClient, pomResolver)
@@ -38,10 +40,10 @@ class PackageSearchSonatypeApiClient(
             .filter { it.startsWith("maven:") }
             .map { id -> id.split(":") }
             .buffer()
-            .map { (_, groupId, artifactId) ->
+            .mapNotNull { (_, groupId, artifactId) ->
                 sonatypeApiClient.getApiMavenPackage(groupId, artifactId)
             }
-            .catch {  }
+            .catch { onError(it) }
             .toList()
             .associateBy { it.id }
 

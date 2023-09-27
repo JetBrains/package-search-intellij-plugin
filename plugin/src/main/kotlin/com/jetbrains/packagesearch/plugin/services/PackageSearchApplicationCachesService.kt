@@ -10,6 +10,9 @@ import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
+import com.intellij.openapi.externalSystem.ExternalSystemManager
+import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.nitrite.div
@@ -115,9 +118,12 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     override val presentableName: String
         get() = PackageSearchBundle.message("packagesearch.cache.clean")
 
-    override fun perform(recoveryScope: RecoveryScope): CompletableFuture<AsyncRecoveryResult> {
-        return coroutineScope.future(Dispatchers.IO) {
-
+    override fun perform(recoveryScope: RecoveryScope): CompletableFuture<AsyncRecoveryResult> =
+        coroutineScope.future(Dispatchers.IO) {
+            ExternalSystemManager.EP_NAME.extensionList.forEach {
+                val importSpec = ImportSpecBuilder(recoveryScope.project, it.systemId).build()
+                ExternalSystemUtil.refreshProjects(importSpec)
+            }
             runCatching { recoveryScope.project.service<PackageSearchGradleModelNodeProcessor.Cache>().clean() }
             searchesRepository.removeAll()
             packagesRepository.removeAll()
@@ -126,7 +132,6 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
             recoveryScope.project.PackageSearchProjectService.restart()
             AsyncRecoveryResult(recoveryScope, emptyList())
         }
-    }
 }
 
 class CleanPackageSearchApplicationCacheAction :

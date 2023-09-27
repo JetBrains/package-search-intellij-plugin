@@ -5,6 +5,7 @@ import com.jetbrains.packagesearch.mock.client.PackageSearchSonatypeApiClient
 import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
+import com.jetbrains.packagesearch.plugin.utils.logDebug
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
@@ -151,7 +152,8 @@ sealed interface PackageSearchApiClientType {
                 install(HttpCache) {
                     publicStorage(NitriteKtorCache(repository))
                 }
-            }
+            },
+            onError = { logDebug("Error while retrieving packages from Sonatype", it) }
         )
     }
 
