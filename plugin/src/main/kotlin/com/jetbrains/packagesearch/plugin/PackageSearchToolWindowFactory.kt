@@ -3,6 +3,7 @@
 package com.jetbrains.packagesearch.plugin
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
+import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelEnabled
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
@@ -70,9 +72,12 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
             override fun getActionUpdateThread() = ActionUpdateThread.BGT
         }
 
+        val isPackageDetailsEnabled = mutableStateOf(false)
+
         IntelliJApplication
             .registryFlow("packagesearch.package.details")
             .onEach {
+                isPackageDetailsEnabled.value = it
                 if (it) {
                     toolWindow.asSafely<ToolWindowEx>()
                         ?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
@@ -97,6 +102,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
                     LocalPackageSearchApiClient provides apiClient,
                     LocalIsActionPerformingState provides mutableStateOf(ActionState(false)),
+                    LocalInfoBoxPanelEnabled provides (isPackageDetailsEnabled as State<Boolean>),
                     LocalInfoBoxPanelOpenState provides isInfoBoxOpen,
                     LocalIsOnlyStableVersions provides project.PackageSearchProjectService.isStableOnlyVersions,
                     LocalGlobalPopupIdState provides mutableStateOf(null),

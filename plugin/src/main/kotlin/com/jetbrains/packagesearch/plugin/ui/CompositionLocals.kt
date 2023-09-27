@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.ui
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.application.Application
@@ -29,6 +30,9 @@ data class ActionState(val isPerforming: Boolean, val actionId: String? = null)
 
 val LocalIsActionPerformingState: ProvidableCompositionLocal<MutableState<ActionState>> =
     staticCompositionLocalOf { error("No LocalIsActionPerformingState provided") }
+
+val LocalInfoBoxPanelEnabled: ProvidableCompositionLocal<State<Boolean>> =
+    staticCompositionLocalOf { error("No LocalInfoBoxPanelEnabled provided") }
 
 val LocalInfoBoxPanelOpenState: ProvidableCompositionLocal<MutableState<Boolean>> =
     staticCompositionLocalOf { error("No LocalInfoBoxPanelOpenState provided") }

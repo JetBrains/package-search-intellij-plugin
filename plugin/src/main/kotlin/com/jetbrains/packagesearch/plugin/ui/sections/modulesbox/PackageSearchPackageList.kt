@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
+import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelEnabled
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
@@ -48,6 +49,7 @@ fun PackageSearchPackageList(
     isInfoBoxOpen: Boolean,
     onElementClick: (InfoBoxDetail?) -> Unit,
 ) {
+    val isInfoBoxEnabled = LocalInfoBoxPanelEnabled.current.value
     val isStableOnly by LocalIsOnlyStableVersions.current.collectAsState()
     val items = buildPackageSearchPackageItemList {
         packageGroups.forEach { group ->
@@ -131,7 +133,13 @@ fun PackageSearchPackageList(
                                 padding(bottom = 4.dp)
                             }.onClick(
                                 interactionSource = remember { MutableInteractionSource() },
-                                onDoubleClick = { if (!isInfoBoxOpen) infoBoxOpenState = true })
+                                onDoubleClick = {
+                                    if (!isInfoBoxEnabled) {
+                                        infoBoxOpenState = false
+                                    } else if (!isInfoBoxOpen) {
+                                        infoBoxOpenState = true
+                                    }
+                                })
                             { item.infoBoxDetail.let(onElementClick) },
                         isActive = isActive,
                         isSelected = isSelected,
