@@ -23,6 +23,21 @@ job("Publish jar snapshots") {
     }
 }
 
+job("Check IJ snapshot errors") {
+    startOn {
+        schedule {
+            cron("0 8 * * *")
+        }
+    }
+
+    host("build shadow plugin") {
+        env["CI"] = "true"
+        shellScript {
+            content = "./gradlew :plugin:buildShadowPlugin"
+        }
+    }
+}
+
 job("Publish plugin") {
     startOn { }
     host("Run Gradle") {
@@ -64,5 +79,4 @@ job("Publish plugin") {
             }
         }
     }
-
 }

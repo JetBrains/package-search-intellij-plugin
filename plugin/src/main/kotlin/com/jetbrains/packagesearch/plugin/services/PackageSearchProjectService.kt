@@ -119,7 +119,7 @@ class PackageSearchProjectService(
         get() = restartFlow
             .withInitialValue(Unit)
             .flatMapLatest { moduleProvidersList }
-            .onEach { Observation.awaitConfigurationPredicates(project) }
+            .onEach { Observation.awaitConfiguration(project) }
             .flatMapLatest { combine(it) { it.filterNotNull() } }
             .distinctUntilChanged()
             .combine(isLoadingFlow) { module, isLoading ->
