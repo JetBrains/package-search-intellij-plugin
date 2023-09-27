@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,7 @@ import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.getGlobalColorsWithTrasparentFocusOverride
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
@@ -49,6 +51,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.Link
+import org.jetbrains.jewel.LocalGlobalColors
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.bridge.SwingBridgeService
 import org.jetbrains.jewel.bridge.retrieveStatelessIcon
@@ -105,7 +108,13 @@ fun PackageRow(
             Row(
                 modifier.weight(1f).fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
-            ) { editPackageContent() }
+            ) {
+                CompositionLocalProvider(
+                    LocalGlobalColors provides getGlobalColorsWithTrasparentFocusOverride(),
+                ) {
+                    editPackageContent()
+                }
+            }
         }
         Row(
             modifier = Modifier

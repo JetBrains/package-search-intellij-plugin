@@ -70,17 +70,8 @@ fun SearchRow(
             contentDescription = null,
         )
 
-        val colors = LocalGlobalColors.current
-        val transparentFocus = remember(LocalGlobalColors.current) {
-            object : GlobalColors by colors {
-                override val outlines = object : OutlineColors by colors.outlines {
-                    override val focused = Color.Transparent
-                }
-            }
-        }
-
         CompositionLocalProvider(
-            LocalGlobalColors provides transparentFocus,
+            LocalGlobalColors provides getGlobalColorsWithTrasparentFocusOverride(),
         ) {
             TextField(
                 value = searchQuery,
@@ -125,6 +116,18 @@ fun SearchRow(
             )
         }
 
+    }
+}
+
+@Composable
+fun getGlobalColorsWithTrasparentFocusOverride(): GlobalColors {
+    val colors = LocalGlobalColors.current
+    return remember(LocalGlobalColors.current) {
+        object : GlobalColors by colors {
+            override val outlines = object : OutlineColors by colors.outlines {
+                override val focused = Color.Transparent
+            }
+        }
     }
 }
 
