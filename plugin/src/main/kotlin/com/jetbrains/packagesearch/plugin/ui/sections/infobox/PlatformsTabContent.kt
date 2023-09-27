@@ -15,23 +15,23 @@ import org.jetbrains.jewel.Text
 @Composable
 fun PlatformsTabContent() {
     Column(verticalArrangement = Arrangement.spacedBy(SpacingMainElements())) {
-        Column(verticalArrangement = Arrangement.spacedBy(SpacingInnerElements())) {
-            Text(
-                text = "test",
-                fontWeight = FontWeight.Bold,
-                fontSize = LocalTextStyle.current.fontSize * TextHeaderMultiplier,
-            )
-            listOf("apple", "android").forEach { platform ->
-                Chip() {
-                    Text(text = platform)
-                }
-            }
-        }
-        Text(
-            "Plaforms:",
-            fontWeight = FontWeight.Bold,
-            fontSize = LocalTextStyle.current.fontSize * TextSubHeaderMultiplier,
-        )
+//        Column(verticalArrangement = Arrangement.spacedBy(SpacingInnerElements())) {
+//            Text(
+//                text = "test",
+//                fontWeight = FontWeight.Bold,
+//                fontSize = LocalTextStyle.current.fontSize * TextHeaderMultiplier,
+//            )
+//            listOf("apple", "android").forEach { platform ->
+//                Chip() {
+//                    Text(text = platform)
+//                }
+//            }
+//        }
+//        Text(
+//            "Plaforms:",
+//            fontWeight = FontWeight.Bold,
+//            fontSize = LocalTextStyle.current.fontSize * TextSubHeaderMultiplier,
+//        )
         // list platforms details
     }
 }

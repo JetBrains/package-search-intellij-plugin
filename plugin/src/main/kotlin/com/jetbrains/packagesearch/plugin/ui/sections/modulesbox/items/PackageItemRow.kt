@@ -211,7 +211,7 @@ fun PackageActionLink(
         else -> Link(
             resourceLoader = LocalResourceLoader.current,
             enabled = !isActionPerforming.value.isPerforming,
-            text = text, // TODO localize
+            text = text,
             onClick = {
                 val id = UUID.random().text
                 isActionPerforming.value = ActionState(true, id)

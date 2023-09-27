@@ -26,6 +26,7 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import java.awt.Cursor
 import org.jetbrains.jewel.GlobalColors
 import org.jetbrains.jewel.Icon
@@ -81,7 +82,7 @@ fun SearchRow(
                 style = LocalTextFieldStyle.current,
                 placeholder = {
                     Text(
-                        text = "Search",
+                        text = PackageSearchBundle.message("packagesearch.search.search"),
                         modifier = Modifier.padding(start = 4.dp),
                     )
                 },
@@ -90,8 +91,9 @@ fun SearchRow(
                         var isHovered by remember { mutableStateOf(false) }
                         Row {
                             searchResultsCount.let {
+                                val textResource= if(it==1) "packagesearch.search.result" else "packagesearch.search.results"
                                 Text(
-                                    text = "$it ${if (it == 1) "result" else "results"}",
+                                    text = "$it ${PackageSearchBundle.message(textResource)}",
                                     modifier = Modifier.padding(end = 4.dp),
                                 )
                             }

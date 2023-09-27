@@ -26,6 +26,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.ActionState
@@ -97,7 +98,7 @@ internal fun DeclaredPackageMoreActionPopup(
                 IntUiTheme.iconData
             ).getPainter(LocalResourceLoader.current)
             Icon(removeIcon, contentDescription = null)
-            Text(text = "Remove")
+            Text(text = PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.remove.text"))
         }
         group.module.buildFilePath?.let {
             Divider(color = borderColor)

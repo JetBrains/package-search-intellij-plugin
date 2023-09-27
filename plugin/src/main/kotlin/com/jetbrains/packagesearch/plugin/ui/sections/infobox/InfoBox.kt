@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.latestStableOrNull
@@ -54,7 +55,7 @@ fun PackageSearchInfoBox(
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                LabelInfo("No item selected.\nSelect a row to view details.")
+                LabelInfo(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.noItemSelected"))
             }
         } else {
             TabStrip(
@@ -154,7 +155,10 @@ fun PackageOverviewInfo(
         // versions
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = "Version:")
+                LabelInfo(
+                    modifier = Modifier.defaultMinSize(90.dp),
+                    text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.version")
+                )
                 val latestVersion = selectedPackage.latestStableOrNull?.normalized
                 latestVersion?.versionName?.let {
                     selectedVersion = latestVersion
@@ -179,7 +183,7 @@ fun PackageOverviewInfo(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = "Configuration:")
+                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = PackageSearchBundle.message("packagesearch.terminology.dependency.configuration"))
                 Dropdown(
                     resourceLoader = LocalResourceLoader.current,
                     menuContent = {
@@ -192,20 +196,20 @@ fun PackageOverviewInfo(
                         }
                     },
                 ) {
-                    Text(selectedScope ?: "Default")
+                    Text(selectedScope ?: PackageSearchBundle.message("packagesearch.ui.missingScope"))
                 }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = "Source set:")
+                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.columns.sourceSet"))
                 Text("TODO")
             }
             Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = "Type:")
+                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.columns.type"))
                 Text("TODO")
             }
             Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = "Repositories:")
+                LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.repo"))
                 Text("TODO")
             }
 
@@ -215,7 +219,7 @@ fun PackageOverviewInfo(
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = "Authors:")
+                        LabelInfo(modifier = Modifier.defaultMinSize(90.dp), text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.authors"))
                         Text(it.map { it.name }.joinToString(", "))
                     }
                 }
@@ -231,7 +235,7 @@ fun PackageOverviewInfo(
         Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
             selectedPackage.remoteInfo?.licenses?.let {
                 ExternalLink(
-                    "License: " + (it.mainLicense.name ?: "go to license"),
+                    "License: " + (it.mainLicense.name ?: PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.goToLicense")),
                     resourceLoader = LocalResourceLoader.current,
                     onClick = {
                         scope.launch {

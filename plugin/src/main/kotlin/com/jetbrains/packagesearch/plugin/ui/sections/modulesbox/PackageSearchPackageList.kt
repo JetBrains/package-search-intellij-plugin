@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelEnabled
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
@@ -179,8 +180,7 @@ fun NoResultsToShow() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        LabelInfo("No supported dependencies were found.")
-        LabelInfo("Search to add dependencies to the project.")
+        LabelInfo(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.empty.noSupportedDependencyFound"))
         LearnMoreLink()
     }
 }

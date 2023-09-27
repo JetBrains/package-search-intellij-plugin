@@ -103,7 +103,12 @@ class PackageSearchPackageItemListBuilder {
                 val count = group.filteredDependencies
                     .count { it.evaluateUpgrade() != null }
                 if (count > 0) {
-                    PackageActionLink("Upgrade all ($count)") {
+                    PackageActionLink(
+                        PackageSearchBundle.message(
+                            "packagesearch.ui.toolwindow.actions.upgradeAll.text.withCount",
+                            count
+                        )
+                    ) {
                         val upgrades = group.filteredDependencies.mapNotNull {
                             val newVersion = it.evaluateUpgrade(isStableOnly)?.versionName
                                 ?: return@mapNotNull null
@@ -183,7 +188,11 @@ class PackageSearchPackageItemListBuilder {
                     mainActionContent = {
                         val newVersion = declaredDependency.evaluateUpgrade()?.versionName
                         if (newVersion != null) {
-                            PackageActionLink("Upgrade") {
+                            PackageActionLink(
+                                PackageSearchBundle.message(
+                                    "packagesearch.ui.toolwindow.packages.actions.upgrade"
+                                )
+                            ) {
                                 group.dependencyManager.updateDependencies(
                                     context = it,
                                     data = listOf(declaredDependency.getUpdateData(newVersion))
@@ -247,7 +256,11 @@ class PackageSearchPackageItemListBuilder {
                     mainActionContent = {
                         val latestVersion = apiPackage.latestVersion.versionName
                         when (group) {
-                            is PackageGroup.Remote.FromBaseModule -> PackageActionLink("Add") {
+                            is PackageGroup.Remote.FromBaseModule -> PackageActionLink(
+                                PackageSearchBundle.message(
+                                    "packagesearch.ui.toolwindow.packages.actions.install"
+                                )
+                            ) {
                                 group.dependencyManager.addDependency(
                                     context = it,
                                     data = group.module.getInstallData(
@@ -272,7 +285,11 @@ class PackageSearchPackageItemListBuilder {
                                     .firstOrNull { firstPrimaryVariant.isCompatible(apiPackage, it.key) }
                                     ?.key
                                 if (compatibleVersion != null) {
-                                    PackageActionLink("Add to ${firstPrimaryVariant.name}") {
+                                    PackageActionLink(
+                                        PackageSearchBundle.message(
+                                            "packagesearch.ui.toolwindow.actions.addTo.text", firstPrimaryVariant.name
+                                        )
+                                    ) {
                                         group.dependencyManager.addDependency(
                                             context = it,
                                             data = firstPrimaryVariant
@@ -286,7 +303,9 @@ class PackageSearchPackageItemListBuilder {
                                 }
                             }
 
-                            is PackageGroup.Remote.FromMultipleModules -> PackageActionLink("Add") {
+                            is PackageGroup.Remote.FromMultipleModules -> PackageActionLink(PackageSearchBundle.message(
+                                "packagesearch.ui.toolwindow.packages.actions.install"
+                            )) {
                                 group.moduleData
                                     .forEach { (module, dependencyManager) ->
                                         dependencyManager.addDependency(
@@ -408,7 +427,7 @@ fun ScopeSelectionDropdown(
         },
         content = {
             Text(
-                text = actualScope ?: "[default]",
+                text = actualScope ?: PackageSearchBundle.message("packagesearch.ui.missingScope"),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
