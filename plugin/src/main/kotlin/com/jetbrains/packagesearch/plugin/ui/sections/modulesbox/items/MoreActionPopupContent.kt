@@ -55,6 +55,7 @@ internal fun DeclaredPackageMoreActionPopup(
     group: PackageGroup.Declared,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
     borderColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") },
+    backgroundColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("PopupMenu.background") },
 ) {
     val context = LocalPackageSearchService.current
     val popupOpenStatus = LocalGlobalPopupIdState.current
@@ -64,7 +65,8 @@ internal fun DeclaredPackageMoreActionPopup(
 
     Column(
         Modifier
-            .padding(vertical = 8.dp, horizontal = 12.dp),
+            .background(backgroundColor)
+            .padding(vertical = 8.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
