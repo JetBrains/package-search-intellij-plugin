@@ -448,11 +448,11 @@ fun VersionSelectionDropdown(
                         }
                     }) {
                     Text(
-                        modifier = Modifier.defaultMinSize(80.dp, 0.dp).padding(vertical = 4.dp),
-                        textAlign = TextAlign.Center,
+                        modifier = Modifier.defaultMinSize(140.dp, 0.dp).padding(vertical = 4.dp),
+                        textAlign = TextAlign.End,
                         text = it.versionName,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Clip,
                     )
                 }
             }
@@ -470,9 +470,14 @@ fun VersionSelectionDropdown(
                 }
             }
         }
-        Row(modifier = Modifier.width(100.dp), horizontalArrangement = Arrangement.End) {
-            Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
+        Text(
+            modifier = Modifier.width(140.dp),
+            text = text,
+            maxLines = 1,
+            overflow = TextOverflow.Clip,
+            textAlign = TextAlign.End
+        )
+
     }
 }
 
