@@ -26,14 +26,21 @@ job("Publish jar snapshots") {
 job("Check IJ snapshot errors") {
     startOn {
         schedule {
+            // triggers every day, runs only in the master branch
             cron("0 8 * * *")
         }
     }
 
-    host("build shadow plugin") {
+    host("Build plugin and notify") {
         env["CI"] = "true"
-        shellScript {
-            content = "./gradlew :plugin:buildShadowPlugin"
+        kotlinScript { api ->
+           try {
+               api.gradlew(":plugin:buildPlugin")
+           } catch (ex: Exception) {
+               val channel = ChannelIdentifier.Channel(ChatChannel.FromName("package-search-notifications"))
+               val content = ChatMessage.Text("[pkgs-plugin-v2] Build failed: ${api.executionUrl()}")
+               api.space().chats.messages.sendMessage(channel = channel, content = content)
+           }
         }
     }
 }
