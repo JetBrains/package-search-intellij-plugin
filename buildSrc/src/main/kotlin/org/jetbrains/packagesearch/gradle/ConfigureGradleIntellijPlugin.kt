@@ -11,10 +11,13 @@ import org.jetbrains.intellij.IntelliJPluginExtension
 import org.jetbrains.intellij.tasks.PrepareSandboxTask
 
 fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchExtension) {
+    val isCI = System.getenv("CI") != null
+
     plugins.withId("org.jetbrains.intellij") {
         extensions.withType<IntelliJPluginExtension> {
             version = packageSearchExtension.intellijVersion
             instrumentCode = false
+            downloadSources = !isCI
         }
         tasks {
             val shadowJar = named<ShadowJar>("shadowJar") {
