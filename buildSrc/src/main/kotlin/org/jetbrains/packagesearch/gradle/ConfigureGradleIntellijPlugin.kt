@@ -14,6 +14,7 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
     plugins.withId("org.jetbrains.intellij") {
         extensions.withType<IntelliJPluginExtension> {
             version = packageSearchExtension.intellijVersion
+            instrumentCode = false
         }
         tasks {
             val shadowJar = named<ShadowJar>("shadowJar") {
