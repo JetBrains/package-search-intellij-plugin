@@ -44,7 +44,6 @@ job("Publish plugin snapshot") {
         kotlinScript { api ->
             val now = now()
             val pluginSnapshotVersion = "${now.year}.10.${now.dayOfYear}"
-            env["PLUGIN_VERSION"] = pluginSnapshotVersion
             api.space().projects.automation.deployments.start(
                 project = api.projectIdentifier(),
                 targetIdentifier = TargetIdentifier.Key("pkgs-plugin-snapshot-deploy"),
@@ -53,8 +52,9 @@ job("Publish plugin snapshot") {
                 syncWithAutomationJob = true
             )
 
-            val isFailure = runCatching { api.gradlew(":plugin:publishShadowPlugin") }
-                .isFailure
+            val isFailure = runCatching {
+                api.gradlew(":plugin:publishShadowPlugin", "-PpluginVersion=$pluginSnapshotVersion")
+            }.isFailure
 
             val buildScanLink = File(".").walkTopDown()
                 .maxDepth(2)

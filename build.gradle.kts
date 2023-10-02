@@ -1,8 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.jetbrains.packagesearch.gradle.PackageSearchExtension
 import org.jetbrains.packagesearch.gradle.pkgsSpace
-import org.jetbrains.packagesearch.gradle.withType
 
 plugins {
     `version-catalog`
@@ -18,9 +16,6 @@ allprojects {
         mavenCentral()
         maven("https://repo.gradle.org/gradle/libs-releases")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-    }
-    extensions.withType<PackageSearchExtension> {
-        intellijVersion = "2023.2-SNAPSHOT"
     }
 }
 

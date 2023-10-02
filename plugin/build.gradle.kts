@@ -68,8 +68,8 @@ tasks {
     }
 
     patchPluginXml {
-        version = System.getenv("PLUGIN_VERSION")
-            ?: "2023.10.0"
+        version = project.properties["pluginVersion"]?.toString()
+            ?: project.version.toString()
     }
 
     prepareSandbox {
