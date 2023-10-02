@@ -21,6 +21,7 @@ package com.jetbrains.packagesearch.plugin.utils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.jetbrains.packagesearch.plugin.FeatureFlags
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 
 private const val pluginId = "com.jetbrains.packagesearch.intellij-plugin"
@@ -87,8 +88,9 @@ fun logTrace(throwable: Throwable) = catchAndSuppress {
 
     logger.trace(throwable)
 }
-
+val warned = AtomicBoolean(false)
 private fun warnNotLoggable() {
+    if (warned.getAndSet(true)) return
     logger.warn(
         """
         |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

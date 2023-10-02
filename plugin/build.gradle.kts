@@ -63,18 +63,13 @@ dependencies {
 
 tasks {
 
-    buildSearchableOptions {
-        enabled = false
-    }
-
     shadowJar {
-        archiveBaseName.set("packagesearch-plugin")
+        archiveBaseName = "packagesearch-plugin"
     }
 
     patchPluginXml {
-        version = System.getenv("JB_SPACE_EXECUTION_NUMBER")
-            ?.let { "300.0.$it" }
-            ?: project.version.toString()
+        version = System.getenv("PLUGIN_VERSION")
+            ?: "2023.10.0"
     }
 
     prepareSandbox {
@@ -83,17 +78,16 @@ tasks {
 
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
-        from(shadowJar) {
-            into("com.jetbrains.packagesearch.intellij-plugin/lib")
-        }
-        from(tooling) {
-            into("com.jetbrains.packagesearch.intellij-plugin/lib")
-        }
+        from(shadowJar, tooling, jarSearchableOptions)
+        into("com.jetbrains.packagesearch.intellij-plugin/lib") // <-- ONLY ONE into()!
         archiveFileName.set("packagesearch-plugin.zip")
         destinationDirectory = layout.buildDirectory.dir("distributions")
     }
 
     register<PublishPluginTask>("publishShadowPlugin") {
+//        onlyIf {
+//            System.getenv("CI") == "true" && System.getenv("PLUGIN_VERSION") != null
+//        }
         group = "publishing"
         distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
         toolboxEnterprise = true

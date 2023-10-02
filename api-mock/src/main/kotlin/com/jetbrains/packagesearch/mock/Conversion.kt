@@ -192,7 +192,7 @@ fun MavenCoordinateWithVersions.toMavenApiModel(): ApiMavenPackage {
             when (gradleMetadata) {
                 null -> ApiMavenPackage.MavenVersion(
                     normalized = NormalizedVersion.from(version, metadata.publicationDate),
-                    repositoryIds = listOf("maven-central"),
+                    repositoryIds = setOf("maven-central"),
                     vulnerability = Vulnerability(false),
                     dependencies = pom.dependencies.mapNotNull { it.toApiModel() },
                     artifacts = emptyList(),
@@ -205,7 +205,7 @@ fun MavenCoordinateWithVersions.toMavenApiModel(): ApiMavenPackage {
 
                 else -> ApiMavenPackage.GradleVersion(
                     normalized = NormalizedVersion.from(version, metadata.publicationDate),
-                    repositoryIds = listOf("maven-central"),
+                    repositoryIds = setOf("maven-central"),
                     vulnerability = Vulnerability(false),
                     dependencies = pom.dependencies.mapNotNull { it.toApiModel() },
                     artifacts = emptyList(),

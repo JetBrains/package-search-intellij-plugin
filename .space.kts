@@ -1,4 +1,5 @@
 import java.io.File
+import java.time.LocalDate.now
 
 job("Publish jar snapshots") {
     startOn {
@@ -23,7 +24,7 @@ job("Publish jar snapshots") {
     }
 }
 
-job("Check IJ snapshot errors") {
+job("Publish plugin snapshot") {
     startOn {
         schedule {
             // triggers every day, runs only in the master branch
@@ -31,22 +32,6 @@ job("Check IJ snapshot errors") {
         }
     }
 
-    host("Build plugin and notify") {
-        env["CI"] = "true"
-        kotlinScript { api ->
-           try {
-               api.gradlew(":plugin:buildPlugin")
-           } catch (ex: Exception) {
-               val channel = ChannelIdentifier.Channel(ChatChannel.FromName("package-search-notifications"))
-               val content = ChatMessage.Text("[pkgs-plugin-v2] Build failed: ${api.executionUrl()}")
-               api.space().chats.messages.sendMessage(channel = channel, content = content)
-           }
-        }
-    }
-}
-
-job("Publish plugin") {
-    startOn { }
     host("Run Gradle") {
 
         env["IS_SNAPSHOT"] = "true"
@@ -57,31 +42,45 @@ job("Publish plugin") {
         env["CI"] = "true"
 
         kotlinScript { api ->
+            val now = now()
+            val pluginSnapshotVersion = "${now.year}.10.${now.dayOfYear}"
+            env["PLUGIN_VERSION"] = pluginSnapshotVersion
             api.space().projects.automation.deployments.start(
                 project = api.projectIdentifier(),
-                targetIdentifier = TargetIdentifier.Key("pkgs-plugin-deploy"),
-                version = "300.0.${api.executionNumber()}",
+                targetIdentifier = TargetIdentifier.Key("pkgs-plugin-snapshot-deploy"),
+                version = pluginSnapshotVersion,
                 // automatically update deployment status based on a status of a job
                 syncWithAutomationJob = true
             )
-        }
 
-        shellScript {
-            content = "./gradlew :plugin:publishShadowPlugin"
-        }
+            val isFailure = runCatching { api.gradlew(":plugin:publishShadowPlugin") }
+                .isFailure
 
-        kotlinScript { api ->
-            val link = File(".").walkTopDown()
+            val buildScanLink = File(".").walkTopDown()
                 .maxDepth(2)
                 .find { it.name == "build-scan-url.txt" }
                 ?.readLines()
                 ?.first()
-            if (link != null) {
-                api.space().projects.automation.deployments.update(
+
+            when {
+                isFailure -> {
+                    val channel = ChannelIdentifier.Channel(ChatChannel.FromName("package-search-notifications"))
+                    val text = buildString {
+                        appendLine("[pkgs-plugin-v2] Build failed: ${api.executionUrl()}")
+                        if (buildScanLink != null) {
+                            append(" | Build scan: $buildScanLink")
+                        }
+                    }
+                    val content = ChatMessage.Text(text)
+                    api.space().chats.messages.sendMessage(channel = channel, content = content)
+                    error("Build failed")
+                }
+
+                else -> api.space().projects.automation.deployments.update(
                     project = api.projectIdentifier(),
                     targetIdentifier = TargetIdentifier.Key("pkgs-plugin-deploy"),
-                    deploymentIdentifier = DeploymentIdentifier.Version("300.0.${api.executionNumber()}"),
-                    externalLink = ExternalLink("Build scan", link)
+                    deploymentIdentifier = DeploymentIdentifier.Version(pluginSnapshotVersion),
+                    externalLink = buildScanLink?.let { ExternalLink("Build scan", it) }
                 )
             }
         }

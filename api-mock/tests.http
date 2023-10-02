@@ -1,10 +1,10 @@
-GET http://localhost:8081/api/v3/package-info-by-ids
+GET https://api.dev.package-search.services.jetbrains.com/package-info-by-ids
 Accept: application/json
 Content-Type: application/json
 
 {
     "ids": [
-      "maven:ch.qos.logback:logback-classic"
+      "maven:io.ktor:ktor-client-cio"
     ]
 }
 
@@ -21,7 +21,7 @@ Content-Type: application/json
       "variants": []
     }
   ],
-  "searchQuery": "ktor"
+  "searchQuery": "ktor-client-cio"
 }
 
 ###

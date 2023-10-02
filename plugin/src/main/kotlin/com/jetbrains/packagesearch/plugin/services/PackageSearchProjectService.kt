@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.packagesearch.api.v3.ApiRepository
@@ -117,9 +118,12 @@ class PackageSearchProjectService(
 
     private val moduleDataFlow
         get() = restartFlow
+            .onStart {
+                Observation.awaitConfiguration(project)
+                emit(Unit)
+            }
             .withInitialValue(Unit)
             .flatMapLatest { moduleProvidersList }
-            .onEach { Observation.awaitConfiguration(project) }
             .flatMapLatest { combine(it) { it.filterNotNull() } }
             .distinctUntilChanged()
             .combine(isLoadingFlow) { module, isLoading ->
