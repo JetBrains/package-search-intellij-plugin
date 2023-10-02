@@ -44,9 +44,10 @@ job("Publish plugin snapshot") {
         kotlinScript { api ->
             val now = now()
             val pluginSnapshotVersion = "${now.year}.10.${now.dayOfYear}"
+            val targetIdentifier = TargetIdentifier.Key("pkgs-plugin-snapshot-deploy")
             api.space().projects.automation.deployments.start(
                 project = api.projectIdentifier(),
-                targetIdentifier = TargetIdentifier.Key("pkgs-plugin-snapshot-deploy"),
+                targetIdentifier = targetIdentifier,
                 version = pluginSnapshotVersion,
                 // automatically update deployment status based on a status of a job
                 syncWithAutomationJob = true
@@ -78,7 +79,7 @@ job("Publish plugin snapshot") {
 
                 else -> api.space().projects.automation.deployments.update(
                     project = api.projectIdentifier(),
-                    targetIdentifier = TargetIdentifier.Key("pkgs-plugin-deploy"),
+                    targetIdentifier = targetIdentifier,
                     deploymentIdentifier = DeploymentIdentifier.Version(pluginSnapshotVersion),
                     externalLink = buildScanLink?.let { ExternalLink("Build scan", it) }
                 )
