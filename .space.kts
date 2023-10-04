@@ -1,3 +1,4 @@
+import circlet.pipelines.script.ScriptApi
 import java.io.File
 import java.time.LocalDate.now
 
@@ -53,9 +54,11 @@ job("Publish plugin snapshot") {
                 syncWithAutomationJob = true
             )
 
-            val isFailure = runCatching {
-                api.gradlew(":plugin:publishShadowPlugin :publish", "-PpluginVersion=$pluginSnapshotVersion")
-            }.isFailure
+            val isSuccess = api.runCatchingGradlew {
+                task(":plugin:publishShadowPlugin")
+                task("publish")
+                param("pluginVersion", pluginSnapshotVersion)
+            }
 
             val buildScanLink = File(".").walkTopDown()
                 .maxDepth(2)
@@ -64,7 +67,7 @@ job("Publish plugin snapshot") {
                 ?.first()
 
             when {
-                isFailure -> {
+                !isSuccess -> {
                     val channel = ChannelIdentifier.Channel(ChatChannel.FromName("package-search-notifications"))
                     val text = buildString {
                         appendLine("[pkgs-plugin-v2] Build failed: ${api.executionUrl()}")
@@ -87,3 +90,31 @@ job("Publish plugin snapshot") {
         }
     }
 }
+
+class GradleCommandBuilder {
+    private val tasks = mutableListOf<String>()
+    private val args = mutableMapOf<String, String>()
+    private val params = mutableMapOf<String, String>()
+
+    fun task(name: String) {
+        tasks.add(name)
+    }
+
+    fun arg(name: String, value: String) {
+        args[name] = value
+    }
+
+    fun param(name: String, value: String) {
+        params[name] = value
+    }
+
+    fun build(): List<String> = buildList {
+        addAll(tasks)
+        args.forEach { (name, value) -> add("-D$name=$value") }
+        params.forEach { (name, value) -> add("-P$name=$value") }
+    }
+}
+
+inline fun ScriptApi.runCatchingGradlew(builder: GradleCommandBuilder.() -> Unit) =
+    runCatching { gradlew(*GradleCommandBuilder().apply(builder).build().toTypedArray()) }
+        .isSuccess
