@@ -25,7 +25,7 @@ job("Publish jar snapshots") {
     }
 }
 
-job("Publish plugin snapshot") {
+job("Publish plugin nightly") {
     startOn {
         schedule {
             // triggers every day, runs only in the master branch
@@ -35,7 +35,6 @@ job("Publish plugin snapshot") {
 
     host("Run Gradle") {
 
-        env["IS_SNAPSHOT"] = "true"
         env["MAVEN_SPACE_USERNAME"] = "{{ project:jetbrains_team_registry_username }}"
         env["MAVEN_SPACE_PASSWORD"] = "{{ project:jetbrains_team_registry_key }}"
         env["GRADLE_ENTERPRISE_KEY"] = "{{ project:gradle_enterprise_access_key }}"
