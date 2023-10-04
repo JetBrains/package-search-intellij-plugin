@@ -10,7 +10,7 @@ plugins {
 
 allprojects {
     group = "org.jetbrains.packagesearch"
-    version = "1.0.0-SNAPSHOT"
+    version = project.properties["pluginVersion"]?.toString() ?: "1.0.0-SNAPSHOT"
 
     repositories {
         mavenCentral()

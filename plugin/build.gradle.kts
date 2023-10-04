@@ -67,11 +67,6 @@ tasks {
         archiveBaseName = "packagesearch-plugin"
     }
 
-    patchPluginXml {
-        version = project.properties["pluginVersion"]?.toString()
-            ?: project.version.toString()
-    }
-
     prepareSandbox {
         runtimeClasspathFiles = files(shadowJar, tooling)
     }

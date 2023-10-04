@@ -54,7 +54,7 @@ job("Publish plugin snapshot") {
             )
 
             val isFailure = runCatching {
-                api.gradlew(":plugin:publishShadowPlugin", "-PpluginVersion=$pluginSnapshotVersion")
+                api.gradlew(":plugin:publishShadowPlugin :publish", "-PpluginVersion=$pluginSnapshotVersion")
             }.isFailure
 
             val buildScanLink = File(".").walkTopDown()
