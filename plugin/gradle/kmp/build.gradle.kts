@@ -26,4 +26,6 @@ intellij {
 dependencies {
     api(projects.plugin.gradle)
     api(projects.kmpModifier)
+    sourceElements(projects.plugin.gradle)
+    sourceElements(projects.kmpModifier)
 }

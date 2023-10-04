@@ -21,6 +21,7 @@ intellij {
 }
 
 dependencies {
-    implementation(projects.plugin.core)
+    api(projects.plugin.core)
+    sourceElements(projects.plugin.core)
     implementation(packageSearchCatalog.packagesearch.build.systems.models)
 }

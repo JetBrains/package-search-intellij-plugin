@@ -26,6 +26,9 @@ intellij {
 
 dependencies {
     implementation(projects.plugin.gradle.tooling)
+    sourceElements(projects.plugin.gradle.tooling)
     api(projects.plugin.core)
+    sourceElements(projects.plugin.core)
+    sourceElements(projects.plugin.core)
     api(packageSearchCatalog.kotlinx.serialization.core)
 }

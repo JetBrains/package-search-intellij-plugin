@@ -1,7 +1,11 @@
+
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
+import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
+import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
-import com.jetbrains.packagesearch.plugin.core.data.*
 
 data class GradleUpdatePackageData(
     override val installedPackage: PackageSearchDeclaredMavenPackage,

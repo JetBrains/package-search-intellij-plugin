@@ -18,6 +18,7 @@ packagesearch {
 
 dependencies {
     api(projects.nitrite)
+    sourceElements(projects.nitrite)
     api(packageSearchCatalog.packagesearch.api.client)
     api(packageSearchCatalog.nitrite) {
         exclude(group = "com.fasterxml.jackson.core")

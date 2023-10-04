@@ -26,4 +26,5 @@ intellij {
 
 dependencies {
     api(projects.plugin.gradle)
+    sourceElements(projects.plugin.gradle)
 }

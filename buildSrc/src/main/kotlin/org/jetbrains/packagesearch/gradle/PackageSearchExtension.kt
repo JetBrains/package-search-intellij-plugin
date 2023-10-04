@@ -20,6 +20,9 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
         val isEnabled = project.objects.property<Boolean>()
             .convention(false)
 
+        val publishShadow = project.objects.property<Boolean>()
+            .convention(true)
+
         val artifactId = project.objects.property<String>()
             .convention(project.name)
         val groupId = project.objects.property<String>()

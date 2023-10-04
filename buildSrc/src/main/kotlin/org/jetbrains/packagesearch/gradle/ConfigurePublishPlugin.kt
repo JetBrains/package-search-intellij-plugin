@@ -2,23 +2,26 @@
 
 package org.jetbrains.packagesearch.gradle
 
-import com.github.jengelman.gradle.plugins.shadow.ShadowBasePlugin
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.util.Locale
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.SoftwareComponent
 import org.gradle.api.component.SoftwareComponentFactory
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.publish.maven.internal.artifact.AbstractMavenArtifact
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.artifacts
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.get
@@ -39,65 +42,128 @@ fun Project.configurePublishPlugin(
     softwareComponentFactory: SoftwareComponentFactory,
 ) {
     plugins.withId("org.gradle.maven-publish") {
-        plugins.withId("org.jetbrains.dokka") {
-            plugins.withId("org.jetbrains.kotlin.jvm") {
-                val dokkaHtml = tasks.named<DokkaTask>("dokkaHtml")
-                val sourcesJar by tasks.registering(Jar::class) {
+        plugins.withId("org.gradle.java-base") {
+            val sourcesJar by tasks.registering(Jar::class) {
+                from(project.the<SourceSetContainer>().named("main").map { it.allSource })
+                plugins.withId("org.jetbrains.kotlin.jvm") {
                     from(project.the<KotlinJvmProjectExtension>().sourceSets["main"].kotlin)
-                    archiveClassifier = "sources"
-                    destinationDirectory = layout.buildDirectory.dir("artifacts")
                 }
-                val javadocJar by tasks.registering(Jar::class) {
-                    from(dokkaHtml)
-                    archiveClassifier = "javadoc"
-                    destinationDirectory = layout.buildDirectory.dir("artifacts")
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+                archiveClassifier = "sources"
+                destinationDirectory = layout.buildDirectory.dir("artifacts")
+            }
+            tasks.named<ShadowJar>("shadowJar") {
+                archiveClassifier = null
+                destinationDirectory = layout.buildDirectory.dir("artifacts/shadow")
+            }
+            val sourcesConfiguration = configurations.register("sourceElements") {
+                isCanBeConsumed = true
+                isCanBeResolved = true
+                isCanBeDeclared = true
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
                 }
-                val shadowComponent = softwareComponentFactory.adhoc("shadow")
-                tasks.named<ShadowJar>("shadowJar") {
-                    archiveClassifier = null
-                    destinationDirectory = layout.buildDirectory.dir("artifacts/shadow")
+                outgoing {
+                    artifact(sourcesJar)
                 }
-                val shadowRuntimeElements by configurations.getting
-                shadowComponent.addVariantsFromConfiguration(shadowRuntimeElements) {
-                    mapToMavenScope("runtime")
+            }
+            val shadowSourcesJar by tasks.registering(Jar::class) {
+                dependsOn(sourcesConfiguration, sourcesJar)
+                from(sourcesConfiguration.map { it.resolvedConfiguration.files.map { zipTree(it) } })
+                from(sourcesJar.flatMap { it.archiveFile }.map { zipTree(it) })
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+                archiveClassifier = "sources"
+                destinationDirectory = layout.buildDirectory.dir("artifacts/shadow")
+            }
+            val shadowSourcesConfiguration = configurations.register("shadowSourcesElements") {
+                isCanBeConsumed = false
+                isCanBeResolved = false
+                isCanBeDeclared = false
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.SOURCES))
                 }
-                val kotlin by components
-                val rootComponent = kotlin.addRemoteVariants(setOf(shadowComponent))
-                extensions.withType<PublishingExtension> {
-                    repositories {
-                        pkgsSpace(project)
-                    }
-                    publications {
-                        val publicationName = project.name
-                            .replace(Regex(""""-([\w\W])""")) { it.groupValues[1].uppercase(Locale.getDefault()) }
+                outgoing {
+                    artifact(shadowSourcesJar)
+                }
+            }
+            val java: DefaultAdhocSoftwareComponent by components
+            val sourcesComponent = softwareComponentFactory.adhoc("sources") as DefaultAdhocSoftwareComponent
+            sourcesComponent.addVariantsFromConfiguration(sourcesConfiguration.get()) {
+                mapToMavenScope("runtime")
+            }
+            val shadowComponent = softwareComponentFactory.adhoc("shadow")
+            val shadowRuntimeElements by configurations.getting
+            shadowComponent.addVariantsFromConfiguration(shadowRuntimeElements) {
+                mapToMavenScope("runtime")
+            }
+            shadowComponent.addVariantsFromConfiguration(shadowSourcesConfiguration.get()) {
+                mapToMavenScope("runtime")
+            }
+            java.addVariantsFromConfiguration(sourcesConfiguration.get()) {
+                mapToMavenScope("runtime")
+            }
+            val rootComponent =
+                object : ComponentWithVariants, SoftwareComponentInternal by java {
+                    override fun getUsages() = java.usages
+                        .filter { it.name != "shadowRuntimeElements" }
+                        .toSet()
 
-                        register<MavenPublication>(publicationName + "Shadow") {
-                            from(shadowComponent)
-                            afterEvaluate {
-                                groupId = publicationExtension.groupId.get()
-                                artifactId = publicationExtension.artifactId.get() + "-shadow"
-                                version = evaluateSpaceVersion(publicationExtension)
+                    override fun getVariants(): Set<SoftwareComponent> =
+                        if (publicationExtension.publishShadow.get()) setOf(shadowComponent) else emptySet()
+                }
+            extensions.withType<PublishingExtension> {
+                repositories {
+                    pkgsSpace(project)
+                    maven {
+                        name = "test"
+                        setUrl(rootProject.layout.buildDirectory.dir("maven"))
+                    }
+                }
+                publications {
+                    val publicationName = project.name
+                        .replace(Regex(""""-([\w\W])""")) { it.groupValues[1].uppercase(Locale.getDefault()) }
+                    afterEvaluate {
+                        if (publicationExtension.publishShadow.get()) {
+                            register<MavenPublication>(publicationName + "Shadow") {
+                                from(shadowComponent)
                                 afterEvaluate {
                                     groupId = publicationExtension.groupId.get()
                                     artifactId = publicationExtension.artifactId.get() + "-shadow"
                                     version = evaluateSpaceVersion(publicationExtension)
-                                    pom {
-                                        publicationExtension.pomAction.get().invoke(this)
+                                    afterEvaluate {
+                                        groupId = publicationExtension.groupId.get()
+                                        artifactId = publicationExtension.artifactId.get() + "-shadow"
+                                        version = evaluateSpaceVersion(publicationExtension)
+                                        pom {
+                                            publicationExtension.pomAction.get().invoke(this)
+                                        }
                                     }
                                 }
                             }
                         }
-                        register<MavenPublication>(publicationName) {
+                    }
+
+                    register<MavenPublication>(publicationName) {
+                        plugins.withId("org.jetbrains.dokka") {
+                            val dokkaHtml = tasks.named<DokkaTask>("dokkaHtml")
+                            val javadocJar by tasks.registering(Jar::class) {
+                                from(dokkaHtml)
+                                archiveClassifier = "javadoc"
+                                destinationDirectory = layout.buildDirectory.dir("artifacts")
+                            }
                             artifact(javadocJar)
-                            artifact(sourcesJar)
-                            from(rootComponent)
-                            afterEvaluate {
-                                groupId = publicationExtension.groupId.get()
-                                artifactId = publicationExtension.artifactId.get()
-                                version = evaluateSpaceVersion(publicationExtension)
-                                pom {
-                                    publicationExtension.pomAction.get().invoke(this)
-                                }
+                        }
+                        from(rootComponent)
+                        afterEvaluate {
+                            groupId = publicationExtension.groupId.get()
+                            artifactId = publicationExtension.artifactId.get()
+                            version = evaluateSpaceVersion(publicationExtension)
+                            pom {
+                                publicationExtension.pomAction.get().invoke(this)
                             }
                         }
                     }
@@ -135,7 +201,7 @@ fun RepositoryHandler.pkgsSpace(project: Project) {
 fun ExtraPropertiesExtension.getStringOrNull(key: String) =
     runCatching { get(key)?.toString() }.getOrNull()
 
-fun SoftwareComponent.addRemoteVariants(variants: Set<SoftwareComponent>): ComponentWithVariants =
+fun SoftwareComponent.withRemoteVariants(variants: Set<SoftwareComponent>): ComponentWithVariants =
     object : ComponentWithVariants, SoftwareComponentInternal by this as SoftwareComponentInternal {
         override fun getVariants(): Set<SoftwareComponent> = variants
     }

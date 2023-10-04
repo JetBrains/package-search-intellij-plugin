@@ -48,6 +48,13 @@ dependencies {
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
     implementation(projects.plugin.maven)
+
+    sourceElements(projects.plugin.core)
+    sourceElements(projects.plugin.gradle)
+    sourceElements(projects.plugin.gradle.base)
+    sourceElements(projects.plugin.gradle.kmp)
+    sourceElements(projects.plugin.maven)
+
     testImplementation(kotlin("test-junit5"))
     testImplementation(packageSearchCatalog.junit.jupiter.api)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
