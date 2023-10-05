@@ -2,6 +2,7 @@ package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
+import com.intellij.openapi.util.io.toNioPath
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel.Configuration
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel.Dependency
 import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
@@ -29,7 +30,7 @@ class PackageSearchProjectResolverExtension : AbstractProjectResolverExtension()
 
 internal fun PackageSearchGradleJavaModel.toPackageSearchModel() =
     PackageSearchGradleModel(
-        projectDir = projectDir,
+        projectDir = projectDir.toNioPath(),
         projectName = projectName,
         projectIdentityPath = projectIdentityPath,
         configurations = configurations.map {
@@ -43,7 +44,7 @@ internal fun PackageSearchGradleJavaModel.toPackageSearchModel() =
         isKotlinAndroidApplied = isKotlinAndroidApplied,
         isKotlinMultiplatformApplied = isKotlinMultiplatformApplied,
         rootProjectName = rootProjectName,
-        buildFilePath = buildFilePath,
-        rootProjectPath = rootProjectPath
+        buildFilePath = buildFilePath?.toNioPath(),
+        rootProjectPath = rootProjectPath.toNioPath()
     )
 

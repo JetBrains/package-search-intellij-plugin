@@ -12,9 +12,12 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
+import com.intellij.openapi.util.io.toNioPath
 import com.intellij.util.io.createDirectories
-import com.intellij.util.io.readBytes
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
+import kotlin.io.path.readBytes
 import kotlin.io.path.writeBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,8 +25,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.protobuf.ProtoBuf
 
 private val LOG = logger<MppDataNodeProcessor>()
@@ -46,18 +55,22 @@ class MppDataNodeProcessor : AbstractProjectDataService<MppCompilationInfoModel,
 
         val state = MutableStateFlow(load())
 
-        private fun load(): Map<String, MppCompilationInfoModel> {
+        private fun load(): Map<Path, MppCompilationInfoModel> {
             if (!cacheFile.exists())
                 return emptyMap()
             val bytes = cacheFile.readBytes()
             if (bytes.isEmpty())
                 return emptyMap()
-            return ProtoBuf.decodeFromByteArray(bytes)
+            return ProtoBuf.decodeFromByteArray<Map<String, MppCompilationInfoModel>>(bytes)
+                .mapKeys { it.key.toNioPath() }
         }
 
         init {
             state
-                .onEach { cacheFile.writeBytes(ProtoBuf.encodeToByteArray(it)) }
+                .onEach {
+                    val encodedKeys = it.mapKeys { it.key.absolutePathString() }
+                    cacheFile.writeBytes(ProtoBuf.encodeToByteArray(encodedKeys))
+                }
                 .flowOn(Dispatchers.IO)
                 .launchIn(coroutineScope)
         }
@@ -69,7 +82,7 @@ class MppDataNodeProcessor : AbstractProjectDataService<MppCompilationInfoModel,
         project: Project,
         modelsProvider: IdeModifiableModelsProvider,
     ) {
-        project.service<Cache>().state.value = toImport.associate { it.data.projectDir to it.data }
+        project.service<Cache>().state.value = toImport.associate { it.data.projectDir.toNioPath() to it.data }
         super.importData(toImport, projectData, project, modelsProvider)
     }
 }

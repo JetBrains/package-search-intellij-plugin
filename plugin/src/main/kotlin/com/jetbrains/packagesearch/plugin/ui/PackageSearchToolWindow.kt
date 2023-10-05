@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.externalSystem.ExternalSystemManager
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
@@ -25,6 +26,11 @@ import com.jetbrains.packagesearch.plugin.services.ModulesState.NoModules
 import com.jetbrains.packagesearch.plugin.services.ModulesState.Ready
 import com.jetbrains.packagesearch.plugin.ui.bridge.asTree
 import com.jetbrains.packagesearch.plugin.utils.logWarn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.tree.Tree
@@ -51,15 +57,18 @@ fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
                 val tree = moduleProvider.moduleData.asTree()
                 if (tree.isEmpty()) {
                     if (moduleProvider.moduleData.isNotEmpty()) {
-                        val project = LocalPackageSearchService.current.project
+                        val packageSearchProjectService = LocalPackageSearchService.current
                         remember(Unit) {
                             logWarn("Modules are present but tree is empty. Something fishy happened...")
                             ExternalSystemManager.EP_NAME.extensionList
                                 .map {
-                                    ImportSpecBuilder(project, it.systemId)
+                                    ImportSpecBuilder(packageSearchProjectService.project, it.systemId)
                                         .use(ProgressExecutionMode.IN_BACKGROUND_ASYNC)
                                 }
-                                .forEach { ExternalSystemUtil.refreshProjects(it) }
+                                .asFlow()
+                                .onEach { ExternalSystemUtil.refreshProjects(it) }
+                                .flowOn(Dispatchers.EDT)
+                                .launchIn(packageSearchProjectService.coroutineScope)
                         }
                         IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
                     } else NoModulesFound()

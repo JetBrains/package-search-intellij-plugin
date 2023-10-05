@@ -73,7 +73,6 @@ tasks {
     shadowJar {
         archiveBaseName = "packagesearch-plugin"
     }
-
     prepareSandbox {
         runtimeClasspathFiles = files(shadowJar, tooling)
     }

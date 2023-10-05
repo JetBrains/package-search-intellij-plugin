@@ -83,8 +83,7 @@ class PackageSearchGradleDependencyManager(
         )
         if (gradleModel.buildFilePath == null) {
             withContext(Dispatchers.IO) {
-                Paths.get(gradleModel.projectDir)
-                    .resolve("build.gradle.kts")
+                gradleModel.projectDir.resolve("build.gradle.kts")
                     .writeText(
                         """
                             dependencies {

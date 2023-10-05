@@ -201,7 +201,3 @@ fun RepositoryHandler.pkgsSpace(project: Project) {
 fun ExtraPropertiesExtension.getStringOrNull(key: String) =
     runCatching { get(key)?.toString() }.getOrNull()
 
-fun SoftwareComponent.withRemoteVariants(variants: Set<SoftwareComponent>): ComponentWithVariants =
-    object : ComponentWithVariants, SoftwareComponentInternal by this as SoftwareComponentInternal {
-        override fun getVariants(): Set<SoftwareComponent> = variants
-    }

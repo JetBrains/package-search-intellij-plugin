@@ -3,15 +3,18 @@ package com.intellij.packageSearch.mppDependencyUpdater.resolved
 
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 
 object MppCompilationInfoProvider {
     fun sourceSetsMap(
         project: Project,
-        projectPath: String,
+        projectPath: Path,
     ): Flow<Map<String, Set<MppCompilationInfoModel.Compilation>>> =
         project.service<MppDataNodeProcessor.Cache>()
             .state
-            .mapNotNull { it[projectPath]?.compilationsBySourceSetName }
+            .mapNotNull {
+                it[projectPath]?.compilationsBySourceSetName
+            }
 }

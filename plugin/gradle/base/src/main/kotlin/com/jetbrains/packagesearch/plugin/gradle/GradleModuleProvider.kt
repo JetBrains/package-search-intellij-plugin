@@ -3,7 +3,6 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.io.toNioPath
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
@@ -36,7 +35,7 @@ class GradleModuleProvider : BaseGradleModuleProvider() {
             val packageSearchGradleModule = PackageSearchGradleModule(
                 name = model.projectName,
                 identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
-                buildFilePath = model.buildFilePath?.toNioPath(),
+                buildFilePath = model.buildFilePath,
                 declaredKnownRepositories = module.getDeclaredKnownRepositories(context),
                 declaredDependencies = declaredDependencies,
                 availableKnownRepositories = availableKnownRepositories,

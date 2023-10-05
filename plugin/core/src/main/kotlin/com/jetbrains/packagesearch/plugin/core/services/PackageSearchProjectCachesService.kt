@@ -8,10 +8,9 @@ import com.intellij.openapi.project.getProjectDataPath
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import kotlin.io.path.absolutePathString
-import kotlinx.coroutines.CoroutineScope
 
 @Service(Level.PROJECT)
-class PackageSearchProjectCachesService(project: Project, private val scope: CoroutineScope) : Disposable {
+class PackageSearchProjectCachesService(project: Project ) : Disposable {
 
     @PKGSInternalAPI
     val cache = buildDefaultNitrate(
@@ -29,3 +28,4 @@ class PackageSearchProjectCachesService(project: Project, private val scope: Cor
         cache.getRepository<T>(key)
 
 }
+

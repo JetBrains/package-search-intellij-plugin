@@ -66,15 +66,13 @@ fun getModuleChangesFlow(
 ): Flow<Unit> {
     val allFiles = buildSet {
         if (model.buildFilePath != null) {
-            add(model.buildFilePath.toNioPath())
+            add(model.buildFilePath)
         }
-        val rootDirPath = Paths.get(model.rootProjectPath)
-        val projectDirPath = Paths.get(model.projectDir)
         addAll(
             knownGradleAncillaryFilesFiles.flatMap {
                 listOf(
-                    rootDirPath.resolve(it),
-                    projectDirPath.resolve(it),
+                    model.rootProjectPath.resolve(it),
+                    model.projectDir.resolve(it),
                 )
             }
         )

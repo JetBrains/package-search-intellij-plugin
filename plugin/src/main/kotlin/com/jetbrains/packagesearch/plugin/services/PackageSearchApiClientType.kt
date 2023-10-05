@@ -145,6 +145,9 @@ sealed interface PackageSearchApiClientType {
 
         override val client: PackageSearchApi = PackageSearchSonatypeApiClient(
             httpClient = SonatypeApiClient.defaultHttpClient {
+                engine {
+                    threadsCount = 64
+                }
                 install(Logging) {
                     level = LogLevel.INFO
                     logger = KtorDebugLogger()
