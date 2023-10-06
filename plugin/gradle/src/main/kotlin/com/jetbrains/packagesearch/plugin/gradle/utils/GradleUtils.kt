@@ -6,7 +6,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
@@ -35,7 +34,7 @@ val gradleHomePathString: String
     get() = System.getenv("GRADLE_HOME") ?: System.getProperty("user.home")
 
 val gradleHome
-    get() = gradleHomePathString.toNioPath()
+    get() = Paths.get(gradleHomePathString)
 
 val globalGradlePropertiesPath
     get() = gradleHome.resolve("gradle.properties")

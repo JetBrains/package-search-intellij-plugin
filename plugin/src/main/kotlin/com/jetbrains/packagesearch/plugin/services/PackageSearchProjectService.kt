@@ -158,7 +158,7 @@ class PackageSearchProjectService(
             moduleDataByBuildFile.map { it.keys }
         ) { openedFiles, buildFiles ->
             val knownOpenedBuildFiles = openedFiles
-                .filter { it.toNioPathOrNull() in buildFiles }
+                .filter { it.toNioPathOrNull()?.let { it in buildFiles } ?: false }
             if (knownOpenedBuildFiles.isNotEmpty())
                 emit(knownOpenedBuildFiles)
         }

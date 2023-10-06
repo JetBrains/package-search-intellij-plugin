@@ -7,7 +7,6 @@ import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.toNioPath
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
@@ -16,8 +15,6 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlText
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import org.jetbrains.idea.maven.project.MavenProject
-import org.jetbrains.idea.maven.project.MavenProjectsManager
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
@@ -31,6 +28,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -40,6 +38,8 @@ import kotlinx.coroutines.flow.merge
 import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.idea.maven.dom.MavenDomUtil
 import org.jetbrains.idea.maven.project.MavenImportListener
+import org.jetbrains.idea.maven.project.MavenProject
+import org.jetbrains.idea.maven.project.MavenProjectsManager
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
@@ -76,8 +76,8 @@ fun String.suffixIfNot(s: String) = if (endsWith(s)) this else this + s
 
 val mavenSettingsFilePath
     get() = System.getenv("M2_HOME")
-        ?.let { "$it/conf/settings.xml".toNioPath() }
-        ?: System.getProperty("user.home").plus("/.m2/settings.xml").toNioPath()
+        ?.let { Paths.get("$it/conf/settings.xml") }
+        ?: Paths.get(System.getProperty("user.home").plus("/.m2/settings.xml"))
 
 val commonScopes = listOf("compile", "provided", "runtime", "test", "system", "import")
 
@@ -93,7 +93,7 @@ fun getModuleChangesFlow(context: ProjectContext, pomPath: Path): Flow<Unit> = m
     context.project.mavenImportFlow,
     context.project.filesChangedEventFlow
         .flatMapLatest { it.map { it.path }.asFlow() }
-        .map { it.toNioPath() }
+        .map { Paths.get(it) }
         .filter { it == pomPath }
         .mapUnit(),
     IntelliJApplication.registryFlow("packagesearch.sonatype.api.client").mapUnit()
@@ -126,7 +126,7 @@ suspend fun Module.toPackageSearch(
             group = "maven",
             path = buildMavenParentHierarchy(mavenProject.file.asRegularFile())
         ),
-        buildFilePath = mavenProject.file.path.toNioPath(),
+        buildFilePath = Paths.get(mavenProject.file.path),
         declaredKnownRepositories = getDeclaredKnownRepositories(context),
         declaredDependencies = declaredDependencies,
         availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.scope }).distinct(),

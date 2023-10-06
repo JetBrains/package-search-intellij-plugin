@@ -31,7 +31,7 @@ import com.intellij.codeInspection.options.OptPane.pane
 import com.intellij.codeInspection.options.OptPane.stringList
 import com.intellij.codeInspection.util.InspectionMessage
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.toNioPath
+import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -41,7 +41,6 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
-import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.Nls
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -53,8 +52,10 @@ abstract class PackageSearchInspection : LocalInspectionTool() {
         manager: InspectionManager,
         isOnTheFly: Boolean
     ): Array<ProblemDescriptor> {
+        val path = file.virtualFile.toNioPathOrNull() ?: return emptyArray()
+
         val moduleData = file.project.PackageSearchProjectService
-            .moduleDataByBuildFile.value[file.virtualFile.path.toNioPath()] ?: return emptyArray()
+            .moduleDataByBuildFile.value[path] ?: return emptyArray()
 
         val problemsHolder = ProblemsHolder(manager, file, isOnTheFly)
 
