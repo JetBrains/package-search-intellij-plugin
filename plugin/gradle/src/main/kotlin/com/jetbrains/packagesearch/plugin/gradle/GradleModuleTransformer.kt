@@ -26,7 +26,16 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transformLatest
 import com.intellij.openapi.module.Module as NativeModule
 
-abstract class BaseGradleModuleProvider : PackageSearchModuleProvider {
+@Deprecated(
+    "Use BaseGradleModuleProvider instead",
+    ReplaceWith(
+        "BaseGradleModuleProvider",
+        "com.jetbrains.packagesearch.plugin.gradle.BaseGradleModuleProvider"
+    )
+)
+typealias BaseGradleModuleProvider = AbstractGradleModuleProvider
+
+abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
 
     override fun provideModule(
         context: PackageSearchModuleBuilderContext,

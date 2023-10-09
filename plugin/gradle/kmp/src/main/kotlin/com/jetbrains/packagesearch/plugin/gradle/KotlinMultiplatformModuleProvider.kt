@@ -30,7 +30,7 @@ import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.kotlinMultiplatform
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
-class KotlinMultiplatformModuleProvider : BaseGradleModuleProvider() {
+class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
 
     override suspend fun FlowCollector<PackageSearchModuleData?>.transform(
         module: Module,

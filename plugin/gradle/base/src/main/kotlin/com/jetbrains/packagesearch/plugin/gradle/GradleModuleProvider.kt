@@ -15,7 +15,7 @@ import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.api.v3.search.libraryElements
 
-class GradleModuleProvider : BaseGradleModuleProvider() {
+class GradleModuleProvider : AbstractGradleModuleProvider() {
 
     override suspend fun FlowCollector<PackageSearchModuleData?>.transform(
         module: Module,
