@@ -62,6 +62,7 @@ fun PackageSearchPackagePanel(
 
     var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }
 
+
     var selectedModules by remember { mutableStateOf<List<PackageSearchModuleData>>(emptyList()) }
     var searchResults by remember { mutableStateOf<SearchData.Results>(SearchData.Results.Empty) }
     val selectedModulesIdentity by derivedStateOf {
@@ -82,6 +83,18 @@ fun PackageSearchPackagePanel(
 
     val packageGroups by derivedStateOf {
         declaredPackageGroups + remotePackageGroup
+    }
+
+    // we need to refresh side panel on new tree emission cause something might have changed
+    remember(selectedModules) {
+        val infoBoxValue = infoBoxDetail as? InfoBoxDetail.Package.DeclaredPackage
+        if (infoBoxValue != null) {
+            infoBoxDetail = declaredPackageGroups.value
+                .firstOrNull() { it.module.identity == infoBoxValue.module.identity }
+                ?.filteredDependencies?.firstOrNull() { it.id == infoBoxValue.declaredDependency.id }
+                ?.let { InfoBoxDetail.Package.DeclaredPackage(it, infoBoxValue.module, infoBoxValue.dependencyManager) }
+        }
+
     }
 
     @Composable
@@ -124,7 +137,7 @@ fun PackageSearchPackagePanel(
                             Column(
                                 modifier = Modifier.verticalScroll(infoBoxScrollState),
                             ) {
-                                PackageSearchInfoBox(infoBoxDetail, selectedModules.map { it.module })
+                                PackageSearchInfoBox(infoBoxDetail, selectedModules)
                             }
                             Box(modifier = Modifier.matchParentSize()) {
                                 VerticalScrollbar(

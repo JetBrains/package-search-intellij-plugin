@@ -54,3 +54,5 @@ fun List<PackageSearchModuleVariant.Attribute>.flatten() =
             is PackageSearchModuleVariant.Attribute.StringAttribute -> listOf(it.value)
         }
     }.toSet()
+
+

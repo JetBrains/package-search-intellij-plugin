@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.ui.model
 
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -13,7 +14,8 @@ sealed interface InfoBoxDetail {
 
         data class DeclaredPackage(
             val declaredDependency: PackageSearchDeclaredPackage,
-            val module: PackageSearchModule
+            val module: PackageSearchModule,
+            val dependencyManager: PackageSearchDependencyManager,
         ) : Package
     }
 

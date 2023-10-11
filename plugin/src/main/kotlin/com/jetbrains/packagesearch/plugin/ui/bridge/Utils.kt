@@ -1,9 +1,13 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.res.ResourceLoader
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
+import java.awt.Cursor
 import java.awt.Desktop
 import java.io.InputStream
 import java.net.URI
@@ -149,3 +153,4 @@ fun RawJarResourceLoader(builder: JarPathBuilder.() -> Unit) =
 
 
 
+fun Modifier.pointerChangeToHandModifier() = this.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))

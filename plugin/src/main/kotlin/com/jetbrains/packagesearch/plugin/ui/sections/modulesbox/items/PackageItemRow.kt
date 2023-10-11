@@ -135,7 +135,6 @@ fun PackageRow(
                 Row(Modifier.defaultMinSize(60.dp), horizontalArrangement = Arrangement.End) {
                     mainActionContent?.invoke()
                 }
-                var hovered by remember(key1 = actionPopupId) { mutableStateOf(false) }
                 var globalPopupId by LocalGlobalPopupIdState.current
                 val bgColor = remember(IntelliJTheme.isDark) { JBColor.background().toComposeColor() }
                 val borderColor = remember(IntelliJTheme.isDark) { JBColor.border().toComposeColor() }

@@ -1,13 +1,13 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
-import com.jetbrains.packagesearch.plugin.core.data.IconProvider
-import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
 sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchDeclaredPackage.WithVariant {
@@ -41,6 +41,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
     ) : PackageSearchKotlinMultiplatformDeclaredDependency(), PackageSearchDeclaredMavenPackage {
         override val scope
             get() = configuration
+
     }
 
     @Serializable
@@ -53,7 +54,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val declarationIndexes: DependencyDeclarationIndexes,
         override val variantName: String,
         override val displayName: String,
-        val name: String
+        val name: String,
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon
             get() = IconProvider.Icons.COCOAPODS
@@ -75,10 +76,11 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val variantName: String,
         val configuration: String,
         override val displayName: String,
-        val name: String
+        val name: String,
     ) : PackageSearchKotlinMultiplatformDeclaredDependency() {
         override val icon
             get() = IconProvider.Icons.NPM
+
         override val scope: String
             get() = configuration
         override val coordinates: String

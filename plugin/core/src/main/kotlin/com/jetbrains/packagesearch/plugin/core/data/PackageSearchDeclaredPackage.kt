@@ -24,6 +24,7 @@ interface PackageSearchDeclaredPackage : IconProvider {
 
     fun getUpdateData(newVersion: String?, newScope: String? = scope): UpdatePackageData
     fun getRemoveData(): RemovePackageData
+
 }
 
 interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {
@@ -49,3 +50,10 @@ val PackageSearchDeclaredPackage.latestStableOrNull
         it.versions.latestStable
             ?.takeIf { it.normalized > declaredVersion }
     }
+
+fun ApiPackage.getAvailableVersions(onlyStable: Boolean = false) =
+    versions
+        .all
+        .values
+        .map { it.normalized }
+        .filter { if (onlyStable) it.isStable else true }

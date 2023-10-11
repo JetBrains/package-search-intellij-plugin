@@ -2,7 +2,6 @@ package com.jetbrains.packagesearch.plugin.ui.model
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -19,8 +18,10 @@ import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
+import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
 import com.jetbrains.packagesearch.plugin.core.utils.getIcon
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
@@ -137,9 +138,9 @@ class PackageSearchPackageItemListBuilder {
                             horizontalArrangement = Arrangement.End
                         ) {
                             ScopeSelectionDropdown(
-                                group.module.availableScopes,
-                                declaredDependency.scope,
-                                group.module.dependencyMustHaveAScope
+                                availableScope = group.module.availableScopes,
+                                actualScope = declaredDependency.scope,
+                                mustHaveScope = group.module.dependencyMustHaveAScope
                             ) { newScope: String? ->
                                 group.dependencyManager.updateDependencies(
                                     context = service,
@@ -153,16 +154,11 @@ class PackageSearchPackageItemListBuilder {
                             }
                         }
 
-
                         val onlyStable = LocalIsOnlyStableVersions.current.value
                         val declaredVersion = declaredDependency.declaredVersion
                         val availableVersions =
                             declaredDependency.remoteInfo
-                                ?.versions
-                                ?.all
-                                ?.values
-                                ?.map { it.normalized }
-                                ?.filter { if (onlyStable) it.isStable else true }
+                                ?.getAvailableVersions(onlyStable)
                                 ?.let { it - declaredDependency.declaredVersion }
                                 ?: emptyList()
 
@@ -173,6 +169,7 @@ class PackageSearchPackageItemListBuilder {
                         }
 
                         VersionSelectionDropdown(
+                            modifier = Modifier.width(140.dp),
                             declaredVersion = declaredVersion,
                             availableVersions = availableVersions,
                             latestVersion = latestVersion
@@ -183,26 +180,23 @@ class PackageSearchPackageItemListBuilder {
                             )
                         }
                     },
-                    infoBoxDetail = InfoBoxDetail.Package.DeclaredPackage(declaredDependency, group.module),
+                    infoBoxDetail = InfoBoxDetail.Package.DeclaredPackage(
+                        declaredDependency,
+                        group.module,
+                        group.dependencyManager,
+                    ),
                     id = "$index ${group.id} ${declaredDependency.id}",
                     mainActionContent = {
-                        val newVersion = declaredDependency.evaluateUpgrade()?.versionName
-                        if (newVersion != null) {
-                            PackageActionLink(
-                                PackageSearchBundle.message(
-                                    "packagesearch.ui.toolwindow.packages.actions.upgrade"
-                                )
-                            ) {
-                                group.dependencyManager.updateDependencies(
-                                    context = it,
-                                    data = listOf(declaredDependency.getUpdateData(newVersion))
-                                )
-                            }
-                        }
+                        DeclaredDependencyMainActionContent(declaredDependency, group.dependencyManager)
                     },
                     popupContent = {
-                        DeclaredPackageMoreActionPopup(group, declaredDependency)
+                        DeclaredPackageMoreActionPopup(
+                            group.dependencyManager,
+                            group.module,
+                            declaredDependency
+                        )
                     }
+
                 )
             }
         }
@@ -234,50 +228,31 @@ class PackageSearchPackageItemListBuilder {
         )
         if (isGroupExpanded) {
             group.packages.forEachIndexed { index, apiPackage ->
-                addPackage(
-                    icon = apiPackage.getIcon(),
-                    title = apiPackage.name ?: apiPackage.coordinates,
-                    subtitle = apiPackage.coordinates.takeIf { apiPackage.name != null },
-                    id = buildString {
-                        append(index)
-                        append(" ")
-                        append(group.id)
-                        append(" ")
-                        append(apiPackage.id)
-                        append(" ")
-                        if (group is PackageGroup.Remote.FromVariants) {
-                            append(
-                                group.compatibleVariants
-                                    .filter { it.declaredDependencies.any { apiPackage.id == it.id } }
-                                    .joinToString { it.name }
+                val mainActionContent: @Composable () -> Unit = {
+                    val latestVersion = apiPackage.latestVersion.versionName
+                    when (group) {
+                        is PackageGroup.Remote.FromBaseModule -> PackageActionLink(
+                            PackageSearchBundle.message(
+                                "packagesearch.ui.toolwindow.packages.actions.install"
+                            )
+                        ) {
+                            group.dependencyManager.addDependency(
+                                context = it,
+                                data = group.module.getInstallData(
+                                    apiPackage = apiPackage,
+                                    selectedVersion = latestVersion,
+                                    selectedScope = group.module.defaultScope
+                                )
                             )
                         }
-                    },
-                    mainActionContent = {
-                        val latestVersion = apiPackage.latestVersion.versionName
-                        when (group) {
-                            is PackageGroup.Remote.FromBaseModule -> PackageActionLink(
-                                PackageSearchBundle.message(
-                                    "packagesearch.ui.toolwindow.packages.actions.install"
-                                )
-                            ) {
-                                group.dependencyManager.addDependency(
-                                    context = it,
-                                    data = group.module.getInstallData(
-                                        apiPackage = apiPackage,
-                                        selectedVersion = latestVersion,
-                                        selectedScope = group.module.defaultScope
-                                    )
-                                )
-                            }
 
-                            is PackageGroup.Remote.FromVariants -> {
-                                val firstPrimaryVariant =
-                                    group.compatibleVariants
-                                        .firstOrNull { it.isPrimary && it.declaredDependencies.none { it.id == apiPackage.id } }
-                                        ?: group.compatibleVariants
-                                            .firstOrNull { it.declaredDependencies.none { it.id == apiPackage.id } }
-                                        ?: return@addPackage
+                        is PackageGroup.Remote.FromVariants -> {
+                            val firstPrimaryVariant =
+                                group.compatibleVariants
+                                    .firstOrNull { it.isPrimary && it.declaredDependencies.none { it.id == apiPackage.id } }
+                                    ?: group.compatibleVariants
+                                        .firstOrNull { it.declaredDependencies.none { it.id == apiPackage.id } }
+                            if (firstPrimaryVariant != null) {
                                 val compatibleVersion = apiPackage.versions
                                     .all
                                     .asSequence()
@@ -302,34 +277,57 @@ class PackageSearchPackageItemListBuilder {
                                     }
                                 }
                             }
+                        }
 
-                            is PackageGroup.Remote.FromMultipleModules -> PackageActionLink(PackageSearchBundle.message(
+                        is PackageGroup.Remote.FromMultipleModules -> PackageActionLink(
+                            PackageSearchBundle.message(
                                 "packagesearch.ui.toolwindow.packages.actions.install"
-                            )) {
-                                group.moduleData
-                                    .forEach { (module, dependencyManager) ->
-                                        dependencyManager.addDependency(
-                                            context = it,
-                                            data = when (module) {
-                                                is PackageSearchModule.Base ->
-                                                    module.getInstallData(
-                                                        apiPackage = apiPackage,
-                                                        selectedVersion = latestVersion,
-                                                        selectedScope = module.defaultScope
-                                                    )
+                            )
+                        ) {
+                            group.moduleData
+                                .forEach { (module, dependencyManager) ->
+                                    dependencyManager.addDependency(
+                                        context = it,
+                                        data = when (module) {
+                                            is PackageSearchModule.Base ->
+                                                module.getInstallData(
+                                                    apiPackage = apiPackage,
+                                                    selectedVersion = latestVersion,
+                                                    selectedScope = module.defaultScope
+                                                )
 
-                                                is PackageSearchModule.WithVariants ->
-                                                    module.mainVariant.getInstallData(
-                                                        apiPackage = apiPackage,
-                                                        selectedVersion = latestVersion,
-                                                        selectedScope = module.defaultScope
-                                                    )
-                                            }
-                                        )
-                                    }
-                            }
+                                            is PackageSearchModule.WithVariants ->
+                                                module.mainVariant.getInstallData(
+                                                    apiPackage = apiPackage,
+                                                    selectedVersion = latestVersion,
+                                                    selectedScope = module.defaultScope
+                                                )
+                                        }
+                                    )
+                                }
+                        }
+                    }
+                }
+                addPackage(
+                    icon = apiPackage.getIcon(),
+                    title = apiPackage.name ?: apiPackage.coordinates,
+                    subtitle = apiPackage.coordinates.takeIf { apiPackage.name != null },
+                    id = buildString {
+                        append(index)
+                        append(" ")
+                        append(group.id)
+                        append(" ")
+                        append(apiPackage.id)
+                        append(" ")
+                        if (group is PackageGroup.Remote.FromVariants) {
+                            append(
+                                group.compatibleVariants
+                                    .filter { it.declaredDependencies.any { apiPackage.id == it.id } }
+                                    .joinToString { it.name }
+                            )
                         }
                     },
+                    mainActionContent = mainActionContent,
                     infoBoxDetail = InfoBoxDetail.Package.RemotePackage(apiPackage)
                 )
             }
@@ -369,6 +367,7 @@ private fun packageSearchDropdownStyle(): DropdownStyle {
 
 @Composable
 fun ScopeSelectionDropdown(
+    modifier: Modifier = Modifier,
     availableScope: List<String>,
     actualScope: String?,
     mustHaveScope: Boolean,
@@ -379,6 +378,7 @@ fun ScopeSelectionDropdown(
     val scope = LocalPackageSearchService.current.coroutineScope
 
     Dropdown(
+        modifier = modifier,
         enabled = !actionPerforming.isPerforming && availableScope.isNotEmpty(),
         resourceLoader = LocalResourceLoader.current,
         style = packageSearchDropdownStyle(),
@@ -438,6 +438,7 @@ fun ScopeSelectionDropdown(
 
 @Composable
 fun VersionSelectionDropdown(
+    modifier: Modifier = Modifier,
     declaredVersion: NormalizedVersion,
     availableVersions: List<NormalizedVersion>,
     latestVersion: NormalizedVersion,
@@ -447,6 +448,7 @@ fun VersionSelectionDropdown(
     var actionPerforming by LocalIsActionPerformingState.current
     val scope = LocalPackageSearchService.current.coroutineScope
     Dropdown(
+        modifier = modifier,
         enabled = !actionPerforming.isPerforming && availableVersions.isNotEmpty(),
         resourceLoader = LocalResourceLoader.current,
         style = packageSearchDropdownStyle(),
@@ -467,7 +469,7 @@ fun VersionSelectionDropdown(
                         }
                     }) {
                     Text(
-                        modifier = Modifier.defaultMinSize(140.dp, 0.dp).padding(vertical = 4.dp),
+                        modifier = modifier.padding(vertical = 4.dp),
                         textAlign = TextAlign.End,
                         text = it.versionName,
                         maxLines = 1,
@@ -490,13 +492,34 @@ fun VersionSelectionDropdown(
             }
         }
         Text(
-            modifier = Modifier.width(140.dp),
+            modifier = modifier,
             text = text,
             maxLines = 1,
             overflow = TextOverflow.Clip,
             textAlign = TextAlign.End
         )
 
+    }
+}
+
+
+@Composable
+internal fun DeclaredDependencyMainActionContent(
+    declaredDependency: PackageSearchDeclaredPackage,
+    dependencyManager: PackageSearchDependencyManager,
+) {
+    val newVersion = declaredDependency.evaluateUpgrade()?.versionName
+    if (newVersion != null) {
+        PackageActionLink(
+            PackageSearchBundle.message(
+                "packagesearch.ui.toolwindow.packages.actions.upgrade"
+            )
+        ) {
+            dependencyManager.updateDependencies(
+                context = it,
+                data = listOf(declaredDependency.getUpdateData(newVersion))
+            )
+        }
     }
 }
 

@@ -1,12 +1,12 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
+import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
-import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 
 @Serializable
 @SerialName("gradle-version")

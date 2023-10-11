@@ -27,14 +27,18 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
+import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
+import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
 import kotlin.io.path.absolutePathString
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -50,13 +54,16 @@ import org.jetbrains.jewel.bridge.retrieveStatelessIcon
 import org.jetbrains.jewel.foundation.onHover
 import org.jetbrains.jewel.intui.standalone.IntUiTheme
 import org.jetbrains.jewel.styling.LocalLazyTreeStyle
+import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 @Composable
 internal fun DeclaredPackageMoreActionPopup(
-    group: PackageGroup.Declared,
+    dependencyManager: PackageSearchDependencyManager,
+    module: PackageSearchModule,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
     borderColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") },
     backgroundColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("PopupMenu.background") },
+    onDismissRequest: () -> Unit = {},
 ) {
     val context = LocalPackageSearchService.current
     val popupOpenStatus = LocalGlobalPopupIdState.current
@@ -84,7 +91,7 @@ internal fun DeclaredPackageMoreActionPopup(
                     deleteAction(
                         isActionPerforming,
                         context,
-                        group,
+                        dependencyManager = dependencyManager,
                         packageSearchDeclaredPackage,
                         popupOpenStatus,
                         service
@@ -100,7 +107,7 @@ internal fun DeclaredPackageMoreActionPopup(
             Icon(removeIcon, contentDescription = null)
             Text(text = PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.remove.text"))
         }
-        group.module.buildFilePath?.let {
+        module.buildFilePath?.let {
             Divider(color = borderColor)
             val isGoToSourceHovered = remember { mutableStateOf(false) }
             val virtualFile = LocalFileSystem.getInstance().findFileByPath(it.absolutePathString()) ?: return@let
@@ -115,6 +122,7 @@ internal fun DeclaredPackageMoreActionPopup(
                     ) {
                         goToSource(service, virtualFile, packageSearchDeclaredPackage)
                         popupOpenStatus.value = null
+                        onDismissRequest()
                     },
                 horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically
             ) {
@@ -152,7 +160,7 @@ private fun goToSource(
 private fun deleteAction(
     isActionPerforming: MutableState<ActionState>,
     context: PackageSearchProjectService,
-    group: PackageGroup.Declared,
+    dependencyManager: PackageSearchDependencyManager,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
     popupOpenStatus: MutableState<String?>,
     service: PackageSearchProjectService,
@@ -160,7 +168,7 @@ private fun deleteAction(
     val id = UUID.random().text
     isActionPerforming.value = ActionState(true, id)
     context.coroutineScope.launch {
-        group.dependencyManager.removeDependency(
+        dependencyManager.removeDependency(
             context,
             packageSearchDeclaredPackage.getRemoveData(),
         )
@@ -188,3 +196,120 @@ private fun Modifier.hoverBackground(
     .clip(shape = RoundedCornerShape(4.dp))
     .background(if (hoveredState.value) hoveredColor else unhoveredColor)
     .padding(4.dp)
+
+@Composable
+fun RemotePackageMorePopupContent(
+    apipakage: ApiPackage,
+    selectedModule: PackageSearchModuleData,
+    onDismissRequest: () -> Unit,
+) {
+    val context = LocalPackageSearchService.current
+    val popupOpenStatus = LocalGlobalPopupIdState.current
+    val service = LocalPackageSearchService.current
+    val isActionPerforming = LocalIsActionPerformingState.current
+    val onlyStable = LocalIsOnlyStableVersions.current.value
+    Column {
+        if (selectedModule.module is PackageSearchModule.WithVariants) {
+            (selectedModule.module as PackageSearchModule.WithVariants).variants.forEach {
+                val isActionHovered = remember { mutableStateOf(false) }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .hoverBackground(isActionHovered)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() },
+                            enabled = !isActionPerforming.value.isPerforming
+                        ) {
+                            val packageInstallData = it.value.getInstallData(
+                                apipakage,
+                                apipakage.getLatestVersion(onlyStable).versionName
+                            )
+                            addAction(
+                                isActionPerforming,
+                                context,
+                                selectedModule.dependencyManager,
+                                packageInstallData,
+                                popupOpenStatus,
+                                service
+                            )
+                            onDismissRequest()
+                        },
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.addTo.text", it.value.name))
+                }
+            }
+
+        } else {
+            val isActionHovered = remember { mutableStateOf(false) }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .hoverBackground(isActionHovered)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        enabled = !isActionPerforming.value.isPerforming
+                    ) {
+                        val installData = (selectedModule.module as PackageSearchModule.Base)
+                            .getInstallData(
+                                apipakage,
+                                apipakage.getLatestVersion(onlyStable).versionName
+                            )
+                        addAction(
+                            isActionPerforming,
+                            context,
+                            selectedModule.dependencyManager,
+                            installData,
+                            popupOpenStatus,
+                            service
+                        )
+                    },
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    PackageSearchBundle.message(
+                        "packagesearch.ui.toolwindow.actions.addTo.text",
+                        (selectedModule.module as PackageSearchModule.WithVariants).mainVariant.name
+                    )
+                )
+            }
+
+        }
+    }
+
+
+}
+
+private fun addAction(
+    isActionPerforming: MutableState<ActionState>,
+    context: PackageSearchProjectService,
+    dependencyManager: PackageSearchDependencyManager,
+    installPackageData: InstallPackageData,
+    popupOpenStatus: MutableState<String?>,
+    service: PackageSearchProjectService,
+) {
+    val id = UUID.random().text
+    isActionPerforming.value = ActionState(true, id)
+    context.coroutineScope.launch {
+        dependencyManager.addDependency(
+            context,
+            installPackageData,
+        )
+    }.invokeOnCompletion {
+        it?.let {
+            System.err.println(it.stackTraceToString())
+        }
+        popupOpenStatus.value = null
+    }
+    service.coroutineScope.launch {
+        delay(5.seconds)
+        if (isActionPerforming.value.actionId == id) {
+            System.err.println("Remove action has been cancelled due a time out")
+            isActionPerforming.value = ActionState(false)
+        }
+    }
+}
