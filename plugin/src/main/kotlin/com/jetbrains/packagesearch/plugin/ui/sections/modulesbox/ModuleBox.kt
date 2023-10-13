@@ -13,6 +13,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
 import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
+import org.jetbrains.jewel.Orientation
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.intui.standalone.IntUiTheme
 
@@ -34,7 +35,7 @@ fun PackageSearchCentralPanel(
                 .sumOf { it.size },
             onSearchQueryChange = onSearchQueryChange,
         )
-        Divider(Modifier.fillMaxWidth(), color = borderColor)
+        Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth(), color = borderColor)
 
         Box {
             when {

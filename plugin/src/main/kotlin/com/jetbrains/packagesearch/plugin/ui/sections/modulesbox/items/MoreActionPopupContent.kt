@@ -48,6 +48,7 @@ import org.jetbrains.jewel.Divider
 import org.jetbrains.jewel.Icon
 import org.jetbrains.jewel.IntelliJTheme
 import org.jetbrains.jewel.LocalResourceLoader
+import org.jetbrains.jewel.Orientation
 import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.bridge.SwingBridgeService
 import org.jetbrains.jewel.bridge.retrieveStatelessIcon
@@ -108,7 +109,7 @@ internal fun DeclaredPackageMoreActionPopup(
             Text(text = PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.remove.text"))
         }
         module.buildFilePath?.let {
-            Divider(color = borderColor)
+            Divider(orientation = Orientation.Horizontal, color = borderColor)
             val isGoToSourceHovered = remember { mutableStateOf(false) }
             val virtualFile = LocalFileSystem.getInstance().findFileByPath(it.absolutePathString()) ?: return@let
             Row(

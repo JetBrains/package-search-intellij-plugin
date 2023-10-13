@@ -429,7 +429,8 @@ fun ScopeSelectionDropdown(
             Text(
                 text = actualScope ?: PackageSearchBundle.message("packagesearch.ui.missingScope"),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Clip,
+                textAlign = TextAlign.End
             )
         },
     )
@@ -442,7 +443,7 @@ fun VersionSelectionDropdown(
     declaredVersion: NormalizedVersion,
     availableVersions: List<NormalizedVersion>,
     latestVersion: NormalizedVersion,
-    updateLambda: suspend (newScope: String) -> Unit,
+    updateLambda: suspend (newVersion: String) -> Unit,
 ) {
     val actionId = UUID.randomUUID().toString()
     var actionPerforming by LocalIsActionPerformingState.current
@@ -492,7 +493,6 @@ fun VersionSelectionDropdown(
             }
         }
         Text(
-            modifier = modifier,
             text = text,
             maxLines = 1,
             overflow = TextOverflow.Clip,
