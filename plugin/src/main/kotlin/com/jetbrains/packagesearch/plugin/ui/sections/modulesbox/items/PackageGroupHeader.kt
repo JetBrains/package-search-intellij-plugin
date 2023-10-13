@@ -58,7 +58,7 @@ fun PackageGroupHeader(
             Box(Modifier.onClick { toggleCollapse() }) {
                 val iconResource =
                     remember(isGroupExpanded) {
-                        if (!isGroupExpanded) "icons/intui/chevronRight.svg" else "icons/intui/chevronDown.svg"
+                        if (!isGroupExpanded) "general/chevron-right.svg" else "general/chevron-down.svg"
                     }
                 Icon(
                     painter = painterResource(iconResource, LocalResourceLoader.current),

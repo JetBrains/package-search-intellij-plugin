@@ -399,7 +399,8 @@ fun ScopeSelectionDropdown(
                     Text(
                         text = PackageSearchBundle.message("packagesearch.ui.missingScope"),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.End
                     )
                 }
             }
