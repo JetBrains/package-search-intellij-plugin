@@ -52,8 +52,6 @@ val PackageSearchDeclaredPackage.latestStableOrNull
     }
 
 fun ApiPackage.getAvailableVersions(onlyStable: Boolean = false) =
-    versions
-        .all
-        .values
-        .map { it.normalized }
+    versions.all
+        .map { it.normalizedVersion }
         .filter { if (onlyStable) it.isStable else true }

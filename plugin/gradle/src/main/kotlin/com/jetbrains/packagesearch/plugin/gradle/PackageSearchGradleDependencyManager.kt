@@ -14,7 +14,6 @@ import com.jetbrains.packagesearch.plugin.core.data.RemovePackageData
 import com.jetbrains.packagesearch.plugin.core.data.UpdatePackageData
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
-import java.nio.file.Paths
 import kotlin.io.path.writeText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -78,7 +77,7 @@ class PackageSearchGradleDependencyManager(
         val descriptor = UnifiedDependency(
             groupId = data.apiPackage.groupId,
             artifactId = data.apiPackage.artifactId,
-            version = data.selectedVersion,
+            version = data.selectedVersion.normalized.versionName,
             configuration = data.selectedConfiguration
         )
         if (gradleModel.buildFilePath == null) {

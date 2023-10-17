@@ -39,6 +39,7 @@ import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
+import com.jetbrains.packagesearch.plugin.utils.logError
 import kotlin.io.path.absolutePathString
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -200,7 +201,7 @@ private fun Modifier.hoverBackground(
 
 @Composable
 fun RemotePackageMorePopupContent(
-    apipakage: ApiPackage,
+    apiPackage: ApiPackage,
     selectedModule: PackageSearchModuleData,
     onDismissRequest: () -> Unit,
 ) {
@@ -210,8 +211,48 @@ fun RemotePackageMorePopupContent(
     val isActionPerforming = LocalIsActionPerformingState.current
     val onlyStable = LocalIsOnlyStableVersions.current.value
     Column {
-        if (selectedModule.module is PackageSearchModule.WithVariants) {
-            (selectedModule.module as PackageSearchModule.WithVariants).variants.forEach {
+        when (val module = selectedModule.module) {
+            is PackageSearchModule.WithVariants -> {
+                module.variants.forEach {
+                    val isActionHovered = remember { mutableStateOf(false) }
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .hoverBackground(isActionHovered)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() },
+                                enabled = !isActionPerforming.value.isPerforming
+                            ) {
+                                val packageInstallData = it.value.getInstallData(
+                                    apiPackage,
+                                    apiPackage.getLatestVersion(onlyStable)
+                                )
+                                addAction(
+                                    isActionPerforming,
+                                    context,
+                                    selectedModule.dependencyManager,
+                                    packageInstallData,
+                                    popupOpenStatus,
+                                    service
+                                )
+                                onDismissRequest()
+                            },
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            PackageSearchBundle.message(
+                                "packagesearch.ui.toolwindow.actions.addTo.text",
+                                it.value.name
+                            )
+                        )
+                    }
+                }
+
+            }
+
+            is PackageSearchModule.Base -> {
                 val isActionHovered = remember { mutableStateOf(false) }
                 Row(
                     Modifier
@@ -222,63 +263,26 @@ fun RemotePackageMorePopupContent(
                             interactionSource = remember { MutableInteractionSource() },
                             enabled = !isActionPerforming.value.isPerforming
                         ) {
-                            val packageInstallData = it.value.getInstallData(
-                                apipakage,
-                                apipakage.getLatestVersion(onlyStable).versionName
+                            val installData = module.getInstallData(
+                                apiPackage,
+                                apiPackage.getLatestVersion(onlyStable)
                             )
                             addAction(
                                 isActionPerforming,
                                 context,
                                 selectedModule.dependencyManager,
-                                packageInstallData,
+                                installData,
                                 popupOpenStatus,
                                 service
                             )
-                            onDismissRequest()
                         },
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.addTo.text", it.value.name))
+                    Text(PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text"))
                 }
-            }
 
-        } else {
-            val isActionHovered = remember { mutableStateOf(false) }
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .hoverBackground(isActionHovered)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                        enabled = !isActionPerforming.value.isPerforming
-                    ) {
-                        val installData = (selectedModule.module as PackageSearchModule.Base)
-                            .getInstallData(
-                                apipakage,
-                                apipakage.getLatestVersion(onlyStable).versionName
-                            )
-                        addAction(
-                            isActionPerforming,
-                            context,
-                            selectedModule.dependencyManager,
-                            installData,
-                            popupOpenStatus,
-                            service
-                        )
-                    },
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    PackageSearchBundle.message(
-                        "packagesearch.ui.toolwindow.actions.addTo.text",
-                        (selectedModule.module as PackageSearchModule.WithVariants).mainVariant.name
-                    )
-                )
             }
-
         }
     }
 
@@ -302,7 +306,7 @@ private fun addAction(
         )
     }.invokeOnCompletion {
         it?.let {
-            System.err.println(it.stackTraceToString())
+            logError("Error while adding dependency:\n$installPackageData", it)
         }
         popupOpenStatus.value = null
     }

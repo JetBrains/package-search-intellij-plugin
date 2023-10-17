@@ -2,7 +2,6 @@
 
 package com.jetbrains.packagesearch.plugin.core.utils
 
-import com.intellij.buildsystem.model.DeclaredDependency
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.AreaInstance
@@ -13,6 +12,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryManager
 import com.intellij.openapi.util.registry.RegistryValue
@@ -60,14 +60,15 @@ fun <T : Any, R> MessageBus.flow(
 
 val Project.filesChangedEventFlow: Flow<List<VFileEvent>>
     get() = callbackFlow {
+        val disposable = Disposer.newDisposable()
         VirtualFileManager.getInstance().addAsyncFileListener(
             {
                 trySend(it.toList())
                 null
             },
-            this@filesChangedEventFlow
+            disposable
         )
-        awaitClose { }
+        awaitClose { disposable.dispose() }
     }
 
 fun VirtualFileListener(action: (VirtualFileEvent) -> Unit) =
@@ -101,9 +102,6 @@ fun watchExternalFileChanges(path: Path): Flow<Unit> {
 
 fun <T> Flow<T>.mapUnit(): Flow<Unit> =
     map {}
-
-val DeclaredDependency.packageId: String
-    get() = "maven:${coordinates.groupId}:${coordinates.artifactId}"
 
 fun <T : Any> ExtensionPointName<T>.extensionsFlow(
     areaInstance: AreaInstance? = null,
@@ -157,12 +155,10 @@ fun ApiPackage.asMavenApiPackage() =
                 "instead of '${ApiMavenPackage::class.simpleName}'"
     )
 
-fun ApiPackage.getIcon(forVersion: String? = null): IconProvider.Icon = when (this) {
-    is ApiMavenPackage -> when (versions.all[forVersion] ?: versions.latest) {
-        is ApiMavenPackage.GradleVersion -> IconProvider.Icons.GRADLE
-        else -> IconProvider.Icons.MAVEN
+val ApiPackage.icon: IconProvider.Icon
+    get() = when (this) {
+        is ApiMavenPackage -> IconProvider.Icons.MAVEN
     }
-}
 
 fun <T> Flow<T>.replayOn(vararg replayFlows: Flow<*>) = channelFlow {
     val mutex = Mutex()

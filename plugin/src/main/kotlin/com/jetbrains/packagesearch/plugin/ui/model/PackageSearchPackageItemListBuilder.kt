@@ -22,7 +22,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManag
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
-import com.jetbrains.packagesearch.plugin.core.utils.getIcon
+import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
@@ -229,7 +229,7 @@ class PackageSearchPackageItemListBuilder {
         if (isGroupExpanded) {
             group.packages.forEachIndexed { index, apiPackage ->
                 val mainActionContent: @Composable () -> Unit = {
-                    val latestVersion = apiPackage.latestVersion.versionName
+                    val latestVersion = apiPackage.latestVersion
                     when (group) {
                         is PackageGroup.Remote.FromBaseModule -> PackageActionLink(
                             PackageSearchBundle.message(
@@ -253,28 +253,21 @@ class PackageSearchPackageItemListBuilder {
                                     ?: group.compatibleVariants
                                         .firstOrNull { it.declaredDependencies.none { it.id == apiPackage.id } }
                             if (firstPrimaryVariant != null) {
-                                val compatibleVersion = apiPackage.versions
-                                    .all
-                                    .asSequence()
-                                    .filter { if (isStableOnly) it.value.normalized.isStable else true }
-                                    .firstOrNull { firstPrimaryVariant.isCompatible(apiPackage, it.key) }
-                                    ?.key
-                                if (compatibleVersion != null) {
-                                    PackageActionLink(
-                                        PackageSearchBundle.message(
-                                            "packagesearch.ui.toolwindow.actions.addTo.text", firstPrimaryVariant.name
-                                        )
-                                    ) {
-                                        group.dependencyManager.addDependency(
-                                            context = it,
-                                            data = firstPrimaryVariant
-                                                .getInstallData(
-                                                    apiPackage = apiPackage,
-                                                    selectedVersion = compatibleVersion,
-                                                    selectedScope = group.module.defaultScope
-                                                )
-                                        )
-                                    }
+                                PackageActionLink(
+                                    PackageSearchBundle.message(
+                                        "packagesearch.ui.toolwindow.actions.addTo.text",
+                                        firstPrimaryVariant.name
+                                    )
+                                ) {
+                                    group.dependencyManager.addDependency(
+                                        context = it,
+                                        data = firstPrimaryVariant
+                                            .getInstallData(
+                                                apiPackage = apiPackage,
+                                                selectedVersion = latestVersion,
+                                                selectedScope = group.module.defaultScope
+                                            )
+                                    )
                                 }
                             }
                         }
@@ -309,7 +302,7 @@ class PackageSearchPackageItemListBuilder {
                     }
                 }
                 addPackage(
-                    icon = apiPackage.getIcon(),
+                    icon = apiPackage.icon,
                     title = apiPackage.name ?: apiPackage.coordinates,
                     subtitle = apiPackage.coordinates.takeIf { apiPackage.name != null },
                     id = buildString {

@@ -29,11 +29,10 @@ import org.jetbrains.jewel.ExternalLink
 import org.jetbrains.jewel.LocalResourceLoader
 import org.jetbrains.jewel.OutlinedButton
 import org.jetbrains.jewel.Text
-import org.jetbrains.packagesearch.api.v3.ApiMavenVersion
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.LicenseFile
 import org.jetbrains.packagesearch.api.v3.Licenses
-import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 
 @Composable
@@ -125,9 +124,7 @@ internal fun RowScope.LicenseLinks(
 }
 
 
-fun ApiPackage?.getPackageTypeName(declaredVersion: NormalizedVersion) =
-    this?.versions?.all?.get(declaredVersion.versionName)?.let {
-        when (it) {
-            is ApiMavenVersion -> "maven"
-        }
-    } ?: PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.columns.typeUnknown")
+val ApiPackage.packageTypeName
+    get() = when (this) {
+        is ApiMavenPackage -> "maven"
+    }

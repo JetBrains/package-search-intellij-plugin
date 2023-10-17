@@ -2,16 +2,12 @@
 
 package com.jetbrains.packagesearch.plugin.maven
 
-import com.intellij.buildsystem.model.DeclaredDependency
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.pom.Navigatable
-import com.intellij.psi.PsiElement
-import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlText
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
@@ -22,7 +18,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import com.jetbrains.packagesearch.plugin.core.utils.flow
-import com.jetbrains.packagesearch.plugin.core.utils.getIcon
+import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
@@ -52,24 +48,6 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 
 suspend fun Project.findMavenProjectFor(module: Module): MavenProject? =
     MavenProjectsManager.getInstance(this).let { readAction { it.findProject(module) } }
-
-suspend fun DeclaredDependency.evaluateDeclaredIndexes() = readAction {
-    val children: Array<PsiElement> = (psiElement as? XmlTag)
-        ?.children
-        ?: return@readAction null
-    val xmlTag = children.filterIsInstance<XmlText>()
-        .find { it is Navigatable && it.canNavigate() }
-        ?: return@readAction null
-    DependencyDeclarationIndexes(
-        declarationStartIndex = xmlTag.textOffset,
-        versionStartIndex = children.filterIsInstance<XmlTag>()
-            .find { it.name == "version" }
-            ?.children
-            ?.filterIsInstance<XmlText>()
-            ?.firstOrNull()
-            ?.textOffset
-    )
-}
 
 fun VirtualFile.asRegularFile() = File(path)
 fun String.suffixIfNot(s: String) = if (endsWith(s)) this else this + s
@@ -201,7 +179,7 @@ suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderCo
                 artifactId = declaredDependency.artifactId,
                 scope = declaredDependency.scope,
                 declarationIndexes = declaredDependency.indexes,
-                icon = remoteInfo[packageId]?.getIcon(declaredDependency.version) ?: IconProvider.Icons.MAVEN
+                icon = remoteInfo[packageId]?.icon ?: IconProvider.Icons.MAVEN
             )
         }
 }

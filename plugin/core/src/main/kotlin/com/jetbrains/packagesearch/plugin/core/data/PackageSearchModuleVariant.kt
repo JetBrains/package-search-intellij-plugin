@@ -2,6 +2,7 @@ package com.jetbrains.packagesearch.plugin.core.data
 
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
 interface PackageSearchModuleVariant : PackageInstallDataProvider {
@@ -34,7 +35,7 @@ interface PackageSearchModuleVariant : PackageInstallDataProvider {
         data class NestedAttribute(override val value: String, val children: List<Attribute>) : Attribute
     }
 
-    fun isCompatible(dependency: ApiPackage, version: String): Boolean
+    fun isCompatible(dependency: ApiPackage, version: ApiPackageVersion): Boolean
 
 }
 
@@ -46,13 +47,3 @@ fun PackageSearchModuleVariant.Attribute.NestedAttribute.flatten() = buildSet {
         queue.addAll(next.children.filterIsInstance<PackageSearchModuleVariant.Attribute.NestedAttribute>())
     }
 }
-
-fun List<PackageSearchModuleVariant.Attribute>.flatten() =
-    flatMap {
-        when (it) {
-            is PackageSearchModuleVariant.Attribute.NestedAttribute -> it.flatten()
-            is PackageSearchModuleVariant.Attribute.StringAttribute -> listOf(it.value)
-        }
-    }.toSet()
-
-

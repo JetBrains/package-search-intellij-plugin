@@ -40,7 +40,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.ScopeSelectionDropdown
 import com.jetbrains.packagesearch.plugin.ui.model.VersionSelectionDropdown
 import com.jetbrains.packagesearch.plugin.ui.sections.infobox.DefaultActionButton
 import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageOverviewNameId
-import com.jetbrains.packagesearch.plugin.ui.sections.infobox.getPackageTypeName
+import com.jetbrains.packagesearch.plugin.ui.sections.infobox.packageTypeName
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.latestVersion
@@ -174,7 +174,7 @@ fun DeclaredPackageOverviewInfo(
                     VersionSelectionDropdown(
                         declaredVersion = selectedPackage.declaredDependency.declaredVersion,
                         availableVersions = availableVersion,
-                        latestVersion = latestVersion,
+                        latestVersion = latestVersion.normalized,
                         updateLambda = { newVersion ->
                             selectedPackage.dependencyManager.updateDependencies(
                                 context = service,
@@ -237,8 +237,8 @@ fun DeclaredPackageOverviewInfo(
                     val typeName = selectedPackage
                         .declaredDependency
                         .remoteInfo
-                        .getPackageTypeName(selectedPackage.declaredDependency.declaredVersion)
-                    Text(typeName)
+                        ?.packageTypeName
+                    Text(typeName ?: PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.columns.typeUnknown"))
                 }
 
             }

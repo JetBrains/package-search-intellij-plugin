@@ -52,30 +52,13 @@ class PackageSearchApiPackageCache(
 
         if (cachedEntry != null) {
             if (cachedEntry.lastUpdate + maxAge > Clock.System.now()) {
-                val ids = cachedEntry.packagesIds.toSet()
-                    .takeIf { it.isNotEmpty() }
-                    ?: return emptyList()
-                return getPackageInfoByIds(ids).values.toList()
+                return cachedEntry.packages
             }
             searchCache.remove(NitriteFilters.Object.eq(ApiSearchEntry::searchHash, sha))
         }
 
-        val searchResult = apiClient.searchPackageIds(request)
-        searchCache.insert(ApiSearchEntry(searchResult, sha, request))
-        val packages = searchResult.takeIf { it.isNotEmpty() }
-            ?.let { getPackageInfoByIds(it.toSet()).values.toList() }
-            ?: emptyList()
-        if (packages.isNotEmpty()) {
-            apiPackageCache.remove(
-                NitriteFilters.Object.`in`(
-                    path = ApiPackageCacheEntry::data / ApiPackage::id,
-                    value = searchResult
-                )
-            )
-            apiPackageCache.insert(packages.map { it.asCacheEntry() })
-            return packages
-        }
-        return emptyList()
+        return apiClient.searchPackages(request)
+            .also { searchCache.insert(ApiSearchEntry(it, sha, request)) }
     }
 
     private suspend fun getPackages(

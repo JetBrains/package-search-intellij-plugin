@@ -59,6 +59,7 @@ import org.jetbrains.jewel.intui.standalone.IntUiTheme
 import org.jetbrains.jewel.styling.LocalLazyTreeStyle
 import org.jetbrains.jewel.styling.LocalLinkStyle
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion.Missing
 
@@ -244,9 +245,9 @@ fun PackageSearchDeclaredPackage.evaluateUpgrade(stableOnly: Boolean): Normalize
 fun PackageSearchDeclaredPackage.evaluateUpgrade(): NormalizedVersion? =
     evaluateUpgrade(LocalIsOnlyStableVersions.current.value)
 
-fun ApiPackage.getLatestVersion(stableOnly: Boolean): NormalizedVersion =
-    versions.latestStable?.normalized?.takeIf { stableOnly } ?: versions.latest.normalized
+fun ApiPackage.getLatestVersion(stableOnly: Boolean): ApiPackageVersion =
+    versions.latestStable?.takeIf { stableOnly } ?: versions.latest
 
-val ApiPackage.latestVersion: NormalizedVersion
+val ApiPackage.latestVersion: ApiPackageVersion
     @Composable
     get() = getLatestVersion(LocalIsOnlyStableVersions.current.value)

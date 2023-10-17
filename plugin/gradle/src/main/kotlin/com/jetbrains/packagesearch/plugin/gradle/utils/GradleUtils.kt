@@ -13,7 +13,7 @@ import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
-import com.jetbrains.packagesearch.plugin.core.utils.getIcon
+import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
@@ -136,7 +136,7 @@ suspend fun Module.getDeclaredDependencies(
                 latestVersion = remoteInfo[declaredDependency.packageId]?.versions?.latest?.normalized
                     ?: NormalizedVersion.Missing,
                 remoteInfo = remoteInfo[declaredDependency.packageId]?.asMavenApiPackage(),
-                icon = remoteInfo[declaredDependency.packageId]?.getIcon(declaredDependency.version)
+                icon = remoteInfo[declaredDependency.packageId]?.icon
                     ?: IconProvider.Icons.MAVEN,
                 module = declaredDependency.groupId,
                 name = declaredDependency.artifactId,

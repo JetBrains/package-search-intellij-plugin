@@ -6,8 +6,8 @@ import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationIn
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
-import org.jetbrains.packagesearch.api.v3.ApiMavenVersion
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
 @Serializable
@@ -35,14 +35,14 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val variantTerminology: PackageSearchModuleVariant.Terminology
             get() = TERMINOLOGY
 
-        override fun isCompatible(dependency: ApiPackage, version: String): Boolean = when (dependency) {
-            is ApiMavenPackage -> when (val apiMavenVersion = dependency.versions.all[version]) {
+        override fun isCompatible(dependency: ApiPackage, version: ApiPackageVersion): Boolean = when (dependency) {
+            is ApiMavenPackage -> when (version) {
                 is ApiMavenPackage.MavenVersion -> PackagesType.Maven in compatiblePackageTypes
                 is ApiMavenPackage.GradleVersion -> compatiblePackageTypes.filterIsInstance<PackagesType.Gradle>()
                     .takeIf { it.isNotEmpty() }
                     ?.any { compatibleGradlePackageType ->
                         compatibleGradlePackageType.variants.all { requiredVariant ->
-                            apiMavenVersion.variants.any { availableVariant ->
+                            version.variants.any { availableVariant ->
                                 requiredVariant.attributes.all { (attributeName, attribute) ->
                                     availableVariant.attributes[attributeName]
                                         ?.let { attribute.isCompatible(it) } ?: false
@@ -50,24 +50,20 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
                             }
                         }
                     } ?: false
-                null -> false
             }
         }
 
         override fun getInstallData(
             apiPackage: ApiPackage,
-            selectedVersion: String,
-            selectedScope: String?
+            selectedVersion: ApiPackageVersion,
+            selectedScope: String?,
         ): KotlinMultiplatformInstallPackageData = when (apiPackage) {
-            is ApiMavenPackage -> when (val apiMavenVersion = apiPackage.versions.all[selectedVersion]) {
-                is ApiMavenVersion -> KotlinMultiplatformInstallPackageData(
-                    apiPackage = apiPackage,
-                    selectedVersion = apiMavenVersion.normalized.versionName,
-                    selectedConfiguration = selectedScope ?: "implementation",
-                    variantName = name
-                )
-                null -> error("Version $selectedVersion not found in package $apiPackage")
-            }
+            is ApiMavenPackage -> KotlinMultiplatformInstallPackageData(
+                apiPackage = apiPackage,
+                selectedVersion = selectedVersion,
+                selectedConfiguration = selectedScope ?: "implementation",
+                variantName = name
+            )
         }
     }
 
@@ -90,25 +86,22 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val isPrimary: Boolean
             get() = false
 
-        override fun isCompatible(dependency: ApiPackage, version: String) = when (dependency) {
+        override fun isCompatible(dependency: ApiPackage, version: ApiPackageVersion) = when (dependency) {
             is ApiMavenPackage -> true
             else -> false
         }
 
         override fun getInstallData(
             apiPackage: ApiPackage,
-            selectedVersion: String,
-            selectedScope: String?
-        )= when (apiPackage) {
-            is ApiMavenPackage -> when (val version = apiPackage.versions.all[selectedVersion]) {
-                is ApiMavenVersion -> KotlinMultiplatformInstallPackageData(
-                    apiPackage = apiPackage,
-                    selectedVersion = version.normalized.versionName,
-                    selectedConfiguration = selectedScope ?: "implementation",
-                    variantName = name
-                )
-                null -> error("Version $selectedVersion not found in package $apiPackage")
-            }
+            selectedVersion: ApiPackageVersion,
+            selectedScope: String?,
+        ) = when (apiPackage) {
+            is ApiMavenPackage -> KotlinMultiplatformInstallPackageData(
+                apiPackage = apiPackage,
+                selectedVersion = selectedVersion,
+                selectedConfiguration = selectedScope ?: "implementation",
+                variantName = name
+            )
         }
     }
 
@@ -131,14 +124,14 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val name: String = NAME
         override val variantTerminology = null
 
-        override fun isCompatible(dependency: ApiPackage, version: String) = when (dependency) {
+        override fun isCompatible(dependency: ApiPackage, version: ApiPackageVersion) = when (dependency) {
             is ApiMavenPackage -> false
         }
 
         override fun getInstallData(
             apiPackage: ApiPackage,
-            selectedVersion: String,
-            selectedScope: String?
+            selectedVersion: ApiPackageVersion,
+            selectedScope: String?,
         ) = when (apiPackage) {
             is ApiMavenPackage -> error("Cannot install a Maven package as a Cocoapods dependency")
         }

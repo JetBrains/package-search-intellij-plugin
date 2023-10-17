@@ -99,7 +99,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
     override suspend fun addDependency(context: PackageSearchKnownRepositoriesContext, data: InstallPackageData) {
         val kmpData = data as? KotlinMultiplatformInstallPackageData ?: return
         val variant = module.variants[kmpData.variantName] ?: return
-        if (!variant.isCompatible(kmpData.apiPackage, kmpData.selectedVersion)) return
+        if (!variant.isCompatible(kmpData.apiPackage, data.selectedVersion)) return
         when (kmpData.apiPackage) {
             is ApiMavenPackage -> when (variant) {
                 is PackageSearchKotlinMultiplatformVariant.Cocoapods -> TODO()
@@ -117,7 +117,7 @@ class PackageSearchKotlinMultiplatformDependencyManager(
                     descriptor = MppDependency.Maven(
                         groupId = kmpData.apiPackage.groupId,
                         artifactId = kmpData.apiPackage.artifactId,
-                        version = kmpData.selectedVersion,
+                        version = kmpData.selectedVersion.normalized.versionName,
                         configuration = kmpData.selectedConfiguration
                     )
                 )

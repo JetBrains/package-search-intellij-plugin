@@ -15,6 +15,7 @@ import java.nio.file.Path
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
@@ -27,7 +28,7 @@ data class KotlinMultiplatformUpdatePackageData(
 
 data class KotlinMultiplatformInstallPackageData(
     override val apiPackage: ApiPackage,
-    override val selectedVersion: String,
+    override val selectedVersion: ApiPackageVersion,
     val selectedConfiguration: String,
     val variantName: String
 ) : InstallPackageData

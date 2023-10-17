@@ -17,7 +17,7 @@ data class ApiPackageCacheEntry(
 
 @Serializable
 data class ApiSearchEntry(
-    val packagesIds: List<String>,
+    val packages: List<ApiPackage>,
     val searchHash: String,
     val original: SearchPackagesRequest,
     @SerialName("_id") val id: Long? = null,
@@ -32,4 +32,3 @@ data class ApiRepositoryCacheEntry(
 )
 
 fun ApiPackage.asCacheEntry() = ApiPackageCacheEntry(this)
-fun List<ApiRepository>.asCacheEntry() = ApiRepositoryCacheEntry(this)

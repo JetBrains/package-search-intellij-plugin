@@ -6,7 +6,6 @@ import com.intellij.buildsystem.model.unified.UnifiedDependency
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.module.Module
-import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import com.jetbrains.packagesearch.plugin.core.data.InstallPackageData
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
@@ -56,7 +55,7 @@ class PackageSearchMavenDependencyManager(
         val descriptor = UnifiedDependency(
             groupId = mavenData.apiPackage.groupId,
             artifactId = mavenData.apiPackage.artifactId,
-            version = data.selectedVersion,
+            version = data.selectedVersion.normalized.versionName,
             configuration = data.selectedScope
         )
         writeAction {

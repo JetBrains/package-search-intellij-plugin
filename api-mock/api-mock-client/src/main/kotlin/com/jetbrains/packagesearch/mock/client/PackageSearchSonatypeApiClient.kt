@@ -14,8 +14,6 @@ import kotlinx.coroutines.flow.toList
 import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiProject
-import org.jetbrains.packagesearch.api.v3.MavenHashLookupRequest
-import org.jetbrains.packagesearch.api.v3.MavenHashLookupResponse
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 import org.jetbrains.packagesearch.api.v3.http.SearchProjectRequest
@@ -53,17 +51,7 @@ class PackageSearchSonatypeApiClient(
     override suspend fun searchPackages(request: SearchPackagesRequest): List<ApiPackage> =
         sonatypeApiClient.searchApiMavenPackages(request.searchQuery)
 
-    override suspend fun searchPackageIds(request: SearchPackagesRequest): List<String> =
-        sonatypeApiClient.searchPackages(request.searchQuery)
-            .response
-            .docs
-            .map { "maven:${it.groupId}:${it.artifactId}" }
-
     override suspend fun searchProjects(request: SearchProjectRequest): List<ApiProject> =
         emptyList()
-
-    override suspend fun getMavenPackageInfoByFileHash(request: MavenHashLookupRequest): MavenHashLookupResponse {
-        error("cannot be implemented through Sonatype APIs")
-    }
 
 }

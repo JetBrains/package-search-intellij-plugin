@@ -15,9 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -28,8 +25,8 @@ import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.Author
-import org.jetbrains.packagesearch.api.v3.Licenses
 import org.jetbrains.packagesearch.api.v3.PomLicenseFile
+import org.jetbrains.packagesearch.api.v3.VersionWithRepositories
 import org.jetbrains.packagesearch.api.v3.VersionsContainer
 import org.jetbrains.packagesearch.api.v3.Vulnerability
 import org.jetbrains.packagesearch.gradle.File
@@ -42,6 +39,7 @@ import org.jetbrains.packagesearch.maven.License
 import org.jetbrains.packagesearch.maven.PomResolver
 import org.jetbrains.packagesearch.maven.ProjectObjectModel
 import org.jetbrains.packagesearch.maven.buildGradleMetadataUrl
+import org.jetbrains.packagesearch.maven.central.Doc
 import org.jetbrains.packagesearch.maven.central.MavenCentralApiResponse
 import org.jetbrains.packagesearch.maven.dependencies
 import org.jetbrains.packagesearch.maven.developers
@@ -54,13 +52,6 @@ fun Dependency.toApiModel() = version?.let {
         artifactId = artifactId,
         version = it,
         scope = scope,
-    )
-}
-
-fun List<License>.toApiModel() = firstOrNull()?.toApiModel()?.let {
-    Licenses(
-        it,
-        drop(1).mapNotNull { it.toApiModel() }
     )
 }
 
@@ -127,12 +118,14 @@ fun ContentNegotiation.Config.xml(xml: XML) {
 data class MavenCoordinateWithVersions(
     val groupId: String,
     val artifactId: String,
-    val versions: Map<String, Metadata>,
+    val latestStable: Metadata?,
+    val latest: Metadata,
+    val allVersion: List<NormalizedVersion>,
 ) {
     data class Metadata(
+        val version: NormalizedVersion,
         val pom: ProjectObjectModel,
         val gradleMetadata: GradleMetadata?,
-        val publicationDate: Instant,
         val artifacts: List<String>,
     )
 }
@@ -144,37 +137,56 @@ suspend fun HttpClient.getMavenCentralInfo(
     .body<MavenCentralApiResponse>()
     .takeIf { it.response.docs.isNotEmpty() }
 
+suspend fun HttpClient.buildMetadata(
+    pomSolver: PomResolver,
+    doc: Doc,
+    normalizedVersion: NormalizedVersion,
+): MavenCoordinateWithVersions.Metadata? = coroutineScope {
+    val latestVersionPomJob = async {
+        pomSolver.getPom(doc.groupId, doc.artifactId, normalizedVersion.versionName)
+    }
+    val latestVersionGradleMetadataUrl = GoogleMavenCentralMirror.buildGradleMetadataUrl(
+        groupId = doc.groupId,
+        artifactId = doc.artifactId,
+        version = normalizedVersion.versionName
+    )
+    val latestVersionGradleMetadata = runCatching { get(latestVersionGradleMetadataUrl).body<GradleMetadata>() }
+        .getOrNull()
+    val latestVersionPom = latestVersionPomJob.await() ?: return@coroutineScope null
+
+    MavenCoordinateWithVersions.Metadata(
+        version = normalizedVersion,
+        pom = latestVersionPom,
+        gradleMetadata = latestVersionGradleMetadata,
+        artifacts = doc.ec.map { "${doc.groupId}-${normalizedVersion.versionName}-$it" }
+    )
+}
+
 suspend fun HttpClient.getBuildSystemsMetadata(
     mavenCentralApiResponse: MavenCentralApiResponse,
     pomSolver: PomResolver,
-): MavenCoordinateWithVersions? {
-    val firstDoc = mavenCentralApiResponse.response.docs.firstOrNull() ?: return null
-    return MavenCoordinateWithVersions(
-        firstDoc.groupId,
-        firstDoc.artifactId,
-        mavenCentralApiResponse.response.docs
-            .asFlow()
-            .buffer()
-            .mapNotNullScoped { doc ->
-                val version = doc.version ?: return@mapNotNullScoped null
-                val pomJob = async { pomSolver.getPom(doc.groupId, doc.artifactId, version) }
-                val gradleMetadataUrl = GoogleMavenCentralMirror.buildGradleMetadataUrl(
-                    groupId = doc.groupId,
-                    artifactId = doc.artifactId,
-                    version = version
-                )
-                val gradleMetadata = runCatching { get(gradleMetadataUrl).body<GradleMetadata>() }
-                    .getOrNull()
-                val pom = pomJob.await() ?: return@mapNotNullScoped null
-                version to MavenCoordinateWithVersions.Metadata(
-                    gradleMetadata = gradleMetadata,
-                    pom = pom,
-                    publicationDate = Instant.fromEpochMilliseconds(doc.timestamp),
-                    artifacts = doc.ec.map { "${doc.groupId}-$version-$it" }
-                )
-            }
-            .toList()
-            .toMap()
+): MavenCoordinateWithVersions? = coroutineScope {
+    val firstDoc = mavenCentralApiResponse.response.docs.firstOrNull() ?: return@coroutineScope null
+
+    val normalizedVersions = mavenCentralApiResponse.response.docs
+        .associateBy { NormalizedVersion.from(it.version, Instant.fromEpochMilliseconds(it.timestamp)) }
+
+    val (latestNormalizedVersion, latestDoc) = normalizedVersions.maxBy { it.key }
+    val latestStablePair = normalizedVersions.filterKeys { it.isStable }.maxByOrNull { it.key }
+    val latestVersionJob = async { buildMetadata(pomSolver, latestDoc, latestNormalizedVersion) }
+    val latestStableVersion = latestStablePair
+        ?.let { (latestStableNormalizedVersion, latestStableDoc) ->
+            buildMetadata(pomSolver, latestStableDoc, latestStableNormalizedVersion)
+        }
+
+    val latestVersion = latestVersionJob.await() ?: return@coroutineScope null
+
+    MavenCoordinateWithVersions(
+        groupId = firstDoc.groupId,
+        artifactId = firstDoc.artifactId,
+        latestStable = latestStableVersion,
+        latest = latestVersion,
+        allVersion = normalizedVersions.keys.toList()
     )
 }
 
@@ -185,57 +197,49 @@ inline fun <T, R : Any> Flow<T>.mapNotNullScoped(
     emit(transformed)
 }
 
-fun MavenCoordinateWithVersions.toMavenApiModel(): ApiMavenPackage {
-    val mavenVersions = versions
-        .mapValues { (version, metadata) ->
-            val (pom, gradleMetadata) = metadata
-            when (gradleMetadata) {
-                null -> ApiMavenPackage.MavenVersion(
-                    normalized = NormalizedVersion.from(version, metadata.publicationDate),
-                    repositoryIds = setOf("maven-central"),
-                    vulnerability = Vulnerability(false),
-                    dependencies = pom.dependencies.mapNotNull { it.toApiModel() },
-                    artifacts = emptyList(),
-                    name = pom.name,
-                    description = pom.description,
-                    authors = pom.developers.map { it.toApiModel() },
-                    scmUrl = pom.scm?.url,
+fun MavenCoordinateWithVersions.toMavenApiModel(): ApiMavenPackage = ApiMavenPackage(
+    id = "maven:$groupId:$artifactId",
+    idHash = ApiPackage.hashPackageId("maven:$groupId:$artifactId"),
+    rankingMetric = 20.0,
+    versions = VersionsContainer(
+        latestStable = latestStable?.toApiMavenVersion(),
+        latest = latest.toApiMavenVersion(),
+        all = allVersion.map { VersionWithRepositories(it, setOf("maven-central")) }
+    ),
+    groupId = groupId,
+    artifactId = artifactId
+)
+
+fun MavenCoordinateWithVersions.Metadata.toApiMavenVersion() =
+    when (gradleMetadata) {
+        null -> ApiMavenPackage.MavenVersion(
+            normalized = version,
+            repositoryIds = setOf("maven-central"),
+            vulnerability = Vulnerability(false),
+            dependencies = pom.dependencies.mapNotNull { it.toApiModel() },
+            artifacts = emptyList(),
+            name = pom.name,
+            description = pom.description,
+            authors = pom.developers.map { it.toApiModel() },
+            scmUrl = pom.scm?.url,
 //                    licenses = pom.licenses.toApiModel()
-                )
+        )
 
-                else -> ApiMavenPackage.GradleVersion(
-                    normalized = NormalizedVersion.from(version, metadata.publicationDate),
-                    repositoryIds = setOf("maven-central"),
-                    vulnerability = Vulnerability(false),
-                    dependencies = pom.dependencies.mapNotNull { it.toApiModel() },
-                    artifacts = emptyList(),
-                    variants = gradleMetadata.variants?.map { it.toApiModel() } ?: emptyList(),
-                    parentComponent = gradleMetadata.component?.url,
-                    name = pom.name,
-                    description = pom.description,
-                    authors = pom.developers.map { it.toApiModel() },
-                    scmUrl = pom.scm?.url,
+        else -> ApiMavenPackage.GradleVersion(
+            normalized = version,
+            repositoryIds = setOf("maven-central"),
+            vulnerability = Vulnerability(false),
+            dependencies = pom.dependencies.mapNotNull { it.toApiModel() },
+            artifacts = emptyList(),
+            variants = gradleMetadata.variants?.map { it.toApiModel() } ?: emptyList(),
+            parentComponent = gradleMetadata.component?.url,
+            name = pom.name,
+            description = pom.description,
+            authors = pom.developers.map { it.toApiModel() },
+            scmUrl = pom.scm?.url,
 //                    licenses = pom.licenses.toApiModel()
-                )
-            }
-        }
-
-    return ApiMavenPackage(
-        id = "maven:$groupId:$artifactId",
-        idHash = ApiPackage.hashPackageId("maven:$groupId:$artifactId"),
-        rankingMetric = 20.0,
-        versions = VersionsContainer(
-            latestStable = mavenVersions.values
-                .filter { it.normalized.isStable }
-                .maxByOrNull { it.normalized },
-            latest = mavenVersions.values.maxBy { it.normalized },
-            all = mavenVersions
-        ),
-        groupId = groupId,
-        artifactId = artifactId
-    )
-
-}
+        )
+    }
 
 internal var HttpTimeout.HttpTimeoutCapabilityConfiguration.requestTimeout: Duration?
     get() = requestTimeoutMillis?.milliseconds

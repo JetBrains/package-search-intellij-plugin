@@ -9,6 +9,7 @@ import java.nio.file.Path
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
@@ -38,7 +39,7 @@ data class PackageSearchGradleModule(
 
     override fun getInstallData(
         apiPackage: ApiPackage,
-        selectedVersion: String,
+        selectedVersion: ApiPackageVersion,
         selectedScope: String?
     ) = GradleInstallPackageData(
         apiPackage = apiPackage.asMavenApiPackage(),

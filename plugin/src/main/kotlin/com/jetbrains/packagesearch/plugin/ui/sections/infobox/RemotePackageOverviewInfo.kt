@@ -80,7 +80,7 @@ fun RemotePackageOverviewInfo(
                             is PackageSearchModule.WithVariants -> targetModule.mainVariant
                         }.getInstallData(
                             apiPackage = selectedPackage.apiPackage,
-                            selectedVersion = selectedPackage.apiPackage.getLatestVersion(LocalIsOnlyStableVersions.current.value).versionName,
+                            selectedVersion = selectedPackage.apiPackage.getLatestVersion(LocalIsOnlyStableVersions.current.value),
                             selectedScope = targetModule.defaultScope
                         )
                     DefaultActionButton(PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text")) {
@@ -143,7 +143,7 @@ fun RemotePackageOverviewInfo(
                             ) {
 
                                 RemotePackageMorePopupContent(
-                                    apipakage = selectedPackage.apiPackage,
+                                    apiPackage = selectedPackage.apiPackage,
                                     selectedModule = selectedModules.first(),
                                     onDismissRequest = { openActionPopup = false }
                                 )
@@ -178,13 +178,13 @@ fun RemotePackageOverviewInfo(
                         is PackageSearchModule.WithVariants -> targetModule.mainVariant
                     }.getInstallData(
                         apiPackage = selectedPackage.apiPackage,
-                        selectedVersion = selectedPackage.apiPackage.getLatestVersion(LocalIsOnlyStableVersions.current.value).versionName,
+                        selectedVersion = selectedPackage.apiPackage.getLatestVersion(LocalIsOnlyStableVersions.current.value),
                         selectedScope = targetModule.defaultScope
                     )
                 VersionSelectionDropdown(
                     declaredVersion = NormalizedVersion.Missing,
                     availableVersions = availableVersion,
-                    latestVersion = latestVersion,
+                    latestVersion = latestVersion.normalized,
                     updateLambda = { newVersion ->
                         selectedModules.first().dependencyManager.addDependency(
                             context = service,

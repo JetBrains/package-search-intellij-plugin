@@ -17,7 +17,7 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import com.jetbrains.packagesearch.plugin.core.utils.getIcon
+import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.gradle.utils.commonConfigurations
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
@@ -123,7 +123,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                             artifactId = artifactModel.artifactId,
                             variantName = sourceSetName,
                             configuration = artifactModel.configuration,
-                            icon = dependencyInfo[artifactModel.packageId]?.getIcon(artifactModel.version)
+                            icon = dependencyInfo[artifactModel.packageId]?.icon
                                 ?: Icons.GRADLE
                         )
                     }
