@@ -136,6 +136,9 @@ tasks {
             fileSpec.writeTo(generatedDir.get().asFile)
         }
     }
+    sourcesJar {
+        dependsOn(generatePluginDataSources)
+    }
     shadowJar {
         archiveBaseName = "packagesearch-plugin"
     }
