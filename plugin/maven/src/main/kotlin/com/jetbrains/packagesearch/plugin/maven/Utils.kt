@@ -69,7 +69,7 @@ val Project.mavenImportFlow
 fun getModuleChangesFlow(context: ProjectContext, pomPath: Path): Flow<Unit> = merge(
     watchExternalFileChanges(mavenSettingsFilePath),
     context.project.mavenImportFlow,
-    context.project.filesChangedEventFlow
+    filesChangedEventFlow
         .flatMapLatest { it.map { it.path }.asFlow() }
         .map { Paths.get(it) }
         .filter { it == pomPath }

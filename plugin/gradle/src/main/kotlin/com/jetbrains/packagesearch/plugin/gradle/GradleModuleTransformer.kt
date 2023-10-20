@@ -60,7 +60,7 @@ abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
                     }
             }
             .flatMapLatest { model ->
-                getModuleChangesFlow(context, model)
+                getModuleChangesFlow(model)
                     .map { model }
                     .onStart { emit(model) }
             }

@@ -29,6 +29,12 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             val TERMINOLOGY = PackageSearchModuleVariant.Terminology("source set", "source sets")
         }
 
+        override val availableScopes: List<String>
+            get() = listOf("implementation", "api", "compileOnly", "runtimeOnly")
+
+        override val defaultScope: String
+            get() = "implementation"
+
         override val isPrimary: Boolean
             get() = name.contains("main", ignoreCase = true)
 
@@ -71,6 +77,8 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     data class DependenciesBlock(
         override val declaredDependencies: List<PackageSearchKotlinMultiplatformDeclaredDependency.Maven>,
         override val compatiblePackageTypes: List<PackagesType>,
+        override val availableScopes: List<String>,
+        override val defaultScope: String?
     ) : PackageSearchKotlinMultiplatformVariant {
 
         override val attributes: List<PackageSearchModuleVariant.Attribute>
@@ -112,6 +120,15 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     ) : PackageSearchKotlinMultiplatformVariant {
 
         override val isPrimary: Boolean
+            get() = false
+
+        override val availableScopes: List<String>
+            get() = emptyList()
+
+        override val defaultScope: String?
+            get() = null
+
+        override val dependencyMustHaveAScope: Boolean
             get() = false
 
         override val attributes: List<PackageSearchModuleVariant.Attribute>

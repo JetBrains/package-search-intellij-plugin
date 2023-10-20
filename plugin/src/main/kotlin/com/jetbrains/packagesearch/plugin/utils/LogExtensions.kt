@@ -21,11 +21,11 @@ package com.jetbrains.packagesearch.plugin.utils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.jetbrains.packagesearch.plugin.FeatureFlags
+import com.jetbrains.packagesearch.plugin.PackageSearch
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 
-private const val pluginId = "com.jetbrains.packagesearch.intellij-plugin"
-private val logger = Logger.getInstance("#$pluginId")
+private val logger = Logger.getInstance("#${PackageSearch.pluginId}")
 
 fun logError(throwable: Throwable? = null, contextName: String? = null, messageProvider: () -> String) {
     logError(buildMessageFrom(contextName, messageProvider), throwable)
@@ -95,7 +95,7 @@ private fun warnNotLoggable() {
         """
         |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         |Debug logging not enabled. Make sure you have a line like this:
-        |      #${pluginId}:trace
+        |      #${PackageSearch.pluginId}:trace
         |in your debug log settings (Help | Diagnostic Tools | Debug Log Settings)
         |then restart the IDE.
         |!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

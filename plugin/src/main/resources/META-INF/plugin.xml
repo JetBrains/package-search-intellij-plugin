@@ -1,5 +1,4 @@
 <idea-plugin package="com.jetbrains.packagesearch" require-restart="false">
-    <id>com.jetbrains.packagesearch.intellij-plugin</id>
     <name>Package Search</name>
     <vendor>JetBrains</vendor>
     <resource-bundle>messages.packageSearchBundle</resource-bundle>

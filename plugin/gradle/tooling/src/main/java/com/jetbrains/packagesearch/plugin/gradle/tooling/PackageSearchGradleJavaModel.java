@@ -20,6 +20,10 @@ public interface PackageSearchGradleJavaModel extends Serializable {
     interface Configuration extends Serializable {
         String getName();
         List<Dependency> getDependencies();
+
+        boolean isCanBeResolved();
+        boolean isCanBeDeclared();
+        boolean isCanBeConsumed();
     }
 
     interface Dependency extends Serializable {

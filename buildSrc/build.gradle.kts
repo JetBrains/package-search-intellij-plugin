@@ -2,6 +2,7 @@
 
 plugins {
     `kotlin-dsl`
+    kotlin("plugin.serialization") version packageSearchCatalog.versions.kotlin.get()
 }
 
 group = "org.jetbrains.packagesearch"
@@ -26,4 +27,7 @@ dependencies {
     implementation(packageSearchCatalog.detekt.gradle.plugin)
     implementation(packageSearchCatalog.kotlinter.gradle.plugin)
     implementation(packageSearchCatalog.shadow.gradle.plugin)
+    implementation(packageSearchCatalog.kotlinx.serialization.json)
+    implementation("com.squareup:kotlinpoet:1.14.2")
+    implementation("io.github.pdvrieze.xmlutil:serialization:0.86.2")
 }

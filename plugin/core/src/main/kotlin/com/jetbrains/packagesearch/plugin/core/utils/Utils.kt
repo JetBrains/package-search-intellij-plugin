@@ -17,7 +17,6 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryManager
 import com.intellij.openapi.util.registry.RegistryValue
 import com.intellij.openapi.util.registry.RegistryValueListener
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -58,7 +57,7 @@ fun <T : Any, R> MessageBus.flow(
     awaitClose { connection.disconnect() }
 }
 
-val Project.filesChangedEventFlow: Flow<List<VFileEvent>>
+val filesChangedEventFlow: Flow<List<VFileEvent>>
     get() = callbackFlow {
         val disposable = Disposer.newDisposable()
         VirtualFileManager.getInstance().addAsyncFileListener(
@@ -68,7 +67,9 @@ val Project.filesChangedEventFlow: Flow<List<VFileEvent>>
             },
             disposable
         )
-        awaitClose { disposable.dispose() }
+        awaitClose {
+            disposable.dispose()
+        }
     }
 
 fun VirtualFileListener(action: (VirtualFileEvent) -> Unit) =
@@ -128,9 +129,6 @@ fun <T> ExtensionPointListener(onChange: (T, PluginDescriptor, Boolean) -> Unit)
         }
     }
 
-fun StringBuilder.appendEscaped(text: String) =
-    StringUtil.escapeToRegexp(text, this)
-
 val IntelliJApplication
     get() = application
 
@@ -142,9 +140,6 @@ fun Application.registryFlow(key: String, defaultValue: Boolean = false) =
             }
         }
     }.withInitialValue(Registry.`is`(key, defaultValue))
-
-suspend fun <T> Flow<T>.collectIn(flowCollector: FlowCollector<T>) =
-    collect { flowCollector.emit(it) }
 
 val Project.PackageSearchProjectCachesService
     get() = service<PackageSearchProjectCachesService>()

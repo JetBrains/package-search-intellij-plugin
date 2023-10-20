@@ -12,7 +12,6 @@ import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.psi.PsiManager
 import com.jetbrains.packagesearch.plugin.PackageSearchModuleBaseTransformerUtils
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
@@ -178,9 +177,3 @@ class PackageSearchProjectService(
     }
 }
 
-sealed interface ModulesState {
-
-    data object Loading : ModulesState
-    data class Ready(val moduleData: List<PackageSearchModuleData>) : ModulesState
-    data object NoModules : ModulesState
-}

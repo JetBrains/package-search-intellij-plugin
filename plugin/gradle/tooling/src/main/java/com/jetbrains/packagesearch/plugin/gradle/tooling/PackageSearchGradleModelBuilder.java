@@ -9,12 +9,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.tooling.AbstractModelBuilderService;
-import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder;
+import org.jetbrains.plugins.gradle.tooling.Message;
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("UnstableApiUsage")
 public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService {
 
     @Override
@@ -25,12 +26,11 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
     ) {
 
         List<PackageSearchGradleJavaModel.Configuration> configurations =
-                new ArrayList<PackageSearchGradleJavaModel.Configuration>(project.getConfigurations().size());
+                new ArrayList<>(project.getConfigurations().size());
 
         for (Configuration configuration : project.getConfigurations()) {
-
             List<PackageSearchGradleJavaModel.Dependency> dependencies =
-                    new ArrayList<PackageSearchGradleJavaModel.Dependency>(configuration.getDependencies().size());
+                    new ArrayList<>(configuration.getDependencies().size());
 
             for (Dependency dependency : configuration.getDependencies()) {
                 String group = dependency.getGroup();
@@ -40,11 +40,27 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
 
                 dependencies.add(new PackageSearchGradleJavaModelImpl.DependencyImpl(group, dependency.getName(), version));
             }
-            configurations.add(new PackageSearchGradleJavaModelImpl.ConfigurationImpl(configuration.getName(), dependencies));
+
+            boolean isCanBeDeclared = true;
+            try {
+                isCanBeDeclared = configuration.isCanBeDeclared();
+            } catch (Exception ignored) {
+
+            }
+
+            configurations.add(
+                    new PackageSearchGradleJavaModelImpl.ConfigurationImpl(
+                            configuration.getName(),
+                            dependencies,
+                            configuration.isCanBeResolved(),
+                            isCanBeDeclared,
+                            configuration.isCanBeConsumed()
+                    )
+            );
         }
 
         List<String> repositories =
-                new ArrayList<String>(project.getRepositories().size());
+                new ArrayList<>(project.getRepositories().size());
 
         for (ArtifactRepository repository : project.getRepositories()) {
             if (repository instanceof MavenArtifactRepository) {
@@ -82,13 +98,19 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
         return modelName.equals(PackageSearchGradleJavaModel.class.getName());
     }
 
-    @NotNull
     @Override
-    public ErrorMessageBuilder getErrorMessageBuilder(@NotNull Project project, @NotNull Exception e) {
-        return ErrorMessageBuilder
-                .create(project, e, "Gradle import errors")
-                .withDescription("Unable to import resolved versions " +
-                        "from configurations in project ''${project.name}'' for" +
-                        " the Dependencies toolwindow.");
+    public void reportErrorMessage(
+            @NotNull String modelName,
+            @NotNull Project project,
+            @NotNull ModelBuilderContext context,
+            @NotNull Exception exception
+    ) {
+        context.getMessageReporter()
+                .createMessage()
+                .withException(exception)
+                .withKind(Message.Kind.ERROR)
+                .withGroup("gradle.packageSearch")
+                .withText("Error while building Package Search Gradle model")
+                .reportMessage(project);
     }
 }

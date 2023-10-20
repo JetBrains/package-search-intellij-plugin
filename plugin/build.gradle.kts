@@ -1,5 +1,18 @@
 @file:Suppress("UnstableApiUsage")
 
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeSpec
+import org.intellij.jewel.workshop.build.lafFile
+import org.intellij.jewel.workshop.build.logCategoriesFile
+import org.intellij.jewel.workshop.build.patchLafFile
+import org.intellij.jewel.workshop.build.patchLogFile
+import org.intellij.jewel.workshop.build.patchSettingsFile
+import org.intellij.jewel.workshop.build.patchTextRegistryFile
+import org.intellij.jewel.workshop.build.registryTextFile
+import org.intellij.jewel.workshop.build.settingsFile
 import org.jetbrains.intellij.tasks.PublishPluginTask
 
 
@@ -60,7 +73,7 @@ dependencies {
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
 }
 
-val tooling by configurations.creating {
+val tooling: Configuration by configurations.creating {
     isCanBeResolved = true
 }
 
@@ -68,13 +81,72 @@ dependencies {
     tooling(projects.plugin.gradle.tooling)
 }
 
-tasks {
+val pkgsPluginId = "com.jetbrains.packagesearch.intellij-plugin"
 
+val generatedDir: Provider<Directory> = layout.buildDirectory.dir("generated/main/kotlin")
+kotlin.sourceSets.main {
+    kotlin.srcDirs(generatedDir)
+}
+
+tasks {
+    val patchIdeSettings by registering {
+        dependsOn(prepareSandbox)
+        doLast {
+            prepareSandbox.registryTextFile.get()
+                .patchTextRegistryFile()
+            prepareSandbox.lafFile.get()
+                .patchLafFile()
+            prepareSandbox.settingsFile.get()
+                .patchSettingsFile()
+            prepareSandbox.logCategoriesFile.get()
+                .patchLogFile(pkgsPluginId)
+        }
+    }
+    runIde {
+        dependsOn(patchIdeSettings)
+    }
+    val generatePluginDataSources by registering {
+        outputs.dir(generatedDir)
+        doLast {
+            val fileSpec = FileSpec.builder("com.jetbrains.packagesearch.plugin", "PackageSearch")
+                .addType(
+                    TypeSpec.objectBuilder("PackageSearch")
+                        .addModifiers(KModifier.DATA)
+                        .addProperty(
+                            PropertySpec.builder("pluginId", String::class)
+                                .getter(
+                                    FunSpec.getterBuilder()
+                                        .addStatement("return %S", pkgsPluginId)
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .addProperty(
+                            PropertySpec.builder("pluginVersion", String::class)
+                                .getter(
+                                    FunSpec.getterBuilder()
+                                        .addStatement("return %S", version.toString())
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .build()
+                )
+                .build()
+            fileSpec.writeTo(generatedDir.get().asFile)
+        }
+    }
     shadowJar {
         archiveBaseName = "packagesearch-plugin"
     }
     prepareSandbox {
         runtimeClasspathFiles = files(shadowJar, tooling)
+    }
+    compileKotlin {
+        dependsOn(generatePluginDataSources)
+    }
+    patchPluginXml {
+        pluginId = pkgsPluginId
     }
 
     val buildShadowPlugin by registering(Zip::class) {
@@ -86,9 +158,6 @@ tasks {
     }
 
     register<PublishPluginTask>("publishShadowPlugin") {
-//        onlyIf {
-//            System.getenv("CI") == "true" && System.getenv("PLUGIN_VERSION") != null
-//        }
         group = "publishing"
         distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
         toolboxEnterprise = true

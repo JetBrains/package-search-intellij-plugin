@@ -1,4 +1,4 @@
-@file:Suppress("UnstableApiUsage")
+@file:Suppress("UnstableApiUsage", "DeprecatedCallableAddReplaceWith")
 
 package com.jetbrains.packagesearch.plugin.gradle
 
@@ -45,12 +45,18 @@ data class PackageSearchKotlinMultiplatformModule(
     override val identity: PackageSearchModule.Identity,
     override val buildFilePath: Path?,
     override val declaredKnownRepositories: Map<String, ApiRepository>,
-    override val defaultScope: String?,
-    override val availableScopes: List<String>,
     override val variants: Map<String, PackageSearchKotlinMultiplatformVariant>,
     val packageSearchModel: PackageSearchGradleModel,
     val availableKnownRepositories: Map<String, ApiRepository>,
 ) : PackageSearchModule.WithVariants {
+
+    @Deprecated("Use scopes from variants instead")
+    override val availableScopes: List<String>
+        get() = mainVariant.availableScopes
+
+    @Deprecated("Use scopes from variants instead")
+    override val defaultScope: String?
+        get() = mainVariant.defaultScope
 
     override val dependencyMustHaveAScope: Boolean
         get() = true
@@ -60,9 +66,6 @@ data class PackageSearchKotlinMultiplatformModule(
 
     override val compatiblePackageTypes: List<PackagesType>
         get() = mainVariant.compatiblePackageTypes
-
-    val defaultConfiguration
-        get() = defaultScope
 
     override val mainVariant: PackageSearchModuleVariant
         get() = variants.commonMain

@@ -130,9 +130,22 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         private final String name;
         private final List<Dependency> dependencies;
 
-        public ConfigurationImpl(String name, List<Dependency> dependencies) {
+        private final boolean canBeResolved;
+        private final boolean canBeDeclared;
+        private final boolean canBeConsumed;
+
+        public ConfigurationImpl(
+                String name,
+                List<Dependency> dependencies,
+                boolean canBeResolved,
+                boolean canBeDeclared,
+                boolean canBeConsumed
+        ) {
             this.name = name;
             this.dependencies = dependencies;
+            this.canBeResolved = canBeResolved;
+            this.canBeDeclared = canBeDeclared;
+            this.canBeConsumed = canBeConsumed;
         }
 
         @Override
@@ -143,6 +156,21 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         @Override
         public List<Dependency> getDependencies() {
             return dependencies;
+        }
+
+        @Override
+        public boolean isCanBeResolved() {
+            return canBeResolved;
+        }
+
+        @Override
+        public boolean isCanBeDeclared() {
+            return canBeDeclared;
+        }
+
+        @Override
+        public boolean isCanBeConsumed() {
+            return canBeConsumed;
         }
     }
 }

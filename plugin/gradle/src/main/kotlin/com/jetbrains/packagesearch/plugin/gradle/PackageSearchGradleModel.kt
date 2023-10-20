@@ -23,6 +23,9 @@ data class PackageSearchGradleModel(
     data class Configuration(
         val name: String,
         val dependencies: List<Dependency>,
+        val canBeResolved: Boolean,
+        val canBeDeclared: Boolean,
+        val canBeConsumed: Boolean,
     )
 
     @Serializable

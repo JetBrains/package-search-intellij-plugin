@@ -1,16 +1,9 @@
-package com.jetbrains.packagesearch.plugin.services
+package com.jetbrains.packagesearch.plugin.http
 
-import com.jetbrains.packagesearch.mock.SonatypeApiClient
-import com.jetbrains.packagesearch.mock.client.PackageSearchSonatypeApiClient
 import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
-import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
-import com.jetbrains.packagesearch.plugin.utils.logDebug
-import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.CacheStorage
 import io.ktor.client.plugins.cache.storage.CachedResponseData
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.Headers
 import io.ktor.http.HttpProtocolVersion
 import io.ktor.http.HttpStatusCode
@@ -24,9 +17,6 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toSet
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpoints
 
 @Serializable
 class SerializableCachedResponseData(
@@ -51,7 +41,6 @@ fun HttpProtocolVersion.toSerializable() = SerializableHttpProtocolVersion(
 )
 
 fun SerializableHttpProtocolVersion.toKtor() = HttpProtocolVersion(name, major, minor)
-
 fun CachedResponseData.toSerializable() = SerializableCachedResponseData(
     url = url.toString(),
     statusCode = statusCode.value,
@@ -75,7 +64,7 @@ fun GMTDate.toKotlinxLocalDateTime() = LocalDateTime(
 
 fun LocalDateTime.toGMTDate() = GMTDate(
     year = year,
-    month = io.ktor.util.date.Month.Companion.from(month.ordinal),
+    month = io.ktor.util.date.Month.from(month.ordinal),
     dayOfMonth = dayOfMonth,
     hours = hour,
     minutes = minute,
@@ -123,52 +112,14 @@ class NitriteKtorCache(
     }
 
     override suspend fun store(url: Url, data: CachedResponseData) {
-        val filter = NitriteFilters.Object.eq(
-            path = SerializableCachedResponseData::url,
-            value = url.toString()
-        )
         repository.update(
-            filter = filter,
+            filter = NitriteFilters.Object.eq(
+                path = SerializableCachedResponseData::url,
+                value = url.toString()
+            ),
             update = data.toSerializable(),
             upsert = true
         )
     }
 
-
-}
-
-sealed interface PackageSearchApiClientType {
-
-    val client: PackageSearchApi
-
-    class Sonatype(repository: CoroutineObjectRepository<SerializableCachedResponseData>) : PackageSearchApiClientType {
-
-        override val client: PackageSearchApi = PackageSearchSonatypeApiClient(
-            httpClient = SonatypeApiClient.defaultHttpClient {
-                engine {
-                    threadsCount = 64
-                }
-                install(Logging) {
-                    level = LogLevel.INFO
-                    logger = KtorDebugLogger()
-                }
-                install(HttpCache) {
-                    publicStorage(NitriteKtorCache(repository))
-                }
-            },
-            onError = { logDebug("Error while retrieving packages from Sonatype", it) }
-        )
-    }
-
-    data object Dev : PackageSearchApiClientType {
-        override val client: PackageSearchApi = PackageSearchApiClient(
-            endpoints = PackageSearchEndpoints.DEV,
-            httpClient = PackageSearchApiClient.defaultHttpClient {
-                install(Logging) {
-                    level = LogLevel.INFO
-                    logger = KtorDebugLogger()
-                }
-            }
-        )
-    }
 }

@@ -9,7 +9,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.registry.Registry
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
@@ -42,25 +41,7 @@ val globalGradlePropertiesPath
 val knownGradleAncillaryFilesFiles
     get() = listOf("gradle.properties", "local.properties", "gradle/libs.versions.toml")
 
-val commonConfigurations = setOf(
-    "implementation",
-    "api",
-    "compileOnly",
-    "runtimeOnly",
-    "testImplementation",
-    "testCompileOnly",
-    "testRuntimeOnly",
-    "annotationProcessor",
-    "detektPlugins",
-    "kapt",
-    "ksp",
-    "androidTestImplementation",
-    "androidTestCompileOnly",
-    "androidTestRuntimeOnly",
-)
-
 fun getModuleChangesFlow(
-    context: ProjectContext,
     model: PackageSearchGradleModel,
 ): Flow<Unit> {
     val allFiles = buildSet {
@@ -77,9 +58,7 @@ fun getModuleChangesFlow(
         )
     }
 
-    val buildFileChanges = context
-        .project
-        .filesChangedEventFlow
+    val buildFileChanges = filesChangedEventFlow
         .flatMapConcat { it.map { it.path }.asFlow() }
         .map { Paths.get(it) }
         .filter { filePath -> allFiles.any { filePath == it } }

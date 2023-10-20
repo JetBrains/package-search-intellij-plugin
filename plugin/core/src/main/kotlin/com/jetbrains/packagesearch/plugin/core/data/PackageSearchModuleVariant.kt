@@ -22,6 +22,9 @@ interface PackageSearchModuleVariant : PackageInstallDataProvider {
     val compatiblePackageTypes: List<PackagesType>
     val isPrimary: Boolean
     val dependencyMustHaveAScope: Boolean
+    val availableScopes: List<String>
+    val defaultScope: String?
+
 
     @Serializable
     sealed interface Attribute {

@@ -35,8 +35,11 @@ internal fun PackageSearchGradleJavaModel.toPackageSearchModel() =
         projectIdentityPath = projectIdentityPath,
         configurations = configurations.map {
             Configuration(
-                it.name,
-                it.dependencies.map { Dependency(it.groupId, it.artifactId, it.version) }
+                name = it.name,
+                dependencies = it.dependencies.map { Dependency(it.groupId, it.artifactId, it.version) },
+                canBeResolved = it.isCanBeResolved,
+                canBeDeclared = it.isCanBeDeclared,
+                canBeConsumed = it.isCanBeConsumed
             )
         },
         repositories = repositoryUrls,

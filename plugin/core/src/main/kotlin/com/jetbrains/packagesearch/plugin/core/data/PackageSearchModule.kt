@@ -21,8 +21,10 @@ sealed interface PackageSearchModule : IconProvider {
     val identity: Identity
     val buildFilePath: Path?
     val declaredKnownRepositories: Map<String, ApiRepository>
+
     val availableScopes: List<String>
     val defaultScope: String?
+
     val compatiblePackageTypes: List<PackagesType>
     val dependencyMustHaveAScope: Boolean
 

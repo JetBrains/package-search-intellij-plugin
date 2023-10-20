@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+import java.time.LocalDate
 import org.jetbrains.packagesearch.gradle.pkgsSpace
 
 plugins {
@@ -10,7 +11,8 @@ plugins {
 
 allprojects {
     group = "org.jetbrains.packagesearch"
-    version = project.properties["pluginVersion"]?.toString() ?: "1.0.0-SNAPSHOT"
+    version = project.properties["pluginVersion"]?.toString()
+        ?: "${LocalDate.now().year}.10.0-SNAPSHOT"
 
     repositories {
         mavenCentral()

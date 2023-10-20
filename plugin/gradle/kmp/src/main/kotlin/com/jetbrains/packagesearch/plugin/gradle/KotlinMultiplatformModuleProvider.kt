@@ -18,7 +18,6 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.icon
-import com.jetbrains.packagesearch.plugin.gradle.utils.commonConfigurations
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import kotlinx.coroutines.async
@@ -49,10 +48,13 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                             .declaredRepositories(module)
                             .mapNotNull { it.id }
                             .toSet(),
-                        defaultScope = "implementation",
-                        availableScopes = commonConfigurations.toList(),
-                        variants = module.getKMPVariants(context = context, compilationModel = compilationModel)
-                            .associateBy { it.name },
+                        variants = module.getKMPVariants(
+                            context = context,
+                            compilationModel = compilationModel,
+                            availableScopes = model.configurations
+                                .filter { it.canBeDeclared }
+                                .map { it.name }
+                        ).associateBy { it.name },
                         packageSearchModel = model,
                         availableKnownRepositories = context.knownRepositories
                     )
@@ -73,16 +75,27 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
     suspend fun Module.getKMPVariants(
         compilationModel: Map<String, Set<MppCompilationInfoModel.Compilation>>,
         context: PackageSearchModuleBuilderContext,
+        availableScopes: List<String>,
     ): List<PackageSearchKotlinMultiplatformVariant> = coroutineScope {
         val dependenciesBlockVariant = async {
+            val declaredDependencies = getDeclaredDependencies(context)
             PackageSearchKotlinMultiplatformVariant.DependenciesBlock(
-                declaredDependencies = getDeclaredDependencies(context).asKmpVariantDependencies(),
+                declaredDependencies = declaredDependencies.asKmpVariantDependencies(),
                 compatiblePackageTypes = buildPackageTypes {
                     mavenPackages()
                     gradlePackages {
                         mustBeRootPublication = true
                     }
-                }
+                },
+                availableScopes = availableScopes,
+                defaultScope = "implementation".takeIf { it in availableScopes }
+                    ?: declaredDependencies.map { it.configuration }
+                        .groupBy { it }
+                        .mapValues { it.value.count() }
+                        .entries
+                        .maxByOrNull { it.value }
+                        ?.key
+                    ?: availableScopes.first()
             )
         }
 
