@@ -139,6 +139,9 @@ tasks {
     sourcesJar {
         dependsOn(generatePluginDataSources)
     }
+    javadocJar {
+        dependsOn(generatePluginDataSources)
+    }
     shadowJar {
         archiveBaseName = "packagesearch-plugin"
     }
