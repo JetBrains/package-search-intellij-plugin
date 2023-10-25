@@ -2,10 +2,8 @@ package org.intellij.jewel.workshop.build
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.serialization.XmlValue
-import org.gradle.internal.impldep.com.esotericsoftware.kryo.util.IdentityMap.Entries
 
 @Serializable
 @XmlSerialName("application")
@@ -58,7 +56,7 @@ data class Option(val name: String, val value: String)
 
 @Serializable
 @XmlSerialName("entry")
-data class Entry(val name: String, val value: String)
+data class Entry(val key: String, val value: String)
 
 @Serializable
 @XmlSerialName("laf")

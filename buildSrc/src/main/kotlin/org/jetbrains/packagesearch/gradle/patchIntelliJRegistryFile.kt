@@ -50,35 +50,31 @@ fun File.patchSettingsFile() {
         xml.decodeFromString<Application>(readText())
     }.getOrNull()
 
-    val confirmExitOption =
+    val defaultOptions = listOf(
+        Option("showTipsOnStartup", "false"),
+        Option("confirmExit", "false")
+    )
+    val options =
         settings?.components?.find { it.name == "GeneralSettings" }
             ?.options
-            ?.find { it.name == "confirmExit" }
-            ?.copy(value = "false")
-            ?: Option("confirmExit", "false")
+            ?.filterNot { it.name !in defaultOptions.map { it.name } }
+            ?: defaultOptions
 
-    val toModify = listOf(
-        "packagesearch.plugin.debug.logging",
-        "ide.experimental.ui",
-        "packagesearch.package.details"
-    )
-
-    val debugLoggingEntries = listOf(
-        Entry("packagesearch.plugin.debug.logging", "true"),
+    val defaultRegistryEntries = listOf(
         Entry("ide.experimental.ui", "true"),
-        Entry("packagesearch.package.details", "true"),
+        Entry("packagesearch.plugin.debug.logging", "true"),
     )
     val registry = settings?.components?.find { it.name == "Registry" }
         ?.entries
-        ?.filter { it.name !in toModify }
-        ?.let { it + debugLoggingEntries }
-        ?: debugLoggingEntries
+        ?.filter { it.key !in defaultRegistryEntries.map { it.key } }
+        ?.let { it + defaultRegistryEntries }
+        ?: defaultRegistryEntries
 
     writeText(
         xml.encodeToString(
             Application(
                 listOf(
-                    Component("GeneralSettings", options = listOf(confirmExitOption)),
+                    Component("GeneralSettings", options = options),
                     Component("Registry", entries = registry)
                 )
             )
