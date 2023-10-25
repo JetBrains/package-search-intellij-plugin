@@ -1,15 +1,21 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
 import ai.grazie.utils.mpp.UUID
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -75,6 +81,29 @@ internal fun DeclaredPackageMoreActionPopup(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         val isDeleteHovered = remember { mutableStateOf(false) }
+        module.buildFilePath?.let {
+            val isGoToSourceHovered = remember { mutableStateOf(false) }
+            val virtualFile = LocalFileSystem.getInstance().findFileByPath(it.absolutePathString()) ?: return@let
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .hoverBackground(isGoToSourceHovered)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        enabled = !isActionPerforming.value.isPerforming
+                    ) {
+                        goToSource(service, virtualFile, packageSearchDeclaredPackage)
+                        popupOpenStatus.value = null
+                        onDismissRequest()
+                    },
+                horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon("general/locate.svg", contentDescription = null, AllIcons::class.java)
+                Text(text = "Go to source")
+            }
+            Divider(orientation = Orientation.Horizontal, color = borderColor)
+        }
         Row(
             Modifier
                 .fillMaxWidth()
@@ -93,33 +122,10 @@ internal fun DeclaredPackageMoreActionPopup(
                         service
                     )
                 },
-            horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically
         ) {
             Icon("expui/general/delete.svg", contentDescription = null, AllIcons::class.java)
             Text(text = PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.remove.text"))
-        }
-        module.buildFilePath?.let {
-            Divider(orientation = Orientation.Horizontal, color = borderColor)
-            val isGoToSourceHovered = remember { mutableStateOf(false) }
-            val virtualFile = LocalFileSystem.getInstance().findFileByPath(it.absolutePathString()) ?: return@let
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .hoverBackground(isGoToSourceHovered)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                        enabled = !isActionPerforming.value.isPerforming
-                    ) {
-                        goToSource(service, virtualFile, packageSearchDeclaredPackage)
-                        popupOpenStatus.value = null
-                        onDismissRequest()
-                    },
-                horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon("actions/editSource.svg", contentDescription = null, AllIcons::class.java)
-                Text(text = "Go to source")
-            }
         }
     }
 }
@@ -194,10 +200,53 @@ fun RemotePackageMorePopupContent(
     val service = LocalPackageSearchService.current
     val isActionPerforming = LocalIsActionPerformingState.current
     val onlyStable = LocalIsOnlyStableVersions.current.value
-    Column {
-        when (val module = selectedModule.module) {
-            is PackageSearchModule.WithVariants -> {
-                module.variants.forEach {
+    val scrollstate = rememberScrollState()
+    Box {
+        Column(
+            modifier = Modifier.verticalScroll(scrollstate),
+        ) {
+            when (val module = selectedModule.module) {
+                is PackageSearchModule.WithVariants -> {
+                    module.variants.forEach {
+                        val isActionHovered = remember { mutableStateOf(false) }
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .hoverBackground(isActionHovered)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    enabled = !isActionPerforming.value.isPerforming
+                                ) {
+                                    val packageInstallData = it.value.getInstallData(
+                                        apiPackage,
+                                        apiPackage.getLatestVersion(onlyStable)
+                                    )
+                                    addAction(
+                                        isActionPerforming,
+                                        context,
+                                        selectedModule.dependencyManager,
+                                        packageInstallData,
+                                        popupOpenStatus,
+                                        service
+                                    )
+                                    onDismissRequest()
+                                },
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                PackageSearchBundle.message(
+                                    "packagesearch.ui.toolwindow.actions.addTo.text",
+                                    it.value.name
+                                )
+                            )
+                        }
+                    }
+
+                }
+
+                is PackageSearchModule.Base -> {
                     val isActionHovered = remember { mutableStateOf(false) }
                     Row(
                         Modifier
@@ -208,7 +257,7 @@ fun RemotePackageMorePopupContent(
                                 interactionSource = remember { MutableInteractionSource() },
                                 enabled = !isActionPerforming.value.isPerforming
                             ) {
-                                val packageInstallData = it.value.getInstallData(
+                                val installData = module.getInstallData(
                                     apiPackage,
                                     apiPackage.getLatestVersion(onlyStable)
                                 )
@@ -216,57 +265,27 @@ fun RemotePackageMorePopupContent(
                                     isActionPerforming,
                                     context,
                                     selectedModule.dependencyManager,
-                                    packageInstallData,
+                                    installData,
                                     popupOpenStatus,
                                     service
                                 )
-                                onDismissRequest()
                             },
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            PackageSearchBundle.message(
-                                "packagesearch.ui.toolwindow.actions.addTo.text",
-                                it.value.name
-                            )
-                        )
+                        Text(PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text"))
                     }
+
                 }
-
             }
+        }
 
-            is PackageSearchModule.Base -> {
-                val isActionHovered = remember { mutableStateOf(false) }
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .hoverBackground(isActionHovered)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                            enabled = !isActionPerforming.value.isPerforming
-                        ) {
-                            val installData = module.getInstallData(
-                                apiPackage,
-                                apiPackage.getLatestVersion(onlyStable)
-                            )
-                            addAction(
-                                isActionPerforming,
-                                context,
-                                selectedModule.dependencyManager,
-                                installData,
-                                popupOpenStatus,
-                                service
-                            )
-                        },
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text"))
-                }
 
-            }
+        Box(modifier = Modifier.matchParentSize()) {
+            VerticalScrollbar(
+                rememberScrollbarAdapter(scrollstate),
+                modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+            )
         }
     }
 

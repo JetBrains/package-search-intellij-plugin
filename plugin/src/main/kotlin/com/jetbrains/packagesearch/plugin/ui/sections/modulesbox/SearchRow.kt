@@ -26,7 +26,7 @@ import org.jetbrains.jewel.foundation.LocalGlobalColors
 import org.jetbrains.jewel.foundation.OutlineColors
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.styling.LocalTextFieldStyle
@@ -89,10 +89,7 @@ fun SearchRow(
                                     modifier = Modifier.padding(end = 4.dp),
                                 )
                             }
-                            OutlinedButton(
-                                onClick = { onSearchQueryChange("") },
-                            ) {
-
+                            IconButton(onClick = { onSearchQueryChange("") }) {
                                 Icon(
                                     resource = "actions/close.svg",
                                     modifier = Modifier.clickable { onSearchQueryChange("") },

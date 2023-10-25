@@ -2,6 +2,7 @@ package com.jetbrains.packagesearch.plugin.ui.model
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -71,7 +72,7 @@ class PackageSearchPackageItemListBuilder {
         id: String,
         modifyPackageContent: Content = EmptyContent,
         mainActionContent: Content = EmptyContent,
-        popupContent: Content = EmptyContent,
+        popupContent: Content? = EmptyContent,
         infoBoxDetail: InfoBoxDetail.Package,
     ) = list.add(
         PackageSearchPackageListItem.Package(
@@ -135,6 +136,7 @@ class PackageSearchPackageItemListBuilder {
                             horizontalArrangement = Arrangement.End
                         ) {
                             ScopeSelectionDropdown(
+                                contentModifier = Modifier.defaultMinSize(90.dp),
                                 availableScope = group.module.availableScopes,
                                 actualScope = declaredDependency.scope,
                                 mustHaveScope = group.module.dependencyMustHaveAScope
@@ -166,7 +168,7 @@ class PackageSearchPackageItemListBuilder {
                         }
 
                         VersionSelectionDropdown(
-                            modifier = Modifier.width(140.dp),
+                            contentModifier = Modifier.defaultMinSize(160.dp),
                             declaredVersion = declaredVersion,
                             availableVersions = availableVersions,
                             latestVersion = latestVersion
@@ -203,7 +205,6 @@ class PackageSearchPackageItemListBuilder {
     fun addFromRemoteGroup(
         group: PackageGroup.Remote,
         isGroupExpanded: Boolean,
-        isStableOnly: Boolean,
     ) {
         val compatibleVariantsText = if (group is PackageGroup.Remote.FromVariants) {
             val cardinality = group.compatibleVariants.size
@@ -251,10 +252,7 @@ class PackageSearchPackageItemListBuilder {
                                         .firstOrNull { it.declaredDependencies.none { it.id == apiPackage.id } }
                             if (firstPrimaryVariant != null) {
                                 PackageActionLink(
-                                    PackageSearchBundle.message(
-                                        "packagesearch.ui.toolwindow.actions.addTo.text",
-                                        firstPrimaryVariant.name
-                                    )
+                                    PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text")
                                 ) {
                                     group.dependencyManager.addDependency(
                                         context = it,
@@ -317,6 +315,7 @@ class PackageSearchPackageItemListBuilder {
                             )
                         }
                     },
+                    popupContent = null,
                     mainActionContent = mainActionContent,
                     infoBoxDetail = InfoBoxDetail.Package.RemotePackage(apiPackage)
                 )
@@ -365,7 +364,8 @@ private fun packageSearchDropdownStyle(): DropdownStyle {
 
 @Composable
 fun ScopeSelectionDropdown(
-    modifier: Modifier = Modifier,
+    dropdownModifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     availableScope: List<String>,
     actualScope: String?,
     mustHaveScope: Boolean,
@@ -376,7 +376,7 @@ fun ScopeSelectionDropdown(
     val scope = LocalPackageSearchService.current.coroutineScope
 
     Dropdown(
-        modifier = modifier,
+        modifier = dropdownModifier,
         enabled = !actionPerforming.isPerforming && availableScope.isNotEmpty(),
         style = packageSearchDropdownStyle(),
         menuContent = {
@@ -399,6 +399,8 @@ fun ScopeSelectionDropdown(
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.End
                     )
+
+
                 }
             }
             availableScope.forEach {
@@ -424,12 +426,14 @@ fun ScopeSelectionDropdown(
             }
         },
         content = {
-            Text(
-                text = actualScope ?: PackageSearchBundle.message("packagesearch.ui.missingScope"),
-                maxLines = 1,
-                overflow = TextOverflow.Clip,
-                textAlign = TextAlign.End
-            )
+            Row(modifier = contentModifier, horizontalArrangement = Arrangement.End) {
+                Text(
+                    text = actualScope ?: PackageSearchBundle.message("packagesearch.ui.missingScope"),
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip,
+                    textAlign = TextAlign.End
+                )
+            }
         },
     )
 }
@@ -437,7 +441,8 @@ fun ScopeSelectionDropdown(
 
 @Composable
 fun VersionSelectionDropdown(
-    modifier: Modifier = Modifier,
+    dropdownModifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     declaredVersion: NormalizedVersion,
     availableVersions: List<NormalizedVersion>,
     latestVersion: NormalizedVersion,
@@ -447,7 +452,7 @@ fun VersionSelectionDropdown(
     var actionPerforming by LocalIsActionPerformingState.current
     val scope = LocalPackageSearchService.current.coroutineScope
     Dropdown(
-        modifier = modifier,
+        modifier = dropdownModifier,
         enabled = !actionPerforming.isPerforming && availableVersions.isNotEmpty(),
         style = packageSearchDropdownStyle(),
         menuContent = {
@@ -467,7 +472,7 @@ fun VersionSelectionDropdown(
                         }
                     }) {
                     Text(
-                        modifier = modifier.padding(vertical = 4.dp),
+                        modifier = contentModifier.padding(vertical = 4.dp),
                         textAlign = TextAlign.End,
                         text = it.versionName,
                         maxLines = 1,
@@ -489,13 +494,14 @@ fun VersionSelectionDropdown(
                 }
             }
         }
-        Text(
-            text = text,
-            maxLines = 1,
-            overflow = TextOverflow.Clip,
-            textAlign = TextAlign.End
-        )
-
+        Row(modifier = contentModifier, horizontalArrangement = Arrangement.End) {
+            Text(
+                text = text,
+                maxLines = 1,
+                overflow = TextOverflow.Clip,
+                textAlign = TextAlign.End
+            )
+        }
     }
 }
 

@@ -62,7 +62,6 @@ fun PackageSearchPackageList(
                 is PackageGroup.Remote -> addFromRemoteGroup(
                     group = group,
                     isGroupExpanded = group.id !in packageGroupState,
-                    isStableOnly = isStableOnly,
                 )
             }
         }
@@ -103,14 +102,14 @@ fun PackageSearchPackageList(
                             item.compatibleVariantsText != null -> {
                                 {
                                     LabelInfo(
-                                        modifier = Modifier
-                                            .clickable(
-                                                indication = null,
-                                                interactionSource = remember { MutableInteractionSource() }) {
-                                                item.infoBoxDetail?.let(onElementClick)
-                                                if (!isInfoBoxOpen) infoBoxOpenState = true
-                                            }
-                                            .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
+                                        modifier = Modifier,
+//                                            .clickable(
+//                                                indication = null,
+//                                                interactionSource = remember { MutableInteractionSource() }) {
+//                                                item.infoBoxDetail?.let(onElementClick)
+//                                                if (!isInfoBoxOpen) infoBoxOpenState = true
+//                                            }
+//                                            .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
                                         text = item.compatibleVariantsText,
                                     )
                                 }

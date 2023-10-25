@@ -13,14 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import java.awt.Cursor
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
@@ -70,8 +67,9 @@ fun PackageGroupHeader(
             )
             if (badges.isNotEmpty()) {
                 Box(
-                    modifier = Modifier.onClick { onBadgesClick() }
-                        .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
+//                    modifier = Modifier.onClick {
+//                        onBadgesClick() }
+//                        .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
                     contentAlignment = Alignment.Center,
                 ) {
                     LabelInfo(

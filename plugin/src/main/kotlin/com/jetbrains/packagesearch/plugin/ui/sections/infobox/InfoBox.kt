@@ -64,18 +64,18 @@ fun PackageSearchInfoBox(
                             selectedTab = InfoTabState.Overview
                         },
                     ),
-                    TabData.Default(
-                        selected = selectedTab == InfoTabState.Platforms,
-                        label = InfoTabState.Platforms.name,
-                        closable = false,
-                        onClick = {
-//                            selectedTab = InfoTabState.Platforms
-                        },
-                    ),
+//                    TabData.Default(
+//                        selected = selectedTab == InfoTabState.Platforms,
+//                        label = InfoTabState.Platforms.name,
+//                        closable = false,
+//                        onClick = {
+////                            selectedTab = InfoTabState.Platforms
+//                        },
+//                    ),
                 ),
             )
 
-            Box(Modifier.fillMaxWidth()) {
+            Box(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                 when (selectedTab) {
                     InfoTabState.Overview -> {
                         //retrieve the dependency manager
