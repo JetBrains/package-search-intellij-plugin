@@ -1,6 +1,5 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
 
-import ai.grazie.utils.mpp.UUID
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,12 +36,15 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.ui.ActionState
+import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.getGlobalColorsWithTransparentFocusOverride
+import com.jetbrains.packagesearch.plugin.utils.logWarn
+import java.util.UUID
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
@@ -187,6 +189,7 @@ fun PackageRow(
 @Composable
 fun PackageActionLink(
     text: String,
+    actionType: ActionType,
     action: suspend (PackageSearchKnownRepositoriesContext) -> Unit,
 ) {
     var showProgress by remember { mutableStateOf(false) }
@@ -194,13 +197,12 @@ fun PackageActionLink(
     val service = LocalPackageSearchService.current
     when {
         showProgress -> CircularProgressIndicator(modifier = Modifier.size(16.dp))
-
         else -> Link(
-            enabled = !isActionPerforming.value.isPerforming,
+            enabled = isActionPerforming.value?.isPerforming?.not() ?:true,
             text = text,
             onClick = {
-                val id = UUID.random().text
-                isActionPerforming.value = ActionState(true, id)
+                val id = UUID.randomUUID().toString()
+                isActionPerforming.value = ActionState(true, actionType, id)
                 showProgress = true
                 service.coroutineScope.launch {
                     action(service)
@@ -212,9 +214,9 @@ fun PackageActionLink(
                 }
                 service.coroutineScope.launch {
                     delay(5.seconds)
-                    if (isActionPerforming.value.actionId == id) {
-                        System.err.println("Remove action has been cancelled due a time out")
-                        isActionPerforming.value = ActionState(false)
+                    if (isActionPerforming.value?.actionId == id) {
+                        logWarn("Package Action has been cancelled due a time out")
+                        isActionPerforming.value = null
                     }
                 }
             },

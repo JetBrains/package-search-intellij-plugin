@@ -1,6 +1,5 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,8 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
@@ -34,8 +31,8 @@ import com.jetbrains.packagesearch.plugin.ui.model.PackageSearchPackageListItem.
 import com.jetbrains.packagesearch.plugin.ui.model.buildPackageSearchPackageItemList
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageGroupHeader
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageRow
-import java.awt.Cursor
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
+import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Text
@@ -43,6 +40,7 @@ import org.jetbrains.jewel.ui.util.thenIf
 
 @Composable
 fun PackageSearchPackageList(
+    packagesListState: SelectableLazyListState,
     packageGroups: List<PackageGroup>,
     packageGroupState: SnapshotStateList<PackageGroup.Id> = remember { mutableStateListOf() },
     isInfoBoxOpen: Boolean,
@@ -69,6 +67,7 @@ fun PackageSearchPackageList(
     var infoBoxOpenState by LocalInfoBoxPanelOpenState.current
     SelectableLazyColumn(
         selectionMode = SelectionMode.Single,
+        state=packagesListState,
         onSelectedIndexesChanged = {
             val index = it.singleOrNull() ?: return@SelectableLazyColumn
             val item = items[index] as Package

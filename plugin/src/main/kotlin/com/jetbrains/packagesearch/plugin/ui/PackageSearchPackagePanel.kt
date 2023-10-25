@@ -38,6 +38,7 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.compose.splitpane.HorizontalSplitPane
 import org.jetbrains.compose.splitpane.rememberSplitPaneState
 import org.jetbrains.jewel.bridge.toComposeColor
+import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.TreeState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
@@ -47,6 +48,7 @@ import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 
 @Composable
 fun PackageSearchPackagePanel(
+    packagesListState: SelectableLazyListState,
     isInfoBoxOpen: Boolean,
     state: TreeState,
     tree: Tree<PackageSearchModuleData>,
@@ -111,6 +113,7 @@ fun PackageSearchPackagePanel(
             }
         } else {
             PackageSearchCentralPanel(
+                packagesListState = packagesListState,
                 searchAvailable = searchAvailable,
                 isLoading = isSearching,
                 isInfoBoxOpen = isInfoBoxOpen,

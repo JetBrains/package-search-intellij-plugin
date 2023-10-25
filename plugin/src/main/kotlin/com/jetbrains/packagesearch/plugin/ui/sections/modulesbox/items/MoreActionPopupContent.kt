@@ -39,12 +39,13 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.ActionState
+import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import com.jetbrains.packagesearch.plugin.utils.logError
+import com.jetbrains.packagesearch.plugin.utils.logDebug
 import kotlin.io.path.absolutePathString
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -91,7 +92,7 @@ internal fun DeclaredPackageMoreActionPopup(
                     .clickable(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() },
-                        enabled = !isActionPerforming.value.isPerforming
+                        enabled = isActionPerforming.value != null
                     ) {
                         goToSource(service, virtualFile, packageSearchDeclaredPackage)
                         popupOpenStatus.value = null
@@ -111,7 +112,7 @@ internal fun DeclaredPackageMoreActionPopup(
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
-                    enabled = !isActionPerforming.value.isPerforming
+                    enabled = isActionPerforming.value != null
                 ) {
                     deleteAction(
                         isActionPerforming,
@@ -150,7 +151,7 @@ private fun goToSource(
 }
 
 private fun deleteAction(
-    isActionPerforming: MutableState<ActionState>,
+    isActionPerforming: MutableState<ActionState?>,
     context: PackageSearchProjectService,
     dependencyManager: PackageSearchDependencyManager,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
@@ -158,7 +159,7 @@ private fun deleteAction(
     service: PackageSearchProjectService,
 ) {
     val id = UUID.random().text
-    isActionPerforming.value = ActionState(true, id)
+    isActionPerforming.value = ActionState(true, ActionType.REMOVE, id)
     context.coroutineScope.launch {
         dependencyManager.removeDependency(
             context,
@@ -166,15 +167,15 @@ private fun deleteAction(
         )
     }.invokeOnCompletion {
         it?.let {
-            System.err.println(it.stackTraceToString())
+            logDebug("Failed action Remove for package: ${packageSearchDeclaredPackage.id}", it)
         }
         popupOpenStatus.value = null
     }
     service.coroutineScope.launch {
         delay(5.seconds)
-        if (isActionPerforming.value.actionId == id) {
-            System.err.println("Remove action has been cancelled due a time out")
-            isActionPerforming.value = ActionState(false)
+        if (isActionPerforming.value?.actionId == id) {
+            logDebug("Timeout action Remove for package: ${packageSearchDeclaredPackage.id}")
+            isActionPerforming.value = null
         }
     }
 }
@@ -216,7 +217,7 @@ fun RemotePackageMorePopupContent(
                                 .clickable(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() },
-                                    enabled = !isActionPerforming.value.isPerforming
+                                    enabled = isActionPerforming.value != null
                                 ) {
                                     val packageInstallData = it.value.getInstallData(
                                         apiPackage,
@@ -255,7 +256,7 @@ fun RemotePackageMorePopupContent(
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() },
-                                enabled = !isActionPerforming.value.isPerforming
+                                enabled = isActionPerforming.value == null
                             ) {
                                 val installData = module.getInstallData(
                                     apiPackage,
@@ -293,7 +294,7 @@ fun RemotePackageMorePopupContent(
 }
 
 private fun addAction(
-    isActionPerforming: MutableState<ActionState>,
+    isActionPerforming: MutableState<ActionState?>,
     context: PackageSearchProjectService,
     dependencyManager: PackageSearchDependencyManager,
     installPackageData: InstallPackageData,
@@ -301,7 +302,7 @@ private fun addAction(
     service: PackageSearchProjectService,
 ) {
     val id = UUID.random().text
-    isActionPerforming.value = ActionState(true, id)
+    isActionPerforming.value = ActionState(true, ActionType.ADD, id)
     context.coroutineScope.launch {
         dependencyManager.addDependency(
             context,
@@ -309,15 +310,15 @@ private fun addAction(
         )
     }.invokeOnCompletion {
         it?.let {
-            logError("Error while adding dependency:\n$installPackageData", it)
+            logDebug("Error while adding dependency:\n$installPackageData", it)
         }
         popupOpenStatus.value = null
     }
     service.coroutineScope.launch {
         delay(5.seconds)
-        if (isActionPerforming.value.actionId == id) {
-            System.err.println("Remove action has been cancelled due a time out")
-            isActionPerforming.value = ActionState(false)
+        if (isActionPerforming.value?.actionId == id) {
+            logDebug("Add action has been cancelled due a time out")
+            isActionPerforming.value = null
         }
     }
 }

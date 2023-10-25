@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,10 +32,12 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.jetbrains.jewel.bridge.toComposeColor
-import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.lazy.rememberSelectableLazyListState
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.rememberTreeState
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 
 @Composable
@@ -48,11 +51,20 @@ fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
             .padding(top = 2.dp, bottom = 0.dp, start = 2.dp, end = 2.dp),
     ) {
         val modulesState by LocalPackageSearchService.current.moduleData.collectAsState()
+        val packagesListState = rememberSelectableLazyListState()
+        val scope= rememberCoroutineScope()
         when (val moduleProvider = modulesState) {
             is Loading -> IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth())
             is NoModules -> NoModulesFound()
             is Ready -> {
-                LocalIsActionPerformingState.current.value = ActionState(false)
+                var isActionPerforming by LocalIsActionPerformingState.current
+                isActionPerforming?.let {
+                    if (it.actionType == ActionType.ADD)
+                        scope.launch {
+                            packagesListState.lazyListState.scrollToItem(0)
+                        }
+                }
+                isActionPerforming = null
                 val treeState = rememberTreeState()
                 val tree = moduleProvider.moduleData.asTree()
                 if (tree.isEmpty()) {
@@ -89,6 +101,7 @@ fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
                 }
 
                 PackageSearchPackagePanel(
+                    packagesListState = packagesListState,
                     isInfoBoxOpen = isInfoBoxOpen,
                     tree = tree,
                     state = treeState,

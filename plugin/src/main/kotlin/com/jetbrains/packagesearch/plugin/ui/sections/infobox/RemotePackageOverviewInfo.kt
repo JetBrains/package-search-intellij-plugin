@@ -33,6 +33,7 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
+import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
@@ -91,7 +92,10 @@ fun RemotePackageOverviewInfo(
                                 selectedVersion = selectedPackage.apiPackage.getLatestVersion(LocalIsOnlyStableVersions.current.value),
                                 selectedScope = targetModule.defaultScope
                             )
-                        DefaultActionButton(PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text")) {
+                        DefaultActionButton(
+                            actionName = PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text"),
+                            actionType = ActionType.ADD
+                        ) {
                             selectedModules.first().dependencyManager.addDependency(
                                 context = service,
                                 data = defaultInstallData

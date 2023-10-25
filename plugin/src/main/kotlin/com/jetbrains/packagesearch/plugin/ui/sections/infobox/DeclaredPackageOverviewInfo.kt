@@ -31,6 +31,7 @@ import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
+import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
@@ -74,7 +75,9 @@ fun DeclaredPackageOverviewInfo(
                 // defaultAction - can be upgraded
                 val newVersion = selectedPackage.declaredDependency.evaluateUpgrade()?.versionName
                 if (newVersion != null) {
-                    DefaultActionButton(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.actions.update")) {
+                    DefaultActionButton(
+                        actionName = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.actions.update"),
+                        actionType = ActionType.UPDATE) {
                         selectedPackage.dependencyManager.updateDependencies(
                             context = service,
                             data = listOf(

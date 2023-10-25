@@ -21,7 +21,6 @@ import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.util.asSafely
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
-import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelEnabled
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
@@ -101,7 +100,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
                     LocalPackageSearchService provides project.PackageSearchProjectService,
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
                     LocalPackageSearchApiClient provides apiClient,
-                    LocalIsActionPerformingState provides mutableStateOf(ActionState(false)),
+                    LocalIsActionPerformingState provides mutableStateOf(null),
                     LocalInfoBoxPanelEnabled provides (isPackageDetailsEnabled as State<Boolean>),
                     LocalInfoBoxPanelOpenState provides isInfoBoxOpen,
                     LocalIsOnlyStableVersions provides project.PackageSearchProjectService.isStableOnlyVersions,

@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.ui.model
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
 import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.ui.ActionState
+import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
@@ -103,10 +105,11 @@ class PackageSearchPackageItemListBuilder {
                     .count { it.evaluateUpgrade() != null }
                 if (count > 0) {
                     PackageActionLink(
-                        PackageSearchBundle.message(
+                        text = PackageSearchBundle.message(
                             "packagesearch.ui.toolwindow.actions.upgradeAll.text.withCount",
                             count
-                        )
+                        ),
+                        actionType = ActionType.UPDATE
                     ) {
                         val upgrades = group.filteredDependencies.mapNotNull {
                             val newVersion = it.evaluateUpgrade(isStableOnly)?.versionName
@@ -164,7 +167,8 @@ class PackageSearchPackageItemListBuilder {
                         val latestStable = declaredDependency.latestStableVersion
                         val latestVersion = when {
                             onlyStable && latestStable !is Missing -> latestStable
-                            else -> declaredDependency.latestVersion
+                            !onlyStable -> declaredDependency.latestVersion
+                            else -> Missing
                         }
 
                         VersionSelectionDropdown(
@@ -230,9 +234,10 @@ class PackageSearchPackageItemListBuilder {
                     val latestVersion = apiPackage.latestVersion
                     when (group) {
                         is PackageGroup.Remote.FromBaseModule -> PackageActionLink(
-                            PackageSearchBundle.message(
+                            text = PackageSearchBundle.message(
                                 "packagesearch.ui.toolwindow.packages.actions.install"
-                            )
+                            ),
+                            actionType = ActionType.ADD
                         ) {
                             group.dependencyManager.addDependency(
                                 context = it,
@@ -252,7 +257,8 @@ class PackageSearchPackageItemListBuilder {
                                         .firstOrNull { it.declaredDependencies.none { it.id == apiPackage.id } }
                             if (firstPrimaryVariant != null) {
                                 PackageActionLink(
-                                    PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text")
+                                    PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.add.text"),
+                                    ActionType.ADD
                                 ) {
                                     group.dependencyManager.addDependency(
                                         context = it,
@@ -270,7 +276,8 @@ class PackageSearchPackageItemListBuilder {
                         is PackageGroup.Remote.FromMultipleModules -> PackageActionLink(
                             PackageSearchBundle.message(
                                 "packagesearch.ui.toolwindow.packages.actions.install"
-                            )
+                            ),
+                            ActionType.ADD
                         ) {
                             group.moduleData
                                 .forEach { (module, dependencyManager) ->
@@ -377,19 +384,20 @@ fun ScopeSelectionDropdown(
 
     Dropdown(
         modifier = dropdownModifier,
-        enabled = !actionPerforming.isPerforming && availableScope.isNotEmpty(),
+        menuModifier = Modifier.heightIn(max = 100.dp),
+        enabled = actionPerforming == null && availableScope.isNotEmpty(),
         style = packageSearchDropdownStyle(),
         menuContent = {
             if (!mustHaveScope && actualScope != null) {
                 selectableItem(
                     selected = false,
                     onClick = {
-                        actionPerforming = ActionState(true, actionId)
+                        actionPerforming = ActionState(true, ActionType.UPDATE, actionId)
                         scope.launch { updateLambda(null) }
                         scope.launch {
                             delay(5.seconds)
-                            if (actionPerforming.actionId == actionId) {
-                                actionPerforming = ActionState(false)
+                            if (actionPerforming?.actionId == actionId) {
+                                actionPerforming = null
                             }
                         }
                     }) {
@@ -399,20 +407,18 @@ fun ScopeSelectionDropdown(
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.End
                     )
-
-
                 }
             }
             availableScope.forEach {
                 selectableItem(
                     selected = false,
                     onClick = {
-                        actionPerforming = ActionState(true, actionId)
+                        actionPerforming = ActionState(true, ActionType.UPDATE, actionId)
                         scope.launch { updateLambda(it) }
                         scope.launch {
                             delay(5.seconds)
-                            if (actionPerforming.actionId == actionId) {
-                                actionPerforming = ActionState(false)
+                            if (actionPerforming?.actionId == actionId) {
+                                actionPerforming = null
                             }
                         }
                     }) {
@@ -453,21 +459,22 @@ fun VersionSelectionDropdown(
     val scope = LocalPackageSearchService.current.coroutineScope
     Dropdown(
         modifier = dropdownModifier,
-        enabled = !actionPerforming.isPerforming && availableVersions.isNotEmpty(),
+        menuModifier = Modifier.heightIn(max = 150.dp),
+        enabled = actionPerforming == null && availableVersions.isNotEmpty(),
         style = packageSearchDropdownStyle(),
         menuContent = {
             availableVersions.forEach {
                 selectableItem(
                     selected = false,
                     onClick = {
-                        actionPerforming = ActionState(true, actionId)
+                        actionPerforming = ActionState(true, ActionType.UPDATE, actionId)
                         scope.launch {
                             updateLambda(it.versionName)
                         }
                         scope.launch {
                             delay(5.seconds)
-                            if (actionPerforming.actionId == actionId) {
-                                actionPerforming = ActionState(false)
+                            if (actionPerforming?.actionId == actionId) {
+                                actionPerforming = null
                             }
                         }
                     }) {
@@ -489,7 +496,7 @@ fun VersionSelectionDropdown(
                     append(declaredVersion.versionName)
                     if (latestVersion > declaredVersion) {
                         append(" → ")
-                        append(availableVersions.first().versionName)
+                        append(latestVersion.versionName)
                     }
                 }
             }
@@ -516,7 +523,8 @@ internal fun DeclaredDependencyMainActionContent(
         PackageActionLink(
             PackageSearchBundle.message(
                 "packagesearch.ui.toolwindow.packages.actions.upgrade"
-            )
+            ),
+            ActionType.UPDATE
         ) {
             dependencyManager.updateDependencies(
                 context = it,

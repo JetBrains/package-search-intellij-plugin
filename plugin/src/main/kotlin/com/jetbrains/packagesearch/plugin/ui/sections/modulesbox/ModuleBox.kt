@@ -8,10 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
+import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 
 @Composable
 fun PackageSearchCentralPanel(
+    packagesListState: SelectableLazyListState,
     searchAvailable: Boolean,
     isLoading: Boolean,
     isInfoBoxOpen: Boolean,
@@ -36,6 +38,7 @@ fun PackageSearchCentralPanel(
             when {
                 packageGroups.isEmpty() && !isLoading -> NoResultsToShow()
                 packageGroups.isNotEmpty() -> PackageSearchPackageList(
+                    packagesListState = packagesListState,
                     packageGroups = packageGroups,
                     isInfoBoxOpen = isInfoBoxOpen,
                     onElementClick = onElementClick,

@@ -2,7 +2,6 @@ package com.jetbrains.packagesearch.plugin.ui
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.intellij.ide.ui.LafManagerListener
@@ -25,10 +24,7 @@ val LocalProjectCoroutineScope = staticCompositionLocalOf<CoroutineScope> {
     error("No ProjectCoroutineScope provided")
 }
 
-@Stable
-data class ActionState(val isPerforming: Boolean, val actionId: String? = null)
-
-val LocalIsActionPerformingState: ProvidableCompositionLocal<MutableState<ActionState>> =
+val LocalIsActionPerformingState: ProvidableCompositionLocal<MutableState<ActionState?>> =
     staticCompositionLocalOf { error("No LocalIsActionPerformingState provided") }
 
 val LocalInfoBoxPanelEnabled: ProvidableCompositionLocal<State<Boolean>> =

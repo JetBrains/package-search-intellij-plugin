@@ -15,11 +15,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.ui.ActionState
+import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import com.jetbrains.packagesearch.plugin.ui.bridge.pointerChangeToHandModifier
+import com.jetbrains.packagesearch.plugin.utils.logWarn
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +39,7 @@ import org.jetbrains.packagesearch.api.v3.Licenses
 @Composable
 internal fun DefaultActionButton(
     actionName: String,
+    actionType: ActionType,
     actionLambda: suspend CoroutineScope.() -> Unit,
 ) {
     var isActionPerforming by LocalIsActionPerformingState.current
@@ -45,19 +48,19 @@ internal fun DefaultActionButton(
         modifier = Modifier.pointerChangeToHandModifier()
     ) {
         OutlinedButton(
-            enabled = isActionPerforming.isPerforming != true,
+            enabled = isActionPerforming == null,
             onClick = {
-                if (!isActionPerforming.isPerforming) {
+                if (isActionPerforming == null) {
                     val actionId = UUID.randomUUID().toString()
-                    isActionPerforming = ActionState(true, actionId)
+                    isActionPerforming = ActionState(true, actionType, actionId)
                     service.coroutineScope.launch {
                         runCatching {
                             actionLambda()
                         }
                         delay(5.seconds)
-                        if (isActionPerforming.isPerforming && isActionPerforming.actionId == actionId) {
-                            System.err.println("Action update timeout for infobox panel")
-                            isActionPerforming = ActionState(false, null)
+                        if (isActionPerforming?.actionId == actionId) {
+                            logWarn("Action update timeout for infobox panel")
+                            isActionPerforming = null
                         }
                     }
 
