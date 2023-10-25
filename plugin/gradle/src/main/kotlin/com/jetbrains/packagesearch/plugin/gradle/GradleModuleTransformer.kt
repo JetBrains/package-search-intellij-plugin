@@ -29,7 +29,7 @@ import com.intellij.openapi.module.Module as NativeModule
 @Deprecated(
     "Use BaseGradleModuleProvider instead",
     ReplaceWith(
-        "BaseGradleModuleProvider",
+        "AbstractGradleModuleProvider",
         "com.jetbrains.packagesearch.plugin.gradle.BaseGradleModuleProvider"
     )
 )

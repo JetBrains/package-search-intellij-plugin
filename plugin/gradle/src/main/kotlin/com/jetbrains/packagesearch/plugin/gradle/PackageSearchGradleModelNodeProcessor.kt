@@ -2,20 +2,26 @@
 
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level.PROJECT
 import com.intellij.openapi.components.service
+import com.intellij.openapi.externalSystem.ExternalSystemManager
+import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
@@ -35,7 +41,7 @@ class PackageSearchGradleModelNodeProcessor :
     }
 
     @Service(PROJECT)
-    class Cache(project: Project, private val coroutineScope: CoroutineScope) {
+    class Cache(private val project: Project, private val coroutineScope: CoroutineScope) {
 
         private val gradleModelRepository = project.PackageSearchProjectCachesService
             .getRepository<GradleModelCacheEntry>("gradle")
@@ -51,6 +57,12 @@ class PackageSearchGradleModelNodeProcessor :
 
         suspend fun clean() {
             gradleModelRepository.removeAll()
+            ExternalSystemManager.EP_NAME.extensionList.forEach {
+                val importSpec = ImportSpecBuilder(project, it.systemId).build()
+                withContext(Dispatchers.EDT) {
+                    ExternalSystemUtil.refreshProjects(importSpec)
+                }
+            }
         }
 
         fun update(items: List<GradleModelCacheEntry>) {
