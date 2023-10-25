@@ -14,6 +14,7 @@ import org.intellij.jewel.workshop.build.patchTextRegistryFile
 import org.intellij.jewel.workshop.build.registryTextFile
 import org.intellij.jewel.workshop.build.settingsFile
 import org.jetbrains.intellij.tasks.PublishPluginTask
+import org.jetbrains.packagesearch.gradle.GeneratePackageSearchObject
 
 
 plugins {
@@ -37,7 +38,9 @@ packagesearch {
         "org.jetbrains.jewel.ExperimentalJewelApi",
         "androidx.compose.foundation.ExperimentalFoundationApi",
         "kotlin.io.encoding.ExperimentalEncodingApi",
-        "kotlin.ExperimentalStdlibApi"
+        "kotlin.ExperimentalStdlibApi",
+        "kotlin.io.path.ExperimentalPathApi",
+        "org.jetbrains.jewel.foundation.ExperimentalJewelApi"
     )
     isRunIdeEnabled = true
 }
@@ -82,6 +85,7 @@ dependencies {
 val pkgsPluginId = "com.jetbrains.packagesearch.intellij-plugin"
 
 val generatedDir: Provider<Directory> = layout.buildDirectory.dir("generated/main/kotlin")
+
 kotlin.sourceSets.main {
     kotlin.srcDirs(generatedDir)
 }
@@ -103,36 +107,10 @@ tasks {
     runIde {
         dependsOn(patchIdeSettings)
     }
-    val generatePluginDataSources by registering {
-        outputs.dir(generatedDir)
-        doLast {
-            val fileSpec = FileSpec.builder("com.jetbrains.packagesearch.plugin", "PackageSearch")
-                .addType(
-                    TypeSpec.objectBuilder("PackageSearch")
-                        .addModifiers(KModifier.DATA)
-                        .addProperty(
-                            PropertySpec.builder("pluginId", String::class)
-                                .getter(
-                                    FunSpec.getterBuilder()
-                                        .addStatement("return %S", pkgsPluginId)
-                                        .build()
-                                )
-                                .build()
-                        )
-                        .addProperty(
-                            PropertySpec.builder("pluginVersion", String::class)
-                                .getter(
-                                    FunSpec.getterBuilder()
-                                        .addStatement("return %S", version.toString())
-                                        .build()
-                                )
-                                .build()
-                        )
-                        .build()
-                )
-                .build()
-            fileSpec.writeTo(generatedDir.get().asFile)
-        }
+    val generatePluginDataSources by registering(GeneratePackageSearchObject::class) {
+        pluginId = pkgsPluginId
+        outputDir = generatedDir
+        packageName = "com.jetbrains.packagesearch.plugin"
     }
     sourcesJar {
         dependsOn(generatePluginDataSources)
