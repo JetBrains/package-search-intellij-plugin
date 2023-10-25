@@ -27,8 +27,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.intellij.openapi.components.service
+import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
@@ -40,14 +41,10 @@ import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.VersionSelectionDropdown
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.RemotePackageMorePopupContent
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.getLatestVersion
-import org.jetbrains.jewel.Icon
-import org.jetbrains.jewel.IntelliJTheme
-import org.jetbrains.jewel.LocalIconData
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.bridge.SwingBridgeService
-import org.jetbrains.jewel.bridge.retrieveStatelessIcon
-import org.jetbrains.jewel.foundation.onHover
+import org.jetbrains.jewel.foundation.modifier.onHover
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
@@ -56,10 +53,7 @@ fun RemotePackageOverviewInfo(
     selectedPackage: InfoBoxDetail.Package.RemotePackage,
     selectedModules: List<PackageSearchModuleData>,
 ) {
-    val svgLoader = service<SwingBridgeService>().svgLoader
     val service = LocalPackageSearchService.current
-    val iconData = LocalIconData.current
-    val resourceLoader = LocalResourceLoader.current
     var openActionPopup by remember { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(end = 8.dp)) {
 
@@ -107,22 +101,15 @@ fun RemotePackageOverviewInfo(
                         openActionPopup = true
                     }
                 ) {
-                    val painterProvider = retrieveStatelessIcon(
-                        iconPath = "general/chevron-down.svg",
-                        svgLoader = svgLoader,
-                        iconData = iconData
-                    )
-                    val painter by painterProvider.getPainter(LocalResourceLoader.current)
-
-                    Icon(painter, null)
+                    Icon("general/chevron-down.svg", null, AllIcons::class.java)
 
                     if (openActionPopup) {
                         val contentOffsetX = with(LocalDensity.current) { 100.dp.toPx().toInt() + 1 }
                         val contentOffsetY = with(LocalDensity.current) { 32.dp.toPx().toInt() + 1 }
                         val borderColor: Color =
-                            remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") }
+                            remember(JewelTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") }
                         val backgroundColor: Color =
-                            remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("PopupMenu.background") }
+                            remember(JewelTheme.isDark) { pickComposeColorFromLaf("PopupMenu.background") }
                         Popup(
                             offset = IntOffset(-contentOffsetX, contentOffsetY),
                             onDismissRequest = { openActionPopup = false },
@@ -202,14 +189,12 @@ fun RemotePackageOverviewInfo(
                 )
 
 
-                val painter = remember(svgLoader) {
-                    val iconPath = when (selectedPackage.apiPackage) {
-                        is ApiMavenPackage -> "icons/repositoryLibraryLogo.svg"
-                    }
-                    retrieveStatelessIcon(iconPath, svgLoader, iconData)
+                val icon = when (selectedPackage.apiPackage) {
+                    is ApiMavenPackage -> IconProvider.Icons.MAVEN
                 }
+                val iconPath = if (JewelTheme.isDark) icon.darkIconPath else icon.lightIconPath
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(painter.getPainter(resourceLoader).value, null)
+                    Icon(iconPath, null, IconProvider::class.java)
                     val typeName = when (selectedPackage.apiPackage) {
                         is ApiMavenPackage -> "Maven"
                     }

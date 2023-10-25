@@ -11,11 +11,11 @@ import androidx.compose.ui.Modifier
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
-import org.jetbrains.jewel.Divider
-import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
-import org.jetbrains.jewel.Orientation
 import org.jetbrains.jewel.bridge.toComposeColor
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
+import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 
 @Composable
 fun PackageSearchCentralPanel(
@@ -26,7 +26,7 @@ fun PackageSearchCentralPanel(
     onElementClick: (InfoBoxDetail?) -> Unit = {},
     onSearchQueryChange: (String) -> Unit = {},
 ) {
-    val borderColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
+    val borderColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
 
     Column {
         SearchRow(
@@ -35,7 +35,7 @@ fun PackageSearchCentralPanel(
                 .sumOf { it.size },
             onSearchQueryChange = onSearchQueryChange,
         )
-        Divider(orientation = Orientation.Horizontal, Modifier.fillMaxWidth(), color = borderColor)
+        Divider(orientation = Orientation.Horizontal, modifier = Modifier.fillMaxWidth(), color = borderColor)
 
         Box {
             when {

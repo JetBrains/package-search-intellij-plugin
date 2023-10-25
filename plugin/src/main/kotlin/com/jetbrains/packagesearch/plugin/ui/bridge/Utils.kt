@@ -14,9 +14,9 @@ import java.net.URI
 import java.util.jar.JarFile
 import javax.swing.UIDefaults
 import javax.swing.UIManager
-import org.jetbrains.jewel.foundation.tree.Tree
-import org.jetbrains.jewel.foundation.tree.TreeGeneratorScope
-import org.jetbrains.jewel.foundation.tree.buildTree
+import org.jetbrains.jewel.foundation.lazy.tree.Tree
+import org.jetbrains.jewel.foundation.lazy.tree.TreeGeneratorScope
+import org.jetbrains.jewel.foundation.lazy.tree.buildTree
 
 fun java.awt.Color.toComposeColor(): Color {
     return Color(red, green, blue, alpha)

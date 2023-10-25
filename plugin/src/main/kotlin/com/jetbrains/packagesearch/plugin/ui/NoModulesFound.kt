@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.ExternalSystemManager
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -30,10 +31,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.jetbrains.jewel.Icon
-import org.jetbrains.jewel.Link
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.painterResource
+import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.Link
 
 @Composable
 fun NoModulesFound() {
@@ -55,7 +54,6 @@ fun NoModulesFound() {
                 var isEnabled by remember { mutableStateOf(true) }
                 Link(
                     enabled = isEnabled,
-                    resourceLoader = LocalResourceLoader.current,
                     text = "refreshing",
                     onClick = {
                         isEnabled = false
@@ -101,12 +99,12 @@ fun NoModulesFound() {
 fun LearnMoreLink() {
     Row {
         Icon(
-            painter = painterResource("icons/intui/question.svg", LocalResourceLoader.current),
+            resource = "icons/intui/question.svg",
             modifier = Modifier.size(16.dp).padding(end = 4.dp),
             contentDescription = null,
+            iconClass = AllIcons::class.java
         )
         Link(
-            resourceLoader = LocalResourceLoader.current,
             text = "Learn more",
             onClick = { openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html") },
         )

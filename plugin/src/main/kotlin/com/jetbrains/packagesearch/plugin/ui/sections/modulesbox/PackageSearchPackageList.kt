@@ -35,13 +35,11 @@ import com.jetbrains.packagesearch.plugin.ui.model.buildPackageSearchPackageItem
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageGroupHeader
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageRow
 import java.awt.Cursor
-import org.jetbrains.jewel.IntelliJTheme
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
-import org.jetbrains.jewel.painterResource
-import org.jetbrains.jewel.util.appendIf
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.util.thenIf
 
 @Composable
 fun PackageSearchPackageList(
@@ -82,10 +80,8 @@ fun PackageSearchPackageList(
             when (item) {
                 is Header -> stickyHeader(item, "header") {
                     PackageGroupHeader(
-                        modifier = Modifier.appendIf(item.groupId in packageGroupState || item.count == 0) {
-                            padding(
-                                bottom = 1.dp,
-                            )
+                        modifier = Modifier.thenIf(item.groupId in packageGroupState || item.count == 0) {
+                            padding(bottom = 1.dp)
                         },
                         title = item.title,
                         badges = item.badges ?: emptyList(),
@@ -128,9 +124,10 @@ fun PackageSearchPackageList(
                 is Package -> item(item, "package") {
                     PackageRow(
                         modifier = Modifier
-                            .appendIf(items.getOrNull(index - 1) is Header) {
+                            .thenIf(items.getOrNull(index - 1) is Header) {
                                 padding(top = 4.dp)
-                            }.appendIf(items.getOrNull(index + 1) is Header) {
+                            }
+                            .thenIf(items.getOrNull(index + 1) is Header) {
                                 padding(bottom = 4.dp)
                             }.onClick(
                                 interactionSource = remember { MutableInteractionSource() },
@@ -145,10 +142,7 @@ fun PackageSearchPackageList(
                         isActive = isActive,
                         isSelected = isSelected,
                         isCompact = isInfoBoxOpen,
-                        packageIcon = painterResource(
-                            resourcePath = if (IntelliJTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath,
-                            loader = LocalResourceLoader.current
-                        ),
+                        icon = if (JewelTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath,
                         actionPopupId = item.id,
                         packageNameContent = {
                             Row(

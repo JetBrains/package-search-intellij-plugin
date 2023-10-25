@@ -5,9 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -35,13 +33,12 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.jewel.Dropdown
-import org.jetbrains.jewel.DropdownState
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.styling.DropdownColors
-import org.jetbrains.jewel.styling.DropdownStyle
-import org.jetbrains.jewel.styling.LocalDropdownStyle
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.styling.DropdownColors
+import org.jetbrains.jewel.ui.component.styling.DropdownStyle
+import org.jetbrains.jewel.ui.theme.dropdownStyle
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion.Missing
 
@@ -333,28 +330,36 @@ class PackageSearchPackageItemListBuilder {
 
 @Composable
 private fun packageSearchDropdownStyle(): DropdownStyle {
-    val currentStyle = LocalDropdownStyle.current
-    return remember(LocalDropdownStyle.current) {
-        object : DropdownStyle by currentStyle {
-            override val colors: DropdownColors
-                get() = object : DropdownColors by currentStyle.colors {
-
-                    @Composable
-                    override fun iconTintFor(state: DropdownState): State<Color> {
-                        return if (!state.isEnabled) mutableStateOf(Color.Transparent) else super.iconTintFor(state)
-                    }
-
-                    @Composable
-                    override fun backgroundFor(state: DropdownState): State<Color> {
-                        return mutableStateOf(Color.Transparent)
-                    }
-
-                    @Composable
-                    override fun borderFor(state: DropdownState): State<Color> {
-                        return mutableStateOf(Color.Transparent)
-                    }
-                }
-        }
+    val currentStyle = JewelTheme.dropdownStyle
+    return remember(currentStyle) {
+        DropdownStyle(
+            colors = DropdownColors(
+                background = Color.Transparent,
+                backgroundDisabled = Color.Transparent,
+                backgroundFocused = Color.Transparent,
+                backgroundPressed = Color.Transparent,
+                backgroundHovered = Color.Transparent,
+                content = currentStyle.colors.content,
+                contentDisabled = currentStyle.colors.contentDisabled,
+                contentFocused = currentStyle.colors.contentFocused,
+                contentPressed = currentStyle.colors.contentPressed,
+                contentHovered = currentStyle.colors.contentHovered,
+                border = Color.Transparent,
+                borderDisabled = Color.Transparent,
+                borderFocused = Color.Transparent,
+                borderPressed = Color.Transparent,
+                borderHovered = Color.Transparent,
+                iconTintDisabled = Color.Transparent,
+                iconTint = currentStyle.colors.iconTint,
+                iconTintFocused = currentStyle.colors.iconTintFocused,
+                iconTintPressed = currentStyle.colors.iconTintPressed,
+                iconTintHovered = currentStyle.colors.iconTintHovered,
+            ),
+            metrics = currentStyle.metrics,
+            icons = currentStyle.icons,
+            textStyle = currentStyle.textStyle,
+            menuStyle = currentStyle.menuStyle,
+        )
     }
 }
 
@@ -373,7 +378,6 @@ fun ScopeSelectionDropdown(
     Dropdown(
         modifier = modifier,
         enabled = !actionPerforming.isPerforming && availableScope.isNotEmpty(),
-        resourceLoader = LocalResourceLoader.current,
         style = packageSearchDropdownStyle(),
         menuContent = {
             if (!mustHaveScope && actualScope != null) {
@@ -445,7 +449,6 @@ fun VersionSelectionDropdown(
     Dropdown(
         modifier = modifier,
         enabled = !actionPerforming.isPerforming && availableVersions.isNotEmpty(),
-        resourceLoader = LocalResourceLoader.current,
         style = packageSearchDropdownStyle(),
         menuContent = {
             availableVersions.forEach {

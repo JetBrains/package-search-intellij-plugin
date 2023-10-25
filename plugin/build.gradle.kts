@@ -43,21 +43,19 @@ packagesearch {
 }
 
 dependencies {
-    compileOnly(packageSearchCatalog.kotlinx.serialization.core)
     implementation(projects.apiMock.apiMockClient)
     implementation(compose.desktop.linux_arm64)
     implementation(compose.desktop.linux_x64)
     implementation(compose.desktop.macos_arm64)
     implementation(compose.desktop.macos_x64)
     implementation(compose.desktop.windows_x64)
+    implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.compose.desktop.components.splitpane)
-    implementation(packageSearchCatalog.jewel.core)
-    implementation(packageSearchCatalog.jewel.intUi.standalone)
     implementation(packageSearchCatalog.jewel.bridge)
+    implementation(packageSearchCatalog.jewel.ui)
+    implementation(packageSearchCatalog.jewel.foundation)
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.packagesearch.api.models)
-    implementation(projects.plugin.core)
-    implementation(projects.plugin.gradle)
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
     implementation(projects.plugin.maven)
@@ -146,7 +144,7 @@ tasks {
         archiveBaseName = "packagesearch-plugin"
     }
     prepareSandbox {
-        runtimeClasspathFiles = files(shadowJar, tooling)
+        runtimeClasspathFiles = tooling
     }
     compileKotlin {
         dependsOn(generatePluginDataSources)

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,14 +17,13 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import java.awt.Cursor
-import org.jetbrains.jewel.Icon
-import org.jetbrains.jewel.IntelliJTheme
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.painterResource
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun PackageGroupHeader(
@@ -39,7 +37,7 @@ fun PackageGroupHeader(
     rightContent: (@Composable () -> Unit)? = null,
 ) {
     val backgroundColor =
-        if (IntelliJTheme.isDark) {
+        if (JewelTheme.isDark) {
             pickComposeColorFromLaf("ToolWindow.HeaderTab.selectedInactiveBackground")
         } else {
             pickComposeColorFromLaf("Tree.selectionInactiveBackground")
@@ -56,14 +54,11 @@ fun PackageGroupHeader(
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(Modifier.onClick { toggleCollapse() }) {
-                val iconResource =
-                    remember(isGroupExpanded) {
-                        if (!isGroupExpanded) "general/chevron-right.svg" else "general/chevron-down.svg"
-                    }
                 Icon(
-                    painter = painterResource(iconResource, LocalResourceLoader.current),
+                    resource = if (!isGroupExpanded) "general/chevron-right.svg" else "general/chevron-down.svg",
                     tint = Color.Gray,
                     contentDescription = null,
+                    iconClass = AllIcons::class.java
                 )
             }
             Text(

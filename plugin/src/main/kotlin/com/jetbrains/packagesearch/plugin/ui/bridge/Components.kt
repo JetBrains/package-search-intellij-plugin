@@ -12,9 +12,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
-import org.jetbrains.jewel.IntelliJTheme
-import org.jetbrains.jewel.LocalTextStyle
-import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.theme.LocalTextStyle
+import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun LabelInfo(
@@ -34,7 +34,7 @@ fun LabelInfo(
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current,
 ) {
-    val textColor = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("TextField.inactiveForeground") }
+    val textColor = remember(JewelTheme.isDark) { pickComposeColorFromLaf("TextField.inactiveForeground") }
     Text(
         text = text,
         modifier = modifier,

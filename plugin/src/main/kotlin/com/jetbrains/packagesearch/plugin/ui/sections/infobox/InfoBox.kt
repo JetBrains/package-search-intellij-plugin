@@ -19,10 +19,10 @@ import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.getGlobalColorsWithTrasparentFocusOverride
-import org.jetbrains.jewel.LocalGlobalColors
-import org.jetbrains.jewel.TabData
-import org.jetbrains.jewel.TabStrip
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.getGlobalColorsWithTransparentFocusOverride
+import org.jetbrains.jewel.foundation.LocalGlobalColors
+import org.jetbrains.jewel.ui.component.TabData
+import org.jetbrains.jewel.ui.component.TabStrip
 
 internal enum class InfoTabState {
     Overview,
@@ -63,7 +63,6 @@ fun PackageSearchInfoBox(
                         onClick = {
                             selectedTab = InfoTabState.Overview
                         },
-                        tabIconResource = null,
                     ),
                     TabData.Default(
                         selected = selectedTab == InfoTabState.Platforms,
@@ -72,7 +71,6 @@ fun PackageSearchInfoBox(
                         onClick = {
 //                            selectedTab = InfoTabState.Platforms
                         },
-                        tabIconResource = null,
                     ),
                 ),
             )
@@ -84,7 +82,7 @@ fun PackageSearchInfoBox(
                         when (infoBoxDetail) {
                             is InfoBoxDetail.Package.DeclaredPackage -> {
                                 CompositionLocalProvider(
-                                    LocalGlobalColors provides getGlobalColorsWithTrasparentFocusOverride(),
+                                    LocalGlobalColors provides getGlobalColorsWithTransparentFocusOverride(),
                                 ) {
                                     DeclaredPackageOverviewInfo(selectedPackage = infoBoxDetail)
                                 }

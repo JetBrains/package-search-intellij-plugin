@@ -25,10 +25,9 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.jewel.ExternalLink
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.OutlinedButton
-import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.ui.component.ExternalLink
+import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.LicenseFile
@@ -99,27 +98,27 @@ internal fun RowScope.LicenseLinks(
         modifier = Modifier.defaultMinSize(90.dp),
         text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.licenses")
     )
-    ExternalLink(
-        (it.mainLicense.name
-            ?: PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.goToLicense")),
-        resourceLoader = LocalResourceLoader.current,
-        onClick = {
-            scope.launch {
-                openLinkInBrowser(it.mainLicense.url)
-            }
-        },
-    )
-    it.otherLicenses.takeIf { it.isNotEmpty() }?.forEach { otherLicense ->
-        Text(", ")
-        ExternalLink(
-            otherLicense.name ?: otherLicense.url,
-            resourceLoader = LocalResourceLoader.current,
-            onClick = {
-                scope.launch {
-                    openLinkInBrowser(otherLicense.url)
-                }
-            },
-        )
+
+    val licenses = listOf(it.mainLicense) + it.otherLicenses
+
+    licenses.forEachIndexed { index, licenseFile ->
+        val name = licenseFile.name
+            ?: licenseFile.url?.substringAfterLast("/")
+            ?: return@forEachIndexed
+        when (val url = licenseFile.url) {
+            null -> Text(name)
+            else -> ExternalLink(
+                text = name,
+                onClick = {
+                    scope.launch {
+                        openLinkInBrowser(url)
+                    }
+                },
+            )
+        }
+        if (index != licenses.lastIndex) {
+            Text(",")
+        }
     }
 }
 

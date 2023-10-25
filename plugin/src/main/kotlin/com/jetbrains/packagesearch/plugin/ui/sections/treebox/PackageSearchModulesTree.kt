@@ -11,15 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
-import org.jetbrains.jewel.Icon
-import org.jetbrains.jewel.LazyTree
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.foundation.tree.Tree
-import org.jetbrains.jewel.foundation.tree.TreeState
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
-import org.jetbrains.jewel.painterResource
+import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.lazy.tree.Tree
+import org.jetbrains.jewel.foundation.lazy.tree.TreeState
+import org.jetbrains.jewel.ui.component.LazyTree
 
 @Composable
 fun PackageSearchModulesTree(
@@ -30,7 +29,6 @@ fun PackageSearchModulesTree(
     LazyTree(
         tree = tree,
         treeState = state,
-        resourceLoader = LocalResourceLoader.current,
         onSelectionChange = { onSelectionChange(it.map { it.data }) },
     ) {
         Row(
@@ -43,11 +41,9 @@ fun PackageSearchModulesTree(
             }
             Icon(
                 modifier = Modifier.size(16.dp),
-                painter = painterResource(
-                    if (IntUiTheme.isDark) it.data.module.icon.darkIconPath else it.data.module.icon.lightIconPath,
-                    LocalResourceLoader.current
-                ),
+                resource = if (JewelTheme.isDark) it.data.module.icon.darkIconPath else it.data.module.icon.lightIconPath,
                 contentDescription = null,
+                iconClass = IconProvider::class.java
             )
             Text(
                 text = it.data.module.name,

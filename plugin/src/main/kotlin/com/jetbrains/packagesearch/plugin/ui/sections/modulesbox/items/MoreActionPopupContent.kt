@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -45,17 +44,13 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.jewel.Divider
-import org.jetbrains.jewel.Icon
-import org.jetbrains.jewel.IntelliJTheme
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Orientation
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.bridge.SwingBridgeService
-import org.jetbrains.jewel.bridge.retrieveStatelessIcon
-import org.jetbrains.jewel.foundation.onHover
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
-import org.jetbrains.jewel.styling.LocalLazyTreeStyle
+import org.jetbrains.jewel.foundation.modifier.onHover
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
+import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 @Composable
@@ -63,13 +58,12 @@ internal fun DeclaredPackageMoreActionPopup(
     dependencyManager: PackageSearchDependencyManager,
     module: PackageSearchModule,
     packageSearchDeclaredPackage: PackageSearchDeclaredPackage,
-    borderColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") },
-    backgroundColor: Color = remember(IntelliJTheme.isDark) { pickComposeColorFromLaf("PopupMenu.background") },
+    borderColor: Color = remember(JewelTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") },
+    backgroundColor: Color = remember(JewelTheme.isDark) { pickComposeColorFromLaf("PopupMenu.background") },
     onDismissRequest: () -> Unit = {},
 ) {
     val context = LocalPackageSearchService.current
     val popupOpenStatus = LocalGlobalPopupIdState.current
-    val svgLoader = service<SwingBridgeService>().svgLoader
     val service = LocalPackageSearchService.current
     val isActionPerforming = LocalIsActionPerformingState.current
 
@@ -101,12 +95,7 @@ internal fun DeclaredPackageMoreActionPopup(
                 },
             horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically
         ) {
-            val removeIcon by retrieveStatelessIcon(
-                "expui/general/delete.svg",
-                svgLoader,
-                IntUiTheme.iconData
-            ).getPainter(LocalResourceLoader.current)
-            Icon(removeIcon, contentDescription = null)
+            Icon("expui/general/delete.svg", contentDescription = null, AllIcons::class.java)
             Text(text = PackageSearchBundle.message("packagesearch.ui.toolwindow.actions.remove.text"))
         }
         module.buildFilePath?.let {
@@ -128,12 +117,7 @@ internal fun DeclaredPackageMoreActionPopup(
                     },
                 horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically
             ) {
-                val removeIcon by retrieveStatelessIcon(
-                    "actions/editSource.svg",
-                    svgLoader,
-                    IntUiTheme.iconData
-                ).getPainter(LocalResourceLoader.current)
-                Icon(removeIcon, contentDescription = null)
+                Icon("actions/editSource.svg", contentDescription = null, AllIcons::class.java)
                 Text(text = "Go to source")
             }
         }

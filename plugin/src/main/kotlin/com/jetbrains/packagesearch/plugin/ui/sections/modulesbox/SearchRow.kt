@@ -17,24 +17,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
-import com.intellij.openapi.components.service
+import com.intellij.icons.AllIcons
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
-import org.jetbrains.jewel.GlobalColors
-import org.jetbrains.jewel.Icon
-import org.jetbrains.jewel.IconButton
-import org.jetbrains.jewel.IntelliJTheme
-import org.jetbrains.jewel.LocalGlobalColors
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.OutlineColors
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.TextField
-import org.jetbrains.jewel.bridge.SwingBridgeService
-import org.jetbrains.jewel.bridge.retrieveStatelessIcon
 import org.jetbrains.jewel.bridge.toComposeColor
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
-import org.jetbrains.jewel.painterResource
-import org.jetbrains.jewel.styling.LocalTextFieldStyle
+import org.jetbrains.jewel.foundation.GlobalColors
+import org.jetbrains.jewel.foundation.LocalGlobalColors
+import org.jetbrains.jewel.foundation.OutlineColors
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.OutlinedButton
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.styling.LocalTextFieldStyle
 
 @Composable
 fun SearchRow(
@@ -42,7 +37,7 @@ fun SearchRow(
     searchResultsCount: Int,
     onSearchQueryChange: (String) -> Unit,
 ) {
-    val borderColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
+    val borderColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -63,12 +58,13 @@ fun SearchRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            painterResource("actions/search.svg", LocalResourceLoader.current),
+            resource = "actions/search.svg",
             contentDescription = null,
+            iconClass = AllIcons::class.java
         )
 
         CompositionLocalProvider(
-            LocalGlobalColors provides getGlobalColorsWithTrasparentFocusOverride(),
+            LocalGlobalColors provides getGlobalColorsWithTransparentFocusOverride(),
         ) {
             TextField(
                 value = searchQuery,
@@ -86,23 +82,22 @@ fun SearchRow(
                     if (searchQuery.isNotEmpty()) {
                         Row {
                             searchResultsCount.let {
-                                val textResource= if(it==1) "packagesearch.search.result" else "packagesearch.search.results"
+                                val textResource =
+                                    if (it == 1) "packagesearch.search.result" else "packagesearch.search.results"
                                 Text(
                                     text = "$it ${PackageSearchBundle.message(textResource)}",
                                     modifier = Modifier.padding(end = 4.dp),
                                 )
                             }
-                            IconButton(
+                            OutlinedButton(
                                 onClick = { onSearchQueryChange("") },
-                            ){
-                                val svgLoader = service<SwingBridgeService>().svgLoader
-                                val painter =
-                                    retrieveStatelessIcon("actions/close.svg", svgLoader, IntelliJTheme.iconData)
-                                        .getPainter(LocalResourceLoader.current).value
+                            ) {
+
                                 Icon(
-                                    painter = painter ,
+                                    resource = "actions/close.svg",
                                     modifier = Modifier.clickable { onSearchQueryChange("") },
                                     contentDescription = null,
+                                    iconClass = AllIcons::class.java
                                 )
                             }
                         }
@@ -115,14 +110,22 @@ fun SearchRow(
 }
 
 @Composable
-fun getGlobalColorsWithTrasparentFocusOverride(): GlobalColors {
+fun getGlobalColorsWithTransparentFocusOverride(): GlobalColors {
     val colors = LocalGlobalColors.current
-    return remember(LocalGlobalColors.current) {
-        object : GlobalColors by colors {
-            override val outlines = object : OutlineColors by colors.outlines {
-                override val focused = Color.Transparent
-            }
-        }
+
+    return remember(colors) {
+        GlobalColors(
+            borders = colors.borders,
+            outlines = OutlineColors(
+                focused = Color.Transparent,
+                focusedWarning = colors.outlines.focusedWarning,
+                focusedError = colors.outlines.focusedError,
+                warning = colors.outlines.warning,
+                error = colors.outlines.error,
+            ),
+            infoContent = colors.infoContent,
+            paneBackground = colors.paneBackground,
+        )
     }
 }
 

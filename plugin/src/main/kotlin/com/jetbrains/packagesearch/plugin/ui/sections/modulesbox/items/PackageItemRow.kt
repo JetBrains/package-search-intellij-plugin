@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -27,14 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.intellij.openapi.components.service
+import com.intellij.icons.AllIcons
 import com.intellij.ui.JBColor
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.ui.ActionState
@@ -43,21 +42,17 @@ import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.getGlobalColorsWithTrasparentFocusOverride
+import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.getGlobalColorsWithTransparentFocusOverride
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.jewel.Icon
-import org.jetbrains.jewel.IntelliJTheme
-import org.jetbrains.jewel.Link
-import org.jetbrains.jewel.LocalGlobalColors
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.bridge.SwingBridgeService
-import org.jetbrains.jewel.bridge.retrieveStatelessIcon
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
-import org.jetbrains.jewel.styling.LocalLazyTreeStyle
-import org.jetbrains.jewel.styling.LocalLinkStyle
+import org.jetbrains.jewel.foundation.LocalGlobalColors
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.CircularProgressIndicator
+import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.Link
+import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -74,7 +69,7 @@ fun PackageRow(
     isActive: Boolean,
     isSelected: Boolean,
     isCompact: Boolean,
-    packageIcon: Painter?,
+    icon: String?,
     actionPopupId: String,
     packageNameContent: (@Composable RowScope.() -> Unit),
     editPackageContent: (@Composable RowScope.() -> Unit)? = null,
@@ -96,11 +91,12 @@ fun PackageRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(2f).fillMaxWidth()) {
-            if (packageIcon != null) {
+            if (icon != null) {
                 Icon(
-                    painter = packageIcon,
+                    resource = icon,
                     modifier = Modifier.size(16.dp),
                     contentDescription = null,
+                    iconClass = IconProvider::class.java
                 )
             } else Box(Modifier.size(16.dp)) {}
             packageNameContent()
@@ -111,7 +107,7 @@ fun PackageRow(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 CompositionLocalProvider(
-                    LocalGlobalColors provides getGlobalColorsWithTrasparentFocusOverride(),
+                    LocalGlobalColors provides getGlobalColorsWithTransparentFocusOverride(),
                 ) {
                     editPackageContent()
                 }
@@ -137,17 +133,10 @@ fun PackageRow(
                     mainActionContent?.invoke()
                 }
                 var globalPopupId by LocalGlobalPopupIdState.current
-                val bgColor = remember(IntelliJTheme.isDark) { JBColor.background().toComposeColor() }
-                val borderColor = remember(IntelliJTheme.isDark) { JBColor.border().toComposeColor() }
+                val bgColor = remember(JewelTheme.isDark) { JBColor.background().toComposeColor() }
+                val borderColor = remember(JewelTheme.isDark) { JBColor.border().toComposeColor() }
                 Box(Modifier.clip(RoundedCornerShape(2.dp))) {// do not remove this box! it is needed for popup to work without glitches
                     if (popupContent != null) {
-                        val svgLoader = service<SwingBridgeService>().svgLoader
-                        val painterProvider = retrieveStatelessIcon(
-                            iconPath = "actions/more.svg",
-                            svgLoader = svgLoader,
-                            iconData = IntUiTheme.iconData
-                        )
-                        val painter by painterProvider.getPainter(LocalResourceLoader.current)
                         Icon(
                             modifier = Modifier
                                 .clickable {
@@ -158,7 +147,9 @@ fun PackageRow(
                                     }
                                 }
                                 .padding(2.dp),
-                            painter = painter, contentDescription = null
+                            resource = "actions/more.svg",
+                            contentDescription = null,
+                            iconClass = AllIcons::class.java
                         )
 
                         if (globalPopupId == actionPopupId) {
@@ -202,14 +193,9 @@ fun PackageActionLink(
     val isActionPerforming = LocalIsActionPerformingState.current
     val service = LocalPackageSearchService.current
     when {
-        showProgress -> CircularProgressIndicator(
-            modifier = Modifier.size(16.dp),
-            strokeWidth = 1.dp,
-            color = LocalLinkStyle.current.colors.contentDisabled,
-        )
+        showProgress -> CircularProgressIndicator(modifier = Modifier.size(16.dp))
 
         else -> Link(
-            resourceLoader = LocalResourceLoader.current,
             enabled = !isActionPerforming.value.isPerforming,
             text = text,
             onClick = {

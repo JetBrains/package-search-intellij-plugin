@@ -37,11 +37,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.splitpane.HorizontalSplitPane
 import org.jetbrains.compose.splitpane.rememberSplitPaneState
-import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.bridge.toComposeColor
-import org.jetbrains.jewel.foundation.tree.Tree
-import org.jetbrains.jewel.foundation.tree.TreeState
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.lazy.tree.Tree
+import org.jetbrains.jewel.foundation.lazy.tree.TreeState
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 
@@ -56,7 +56,7 @@ fun PackageSearchPackagePanel(
 
     val splitPaneState = rememberSplitPaneState(.20f)
     val innerSplitPaneState = rememberSplitPaneState(.80f)
-    val splitterColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
+    val splitterColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
 
     val infoBoxScrollState = rememberScrollState()
 

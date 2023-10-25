@@ -2,25 +2,26 @@
 assertk = "0.26.1"
 caffeine = "3.1.6"
 commonsCodec = "1.16.0"
-composeDesktop = "1.5.10-beta01"
-coroutines = "1.7.1"
-detekt = "1.23.0"
-dokka = "1.8.20"
+composeDesktop = "1.5.2"
+coroutines = "1.7.3"
+detekt = "1.23.1"
+dokka = "1.9.10"
 foojay = "0.5.0"
 gradlePublishPlugin = "1.1.0"
 idea = "2023.1.2"
 ideaGradlePlugin = "1.14.1"
-junit = "5.9.2"
+junit = "5.10.0"
 junit4 = "4.13.1"
-kotlin = "1.9.0"
+kotlin = "1.9.10"
 kotlinterGradlePlugin = "3.12.0"
-kotlinxDatetime = "0.4.0"
+kotlinxDatetime = "0.4.1"
 kotlinxSerialization = "1.5.1"
-ktor = "2.3.3"
+ktor = "2.3.5"
 logback = "1.4.7"
 nitrite = "3.4.4"
 packagesearchApiModels = "3.0.0-SNAPSHOT"
-jewel = "1.0.0-SNAPSHOT"
+jewel-bridge = "0.8.1-ij-233"
+jewel = "0.8.1"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
@@ -35,9 +36,9 @@ gradle-intellij-platform-plugin = { module = "org.jetbrains.intellij.plugins:gra
 ij-platform-core-ui = { module = "com.jetbrains.intellij.platform:core-ui", version.ref = "idea" }
 ij-platform-ide-core = { module = "com.jetbrains.intellij.platform:ide-core", version.ref = "idea" }
 ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", version.ref = "idea" }
-jewel-core = { module = "org.jetbrains.jewel:jewel-core", version.ref = "jewel" }
-jewel-intUi-Standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
-jewel-bridge = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel" }
+jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
+jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
+jewel-bridge = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }

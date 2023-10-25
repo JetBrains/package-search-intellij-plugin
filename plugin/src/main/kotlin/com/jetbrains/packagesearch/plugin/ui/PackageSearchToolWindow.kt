@@ -31,16 +31,16 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import org.jetbrains.jewel.IndeterminateHorizontalProgressBar
 import org.jetbrains.jewel.bridge.toComposeColor
-import org.jetbrains.jewel.foundation.tree.Tree
-import org.jetbrains.jewel.foundation.tree.rememberTreeState
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.lazy.tree.Tree
+import org.jetbrains.jewel.foundation.lazy.tree.rememberTreeState
+import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 
 @Composable
 fun PackageSearchToolwindow(isInfoBoxOpen: Boolean) {
 
-    val backgroundColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.PanelBackground.toComposeColor()) }
+    val backgroundColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.PanelBackground.toComposeColor()) }
     Box(
         modifier = Modifier
             .fillMaxSize()
