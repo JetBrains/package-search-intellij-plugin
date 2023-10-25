@@ -23,8 +23,8 @@ import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.SerializersModuleBuilder
 import kotlinx.serialization.modules.polymorphic
 
-
-internal val Project.nativeModules
+// keep the type explicit, otherwise the Kotlin plugin breaks
+internal val Project.nativeModules: List<NativeModule>
     get() = ModuleManager.getInstance(this).modules.toList()
 
 internal val Project.nativeModulesFlow: Flow<NativeModules>

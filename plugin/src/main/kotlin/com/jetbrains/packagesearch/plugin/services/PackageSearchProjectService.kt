@@ -3,7 +3,6 @@
 package com.jetbrains.packagesearch.plugin.services
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
-import com.intellij.ide.observation.Observation
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
@@ -43,7 +42,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.packagesearch.api.v3.ApiRepository
@@ -117,10 +115,6 @@ class PackageSearchProjectService(
 
     private val moduleDataFlow
         get() = restartFlow
-            .onStart {
-                Observation.awaitConfiguration(project)
-                emit(Unit)
-            }
             .withInitialValue(Unit)
             .flatMapLatest { moduleProvidersList }
             .flatMapLatest { combine(it) { it.filterNotNull() } }
@@ -158,13 +152,12 @@ class PackageSearchProjectService(
         ) { openedFiles, buildFiles ->
             val knownOpenedBuildFiles = openedFiles
                 .filter { it.toNioPathOrNull()?.let { it in buildFiles } ?: false }
-            if (knownOpenedBuildFiles.isNotEmpty())
+            if (knownOpenedBuildFiles.isNotEmpty()) {
                 emit(knownOpenedBuildFiles)
+            }
         }
             .replayOn(isStableOnlyVersions)
-            .flatMapMerge {
-                it.asFlow()
-            }
+            .flatMapMerge { it.asFlow() }
             .debounce(1.seconds)
             .onEach {
                 readAction {

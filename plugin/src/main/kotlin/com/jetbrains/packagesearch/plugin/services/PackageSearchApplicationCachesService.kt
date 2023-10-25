@@ -10,11 +10,10 @@ import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
-import com.intellij.openapi.externalSystem.ExternalSystemManager
-import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
+import com.intellij.util.io.delete
 import com.jetbrains.packagesearch.mock.SonatypeApiClient
 import com.jetbrains.packagesearch.mock.client.PackageSearchSonatypeApiClient
+import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.nitrite.div
@@ -36,6 +35,10 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import java.util.concurrent.CompletableFuture
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.div
+import kotlin.io.path.getLastModifiedTime
+import kotlin.io.path.relativeTo
+import kotlin.io.path.walk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -52,10 +55,17 @@ import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpoints
 @Service(Level.APP)
 class PackageSearchApplicationCachesService(private val coroutineScope: CoroutineScope) : Disposable, RecoveryAction {
 
+    companion object {
+        private val cacheFilePath = cacheDir / "cache-${PackageSearch.pluginId}.db"
+
+        private val cacheDir
+            get() = appSystemDir / "packagesearch"
+    }
+
     @PKGSInternalAPI
     val cache = buildDefaultNitrate(
         path = appSystemDir
-            .resolve("packagesearch/cache.db")
+            .resolve(cacheFilePath)
             .apply { parent.toFile().mkdirs() }
             .absolutePathString()
     )
@@ -123,6 +133,26 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
 
     init {
         coroutineScope.launch { createIndexes() }
+        coroutineScope.launch(Dispatchers.IO) {
+            val toDelete = cacheDir.walk()
+                .sortedByDescending { it.getLastModifiedTime() }
+                .filterNot { it == cacheFilePath }
+                .drop(2)
+                .toList()
+            toDelete.forEach { it.delete() }
+            if (toDelete.isNotEmpty()) {
+                logDebug {
+                    buildString {
+                        appendLine("Deleted ${toDelete.size} old caches:")
+                        toDelete.forEach { appendLine("- ${it.relativeTo(appSystemDir)}") }
+                    }
+                }
+            }
+        }
+        if (PackageSearch.deleteCachesOnStartup) {
+            logDebug("Deleting caches on startup")
+            coroutineScope.launch { clearCaches() }
+        }
     }
 
     private suspend fun createIndexes() {
@@ -155,17 +185,17 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
 
     override fun perform(recoveryScope: RecoveryScope): CompletableFuture<AsyncRecoveryResult> =
         coroutineScope.future(Dispatchers.IO) {
-            ExternalSystemManager.EP_NAME.extensionList.forEach {
-                val importSpec = ImportSpecBuilder(recoveryScope.project, it.systemId).build()
-                ExternalSystemUtil.refreshProjects(importSpec)
-            }
             runCatching { recoveryScope.project.service<PackageSearchGradleModelNodeProcessor.Cache>().clean() }
-            searchesRepository.removeAll()
-            packagesRepository.removeAll()
-            repositoryCache.removeAll()
-            sonatypeCacheRepository.removeAll()
+            clearCaches()
             recoveryScope.project.PackageSearchProjectService.restart()
             AsyncRecoveryResult(recoveryScope, emptyList())
         }
+
+    private suspend fun clearCaches() {
+        searchesRepository.removeAll()
+        packagesRepository.removeAll()
+        repositoryCache.removeAll()
+        sonatypeCacheRepository.removeAll()
+    }
 }
 
