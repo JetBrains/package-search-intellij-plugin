@@ -10,6 +10,7 @@ val EmptyContent: Content = {}
 
 @Stable
 sealed interface PackageSearchPackageListItem {
+    fun uniqueId(): String
 
     @Stable
     data class Header(
@@ -21,6 +22,8 @@ sealed interface PackageSearchPackageListItem {
         val compatibleVariantsText: String? = null,
         val actionContent: Content? = null,
     ) : PackageSearchPackageListItem {
+        override fun uniqueId(): String = groupId.value
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -44,12 +47,15 @@ sealed interface PackageSearchPackageListItem {
         val icon: IconProvider.Icon,
         val title: String,
         val id: String,
+        val groupId: String,
         val subtitle: String? = null,
         val editPackageContent: Content = EmptyContent,
         val mainActionContent: Content = EmptyContent,
         val popupContent: Content? = null,
         val infoBoxDetail: InfoBoxDetail.Package,
     ) : PackageSearchPackageListItem {
+        override fun uniqueId(): String = groupId + "." + id
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false

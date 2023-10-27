@@ -17,8 +17,135 @@ Content-Type: application/json
   "packagesType": [
     {
       "type": "gradle",
-      "mustBeRootPublication": true,
-      "variants": []
+      "variants": [
+        {
+          "attributes": {
+            "org.jetbrains.kotlin.platform.type": {
+              "type": "exactMatch",
+              "value": "native"
+            },
+            "org.jetbrains.kotlin.native.target": {
+              "type": "exactMatch",
+              "value": "ios_arm64"
+            },
+            "org.gradle.category": {
+              "type": "exactMatch",
+              "value": "library"
+            },
+            "org.gradle.usage": {
+              "type": "exactMatch",
+              "value": "kotlin-api"
+            }
+          },
+          "mustBeWithFiles": false
+        },
+        {
+          "attributes": {
+            "org.jetbrains.kotlin.platform.type": {
+              "type": "exactMatch",
+              "value": "native"
+            },
+            "org.jetbrains.kotlin.native.target": {
+              "type": "exactMatch",
+              "value": "ios_x64"
+            },
+            "org.gradle.category": {
+              "type": "exactMatch",
+              "value": "library"
+            },
+            "org.gradle.usage": {
+              "type": "exactMatch",
+              "value": "kotlin-api"
+            }
+          },
+          "mustBeWithFiles": false
+        },
+        {
+          "attributes": {
+            "org.jetbrains.kotlin.platform.type": {
+              "type": "exactMatch",
+              "value": "native"
+            },
+            "org.jetbrains.kotlin.native.target": {
+              "type": "exactMatch",
+              "value": "tvos_arm64"
+            },
+            "org.gradle.category": {
+              "type": "exactMatch",
+              "value": "library"
+            },
+            "org.gradle.usage": {
+              "type": "exactMatch",
+              "value": "kotlin-api"
+            }
+          },
+          "mustBeWithFiles": false
+        },
+        {
+          "attributes": {
+            "org.jetbrains.kotlin.platform.type": {
+              "type": "exactMatch",
+              "value": "native"
+            },
+            "org.jetbrains.kotlin.native.target": {
+              "type": "exactMatch",
+              "value": "tvos_x64"
+            },
+            "org.gradle.category": {
+              "type": "exactMatch",
+              "value": "library"
+            },
+            "org.gradle.usage": {
+              "type": "exactMatch",
+              "value": "kotlin-api"
+            }
+          },
+          "mustBeWithFiles": false
+        },
+        {
+          "attributes": {
+            "org.jetbrains.kotlin.platform.type": {
+              "type": "exactMatch",
+              "value": "jvm"
+            },
+            "org.gradle.category": {
+              "type": "exactMatch",
+              "value": "library"
+            },
+            "org.gradle.usage": {
+              "type": "exactMatch",
+              "value": "java-api"
+            },
+            "org.gradle.libraryelements": {
+              "type": "exactMatch",
+              "value": "jar"
+            }
+          },
+          "mustBeWithFiles": false
+        },
+        {
+          "attributes": {
+            "org.jetbrains.kotlin.platform.type": {
+              "type": "exactMatch",
+              "value": "jvm"
+            },
+            "org.gradle.category": {
+              "type": "exactMatch",
+              "value": "library"
+            },
+            "org.gradle.usage": {
+              "type": "exactMatch",
+              "value": "java-runtime"
+            },
+            "org.gradle.libraryelements": {
+              "type": "exactMatch",
+              "value": "jar"
+            }
+          },
+          "mustBeWithFiles": false
+        }
+      ],
+      "mustBeRootPublication": true
     }
   ],
   "searchQuery": "ktor-client-cio"

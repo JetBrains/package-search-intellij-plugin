@@ -1,3 +1,4 @@
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -42,6 +42,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.ScopeSelectionDropdown
 import com.jetbrains.packagesearch.plugin.ui.model.VersionSelectionDropdown
 import com.jetbrains.packagesearch.plugin.ui.sections.infobox.DefaultActionButton
 import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageOverviewNameId
+import com.jetbrains.packagesearch.plugin.ui.sections.infobox.displayRepositoryLinks
 import com.jetbrains.packagesearch.plugin.ui.sections.infobox.packageTypeName
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
@@ -55,7 +56,6 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.GitHub
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DeclaredPackageOverviewInfo(
     selectedPackage: InfoBoxDetail.Package.DeclaredPackage,
@@ -77,7 +77,8 @@ fun DeclaredPackageOverviewInfo(
                 if (newVersion != null) {
                     DefaultActionButton(
                         actionName = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.actions.update"),
-                        actionType = ActionType.UPDATE) {
+                        actionType = ActionType.UPDATE
+                    ) {
                         selectedPackage.dependencyManager.updateDependencies(
                             context = service,
                             data = listOf(
@@ -146,7 +147,6 @@ fun DeclaredPackageOverviewInfo(
         }
 
 
-        // versions
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
                 LabelInfo(
@@ -172,6 +172,8 @@ fun DeclaredPackageOverviewInfo(
                             )
                         },
                     )
+                }else{
+                    Text(modifier = Modifier.padding(4.dp), text = selectedPackage.declaredDependency.declaredVersion.versionName)
                 }
             }
 
@@ -197,7 +199,6 @@ fun DeclaredPackageOverviewInfo(
                     },
                 )
             }
-            //sourceset only for multiplatform
             if (selectedPackageVariant != null) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -232,13 +233,25 @@ fun DeclaredPackageOverviewInfo(
                 }
 
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                LabelInfo(
-                    modifier = Modifier.defaultMinSize(90.dp),
-                    text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.repo")
-                )
-                Text(selectedPackage.module.declaredKnownRepositories.keys.joinToString(", ").removeSuffix(", "))
-            }
+            val declaredVersion = selectedPackage.declaredDependency.declaredVersion
+            selectedPackage
+                .declaredDependency
+                .remoteInfo
+                ?.versions
+                ?.all
+                ?.firstOrNull { it.normalizedVersion.versionName == declaredVersion.versionName }
+                ?.let {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        LabelInfo(
+                            modifier = Modifier.defaultMinSize(90.dp),
+                            text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.repo")
+                        )
+                        displayRepositoryLinks(it.repositoryIds)
+                    }
+                }
 
             selectedPackage.declaredDependency.remoteInfo?.authors.let {
                 if (!it.isNullOrEmpty()) {
@@ -254,7 +267,6 @@ fun DeclaredPackageOverviewInfo(
                     }
                 }
             }
-        }
         selectedPackage.declaredDependency.remoteInfo
             ?.description
             ?.takeIf { it.isNotEmpty() }
@@ -263,7 +275,7 @@ fun DeclaredPackageOverviewInfo(
             }
 
         selectedPackage.declaredDependency.remoteInfo?.let { OtherLinks(it) }
-        // licenses
+        }
 
     }
 }

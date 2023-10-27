@@ -106,9 +106,9 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     )
     private val devApiClient = PackageSearchApiClient(
         endpoints = PackageSearchEndpoints.DEV,
-        httpClient = PackageSearchApiClient.defaultHttpClient(false) {
+        httpClient = PackageSearchApiClient.defaultHttpClient {
             install(Logging) {
-                level = LogLevel.INFO
+                level = LogLevel.ALL
                 logger = KtorDebugLogger()
             }
         }

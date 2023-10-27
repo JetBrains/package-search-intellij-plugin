@@ -116,8 +116,11 @@ suspend fun Module.toPackageSearch(
                     mustHaveFilesAttribute = true
                     javaApi()
                 }
+            }
+            gradlePackages {
+                mustBeRootPublication = false
                 variant {
-                    mustHaveFilesAttribute = false
+                    mustHaveFilesAttribute = true
                     javaRuntime()
                 }
             }

@@ -72,6 +72,7 @@ class PackageSearchPackageItemListBuilder {
         title: String,
         subtitle: String? = null,
         id: String,
+        groupId: String,
         modifyPackageContent: Content = EmptyContent,
         mainActionContent: Content = EmptyContent,
         popupContent: Content? = EmptyContent,
@@ -82,6 +83,7 @@ class PackageSearchPackageItemListBuilder {
             title = title,
             subtitle = subtitle,
             id = id,
+            groupId = groupId,
             editPackageContent = modifyPackageContent,
             mainActionContent = mainActionContent,
             popupContent = popupContent,
@@ -188,7 +190,8 @@ class PackageSearchPackageItemListBuilder {
                         group.module,
                         group.dependencyManager,
                     ),
-                    id = "$index ${group.id} ${declaredDependency.id}",
+                    id = declaredDependency.id,
+                    groupId = group.id.value,
                     mainActionContent = {
                         DeclaredDependencyMainActionContent(declaredDependency, group.dependencyManager)
                     },
@@ -322,6 +325,7 @@ class PackageSearchPackageItemListBuilder {
                             )
                         }
                     },
+                    groupId = "remote."+group.id.value+"."+apiPackage.id ,
                     popupContent = null,
                     mainActionContent = mainActionContent,
                     infoBoxDetail = InfoBoxDetail.Package.RemotePackage(apiPackage)

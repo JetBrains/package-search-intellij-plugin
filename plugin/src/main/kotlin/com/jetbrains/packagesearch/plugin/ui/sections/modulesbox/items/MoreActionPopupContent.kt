@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.onClick
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -89,11 +90,7 @@ internal fun DeclaredPackageMoreActionPopup(
                 Modifier
                     .fillMaxWidth()
                     .hoverBackground(isGoToSourceHovered)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                        enabled = isActionPerforming.value != null
-                    ) {
+                    .onClick {
                         goToSource(service, virtualFile, packageSearchDeclaredPackage)
                         popupOpenStatus.value = null
                         onDismissRequest()

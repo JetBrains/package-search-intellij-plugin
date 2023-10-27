@@ -76,7 +76,7 @@ fun PackageSearchPackageList(
     ) {
         items.forEachIndexed { index, item ->
             when (item) {
-                is Header -> stickyHeader(item, "header") {
+                is Header -> stickyHeader(item.uniqueId(), "header") {
                     PackageGroupHeader(
                         modifier = Modifier.thenIf(item.groupId in packageGroupState || item.count == 0) {
                             padding(bottom = 1.dp)
@@ -119,7 +119,7 @@ fun PackageSearchPackageList(
                     )
                 }
 
-                is Package -> item(item, "package") {
+                is Package -> item(item.uniqueId(), "package") {
                     PackageRow(
                         modifier = Modifier
                             .thenIf(items.getOrNull(index - 1) is Header) {
