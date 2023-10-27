@@ -46,7 +46,6 @@ import com.jetbrains.packagesearch.plugin.ui.sections.infobox.displayRepositoryL
 import com.jetbrains.packagesearch.plugin.ui.sections.infobox.packageTypeName
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
 import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.latestVersion
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.foundation.theme.JewelTheme
@@ -55,6 +54,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.GitHub
+import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 @Composable
 fun DeclaredPackageOverviewInfo(
@@ -158,13 +158,19 @@ fun DeclaredPackageOverviewInfo(
                         ?.let {
                             it - selectedPackage.declaredDependency.declaredVersion
                         } ?: emptyList()
-                val latestVersion = selectedPackage.declaredDependency.remoteInfo?.latestVersion
+                val onlyStable = LocalIsOnlyStableVersions.current.value
+                val latestStable = selectedPackage.declaredDependency.latestStableVersion
+                val latestVersion = when {
+                    onlyStable && latestStable !is NormalizedVersion.Missing -> latestStable
+                    !onlyStable -> selectedPackage.declaredDependency.latestVersion
+                    else -> NormalizedVersion.Missing
+                }
 
                 if (latestVersion != null) {
                     VersionSelectionDropdown(
                         declaredVersion = selectedPackage.declaredDependency.declaredVersion,
                         availableVersions = availableVersion,
-                        latestVersion = latestVersion.normalized,
+                        latestVersion = latestVersion,
                         updateLambda = { newVersion ->
                             selectedPackage.dependencyManager.updateDependencies(
                                 context = service,
@@ -172,8 +178,11 @@ fun DeclaredPackageOverviewInfo(
                             )
                         },
                     )
-                }else{
-                    Text(modifier = Modifier.padding(4.dp), text = selectedPackage.declaredDependency.declaredVersion.versionName)
+                } else {
+                    Text(
+                        modifier = Modifier.padding(4.dp),
+                        text = selectedPackage.declaredDependency.declaredVersion.versionName
+                    )
                 }
             }
 
@@ -267,14 +276,14 @@ fun DeclaredPackageOverviewInfo(
                     }
                 }
             }
-        selectedPackage.declaredDependency.remoteInfo
-            ?.description
-            ?.takeIf { it.isNotEmpty() }
-            ?.let {
-                Text(modifier = Modifier.padding(2.dp), text = it)
-            }
+            selectedPackage.declaredDependency.remoteInfo
+                ?.description
+                ?.takeIf { it.isNotEmpty() }
+                ?.let {
+                    Text(modifier = Modifier.padding(2.dp), text = it)
+                }
 
-        selectedPackage.declaredDependency.remoteInfo?.let { OtherLinks(it) }
+            selectedPackage.declaredDependency.remoteInfo?.let { OtherLinks(it) }
         }
 
     }
