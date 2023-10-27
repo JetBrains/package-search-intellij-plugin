@@ -467,7 +467,7 @@ fun VersionSelectionDropdown(
         enabled = actionPerforming == null && availableVersions.isNotEmpty(),
         style = packageSearchDropdownStyle(),
         menuContent = {
-            availableVersions.forEach {
+            availableVersions.sortedDescending().forEach {
                 selectableItem(
                     selected = false,
                     onClick = {
