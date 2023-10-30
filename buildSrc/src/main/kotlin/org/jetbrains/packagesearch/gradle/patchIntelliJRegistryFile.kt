@@ -1,4 +1,4 @@
-package org.intellij.jewel.workshop.build
+package org.jetbrains.packagesearch.gradle
 
 import java.io.File
 import java.nio.file.Paths

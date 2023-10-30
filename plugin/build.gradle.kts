@@ -1,10 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeSpec
 import org.intellij.jewel.workshop.build.lafFile
 import org.intellij.jewel.workshop.build.logCategoriesFile
 import org.intellij.jewel.workshop.build.patchLafFile

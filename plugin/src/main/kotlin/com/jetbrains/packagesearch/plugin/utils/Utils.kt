@@ -18,16 +18,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.modules.PolymorphicModuleBuilder
-import kotlinx.serialization.modules.SerializersModuleBuilder
-import kotlinx.serialization.modules.polymorphic
 
 // keep the type explicit, otherwise the Kotlin plugin breaks
 internal val Project.nativeModules: List<NativeModule>
     get() = ModuleManager.getInstance(this).modules.toList()
 
-internal val Project.nativeModulesFlow: Flow<NativeModules>
+internal val Project.nativeModulesFlow: FlowWithInitialValue<List<NativeModule>>
     get() = messageBus.flow(ModuleListener.TOPIC) {
         object : ModuleListener {
             override fun modulesAdded(project: Project, modules: NativeModules) {
@@ -63,12 +59,6 @@ fun interval(
 
 typealias NativeModules = List<Module>
 typealias NativeModule = Module
-
-inline fun <reified T : Any> SerializersModuleBuilder.polymorphic(
-    baseSerializer: KSerializer<T>? = null,
-    builderAction: PolymorphicModuleBuilder<T>.() -> Unit,
-) = polymorphic(T::class, baseSerializer, builderAction)
-
 
 fun <T> Flow<T?>.startWithNull() = onStart { emit(null) }
 

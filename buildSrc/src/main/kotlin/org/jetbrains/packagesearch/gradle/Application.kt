@@ -1,4 +1,6 @@
-package org.intellij.jewel.workshop.build
+@file:Suppress("unused")
+
+package org.jetbrains.packagesearch.gradle
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
