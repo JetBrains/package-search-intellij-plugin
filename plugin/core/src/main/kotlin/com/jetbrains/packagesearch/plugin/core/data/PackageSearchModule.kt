@@ -38,7 +38,7 @@ sealed interface PackageSearchModule : IconProvider {
     }
 
     @Serializable
-    data class Identity(val group: String, val path: String)
+    data class Identity(val group: String, val path: String, val hasUpdates: Boolean, val hasStableUpdates: Boolean)
 }
 
 fun PackageSearchModule.getPackageTypes() = when (this) {

@@ -27,6 +27,11 @@ interface PackageSearchDeclaredPackage : IconProvider {
 
 }
 
+val PackageSearchDeclaredPackage.hasUpdate : Boolean
+    get() = remoteInfo?.versions?.latest?.normalized?.let { it > declaredVersion } ?: false
+val PackageSearchDeclaredPackage.hasStableUpdate : Boolean
+    get() = remoteInfo?.versions?.latestStable?.normalized?.let { it > declaredVersion } ?: false
+
 interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {
     val groupId: String
     val artifactId: String

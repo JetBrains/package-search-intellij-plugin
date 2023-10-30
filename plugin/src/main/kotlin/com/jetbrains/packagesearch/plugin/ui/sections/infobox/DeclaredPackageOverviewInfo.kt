@@ -248,6 +248,7 @@ fun DeclaredPackageOverviewInfo(
                 .remoteInfo
                 ?.versions
                 ?.all
+                ?.filter { it.normalizedVersion != NormalizedVersion.Missing }
                 ?.firstOrNull { it.normalizedVersion.versionName == declaredVersion.versionName }
                 ?.let {
                     Row(

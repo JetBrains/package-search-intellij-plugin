@@ -208,7 +208,7 @@ fun PackageActionLink(
                     action(service)
                 }.invokeOnCompletion {
                     it?.let {
-                        System.err.println(it.stackTraceToString())
+                        logWarn ("PackageActionLink failed: ",it)
                     }
                     showProgress = false
                 }

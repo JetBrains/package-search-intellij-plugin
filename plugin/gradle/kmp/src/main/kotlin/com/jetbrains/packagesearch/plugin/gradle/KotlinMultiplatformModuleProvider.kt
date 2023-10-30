@@ -15,6 +15,8 @@ import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationIn
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoProvider
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.data.hasStableUpdate
+import com.jetbrains.packagesearch.plugin.core.data.hasUpdate
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.icon
@@ -39,22 +41,28 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
         if (model.isKotlinMultiplatformApplied)
             MppCompilationInfoProvider.sourceSetsMap(context.project, model.projectDir)
                 .collect { compilationModel ->
+                    val variants = module.getKMPVariants(
+                        context = context,
+                        compilationModel = compilationModel,
+                        availableScopes = model.configurations
+                            .filter { it.canBeDeclared }
+                            .map { it.name }
+                    ).associateBy { it.name }
                     val pkgsModule = PackageSearchKotlinMultiplatformModule(
                         name = model.projectName,
-                        identity = PackageSearchModule.Identity("gradle", model.projectIdentityPath),
+                        identity = PackageSearchModule.Identity(
+                            group = "gradle",
+                            path = model.projectIdentityPath,
+                            hasUpdates = variants.any { it.value.declaredDependencies.any { it.hasUpdate } },
+                            hasStableUpdates = variants.any { it.value.declaredDependencies.any { it.hasStableUpdate } }
+                        ),
                         buildFilePath = model.buildFilePath,
                         declaredKnownRepositories = context.knownRepositories - DependencyModifierService
                             .getInstance(context.project)
                             .declaredRepositories(module)
                             .mapNotNull { it.id }
                             .toSet(),
-                        variants = module.getKMPVariants(
-                            context = context,
-                            compilationModel = compilationModel,
-                            availableScopes = model.configurations
-                                .filter { it.canBeDeclared }
-                                .map { it.name }
-                        ).associateBy { it.name },
+                        variants = variants,
                         packageSearchModel = model,
                         availableKnownRepositories = context.knownRepositories
                     )
