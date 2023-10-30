@@ -11,8 +11,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlText
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.data.hasStableUpdate
-import com.jetbrains.packagesearch.plugin.core.data.hasUpdate
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
@@ -104,9 +102,7 @@ suspend fun Module.toPackageSearch(
         name = mavenProject.name ?: name,
         identity = PackageSearchModule.Identity(
             group = "maven",
-            path = buildMavenParentHierarchy(mavenProject.file.asRegularFile()),
-            hasUpdates = declaredDependencies.any { it.hasUpdate },
-            hasStableUpdates = declaredDependencies.any { it.hasStableUpdate }
+            path = buildMavenParentHierarchy(mavenProject.file.asRegularFile())
         ),
         buildFilePath = Paths.get(mavenProject.file.path),
         declaredKnownRepositories = getDeclaredKnownRepositories(context),

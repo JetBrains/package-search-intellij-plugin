@@ -50,8 +50,6 @@ dependencies {
     implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.compose.desktop.components.splitpane)
     implementation(packageSearchCatalog.jewel.bridge)
-    implementation(packageSearchCatalog.jewel.ui)
-    implementation(packageSearchCatalog.jewel.foundation)
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)

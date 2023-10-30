@@ -28,6 +28,9 @@ dependencies {
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.api)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
     testImplementation(packageSearchCatalog.kotlinx.coroutines.test)
+    testImplementation(packageSearchCatalog.packagesearch.build.systems.models)
+    testImplementation(packageSearchCatalog.packagesearch.api.models)
+    testImplementation(packageSearchCatalog.packagesearch.http.models)
     testImplementation(kotlin("test-junit5"))
 }
 

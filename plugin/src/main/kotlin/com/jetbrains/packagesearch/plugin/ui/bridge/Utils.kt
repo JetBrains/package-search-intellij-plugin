@@ -4,14 +4,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.res.ResourceLoader
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import java.awt.Cursor
 import java.awt.Desktop
-import java.io.InputStream
 import java.net.URI
-import java.util.jar.JarFile
 import javax.swing.UIDefaults
 import javax.swing.UIManager
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
@@ -25,18 +22,6 @@ fun java.awt.Color.toComposeColor(): Color {
 fun UIDefaults.getComposeColor(key: String): Color? {
     return getColor(key)?.toComposeColor()
 }
-
-fun UIDefaults.getComposeColorOrUnspecified(key: String): Color {
-    return getColor(key)?.toComposeColor().let {
-        println("No color in LAF for $key, fallback to Color.Unspecified")
-        Color.Unspecified
-    }
-}
-
-data class PackageSearchTreeData(
-    val tree: Tree<PackageSearchModuleData>,
-    val nodesIds: Set<PackageSearchModule.Identity>,
-)
 
 fun List<PackageSearchModuleData>.asTree(): Tree<PackageSearchModuleData> {
     val tree= buildTree {
@@ -74,7 +59,15 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
         }
         .toSet()
     if (children.isNotEmpty()) {
-        addNode(currentData, id = currentData.module.identity) {
+        addNode(
+            data = currentData,
+            selectionId = currentData.module.identity,
+            uiId = ModelUiKey(
+                moduleIdentity = currentData.module.identity,
+                hasUpdate = currentData.module.hasUpdates,
+                hasStableUpdate = currentData.module.hasStableUpdates,
+            )
+        ) {
             children.forEach {
                 addElements(
                     sortedItems = sortedItems - children,
@@ -83,9 +76,23 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
             }
         }
     } else {
-        addLeaf(currentData, id = currentData.module.identity)
+        addLeaf(
+            data = currentData,
+            selectionId = currentData.module.identity,
+            uiId = ModelUiKey(
+                moduleIdentity = currentData.module.identity,
+                hasUpdate = currentData.module.hasUpdates,
+                hasStableUpdate = currentData.module.hasStableUpdates,
+            )
+        )
     }
 }
+
+internal data class ModelUiKey(
+    val moduleIdentity: PackageSearchModule.Identity,
+    val hasUpdate: Boolean,
+    val hasStableUpdate: Boolean,
+)
 
 fun openLinkInBrowser(url: String) {
     Desktop.getDesktop()
@@ -105,52 +112,5 @@ fun isLightTheme(): Boolean {
 }
 
 private fun Color.getBrightness() = (red * 299 + green * 587 + blue * 114) / 1000
-
-fun getJarPath(klass: Class<*>): String? {
-    val className = klass.name.replace('.', '/') + ".class"
-    val classPath = klass.classLoader.getResource(className)?.toString() ?: return null
-    if (!classPath.startsWith("jar")) {
-        // Class not from a JAR
-        return null
-    }
-    return classPath.substringBefore("!").removePrefix("jar:file:")
-}
-
-fun extractFileFromJar(jarPath: String, filePath: String) =
-    JarFile(jarPath).use { jar ->
-        jar.getEntry(filePath)?.let { entry ->
-            jar.getInputStream(entry).use { it.readBytes().inputStream() }
-        }
-    }
-
-inline fun <reified T> getJarPath(): String? = getJarPath(T::class.java)
-
-class RawJarResourceLoader(private val jars: List<String>) : ResourceLoader {
-    override fun load(resourcePath: String): InputStream =
-        jars.firstNotNullOfOrNull { extractFileFromJar(it, resourcePath) }
-            ?: error("Resource $resourcePath not found in jars:\n ${jars.joinToString("\n") { "- $it" }}")
-}
-
-class JarPathBuilder {
-
-    private val jars = mutableSetOf<String>()
-
-    fun add(clazz: Class<*>) {
-        getJarPath(clazz)?.let { jars.add(it) }
-    }
-
-    fun getJarPaths() = jars.toList()
-}
-
-inline fun <reified T> JarPathBuilder.add() = add(T::class.java)
-
-fun buildJarPaths(builder: JarPathBuilder.() -> Unit) =
-    JarPathBuilder().apply(builder).getJarPaths()
-
-fun RawJarResourceLoader(builder: JarPathBuilder.() -> Unit) =
-    RawJarResourceLoader(buildJarPaths(builder))
-
-
-
 
 fun Modifier.pointerChangeToHandModifier() = this.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))

@@ -28,17 +28,30 @@ sealed interface PackageSearchModule : IconProvider {
     val compatiblePackageTypes: List<PackagesType>
     val dependencyMustHaveAScope: Boolean
 
+    val hasUpdates: Boolean
+    val hasStableUpdates: Boolean
+
     interface WithVariants : PackageSearchModule {
         val variants: Map<String, PackageSearchModuleVariant>
         val mainVariant: PackageSearchModuleVariant
+
+        override val hasUpdates: Boolean
+            get() = variants.values.any { it.declaredDependencies.any { it.hasUpdates } }
+        override val hasStableUpdates: Boolean
+            get() = variants.values.any { it.declaredDependencies.any { it.hasStableUpdates } }
     }
 
     interface Base : PackageSearchModule, PackageInstallDataProvider {
         val declaredDependencies: List<PackageSearchDeclaredPackage>
+
+        override val hasUpdates: Boolean
+            get() = declaredDependencies.any { it.hasUpdates }
+        override val hasStableUpdates: Boolean
+            get() = declaredDependencies.any { it.hasStableUpdates }
     }
 
     @Serializable
-    data class Identity(val group: String, val path: String, val hasUpdates: Boolean, val hasStableUpdates: Boolean)
+    data class Identity(val group: String, val path: String)
 }
 
 fun PackageSearchModule.getPackageTypes() = when (this) {

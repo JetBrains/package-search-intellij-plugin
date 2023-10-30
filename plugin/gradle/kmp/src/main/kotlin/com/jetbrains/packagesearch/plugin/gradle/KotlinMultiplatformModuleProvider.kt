@@ -15,8 +15,6 @@ import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationIn
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoProvider
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.data.hasStableUpdate
-import com.jetbrains.packagesearch.plugin.core.data.hasUpdate
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.icon
@@ -52,9 +50,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                         name = model.projectName,
                         identity = PackageSearchModule.Identity(
                             group = "gradle",
-                            path = model.projectIdentityPath,
-                            hasUpdates = variants.any { it.value.declaredDependencies.any { it.hasUpdate } },
-                            hasStableUpdates = variants.any { it.value.declaredDependencies.any { it.hasStableUpdate } }
+                            path = model.projectIdentityPath
                         ),
                         buildFilePath = model.buildFilePath,
                         declaredKnownRepositories = context.knownRepositories - DependencyModifierService

@@ -4,8 +4,6 @@ package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.module.Module
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.data.hasStableUpdate
-import com.jetbrains.packagesearch.plugin.core.data.hasUpdate
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
@@ -40,9 +38,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                 name = model.projectName,
                 identity = PackageSearchModule.Identity(
                     group = "gradle",
-                    path = model.projectIdentityPath,
-                    hasUpdates = declaredDependencies.any { it.hasUpdate },
-                    hasStableUpdates = declaredDependencies.any { it.hasStableUpdate },
+                    path = model.projectIdentityPath
                 ),
                 buildFilePath = model.buildFilePath,
                 declaredKnownRepositories = module.getDeclaredKnownRepositories(context),

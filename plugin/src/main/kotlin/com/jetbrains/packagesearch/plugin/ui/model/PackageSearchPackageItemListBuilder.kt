@@ -325,7 +325,7 @@ class PackageSearchPackageItemListBuilder {
                             )
                         }
                     },
-                    groupId = "remote."+group.id.value+"."+apiPackage.id ,
+                    groupId = "remote.${group.id.value}.${apiPackage.id}",
                     popupContent = null,
                     mainActionContent = mainActionContent,
                     infoBoxDetail = InfoBoxDetail.Package.RemotePackage(apiPackage)

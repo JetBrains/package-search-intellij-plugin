@@ -54,7 +54,7 @@ sealed interface PackageSearchPackageListItem {
         val popupContent: Content? = null,
         val infoBoxDetail: InfoBoxDetail.Package,
     ) : PackageSearchPackageListItem {
-        override fun uniqueId(): String = groupId + "." + id
+        override fun uniqueId(): String = "$groupId.$id"
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

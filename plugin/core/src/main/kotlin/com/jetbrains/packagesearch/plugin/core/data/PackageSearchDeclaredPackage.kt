@@ -27,9 +27,9 @@ interface PackageSearchDeclaredPackage : IconProvider {
 
 }
 
-val PackageSearchDeclaredPackage.hasUpdate : Boolean
+val PackageSearchDeclaredPackage.hasUpdates : Boolean
     get() = remoteInfo?.versions?.latest?.normalized?.let { it > declaredVersion } ?: false
-val PackageSearchDeclaredPackage.hasStableUpdate : Boolean
+val PackageSearchDeclaredPackage.hasStableUpdates : Boolean
     get() = remoteInfo?.versions?.latestStable?.normalized?.let { it > declaredVersion } ?: false
 
 interface PackageSearchDeclaredMavenPackage : PackageSearchDeclaredPackage {

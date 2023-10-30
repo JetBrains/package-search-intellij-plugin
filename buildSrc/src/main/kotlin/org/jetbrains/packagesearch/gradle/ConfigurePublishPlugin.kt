@@ -15,11 +15,10 @@ import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent
 import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.internal.component.DefaultAdhocSoftwareComponent
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.assign
@@ -91,7 +90,7 @@ fun Project.configurePublishPlugin(
                 }
             }
             val java: DefaultAdhocSoftwareComponent by components
-            val sourcesComponent = softwareComponentFactory.adhoc("sources") as DefaultAdhocSoftwareComponent
+            val sourcesComponent = softwareComponentFactory.adhoc("sources")
             sourcesComponent.addVariantsFromConfiguration(sourcesConfiguration.get()) {
                 mapToMavenScope("runtime")
             }

@@ -16,20 +16,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.latestVersion
 import kotlinx.coroutines.launch
-import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.TreeState
+import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.LazyTree
+import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 fun PackageSearchModulesTree(
@@ -75,6 +73,7 @@ fun PackageSearchModulesTree(
         }
         Divider(Orientation.Horizontal)
         LazyTree(
+            modifier = Modifier.padding(top = 4.dp),
             tree = tree,
             treeState = state,
             onSelectionChange = { onSelectionChange(it.map { it.data }) },
@@ -103,9 +102,9 @@ fun PackageSearchModulesTree(
                 }
 
                 val hasUpdate = if (LocalIsOnlyStableVersions.current.value) {
-                    element.data.module.identity.hasStableUpdates
+                    element.data.module.hasStableUpdates
                 } else {
-                    element.data.module.identity.hasUpdates
+                    element.data.module.hasUpdates
                 }
                 if (hasUpdate) {
                     Icon(
