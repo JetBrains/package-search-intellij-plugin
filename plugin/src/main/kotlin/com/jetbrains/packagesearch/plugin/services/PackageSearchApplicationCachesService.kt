@@ -28,6 +28,7 @@ import com.jetbrains.packagesearch.plugin.utils.ApiRepositoryCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.utils.logDebug
 import io.ktor.client.plugins.cache.HttpCache
@@ -42,7 +43,9 @@ import kotlin.io.path.walk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
@@ -91,9 +94,6 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
 
     private val sonatypeApiClient = PackageSearchSonatypeApiClient(
         httpClient = SonatypeApiClient.defaultHttpClient {
-            engine {
-                threadsCount = 64
-            }
             install(Logging) {
                 level = LogLevel.HEADERS
                 logger = KtorDebugLogger()
@@ -132,6 +132,9 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         )
 
     init {
+        apiClientTypeStateFlow
+            .onEach { IntelliJApplication.PackageSearchApplicationCachesService.clearCaches() }
+            .launchIn(coroutineScope)
         coroutineScope.launch { createIndexes() }
         coroutineScope.launch(Dispatchers.IO) {
             val toDelete = cacheDir.walk()

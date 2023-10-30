@@ -24,6 +24,7 @@ import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.maven.GoogleMavenCentralMirror
 import org.jetbrains.packagesearch.maven.HttpClientMavenPomProvider
+import org.jetbrains.packagesearch.maven.MavenMetadata
 import org.jetbrains.packagesearch.maven.MavenUrlBuilder
 import org.jetbrains.packagesearch.maven.PomResolver
 import org.jetbrains.packagesearch.maven.central.MavenCentralApiResponse
@@ -74,31 +75,28 @@ class SonatypeApiClient(
     private fun getSearchUrl(searchQuery: String, rows: Int = 5) =
         "https://search.maven.org/solrsearch/select?q=$searchQuery&rows=$rows&wt=json"
 
-    private fun getPackageInfoUrl(groupId: String, artifactId: String, rows: Int = 5) =
-        "https://search.maven.org/solrsearch/select?q=g:$groupId+AND+a:$artifactId&core=gav&rows=$rows&wt=json"
-
     suspend fun searchPackages(query: String, packagesCount: Int = 25): MavenCentralApiResponse =
         httpClient.get(getSearchUrl(query, packagesCount)).body()
 
-    suspend fun getPackageInfo(groupId: String, artifactId: String, versionCount: Int = 5): MavenCentralApiResponse =
-        httpClient.get(getPackageInfoUrl(groupId, artifactId, versionCount)).body()
+    suspend fun getPackageMetadata(groupId: String, artifactId: String): MavenMetadata =
+        httpClient.get(GoogleMavenCentralMirror.buildMetadataUrl(groupId, artifactId))
+            .body<MavenMetadata>()
+            .copy(groupId = groupId, artifactId = artifactId)
 
-    suspend fun getApiMavenPackage(groupId: String, artifactId: String, versionCount: Int = 25): ApiMavenPackage? =
-        httpClient.get(getPackageInfoUrl(groupId, artifactId, versionCount)).body<MavenCentralApiResponse>()
-            .let { httpClient.getBuildSystemsMetadata(it, pomResolver) }
+    suspend fun getApiMavenPackage(groupId: String, artifactId: String): ApiMavenPackage? =
+        httpClient.getBuildSystemsMetadata(getPackageMetadata(groupId, artifactId), pomResolver)
             ?.toMavenApiModel()
 
     suspend fun searchApiMavenPackages(
         query: String,
         packagesCount: Int = 25,
-        versionCount: Int = 5,
         onTransformError: suspend FlowCollector<ApiMavenPackage>.(cause: Throwable) -> Unit = {},
     ): List<ApiMavenPackage> = searchPackages(query, packagesCount)
         .response
         .docs
         .asFlow()
         .buffer()
-        .map { getPackageInfo(it.groupId, it.artifactId, versionCount) }
+        .map { getPackageMetadata(it.groupId, it.artifactId) }
         .buffer()
         .mapNotNull { httpClient.getBuildSystemsMetadata(it, pomResolver) }
         .buffer()
