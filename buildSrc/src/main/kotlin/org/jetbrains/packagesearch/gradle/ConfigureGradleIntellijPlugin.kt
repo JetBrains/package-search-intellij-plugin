@@ -31,6 +31,7 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
                     it.name.containsAny(packageSearchExtension.librariesToDelete.get())
                             && !it.name.containsAny(packageSearchExtension.librariesToKeep.get())
                 }
+                exclude { it.name == "module-info.class" }
             }
             named<PrepareSandboxTask>("prepareSandbox") {
                 pluginJar = shadowJar.flatMap { it.archiveFile }

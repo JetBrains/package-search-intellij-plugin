@@ -1,15 +1,15 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.intellij.jewel.workshop.build.lafFile
-import org.intellij.jewel.workshop.build.logCategoriesFile
-import org.intellij.jewel.workshop.build.patchLafFile
-import org.intellij.jewel.workshop.build.patchLogFile
-import org.intellij.jewel.workshop.build.patchSettingsFile
-import org.intellij.jewel.workshop.build.patchTextRegistryFile
-import org.intellij.jewel.workshop.build.registryTextFile
-import org.intellij.jewel.workshop.build.settingsFile
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.packagesearch.gradle.GeneratePackageSearchObject
+import org.jetbrains.packagesearch.gradle.lafFile
+import org.jetbrains.packagesearch.gradle.logCategoriesFile
+import org.jetbrains.packagesearch.gradle.patchLafFile
+import org.jetbrains.packagesearch.gradle.patchLogFile
+import org.jetbrains.packagesearch.gradle.patchSettingsFile
+import org.jetbrains.packagesearch.gradle.patchTextRegistryFile
+import org.jetbrains.packagesearch.gradle.registryTextFile
+import org.jetbrains.packagesearch.gradle.settingsFile
 
 
 plugins {
@@ -110,7 +110,7 @@ tasks {
     sourcesJar {
         dependsOn(generatePluginDataSources)
     }
-    javadocJar {
+    dokkaHtml {
         dependsOn(generatePluginDataSources)
     }
     shadowJar {
