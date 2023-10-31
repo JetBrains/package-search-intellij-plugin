@@ -79,7 +79,7 @@ fun PackageSearchPackageList(
                 is Header -> stickyHeader("$index.${item.uniqueId()}", contentType = "header") {
                     PackageGroupHeader(
                         modifier = Modifier.thenIf(item.groupId in packageGroupState || item.count == 0) {
-                            padding(bottom = 1.dp)
+                            padding(top= 2.dp,bottom = 3.dp)
                         },
                         title = item.title,
                         badges = item.badges ?: emptyList(),
@@ -126,7 +126,7 @@ fun PackageSearchPackageList(
                                 padding(top = 4.dp)
                             }
                             .thenIf(items.getOrNull(index + 1) is Header) {
-                                padding(bottom = 4.dp)
+                                padding(bottom = 2.dp)
                             }.onClick(
                                 interactionSource = remember { MutableInteractionSource() },
                                 onDoubleClick = {

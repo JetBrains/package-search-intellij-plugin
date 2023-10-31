@@ -11,16 +11,15 @@ inline fun buildRemotePackageGroups(
     searchFilter: String,
     builder: PackageGroupsBuilder.() -> Unit,
 ) =
-    PackageGroupsBuilder(searchFilter, false).apply(builder).getRemotes()
+    PackageGroupsBuilder(searchFilter).apply(builder).getRemotes()
 
 inline fun buildDeclaredPackageGroups(
     searchFilter: String,
-    isSearchEnabled: Boolean,
     builder: PackageGroupsBuilder.() -> Unit,
 ) =
-    PackageGroupsBuilder(searchFilter, isSearchEnabled).apply(builder).getDeclared()
+    PackageGroupsBuilder(searchFilter).apply(builder).getDeclared()
 
-class PackageGroupsBuilder(private val searchQuery: String, private val isSearchEnabled: Boolean) {
+class PackageGroupsBuilder(private val searchQuery: String) {
 
     @JvmInline
     value class Remotes(val value: List<PackageGroup.Remote>)
@@ -45,10 +44,7 @@ class PackageGroupsBuilder(private val searchQuery: String, private val isSearch
                         listOf(
                             PackageGroup.Remote.FromBaseModule(
                                 module = module,
-                                packages = data.results.let {
-                                    if (isSearchEnabled) it.filter { it.id !in declaredDependencyIds }
-                                    else it
-                                },
+                                packages = data.results.filter { it.id !in declaredDependencyIds },
                                 dependencyManager = selectedModuleData.dependencyManager
                             )
                         )
@@ -73,10 +69,7 @@ class PackageGroupsBuilder(private val searchQuery: String, private val isSearch
                         module = module,
                         packages = results.results,
                         badges = results.searchData.compatibleVariants.first().attributes.map { it.value },
-                        compatibleVariants = module.variants.let {
-                            if (isSearchEnabled) it.filterKeys { it in variantNames }
-                            else it
-                        }.values.toList(),
+                        compatibleVariants = module.variants.filterKeys { it in variantNames }.values.toList(),
                         dependencyManager = selectedModuleData.dependencyManager
                     )
                 }
@@ -90,13 +83,11 @@ class PackageGroupsBuilder(private val searchQuery: String, private val isSearch
             selectedModules.size == 1 -> when (val module = selectedModules.first().module) {
                 is PackageSearchModule.Base -> {
                     val filteredDependencies = module.declaredDependencies
-                        .let {
-                            if (isSearchEnabled) it.filter {
-                                it.id.contains(
-                                    searchQuery,
-                                    true
-                                ) || it.displayName.contains(searchQuery, true)
-                            } else it
+                        .filter {
+                            it.id.contains(
+                                searchQuery,
+                                true
+                            ) || it.displayName.contains(searchQuery, true)
                         }
 
                     if (filteredDependencies.isEmpty()) emptyList()
@@ -113,15 +104,11 @@ class PackageGroupsBuilder(private val searchQuery: String, private val isSearch
                     module.variants
                         .mapNotNull { (_, variant) ->
                             val filteredDependencies = variant.declaredDependencies
-                                .let {
-                                    if (isSearchEnabled)
-                                        it.filter {
-                                            it.id.contains(searchQuery, true) || it.displayName.contains(
-                                                other = searchQuery,
-                                                ignoreCase = true,
-                                            )
-                                        }
-                                    else it
+                                .filter {
+                                    it.id.contains(searchQuery, true) || it.displayName.contains(
+                                        other = searchQuery,
+                                        ignoreCase = true,
+                                    )
                                 }
 
                             if (filteredDependencies.isEmpty()) return@mapNotNull null
@@ -139,10 +126,11 @@ class PackageGroupsBuilder(private val searchQuery: String, private val isSearch
                     is PackageSearchModule.Base -> PackageGroup.Declared.FromBaseModule(
                         module = module,
                         filteredDependencies = module.declaredDependencies
-                            .let {
-                                if(isSearchEnabled)
-                                    it.filter { it.id.contains(searchQuery, true) || it.displayName.contains(searchQuery, true) }
-                                    else it
+                            .filter {
+                                it.id.contains(
+                                    searchQuery,
+                                    true
+                                ) || it.displayName.contains(searchQuery, true)
                             },
                         dependencyManager = dependencyManager
                     )
@@ -151,15 +139,12 @@ class PackageGroupsBuilder(private val searchQuery: String, private val isSearch
                         module = module,
                         filteredDependencies = module.variants.values
                             .flatMap {
-                                it.declaredDependencies.let {
-                                    if (isSearchEnabled) it.filter {
-                                        it.id.contains(searchQuery, true) || it.displayName.contains(
-                                            other = searchQuery,
-                                            ignoreCase = true,
-                                        )
-                                    }else it
+                                it.declaredDependencies.filter {
+                                    it.id.contains(searchQuery, true) || it.displayName.contains(
+                                        other = searchQuery,
+                                        ignoreCase = true,
+                                    )
                                 }
-
                             },
                         dependencyManager = dependencyManager
                     )

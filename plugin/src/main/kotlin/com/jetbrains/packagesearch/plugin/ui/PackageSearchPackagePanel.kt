@@ -72,7 +72,7 @@ fun PackageSearchPackagePanel(
     }
     remember(selectedModulesIdentity) { searchResults = SearchData.Results.Empty }
     val declaredPackageGroups by derivedStateOf {
-        buildDeclaredPackageGroups(searchQuery, isSearchEnabled=selectedModules.size == 1) {
+        buildDeclaredPackageGroups(searchQuery) {
             setLocal(selectedModules)
         }
     }

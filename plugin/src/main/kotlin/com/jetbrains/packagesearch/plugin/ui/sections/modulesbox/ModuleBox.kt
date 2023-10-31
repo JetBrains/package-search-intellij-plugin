@@ -1,6 +1,5 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,15 +23,13 @@ fun PackageSearchCentralPanel(
 ) {
 
     Column {
-        AnimatedVisibility(searchAvailable){
-            SearchRow(
-                searchQuery = searchQuery,
-                searchResultsCount = packageGroups.filterIsInstance<PackageGroup.Remote>()
-                    .sumOf { it.size },
-                onSearchQueryChange = onSearchQueryChange,
-            )
-        }
-
+        SearchRow(
+            searchAvailable = searchAvailable,
+            searchQuery = searchQuery,
+            searchResultsCount = packageGroups.filterIsInstance<PackageGroup.Remote>()
+                .sumOf { it.size },
+            onSearchQueryChange = onSearchQueryChange,
+        )
 
         Box {
             when {

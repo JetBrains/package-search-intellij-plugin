@@ -106,14 +106,14 @@ fun PackageSearchModulesTree(
                 } else {
                     element.data.module.hasUpdates
                 }
-                if (hasUpdate) {
-                    Icon(
-                        modifier = Modifier.padding(end = 20.dp),
-                        resource = "icons/intui/upgradableMark.svg",
-                        iconClass = IconProvider::class.java,
-                        contentDescription = ""
-                    )
-                }
+//                if (hasUpdate) {
+//                    Icon(
+//                        modifier = Modifier.padding(end = 20.dp),
+//                        resource = "icons/intui/upgradableMark.svg",
+//                        iconClass = IconProvider::class.java,
+//                        contentDescription = ""
+//                    )
+//                }
             }
         }
     }

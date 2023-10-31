@@ -1,6 +1,9 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +36,7 @@ import org.jetbrains.jewel.ui.component.styling.LocalTextFieldStyle
 
 @Composable
 fun SearchRow(
+    searchAvailable: Boolean,
     searchQuery: String,
     searchResultsCount: Int,
     onSearchQueryChange: (String) -> Unit,
@@ -57,11 +61,20 @@ fun SearchRow(
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            resource = "actions/search.svg",
-            contentDescription = null,
-            iconClass = AllIcons::class.java
-        )
+        AnimatedVisibility(searchAvailable) {
+            Icon(
+                resource = "actions/search.svg",
+                contentDescription = null,
+                iconClass = AllIcons::class.java
+            )
+        }
+        AnimatedVisibility(!searchAvailable) {
+            Icon(
+                resource = "general/filter.svg",
+                contentDescription = null,
+                iconClass = AllIcons::class.java
+            )
+        }
 
         CompositionLocalProvider(
             LocalGlobalColors provides getGlobalColorsWithTransparentFocusOverride(),
@@ -73,10 +86,18 @@ fun SearchRow(
                 undecorated = true,
                 style = LocalTextFieldStyle.current,
                 placeholder = {
-                    Text(
-                        text = PackageSearchBundle.message("packagesearch.search.search"),
-                        modifier = Modifier.padding(start = 4.dp),
-                    )
+                    AnimatedVisibility(searchAvailable) {
+                        Text(
+                            text = PackageSearchBundle.message("packagesearch.search.search"),
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                    AnimatedVisibility(!searchAvailable) {
+                        Text(
+                            text = PackageSearchBundle.message("packagesearch.search.filteronly"),
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {

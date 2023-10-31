@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.ui.model
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -137,7 +138,7 @@ class PackageSearchPackageItemListBuilder {
                     modifyPackageContent = {
                         val service = LocalPackageSearchService.current
                         Row(
-                            modifier = Modifier.width(160.dp),
+                            modifier = Modifier.width(160.dp).height(40.dp),
                             horizontalArrangement = Arrangement.End
                         ) {
                             ScopeSelectionDropdown(
