@@ -53,9 +53,8 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
                 append(currentData.module.identity.path)
                 if (!isRoot) append(":")
             }
-            it.module.identity.path.removePrefix(toRemove).run {
-                isNotEmpty() && !contains(":")
-            }
+            it.module.identity.path.removePrefix(toRemove)
+                .run { isNotEmpty() && !contains(":") }
         }
         .toSet()
     if (children.isNotEmpty()) {
