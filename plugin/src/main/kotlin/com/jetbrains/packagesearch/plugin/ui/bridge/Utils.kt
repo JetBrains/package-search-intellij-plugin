@@ -60,12 +60,7 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
     if (children.isNotEmpty()) {
         addNode(
             data = currentData,
-            selectionId = currentData.module.identity,
-            uiId = ModelUiKey(
-                moduleIdentity = currentData.module.identity,
-                hasUpdate = currentData.module.hasUpdates,
-                hasStableUpdate = currentData.module.hasStableUpdates,
-            )
+            id = currentData.module.identity,
         ) {
             children.forEach {
                 addElements(
@@ -77,21 +72,10 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
     } else {
         addLeaf(
             data = currentData,
-            selectionId = currentData.module.identity,
-            uiId = ModelUiKey(
-                moduleIdentity = currentData.module.identity,
-                hasUpdate = currentData.module.hasUpdates,
-                hasStableUpdate = currentData.module.hasStableUpdates,
-            )
+            id = currentData.module.identity,
         )
     }
 }
-
-internal data class ModelUiKey(
-    val moduleIdentity: PackageSearchModule.Identity,
-    val hasUpdate: Boolean,
-    val hasStableUpdate: Boolean,
-)
 
 fun openLinkInBrowser(url: String) {
     Desktop.getDesktop()

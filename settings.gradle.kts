@@ -40,12 +40,6 @@ include(
     ":kmp-modifier",
 )
 
-includeBuild("jewel") {
-    dependencySubstitution {
-        substitute(module("org.jetbrains.jewel:jewel-ide-laf-bridge")).using(project(":ide-laf-bridge"))
-    }
-}
-
 includeBuild("package-search-api-models") {
     dependencySubstitution {
         substitute(module("org.jetbrains.packagesearch:packagesearch-api-models")).using(project(":"))

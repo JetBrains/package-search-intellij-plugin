@@ -20,8 +20,8 @@ ktor = "2.3.5"
 logback = "1.4.7"
 nitrite = "3.4.4"
 packagesearchApiModels = "3.0.0-SNAPSHOT"
-jewel-bridge = "0.8.1-ij-233"
-jewel = "0.8.1"
+jewel-bridge = "1.0.0-ij-233-SNAPSHOT"
+jewel = "1.0.0-SNAPSHOT"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }

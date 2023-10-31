@@ -69,7 +69,21 @@ class CoroutineObjectRepository<T : Any> @InternalAPI constructor(
     suspend fun update(filter: ObjectFilter, update: T, upsert: Boolean = false): WriteResult =
         dispatch { synchronous.update(filter, update, upsert) }
 
-    suspend fun removeAll(): WriteResult = dispatch { synchronous.remove(ObjectFilters.ALL) }
+    suspend fun removeAll(): WriteResult = dispatch {
+        try {
+            synchronous.remove(ObjectFilters.ALL)
+        } catch (_: NullPointerException) {
+            object : WriteResult {
+                override fun iterator(): MutableIterator<NitriteId> = object : MutableIterator<NitriteId> {
+                    override fun hasNext(): Boolean = false
+                    override fun next(): NitriteId = throw NoSuchElementException()
+                    override fun remove() {}
+                }
+
+                override fun getAffectedCount(): Int = 0
+            }
+        }
+    }
 
     suspend fun remove(filter: ObjectFilter, removeOptions: RemoveOptions? = null): WriteResult =
         dispatch {
