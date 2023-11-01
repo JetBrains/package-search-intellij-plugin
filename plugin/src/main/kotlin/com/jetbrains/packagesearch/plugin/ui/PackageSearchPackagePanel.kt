@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
@@ -126,20 +125,20 @@ fun PackageSearchPackagePanel(
     }
 
     HorizontalSplitPane(Modifier.fillMaxSize(), splitPaneState) {
-        first(100.dp) {
+        first {
             Column(Modifier.fillMaxSize()) {
                 PackageSearchModulesTree(tree, state) { selectedModules = it }
             }
         }
         defaultPKGSSplitter(splitterColor)
-        second(500.dp) {
+        second {
             if (isInfoBoxOpen) {
                 HorizontalSplitPane(Modifier.fillMaxSize(), innerSplitPaneState) {
-                    first(minSize = 100.dp) {
+                    first {
                         PackageSearchCentralPanel()
                     }
                     defaultPKGSSplitter(splitterColor)
-                    second(160.dp) {
+                    second {
                         Box {
                             Column(
                                 modifier = Modifier.verticalScroll(infoBoxScrollState),

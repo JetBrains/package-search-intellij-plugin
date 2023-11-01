@@ -148,7 +148,7 @@ suspend fun HttpClient.getBuildSystemsMetadata(
         ?.map { NormalizedVersion.from(it.content) }
         ?: emptyList()
 
-    val latest = normalizedVersions.max()
+    val latest = normalizedVersions.maxOrNull() ?: return@coroutineScope null
     val latestStable = normalizedVersions.filter { it.isStable }.maxOrNull()
     val groupId = metadata.groupId ?: return@coroutineScope null
     val artifactId = metadata.artifactId ?: return@coroutineScope null
