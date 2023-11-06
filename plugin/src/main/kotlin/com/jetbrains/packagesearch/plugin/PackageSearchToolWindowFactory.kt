@@ -3,7 +3,6 @@
 package com.jetbrains.packagesearch.plugin
 
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -101,7 +100,7 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
                     LocalPackageSearchApiClient provides apiClient,
                     LocalIsActionPerformingState provides mutableStateOf(null),
-                    LocalInfoBoxPanelEnabled provides (isPackageDetailsEnabled as State<Boolean>),
+                    LocalInfoBoxPanelEnabled provides isPackageDetailsEnabled,
                     LocalInfoBoxPanelOpenState provides isInfoBoxOpen,
                     LocalIsOnlyStableVersions provides project.PackageSearchProjectService.isStableOnlyVersions,
                     LocalGlobalPopupIdState provides mutableStateOf(null),

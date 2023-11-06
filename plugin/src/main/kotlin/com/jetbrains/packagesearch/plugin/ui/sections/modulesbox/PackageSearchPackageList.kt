@@ -138,8 +138,9 @@ fun PackageSearchPackageList(
                                     } else if (!isInfoBoxOpen) {
                                         infoBoxOpenState = true
                                     }
-                                })
-                            { item.infoBoxDetail.let(onElementClick) },
+                                },
+                                onClick = {  }
+                            ),
                         isActive = isActive,
                         isSelected = isSelected,
                         isCompact = isInfoBoxOpen,
