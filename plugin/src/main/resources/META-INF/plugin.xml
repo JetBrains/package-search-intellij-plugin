@@ -29,7 +29,7 @@ Supports Maven and Gradle projects.
                     canCloseContents="true"
                     icon="PlatformDependencyToolwindowIcons.ArtifactSmall"
                     factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
-        <registryKey defaultValue="true"
+        <registryKey defaultValue="false"
                      description="Uses Sonatype APIS instead of package Search APIs"
                      key="packagesearch.sonatype.api.client"
                      restartRequired="false"/>
