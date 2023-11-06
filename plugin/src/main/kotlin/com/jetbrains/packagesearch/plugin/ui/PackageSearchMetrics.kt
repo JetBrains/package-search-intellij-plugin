@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
 
 object PackageSearchMetrics {
-    val searchBarheight = 36.dp
-    val treeActionsHeight = searchBarheight
+    val searchBarHeight = 36.dp
+    val treeActionsHeight = searchBarHeight
 
     object PackagesList {
 

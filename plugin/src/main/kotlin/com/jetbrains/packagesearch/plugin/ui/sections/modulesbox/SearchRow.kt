@@ -35,7 +35,7 @@ fun SearchRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(PackageSearchMetrics.searchBarheight)
+            .height(PackageSearchMetrics.searchBarHeight)
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
