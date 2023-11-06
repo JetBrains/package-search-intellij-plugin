@@ -8,19 +8,8 @@ object PackageSearchMetrics {
     val treeActionsHeight = searchBarheight
 
     object PackagesList {
-        object Header {
-            //todo discuss about the right behaviour
-            fun paddingFor(
-                isFirstItem: Boolean,
-                isGroupOpen: Boolean,
-                isGroupEmpty: Boolean,
-                isLastItem: Boolean,
-            ): PaddingValues {
-                val top = if (!isFirstItem) 2.dp else 1.dp
-                val bottom = 0.dp
-                return PaddingValues(top = top, bottom = bottom)
-            }
-        }
+
+        val header = PaddingValues(bottom = 1.dp)
 
         object Package {
             fun paddingFor(isFirstItem: Boolean, isLastItem: Boolean): PaddingValues {

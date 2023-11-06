@@ -78,17 +78,9 @@ fun PackageSearchPackageList(
         items.forEachIndexed { index, item ->
             when (item) {
                 is Header -> stickyHeader("$index.${item.uniqueId()}", contentType = "header") {
-                    val headerPaddings by derivedStateOf {
-                        PackageSearchMetrics.PackagesList.Header.paddingFor(
-                            isFirstItem = index == 0,
-                            isGroupOpen = item.groupId in packageGroupState,
-                            isGroupEmpty = item.count == 0,
-                            isLastItem = index == items.lastIndex
-                        )
-                    }
 
                     PackageGroupHeader(
-                        modifier = Modifier.padding(headerPaddings),
+                        modifier = Modifier.padding(PackageSearchMetrics.PackagesList.header),
                         title = item.title,
                         badges = item.badges ?: emptyList(),
                         groupSize = item.count,
