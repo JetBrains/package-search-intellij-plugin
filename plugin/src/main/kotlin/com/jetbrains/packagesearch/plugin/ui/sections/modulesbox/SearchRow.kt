@@ -1,33 +1,24 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
-import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
-import org.jetbrains.jewel.bridge.toComposeColor
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import org.jetbrains.jewel.foundation.GlobalColors
 import org.jetbrains.jewel.foundation.LocalGlobalColors
 import org.jetbrains.jewel.foundation.OutlineColors
-import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
@@ -41,23 +32,10 @@ fun SearchRow(
     searchResultsCount: Int,
     onSearchQueryChange: (String) -> Unit,
 ) {
-    val borderColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(36.dp)
-            .drawBehind {
-                val strokeThickness = 1.dp.toPx()
-                val startY = size.height - strokeThickness
-                val endX = size.width
-                val capDxFix = 3f
-                drawLine(
-                    brush = SolidColor(borderColor),
-                    start = Offset(0 + capDxFix, startY),
-                    end = Offset(endX - capDxFix, startY),
-                    strokeWidth = 1.dp.toPx(),
-                )
-            }
+            .height(PackageSearchMetrics.searchBarheight)
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
 
 @Composable
@@ -30,7 +32,7 @@ fun PackageSearchCentralPanel(
                 .sumOf { it.size },
             onSearchQueryChange = onSearchQueryChange,
         )
-
+        Divider(Orientation.Horizontal)
         Box {
             when {
                 packageGroups.isEmpty() && !isLoading -> NoResultsToShow()

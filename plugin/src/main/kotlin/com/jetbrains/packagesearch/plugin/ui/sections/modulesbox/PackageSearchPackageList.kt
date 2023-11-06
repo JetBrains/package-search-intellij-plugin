@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -23,6 +24,7 @@ import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelEnabled
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
@@ -36,7 +38,6 @@ import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.util.thenIf
 
 @Composable
 fun PackageSearchPackageList(
@@ -67,7 +68,7 @@ fun PackageSearchPackageList(
     var infoBoxOpenState by LocalInfoBoxPanelOpenState.current
     SelectableLazyColumn(
         selectionMode = SelectionMode.Single,
-        state=packagesListState,
+        state = packagesListState,
         onSelectedIndexesChanged = {
             val index = it.singleOrNull() ?: return@SelectableLazyColumn
             val item = items[index] as Package
@@ -77,15 +78,23 @@ fun PackageSearchPackageList(
         items.forEachIndexed { index, item ->
             when (item) {
                 is Header -> stickyHeader("$index.${item.uniqueId()}", contentType = "header") {
+                    val headerPaddings by derivedStateOf {
+                        PackageSearchMetrics.PackagesList.Header.paddingFor(
+                            isFirstItem = index == 0,
+                            isGroupOpen = item.groupId in packageGroupState,
+                            isGroupEmpty = item.count == 0,
+                            isLastItem = index == items.lastIndex
+                        )
+                    }
+
                     PackageGroupHeader(
-                        modifier = Modifier.thenIf(item.groupId in packageGroupState || item.count == 0) {
-                            padding(top= 2.dp,bottom = 3.dp)
-                        },
+                        modifier = Modifier.padding(headerPaddings),
                         title = item.title,
                         badges = item.badges ?: emptyList(),
                         groupSize = item.count,
                         isGroupExpanded = item.groupId !in packageGroupState,
                         toggleCollapse = {
+                            if (item.count == 0) return@PackageGroupHeader
                             if (item.groupId in packageGroupState) {
                                 packageGroupState.remove(item.groupId)
                             } else {
@@ -120,14 +129,16 @@ fun PackageSearchPackageList(
                 }
 
                 is Package -> item(item.uniqueId(), contentType = "package") {
+                    val itemPaddings by derivedStateOf {
+                        PackageSearchMetrics.PackagesList.Package.paddingFor(
+                            isFirstItem = items.getOrNull(index - 1) is Header,
+                            isLastItem = items.getOrNull(index + 1) !is Package
+                        )
+                    }
                     PackageRow(
                         modifier = Modifier
-                            .thenIf(items.getOrNull(index - 1) is Header) {
-                                padding(top = 4.dp)
-                            }
-                            .thenIf(items.getOrNull(index + 1) is Header) {
-                                padding(bottom = 2.dp)
-                            }.onClick(
+                            .padding(itemPaddings)
+                            .onClick(
                                 interactionSource = remember { MutableInteractionSource() },
                                 onDoubleClick = {
                                     if (!isInfoBoxEnabled) {
@@ -141,7 +152,7 @@ fun PackageSearchPackageList(
                         isSelected = isSelected,
                         isCompact = isInfoBoxOpen,
                         icon = if (JewelTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath,
-                        actionPopupId = item.id,
+                        actionPopupId = item.groupId + "." + item.id,
                         packageNameContent = {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),

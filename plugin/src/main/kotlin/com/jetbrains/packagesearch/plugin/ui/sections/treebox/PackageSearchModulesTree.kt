@@ -1,10 +1,11 @@
 package com.jetbrains.packagesearch.plugin.ui.sections.treebox
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,6 +19,7 @@ import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.TreeState
@@ -30,82 +32,84 @@ import org.jetbrains.jewel.ui.component.LazyTree
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun PackageSearchModulesTree(
+fun ColumnScope.PackageSearchModulesTree(
     tree: Tree<PackageSearchModuleData>,
     state: TreeState,
     onSelectionChange: (List<PackageSearchModuleData>) -> Unit = { },
 ) {
     val scope = rememberCoroutineScope()
-    Column {
-        Row(
-            modifier = Modifier.padding(vertical = 5.dp, horizontal = 7.dp)
+    Row(
+        modifier =
+        Modifier
+            .height(PackageSearchMetrics.treeActionsHeight)
+            .padding(vertical = 5.dp, horizontal = 7.dp)
+    ) {
+        IconButton(
+            onClick = {
+                scope.launch {
+                    state.openNodes = tree.walkBreadthFirst()
+                        .filterIsInstance<Tree.Element.Node<PackageSearchModuleData>>()
+                        .map { it.data.module.identity }
+                        .toSet()
+                }
+            },
         ) {
-            IconButton(
-                onClick = {
-                    scope.launch {
-                        state.openNodes = tree.walkBreadthFirst()
-                            .filterIsInstance<Tree.Element.Node<PackageSearchModuleData>>()
-                            .map { it.data.module.identity }
-                            .toSet()
-                    }
-                },
-            ) {
-                Icon(
-                    modifier = Modifier.padding(5.dp),
-                    resource = "actions/expandall.svg",
-                    iconClass = AllIcons::class.java,
-                    contentDescription = "Collapse PKGS Tree"
-                )
-            }
-            IconButton(
-                onClick = {
-                    state.openNodes = emptySet()
-                },
-            ) {
-                Icon(
-                    modifier = Modifier.padding(5.dp),
-                    resource = "actions/collapseall.svg",
-                    iconClass = AllIcons::class.java,
-                    contentDescription = "Collapse PKGS Tree"
-                )
-            }
-
+            Icon(
+                modifier = Modifier.padding(5.dp),
+                resource = "actions/expandall.svg",
+                iconClass = AllIcons::class.java,
+                contentDescription = "Collapse PKGS Tree"
+            )
         }
-        Divider(Orientation.Horizontal)
-        LazyTree(
-            modifier = Modifier.padding(top = 4.dp),
-            tree = tree,
-            treeState = state,
-            onSelectionChange = { onSelectionChange(it.map { it.data }) },
-        ) { element ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (element !is Tree.Element.Node) {
-                        Spacer(modifier = Modifier.width(12.dp))
-                    }
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        resource = if (JewelTheme.isDark) element.data.module.icon.darkIconPath else element.data.module.icon.lightIconPath,
-                        contentDescription = null,
-                        iconClass = IconProvider::class.java
-                    )
-                    Text(
-                        text = element.data.module.name,
-                        softWrap = false,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+        IconButton(
+            onClick = {
+                state.openNodes = emptySet()
+            },
+        ) {
+            Icon(
+                modifier = Modifier.padding(5.dp),
+                resource = "actions/collapseall.svg",
+                iconClass = AllIcons::class.java,
+                contentDescription = "Collapse PKGS Tree"
+            )
+        }
 
-                val hasUpdate = if (LocalIsOnlyStableVersions.current.value) {
-                    element.data.module.hasStableUpdates
-                } else {
-                    element.data.module.hasUpdates
+    }
+    Divider(Orientation.Horizontal)
+    LazyTree(
+        modifier = Modifier.padding(top = 4.dp),
+        tree = tree,
+        treeState = state,
+        onSelectionChange = { onSelectionChange(it.map { it.data }) },
+    ) { element ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (element !is Tree.Element.Node) {
+                    Spacer(modifier = Modifier.width(12.dp))
                 }
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    resource = if (JewelTheme.isDark) element.data.module.icon.darkIconPath else element.data.module.icon.lightIconPath,
+                    contentDescription = null,
+                    iconClass = IconProvider::class.java
+                )
+                Text(
+                    text = element.data.module.name,
+                    softWrap = false,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            val hasUpdate = if (LocalIsOnlyStableVersions.current.value) {
+                element.data.module.hasStableUpdates
+            } else {
+                element.data.module.hasUpdates
+            }
 //                if (hasUpdate) {
 //                    Icon(
 //                        modifier = Modifier.padding(end = 20.dp),
@@ -114,9 +118,9 @@ fun PackageSearchModulesTree(
 //                        contentDescription = ""
 //                    )
 //                }
-            }
         }
     }
-
 }
+
+
 
