@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -342,36 +341,34 @@ class PackageSearchPackageItemListBuilder {
 @Composable
 private fun packageSearchDropdownStyle(): DropdownStyle {
     val currentStyle = JewelTheme.dropdownStyle
-    return remember(currentStyle) {
-        DropdownStyle(
-            colors = DropdownColors(
-                background = Color.Transparent,
-                backgroundDisabled = Color.Transparent,
-                backgroundFocused = Color.Transparent,
-                backgroundPressed = Color.Transparent,
-                backgroundHovered = Color.Transparent,
-                content = currentStyle.colors.content,
-                contentDisabled = currentStyle.colors.contentDisabled,
-                contentFocused = currentStyle.colors.contentFocused,
-                contentPressed = currentStyle.colors.contentPressed,
-                contentHovered = currentStyle.colors.contentHovered,
-                border = Color.Transparent,
-                borderDisabled = Color.Transparent,
-                borderFocused = Color.Transparent,
-                borderPressed = Color.Transparent,
-                borderHovered = Color.Transparent,
-                iconTintDisabled = Color.Transparent,
-                iconTint = currentStyle.colors.iconTint,
-                iconTintFocused = currentStyle.colors.iconTintFocused,
-                iconTintPressed = currentStyle.colors.iconTintPressed,
-                iconTintHovered = currentStyle.colors.iconTintHovered,
-            ),
-            metrics = currentStyle.metrics,
-            icons = currentStyle.icons,
-            textStyle = currentStyle.textStyle,
-            menuStyle = currentStyle.menuStyle,
-        )
-    }
+    return DropdownStyle(
+        colors = DropdownColors(
+            background = Color.Transparent,
+            backgroundDisabled = Color.Transparent,
+            backgroundFocused = Color.Transparent,
+            backgroundPressed = Color.Transparent,
+            backgroundHovered = Color.Transparent,
+            content = currentStyle.colors.content,
+            contentDisabled = currentStyle.colors.contentDisabled,
+            contentFocused = currentStyle.colors.contentFocused,
+            contentPressed = currentStyle.colors.contentPressed,
+            contentHovered = currentStyle.colors.contentHovered,
+            border = Color.Transparent,
+            borderDisabled = Color.Transparent,
+            borderFocused = Color.Transparent,
+            borderPressed = Color.Transparent,
+            borderHovered = Color.Transparent,
+            iconTintDisabled = Color.Transparent,
+            iconTint = currentStyle.colors.iconTint,
+            iconTintFocused = currentStyle.colors.iconTintFocused,
+            iconTintPressed = currentStyle.colors.iconTintPressed,
+            iconTintHovered = currentStyle.colors.iconTintHovered,
+        ),
+        metrics = currentStyle.metrics,
+        icons = currentStyle.icons,
+        textStyle = currentStyle.textStyle,
+        menuStyle = currentStyle.menuStyle,
+    )
 }
 
 @Composable
