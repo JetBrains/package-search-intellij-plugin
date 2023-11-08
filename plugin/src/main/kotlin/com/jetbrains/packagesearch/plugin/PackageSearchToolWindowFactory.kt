@@ -72,23 +72,10 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
 
         val isPackageDetailsEnabled = mutableStateOf(false)
 
-        IntelliJApplication
-            .registryFlow("packagesearch.package.details")
-            .onEach {
-                isPackageDetailsEnabled.value = it
-                if (it) {
-                    toolWindow.asSafely<ToolWindowEx>()
-                        ?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
-                    toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
-                } else {
-                    isInfoBoxOpen.value = false
-                    toolWindow.asSafely<ToolWindowEx>()
-                        ?.setAdditionalGearActions(DefaultActionGroup(toggleOnlyStableAction))
-                    toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(emptyList())
-                }
-            }
-            .flowOn(Dispatchers.EDT)
-            .launchIn(project.PackageSearchProjectService.coroutineScope)
+        toolWindow.asSafely<ToolWindowEx>()
+            ?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
+
+        toolWindow.asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
 
         toolWindow.addComposeTab(PackageSearchBundle.message("packagesearch.title.tab")) {
             val apiClient: PackageSearchApiPackageCache by IntelliJApplication.PackageSearchApplicationCachesService
