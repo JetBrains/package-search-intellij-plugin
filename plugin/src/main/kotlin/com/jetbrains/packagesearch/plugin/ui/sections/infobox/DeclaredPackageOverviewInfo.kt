@@ -243,13 +243,14 @@ fun DeclaredPackageOverviewInfo(
 
             }
             val declaredVersion = selectedPackage.declaredDependency.declaredVersion
+                .takeIf { it != NormalizedVersion.Missing }
             selectedPackage
                 .declaredDependency
                 .remoteInfo
                 ?.versions
                 ?.all
                 ?.filter { it.normalizedVersion != NormalizedVersion.Missing }
-                ?.firstOrNull { it.normalizedVersion.versionName == declaredVersion.versionName }
+                ?.firstOrNull { it.normalizedVersion.versionName == declaredVersion?.versionName }
                 ?.let {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
