@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
@@ -25,9 +26,9 @@ import com.jetbrains.packagesearch.plugin.ui.model.buildDeclaredPackageGroups
 import com.jetbrains.packagesearch.plugin.ui.model.buildRemotePackageGroups
 import com.jetbrains.packagesearch.plugin.ui.model.buildSearchData
 import com.jetbrains.packagesearch.plugin.ui.model.plus
-import com.jetbrains.packagesearch.plugin.ui.sections.infobox.PackageSearchInfoBox
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.PackageSearchCentralPanel
-import com.jetbrains.packagesearch.plugin.ui.sections.treebox.PackageSearchModulesTree
+import com.jetbrains.packagesearch.plugin.ui.panels.side.PackageSearchInfoBox
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.PackageSearchCentralPanel
+import com.jetbrains.packagesearch.plugin.ui.panels.tree.PackageSearchModulesTree
 import com.jetbrains.packagesearch.plugin.utils.logInfo
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.async
@@ -138,7 +139,7 @@ fun PackageSearchPackagePanel(
                         PackageSearchCentralPanel()
                     }
                     defaultPKGSSplitter(splitterColor)
-                    second {
+                    second(160.dp) {
                         Box {
                             Column(
                                 modifier = Modifier.verticalScroll(infoBoxScrollState),

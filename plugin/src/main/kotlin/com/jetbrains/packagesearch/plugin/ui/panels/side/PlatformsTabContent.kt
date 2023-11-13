@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.sections.infobox
+package com.jetbrains.packagesearch.plugin.ui.panels.side
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

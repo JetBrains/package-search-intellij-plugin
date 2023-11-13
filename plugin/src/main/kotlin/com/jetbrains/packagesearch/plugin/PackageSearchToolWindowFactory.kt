@@ -11,7 +11,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -19,9 +18,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.util.asSafely
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
-import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
-import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelEnabled
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
@@ -32,10 +29,6 @@ import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import org.jetbrains.jewel.bridge.addComposeTab
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 
@@ -70,8 +63,6 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
             override fun getActionUpdateThread() = ActionUpdateThread.BGT
         }
 
-        val isPackageDetailsEnabled = mutableStateOf(false)
-
         toolWindow.asSafely<ToolWindowEx>()
             ?.setAdditionalGearActions(DefaultActionGroup(toggleInfoboxAction, toggleOnlyStableAction))
 
@@ -87,7 +78,6 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
                     LocalProjectCoroutineScope provides project.PackageSearchProjectService.coroutineScope,
                     LocalPackageSearchApiClient provides apiClient,
                     LocalIsActionPerformingState provides mutableStateOf(null),
-                    LocalInfoBoxPanelEnabled provides isPackageDetailsEnabled,
                     LocalInfoBoxPanelOpenState provides isInfoBoxOpen,
                     LocalIsOnlyStableVersions provides project.PackageSearchProjectService.isStableOnlyVersions,
                     LocalGlobalPopupIdState provides mutableStateOf(null),

@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
+package com.jetbrains.packagesearch.plugin.ui.panels.packages.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,7 +42,7 @@ import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.getGlobalColorsWithTransparentFocusOverride
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.getGlobalColorsWithTransparentFocusOverride
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -122,7 +122,7 @@ fun PackageRow(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // enable when package quality will be live
+//          enable when package quality will be live
 //            Icon(
 //                painterResource(packageSearchQuality.getIconResourcePath(), LocalResourceLoader.current),
 //                contentDescription = null

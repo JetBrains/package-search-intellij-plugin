@@ -4,13 +4,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import java.awt.Cursor
 import java.awt.Desktop
 import java.net.URI
 import javax.swing.UIDefaults
 import javax.swing.UIManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.TreeGeneratorScope
 import org.jetbrains.jewel.foundation.lazy.tree.buildTree
@@ -77,10 +78,12 @@ fun TreeGeneratorScope<PackageSearchModuleData>.addElements(
     }
 }
 
-fun openLinkInBrowser(url: String) {
-    Desktop.getDesktop()
-        ?.takeIf { it.isSupported(Desktop.Action.BROWSE) }
-        ?.browse(URI(url))
+fun CoroutineScope.openLinkInBrowser(url: String) {
+    launch {
+        Desktop.getDesktop()
+            ?.takeIf { it.isSupported(Desktop.Action.BROWSE) }
+            ?.browse(URI(url))
+    }
 }
 
 

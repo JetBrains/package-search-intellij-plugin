@@ -1,19 +1,20 @@
-package com.jetbrains.packagesearch.plugin.ui.sections.infobox
+package com.jetbrains.packagesearch.plugin.ui.panels.side
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
@@ -28,13 +29,30 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.ui.component.ExternalLink
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiScm
+import org.jetbrains.packagesearch.api.v3.Author
+import org.jetbrains.packagesearch.api.v3.GitHub
 import org.jetbrains.packagesearch.api.v3.LicenseFile
 import org.jetbrains.packagesearch.api.v3.Licenses
 
+@Composable
+internal fun Authors(it: List<Author>) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        LabelInfo(
+            modifier = Modifier.defaultMinSize(90.dp),
+            text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.authors")
+        )
+        Text(it.map { it.name }.joinToString(", "))
+    }
+}
 
 @Composable
 internal fun DefaultActionButton(
@@ -70,7 +88,7 @@ internal fun DefaultActionButton(
             modifier = Modifier.padding(2.dp)
         ) {
             Text(
-                actionName,
+                text = actionName,
                 modifier = Modifier.padding(2.dp)
             )
         }
@@ -93,35 +111,84 @@ internal fun PackageOverviewNameId(
 }
 
 @Composable
-internal fun RowScope.LicenseLinks(
+internal fun LicenseLinks(
     it: Licenses<out LicenseFile>,
 ) {
     val scope = LocalPackageSearchService.current.coroutineScope
-    LabelInfo(
-        modifier = Modifier.defaultMinSize(90.dp),
-        text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.licenses")
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        LabelInfo(
+            modifier = Modifier.defaultMinSize(90.dp),
+            text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.licenses")
+        )
+        val licenses = listOf(it.mainLicense) + it.otherLicenses
+        licenses.forEachIndexed { index, licenseFile ->
+            val name = licenseFile.name
+                ?: licenseFile.url?.substringAfterLast("/")
+                ?: return@forEachIndexed
+            when (val url = licenseFile.url) {
+                null -> Text(name)
+                else -> ExternalLink(
+                    text = name,
+                    onClick = {
+                        scope.openLinkInBrowser(url)
+                    },
+                )
+            }
+            if (index != licenses.lastIndex) {
+                Text(",")
+            }
+        }
+    }
+}
+
+@Composable
+fun ScmLinks(scm: ApiScm) {
+    val scope = LocalPackageSearchService.current.coroutineScope
+    //repo link
+    when (scm) {
+        is GitHub -> GitHubLinks(scm, scope)
+    }
+}
+
+@Composable
+private fun GitHubLinks(scm: GitHub, scope: CoroutineScope) {
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        ExternalLink(
+            text = PackageSearchBundle.message("packagesearch.ui.toolwindow.link.github"),
+            onClick = {
+                scope.openLinkInBrowser(scm.url)
+            },
+        )
+        if (scm.stars != null) {
+            Icon(resource = "icons/Rating.svg", contentDescription = null, IconProvider::class.java)
+            LabelInfo(scm.stars.toString())
+        }
+    }
+    scm.license?.let out@{ scmLincenseFile ->
+        val url = scmLincenseFile.htmlUrl ?: scmLincenseFile.url ?: return@out
+        ExternalLink(
+            text = scmLincenseFile.name ?: scm.url,
+            onClick = {
+                scope.openLinkInBrowser(url)
+            },
+        )
+    }
+    ExternalLink(
+        text = PackageSearchBundle.message("packagesearch.ui.toolwindow.link.projectSite.capitalized"),
+        onClick = {
+            scope.openLinkInBrowser(scm.htmlUrl)
+        },
     )
-
-    val licenses = listOf(it.mainLicense) + it.otherLicenses
-
-    licenses.forEachIndexed { index, licenseFile ->
-        val name = licenseFile.name
-            ?: licenseFile.url?.substringAfterLast("/")
-            ?: return@forEachIndexed
-        when (val url = licenseFile.url) {
-            null -> Text(name)
-            else -> ExternalLink(
-                text = name,
-                onClick = {
-                    scope.launch {
-                        openLinkInBrowser(url)
-                    }
-                },
-            )
-        }
-        if (index != licenses.lastIndex) {
-            Text(",")
-        }
+    scm.readmeUrl?.let {
+        ExternalLink(
+            text = PackageSearchBundle.message("packagesearch.ui.toolwindow.link.readme.capitalized"),
+            onClick = {
+                scope.openLinkInBrowser(it)
+            },
+        )
     }
 }
 

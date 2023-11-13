@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
+package com.jetbrains.packagesearch.plugin.ui.panels.packages
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
-import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelEnabled
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
@@ -31,8 +30,8 @@ import com.jetbrains.packagesearch.plugin.ui.model.PackageGroup
 import com.jetbrains.packagesearch.plugin.ui.model.PackageSearchPackageListItem.Header
 import com.jetbrains.packagesearch.plugin.ui.model.PackageSearchPackageListItem.Package
 import com.jetbrains.packagesearch.plugin.ui.model.buildPackageSearchPackageItemList
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageGroupHeader
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageRow
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.PackageGroupHeader
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.PackageRow
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
@@ -47,7 +46,6 @@ fun PackageSearchPackageList(
     isInfoBoxOpen: Boolean,
     onElementClick: (InfoBoxDetail?) -> Unit,
 ) {
-    val isInfoBoxEnabled = LocalInfoBoxPanelEnabled.current.value
     val isStableOnly by LocalIsOnlyStableVersions.current.collectAsState()
     val items = buildPackageSearchPackageItemList {
         packageGroups.forEach { group ->
@@ -133,9 +131,7 @@ fun PackageSearchPackageList(
                             .onClick(
                                 interactionSource = remember { MutableInteractionSource() },
                                 onDoubleClick = {
-                                    if (!isInfoBoxEnabled) {
-                                        infoBoxOpenState = false
-                                    } else if (!isInfoBoxOpen) {
+                                    if (!isInfoBoxOpen) {
                                         infoBoxOpenState = true
                                     }
                                 },

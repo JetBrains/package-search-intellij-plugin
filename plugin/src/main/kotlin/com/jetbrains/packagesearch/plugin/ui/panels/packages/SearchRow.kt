@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox
+package com.jetbrains.packagesearch.plugin.ui.panels.packages
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable

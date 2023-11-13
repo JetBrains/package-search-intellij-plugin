@@ -28,10 +28,11 @@ import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.DeclaredPackageMoreActionPopup
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.PackageActionLink
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.evaluateUpgrade
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items.latestVersion
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.DeclaredPackageMoreActionPopup
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.PackageActionLink
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.RemotePackageMorePopupContent
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.evaluateUpgrade
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.latestVersion
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
@@ -306,6 +307,7 @@ class PackageSearchPackageItemListBuilder {
                         }
                     }
                 }
+                val infoBoxDetail = InfoBoxDetail.Package.RemotePackage(apiPackage, group)
                 addPackage(
                     icon = apiPackage.icon,
                     title = apiPackage.name ?: apiPackage.coordinates,
@@ -326,9 +328,15 @@ class PackageSearchPackageItemListBuilder {
                         }
                     },
                     groupId = "remote.${group.id.value}.${apiPackage.id}",
-                    popupContent = null,
+                    popupContent = {
+                        RemotePackageMorePopupContent(
+                            selectedPackage = apiPackage,
+                            group = group,
+                            onDismissRequest = { }
+                        )
+                    },
                     mainActionContent = mainActionContent,
-                    infoBoxDetail = InfoBoxDetail.Package.RemotePackage(apiPackage)
+                    infoBoxDetail = infoBoxDetail
                 )
             }
         }

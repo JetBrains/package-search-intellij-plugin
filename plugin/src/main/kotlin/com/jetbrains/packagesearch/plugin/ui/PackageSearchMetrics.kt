@@ -1,9 +1,19 @@
 package com.jetbrains.packagesearch.plugin.ui
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object PackageSearchMetrics {
+    object Popups {
+
+        val minWidth: Dp = 50.dp
+        val maxWidth: Dp = 300.dp
+
+        val minHeight: Dp = 50.dp
+        val maxHeight: Dp = 250.dp
+    }
+
     val searchBarHeight = 36.dp
     val treeActionsHeight = searchBarHeight
 

@@ -98,6 +98,7 @@ fun NoModulesFound() {
 
 @Composable
 fun LearnMoreLink() {
+    val scope= rememberCoroutineScope()
     Row {
         Icon(
             resource = "icons/intui/question.svg",
@@ -108,7 +109,7 @@ fun LearnMoreLink() {
         )
         Link(
             text = "Learn more",
-            onClick = { openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html") },
+            onClick = { scope.openLinkInBrowser("https://www.jetbrains.com/help/idea/package-search.html") },
         )
     }
 }

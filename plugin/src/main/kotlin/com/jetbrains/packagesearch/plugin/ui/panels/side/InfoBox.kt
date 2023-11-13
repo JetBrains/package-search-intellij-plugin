@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.sections.infobox
+package com.jetbrains.packagesearch.plugin.ui.panels.side
 
 import DeclaredPackageOverviewInfo
 import androidx.compose.foundation.layout.Box
@@ -19,7 +19,7 @@ import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
-import com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.getGlobalColorsWithTransparentFocusOverride
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.getGlobalColorsWithTransparentFocusOverride
 import org.jetbrains.jewel.foundation.LocalGlobalColors
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
@@ -74,30 +74,31 @@ fun PackageSearchInfoBox(
 //                    ),
                 ),
             )
-
-            Box(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                when (selectedTab) {
-                    InfoTabState.Overview -> {
-                        //retrieve the dependency manager
-                        when (infoBoxDetail) {
-                            is InfoBoxDetail.Package.DeclaredPackage -> {
-                                CompositionLocalProvider(
-                                    LocalGlobalColors provides getGlobalColorsWithTransparentFocusOverride(),
-                                ) {
+            CompositionLocalProvider(
+                LocalGlobalColors provides getGlobalColorsWithTransparentFocusOverride(),
+            ) {
+                Box(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                    when (selectedTab) {
+                        InfoTabState.Overview -> {
+                            //retrieve the dependency manager
+                            when (infoBoxDetail) {
+                                is InfoBoxDetail.Package.DeclaredPackage -> {
                                     DeclaredPackageOverviewInfo(selectedPackage = infoBoxDetail)
                                 }
-                            }
 
-                            is InfoBoxDetail.Package.RemotePackage -> {
-                                RemotePackageOverviewInfo(selectedPackage = infoBoxDetail, selectedModules= selectedModules)
+                                is InfoBoxDetail.Package.RemotePackage -> {
+                                    RemotePackageOverviewInfo(
+                                        selectedPackage = infoBoxDetail,
+                                        selectedModules = selectedModules
+                                    )
+                                }
+                                is InfoBoxDetail.Badges.Search -> TODO()
+                                is InfoBoxDetail.Badges.Variant -> TODO()
                             }
-
-                            is InfoBoxDetail.Badges.Search -> TODO()
-                            is InfoBoxDetail.Badges.Variant -> TODO()
                         }
-                    }
 
-                    InfoTabState.Platforms -> PlatformsTabContent()
+                        InfoTabState.Platforms -> PlatformsTabContent()
+                    }
                 }
             }
         }

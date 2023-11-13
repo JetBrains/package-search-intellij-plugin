@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.sections.treebox
+package com.jetbrains.packagesearch.plugin.ui.panels.tree
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope

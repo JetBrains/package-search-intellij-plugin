@@ -1,4 +1,4 @@
-package com.jetbrains.packagesearch.plugin.ui.sections.modulesbox.items
+package com.jetbrains.packagesearch.plugin.ui.panels.packages.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

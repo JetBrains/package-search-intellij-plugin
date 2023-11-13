@@ -9,8 +9,8 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 sealed interface InfoBoxDetail {
 
     sealed interface Package : InfoBoxDetail {
-        @JvmInline
-        value class RemotePackage(val apiPackage: ApiPackage) : Package
+
+        data class RemotePackage(val apiPackage: ApiPackage, val group: PackageGroup.Remote) : Package
 
         data class DeclaredPackage(
             val declaredDependency: PackageSearchDeclaredPackage,
