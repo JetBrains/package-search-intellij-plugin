@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -119,6 +120,9 @@ fun ColumnScope.PackageSearchModulesTree(
 //                    )
 //                }
         }
+    }
+    LaunchedEffect(Unit){
+        state.selectedKeys = listOf(tree.walkDepthFirst().first().id)
     }
 }
 
