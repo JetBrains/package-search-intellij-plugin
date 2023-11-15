@@ -48,7 +48,6 @@ dependencies {
     implementation(compose.desktop.macos_x64)
     implementation(compose.desktop.windows_x64)
     implementation(packageSearchCatalog.kotlinx.serialization.core)
-    implementation(packageSearchCatalog.compose.desktop.components.splitpane)
     implementation(packageSearchCatalog.jewel.bridge)
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.packagesearch.api.models)

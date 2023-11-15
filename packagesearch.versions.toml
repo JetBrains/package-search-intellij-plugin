@@ -27,8 +27,6 @@ jewel = "1.0.0-SNAPSHOT"
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 commons-codec = { module="commons-codec:commons-codec", version.ref = "commonsCodec" }
-compose-desktop-components-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "composeDesktop" }
-compose-desktop-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeDesktop" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 foojay-resolver-gradle-plugin = { module = "org.gradle.toolchains:foojay-resolver", version.ref = "foojay" }

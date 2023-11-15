@@ -18,7 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.SearchData
@@ -26,8 +25,8 @@ import com.jetbrains.packagesearch.plugin.ui.model.buildDeclaredPackageGroups
 import com.jetbrains.packagesearch.plugin.ui.model.buildRemotePackageGroups
 import com.jetbrains.packagesearch.plugin.ui.model.buildSearchData
 import com.jetbrains.packagesearch.plugin.ui.model.plus
-import com.jetbrains.packagesearch.plugin.ui.panels.side.PackageSearchInfoBox
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.PackageSearchCentralPanel
+import com.jetbrains.packagesearch.plugin.ui.panels.side.PackageSearchInfoBox
 import com.jetbrains.packagesearch.plugin.ui.panels.tree.PackageSearchModulesTree
 import com.jetbrains.packagesearch.plugin.utils.logInfo
 import kotlin.time.Duration.Companion.milliseconds
@@ -35,13 +34,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.splitpane.HorizontalSplitPane
-import org.jetbrains.compose.splitpane.rememberSplitPaneState
-import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.TreeState
-import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.HorizontalSplitLayout
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
@@ -55,11 +51,6 @@ fun PackageSearchPackagePanel(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
-
-    val splitPaneState = rememberSplitPaneState(.20f)
-    val innerSplitPaneState = rememberSplitPaneState(.80f)
-    val splitterColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
-
     val infoBoxScrollState = rememberScrollState()
 
     var infoBoxDetail by remember { mutableStateOf<InfoBoxDetail?>(null) }
@@ -124,23 +115,25 @@ fun PackageSearchPackagePanel(
             )
         }
     }
-
-    HorizontalSplitPane(Modifier.fillMaxSize(), splitPaneState) {
-        first {
-            Column(Modifier.fillMaxSize()) {
+    HorizontalSplitLayout(
+        first = {
+            Column(it) {
                 PackageSearchModulesTree(tree, state) { selectedModules = it }
             }
-        }
-        defaultPKGSSplitter(splitterColor)
-        second {
+        },
+        second = {
             if (isInfoBoxOpen) {
-                HorizontalSplitPane(Modifier.fillMaxSize(), innerSplitPaneState) {
-                    first {
-                        PackageSearchCentralPanel()
-                    }
-                    defaultPKGSSplitter(splitterColor)
-                    second(160.dp) {
-                        Box {
+                HorizontalSplitLayout(
+                    modifier = it,
+                    initialDividerPosition = 700.dp,
+                    first = {
+                        Box(it) {
+                            PackageSearchCentralPanel()
+                        }
+
+                    },
+                    second = {
+                        Box(it) {
                             Column(
                                 modifier = Modifier.verticalScroll(infoBoxScrollState),
                             ) {
@@ -154,12 +147,15 @@ fun PackageSearchPackagePanel(
                             }
                         }
                     }
-                }
+                )
             } else {
-                PackageSearchCentralPanel()
+                Box(it) {
+                    PackageSearchCentralPanel()
+                }
             }
         }
-    }
+    )
+
 
     val json = LocalJson.current
     val apiClient = LocalPackageSearchApiClient.current
