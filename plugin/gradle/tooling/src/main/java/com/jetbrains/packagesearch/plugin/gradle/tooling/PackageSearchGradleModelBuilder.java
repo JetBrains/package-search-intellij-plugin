@@ -42,10 +42,11 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
             }
 
             boolean isCanBeDeclared = true;
-            try {
+            String[] gradleVersion = project.getGradle().getGradleVersion().split("\\.");
+            int major = Integer.parseInt(gradleVersion[0]);
+            int middle = Integer.parseInt(gradleVersion[1]);
+            if (major > 8 || (major == 8 && middle > 2)) {
                 isCanBeDeclared = configuration.isCanBeDeclared();
-            } catch (Exception ignored) {
-
             }
 
             configurations.add(
