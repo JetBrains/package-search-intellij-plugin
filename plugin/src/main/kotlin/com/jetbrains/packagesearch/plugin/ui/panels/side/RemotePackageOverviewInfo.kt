@@ -29,10 +29,8 @@ import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.packagesearch.api.v3.ApiCocoapodsRepository
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
-import org.jetbrains.packagesearch.api.v3.ApiNpmRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 @Composable
@@ -158,8 +156,6 @@ fun displayRepositoryLinks(repositoriesIds: Set<String>) {
             .distinctBy { it.first }
             .map { (_, repo) ->
                 when (repo) {
-                    is ApiCocoapodsRepository -> repo.id to null
-                    is ApiNpmRepository -> repo.id to null
                     is ApiMavenRepository -> repo.friendlyName to repo.url
                 }
             }
