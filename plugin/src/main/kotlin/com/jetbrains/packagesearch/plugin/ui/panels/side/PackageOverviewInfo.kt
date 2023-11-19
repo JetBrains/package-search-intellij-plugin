@@ -1,7 +1,5 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.side
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,9 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,18 +16,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import com.intellij.icons.AllIcons
-import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
-import org.jetbrains.jewel.foundation.theme.JewelTheme
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
+import org.jetbrains.jewel.ui.component.MenuScope
+import org.jetbrains.jewel.ui.component.PopupMenu
+import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.packagesearch.api.v3.Author
 import org.jetbrains.packagesearch.api.v3.LicenseFile
 import org.jetbrains.packagesearch.api.v3.Licenses
@@ -48,7 +39,7 @@ fun PackageOverviewInfo(
     description: String?,
     licenses: Licenses<out LicenseFile>?,
     mainActionButton: @Composable () -> Unit,
-    additionalActionsPopupContent: @Composable (onDismiss: () -> Unit) -> Unit,
+    additionalActionsPopupContent: MenuScope.() -> Unit,
 ) {
     var openActionPopup by remember { mutableStateOf(false) }
 
@@ -67,41 +58,22 @@ fun PackageOverviewInfo(
                             contentDescription = null,
                             iconClass = AllIcons::class.java
                         )
-                        if (openActionPopup) {
-                            val contentOffsetX = with(LocalDensity.current) { 100.dp.toPx().toInt() + 1 }
-                            val contentOffsetY = with(LocalDensity.current) { 32.dp.toPx().toInt() + 1 }
-                            val borderColor: Color =
-                                remember(JewelTheme.isDark) { pickComposeColorFromLaf("OnePixelDivider.background") }
-                            val backgroundColor: Color =
-                                remember(JewelTheme.isDark) { pickComposeColorFromLaf("PopupMenu.background") }
-                            Popup(
-                                offset = IntOffset(-contentOffsetX, contentOffsetY),
-                                onDismissRequest = { openActionPopup = false },
-                                properties = PopupProperties(focusable = true),
-                                onPreviewKeyEvent = { false },
-                                onKeyEvent = { false },
-                            ) {
-                                Box(
-                                    modifier =
-                                    Modifier.widthIn(max=250.dp).heightIn(max=200.dp)
-                                        .clip(shape = RoundedCornerShape(10.dp))
-                                        .border(
-                                            width = 1.dp,
-                                            color = borderColor,
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .background(color = backgroundColor),
-                                ) {
-                                    additionalActionsPopupContent() {
-                                        openActionPopup = false
-                                    }
-
-                                }
-                            }
-
+                    }
+                    if (openActionPopup) {
+                        PopupMenu(
+                            onDismissRequest = {
+                                openActionPopup = false
+                                return@PopupMenu false
+                            },
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier.heightIn(
+                                min = PackageSearchMetrics.Popups.minWidth,
+                                max = PackageSearchMetrics.Popups.maxHeight
+                            )
+                        ) {
+                            additionalActionsPopupContent()
                         }
                     }
-
                 }
             }
         }
@@ -111,7 +83,9 @@ fun PackageOverviewInfo(
         ) {
             customDetails()
             typeInfo()
-            if (licenses != null) { LicenseLinks(licenses) }
+            if (licenses != null) {
+                LicenseLinks(licenses)
+            }
             authors?.takeIf { it.isNotEmpty() }?.let { Authors(it) }
             description?.takeIf { it.isNotEmpty() }?.let {
                 Text(modifier = Modifier.padding(2.dp), text = it)

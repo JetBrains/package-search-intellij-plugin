@@ -21,8 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
+import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalInfoBoxPanelOpenState
+import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
+import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
@@ -54,11 +57,17 @@ fun PackageSearchPackageList(
                     group = group,
                     isExpanded = group.id !in packageGroupState,
                     isStableOnly = isStableOnly,
+                    popupOpenState = LocalGlobalPopupIdState.current,
+                    service = LocalPackageSearchService.current,
+                    isActionPerformingState = LocalIsActionPerformingState.current
                 )
 
                 is PackageGroup.Remote -> addFromRemoteGroup(
                     group = group,
                     isGroupExpanded = group.id !in packageGroupState,
+                    service = LocalPackageSearchService.current,
+                    isActionPerformingState = LocalIsActionPerformingState.current,
+                    isOnlyStable = LocalIsOnlyStableVersions.current.value
                 )
             }
         }
@@ -135,7 +144,7 @@ fun PackageSearchPackageList(
                                         infoBoxOpenState = true
                                     }
                                 },
-                                onClick = {  }
+                                onClick = { }
                             ),
                         isActive = isActive,
                         isSelected = isSelected,
@@ -156,7 +165,7 @@ fun PackageSearchPackageList(
                                 item.editPackageContent()
                             }
                         },
-                        popupContent = item.popupContent?.let { { it() } },
+                        popupContent = item.popupContent,
                         mainActionContent = item.mainActionContent,
                     )
                 }

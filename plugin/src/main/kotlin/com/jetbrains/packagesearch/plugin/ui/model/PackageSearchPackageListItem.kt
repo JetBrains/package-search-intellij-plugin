@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.ui.model
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import org.jetbrains.jewel.ui.component.MenuScope
 
 typealias Content = @Composable () -> Unit
 
@@ -51,7 +52,7 @@ sealed interface PackageSearchPackageListItem {
         val subtitle: String? = null,
         val editPackageContent: Content = EmptyContent,
         val mainActionContent: Content = EmptyContent,
-        val popupContent: Content? = null,
+        val popupContent: (MenuScope.()->Unit)? = null,
         val infoBoxDetail: InfoBoxDetail.Package,
     ) : PackageSearchPackageListItem {
         override fun uniqueId(): String = "$groupId.$id"

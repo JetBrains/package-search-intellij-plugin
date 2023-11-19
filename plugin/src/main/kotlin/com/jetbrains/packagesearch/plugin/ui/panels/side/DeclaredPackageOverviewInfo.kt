@@ -1,4 +1,3 @@
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -16,13 +15,15 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.ActionType
+import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
+import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.ScopeSelectionDropdown
 import com.jetbrains.packagesearch.plugin.ui.model.VersionSelectionDropdown
-import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.DeclaredPackageMoreActionPopup
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.DeclaredPackageMoreActionsMenu
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.evaluateUpgrade
 import com.jetbrains.packagesearch.plugin.ui.panels.side.DefaultActionButton
 import com.jetbrains.packagesearch.plugin.ui.panels.side.PackageOverviewInfo
@@ -39,7 +40,8 @@ fun DeclaredPackageOverviewInfo(
     selectedPackageVariant: PackageSearchModule.WithVariants? = null,
 ) {
     val service = LocalPackageSearchService.current
-
+    val isActionPerformingState = LocalIsActionPerformingState.current
+    val popupOpenState = LocalGlobalPopupIdState.current
     PackageOverviewInfo(
         packageName = selectedPackage.declaredDependency.displayName,
         packageId = selectedPackage.declaredDependency.id,
@@ -116,12 +118,14 @@ fun DeclaredPackageOverviewInfo(
                 }
             }
         },
-        additionalActionsPopupContent = { onDismiss ->
-            DeclaredPackageMoreActionPopup(
+        additionalActionsPopupContent = {
+            DeclaredPackageMoreActionsMenu(
                 dependencyManager = selectedPackage.dependencyManager,
                 module = selectedPackage.module,
                 packageSearchDeclaredPackage = selectedPackage.declaredDependency,
-                onDismissRequest = onDismiss,
+                service = service,
+                isActionPerformingState = isActionPerformingState ,
+                popupOpenState = popupOpenState,
             )
         },
     )
@@ -133,7 +137,11 @@ private fun DisplayPackageDetails(
     service: PackageSearchProjectService,
     selectedPackageVariant: PackageSearchModule.WithVariants?,
 ) {
-    Row(modifier = Modifier.height(18.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.height(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         LabelInfo(
             modifier = Modifier.width(90.dp),
             text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.version")

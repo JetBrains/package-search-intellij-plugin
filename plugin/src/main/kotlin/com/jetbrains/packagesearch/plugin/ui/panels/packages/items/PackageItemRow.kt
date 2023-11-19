@@ -1,20 +1,16 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.packages.items
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -23,15 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import com.intellij.icons.AllIcons
-import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
@@ -41,19 +31,20 @@ import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
-import com.jetbrains.packagesearch.plugin.ui.bridge.toComposeColor
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.getGlobalColorsWithTransparentFocusOverride
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import java.util.UUID
-import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.LocalGlobalColors
-import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Link
+import org.jetbrains.jewel.ui.component.MenuScope
+import org.jetbrains.jewel.ui.component.PopupMenu
 import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
@@ -76,7 +67,7 @@ fun PackageRow(
     packageNameContent: (@Composable RowScope.() -> Unit),
     editPackageContent: (@Composable RowScope.() -> Unit)? = null,
     mainActionContent: (@Composable () -> Unit)? = null,
-    popupContent: (@Composable BoxScope.() -> Unit)? = null,
+    popupContent: (MenuScope.() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
@@ -135,51 +126,37 @@ fun PackageRow(
                     mainActionContent?.invoke()
                 }
                 var globalPopupId by LocalGlobalPopupIdState.current
-                val bgColor = remember(JewelTheme.isDark) { JBColor.background().toComposeColor() }
-                val borderColor = remember(JewelTheme.isDark) { JBColor.border().toComposeColor() }
-                Box(Modifier.clip(RoundedCornerShape(2.dp))) {// do not remove this box! it is needed for popup to work without glitches
-                    if (popupContent != null) {
-                        Icon(
-                            modifier = Modifier
-                                .clickable {
-                                    globalPopupId = if (globalPopupId == actionPopupId) {
-                                        null
-                                    } else {
-                                        actionPopupId
-                                    }
+                if (popupContent != null) {
+                    Box {
+                        IconButton(
+                            onClick = {
+                                globalPopupId = if (globalPopupId == actionPopupId) {
+                                    null
+                                } else {
+                                    actionPopupId
                                 }
-                                .padding(2.dp),
-                            resource = "actions/more.svg",
-                            contentDescription = null,
-                            iconClass = AllIcons::class.java
-                        )
-
+                            }
+                        ) {
+                            Icon(
+                                resource = "actions/more.svg",
+                                contentDescription = null,
+                                iconClass = AllIcons::class.java
+                            )
+                        }
                         if (globalPopupId == actionPopupId) {
-                            val contentOffsetX = with(LocalDensity.current) { 184.dp.toPx() + 1 }
-
-                            Popup(
-                                offset = IntOffset(-contentOffsetX.roundToInt(), 32),
-                                onDismissRequest = { globalPopupId = null },
-                                properties = PopupProperties(focusable = true),
-                                onPreviewKeyEvent = { false },
-                                onKeyEvent = { false },
+                            PopupMenu(
+                                horizontalAlignment = Alignment.Start,
+                                onDismissRequest = { _ ->
+                                    globalPopupId = null
+                                    return@PopupMenu false
+                                },
+                                modifier = Modifier.heightIn(min = PackageSearchMetrics.Popups.minHeight, max = PackageSearchMetrics.Popups.maxHeight)
                             ) {
-                                Box(
-                                    modifier =
-                                    Modifier.width(200.dp)
-                                        .clip(shape = RoundedCornerShape(10.dp))
-                                        .border(
-                                            width = 1.dp,
-                                            color = borderColor,
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .background(color = bgColor),
-                                ) {
-                                    popupContent()
-                                }
+                                popupContent()
                             }
                         }
                     }
+
                 }
             }
         }
@@ -198,7 +175,7 @@ fun PackageActionLink(
     when {
         showProgress -> CircularProgressIndicator(modifier = Modifier.size(16.dp))
         else -> Link(
-            enabled = isActionPerforming.value?.isPerforming?.not() ?:true,
+            enabled = isActionPerforming.value?.isPerforming?.not() ?: true,
             text = text,
             onClick = {
                 val id = UUID.randomUUID().toString()
@@ -208,7 +185,7 @@ fun PackageActionLink(
                     action(service)
                 }.invokeOnCompletion {
                     it?.let {
-                        logWarn ("PackageActionLink failed: ",it)
+                        logWarn("PackageActionLink failed: ", it)
                     }
                     showProgress = false
                 }

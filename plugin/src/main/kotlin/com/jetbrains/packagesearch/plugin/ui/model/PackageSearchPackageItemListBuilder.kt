@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -23,14 +24,15 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
 import com.jetbrains.packagesearch.plugin.core.utils.icon
+import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.ui.ActionState
 import com.jetbrains.packagesearch.plugin.ui.ActionType
 import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
-import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.DeclaredPackageMoreActionPopup
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.DeclaredPackageMoreActionsMenu
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.PackageActionLink
-import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.RemotePackageMorePopupContent
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.RemotePackageMoreActionsMenu
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.evaluateUpgrade
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.latestVersion
 import java.util.UUID
@@ -39,6 +41,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.MenuScope
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.styling.DropdownColors
 import org.jetbrains.jewel.ui.component.styling.DropdownStyle
@@ -76,7 +79,7 @@ class PackageSearchPackageItemListBuilder {
         groupId: String,
         modifyPackageContent: Content = EmptyContent,
         mainActionContent: Content = EmptyContent,
-        popupContent: Content? = EmptyContent,
+        popupContent: (MenuScope.() -> Unit)? = null,
         infoBoxDetail: InfoBoxDetail.Package,
     ) = list.add(
         PackageSearchPackageListItem.Package(
@@ -96,6 +99,9 @@ class PackageSearchPackageItemListBuilder {
         group: PackageGroup.Declared,
         isExpanded: Boolean,
         isStableOnly: Boolean,
+        service: PackageSearchProjectService,
+        isActionPerformingState: MutableState<ActionState?>,
+        popupOpenState: MutableState<String?>,
     ) {
         addHeader(
             title = if (group is PackageGroup.Declared.FromVariant) group.variant.name else group.module.name,
@@ -136,7 +142,6 @@ class PackageSearchPackageItemListBuilder {
                         else -> declaredDependency.coordinates.takeIf { it != declaredDependency.displayName }
                     },
                     modifyPackageContent = {
-                        val service = LocalPackageSearchService.current
                         Row(
                             modifier = Modifier.width(160.dp).height(40.dp),
                             horizontalArrangement = Arrangement.End
@@ -197,13 +202,15 @@ class PackageSearchPackageItemListBuilder {
                         DeclaredDependencyMainActionContent(declaredDependency, group.dependencyManager)
                     },
                     popupContent = {
-                        DeclaredPackageMoreActionPopup(
+                        DeclaredPackageMoreActionsMenu(
                             group.dependencyManager,
                             group.module,
-                            declaredDependency
+                            packageSearchDeclaredPackage = declaredDependency,
+                            service = service,
+                            isActionPerformingState = isActionPerformingState,
+                            popupOpenState = popupOpenState,
                         )
                     }
-
                 )
             }
         }
@@ -213,6 +220,9 @@ class PackageSearchPackageItemListBuilder {
     fun addFromRemoteGroup(
         group: PackageGroup.Remote,
         isGroupExpanded: Boolean,
+        service: PackageSearchProjectService,
+        isActionPerformingState: MutableState<ActionState?>,
+        isOnlyStable: Boolean,
     ) {
         val compatibleVariantsText = if (group is PackageGroup.Remote.FromVariants) {
             val cardinality = group.compatibleVariants.size
@@ -329,10 +339,12 @@ class PackageSearchPackageItemListBuilder {
                     },
                     groupId = "remote.${group.id.value}.${apiPackage.id}",
                     popupContent = {
-                        RemotePackageMorePopupContent(
-                            selectedPackage = apiPackage,
+                        RemotePackageMoreActionsMenu(
+                            apiPackage = apiPackage,
                             group = group,
-                            onDismissRequest = { }
+                            isActionPerformingState = isActionPerformingState,
+                            service = service,
+                            isOnlyStable = isOnlyStable,
                         )
                     },
                     mainActionContent = mainActionContent,

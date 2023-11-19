@@ -17,13 +17,15 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.getAvailableVersions
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.ui.ActionType
+import com.jetbrains.packagesearch.plugin.ui.LocalGlobalPopupIdState
+import com.jetbrains.packagesearch.plugin.ui.LocalIsActionPerformingState
 import com.jetbrains.packagesearch.plugin.ui.LocalIsOnlyStableVersions
 import com.jetbrains.packagesearch.plugin.ui.LocalPackageSearchService
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import com.jetbrains.packagesearch.plugin.ui.model.InfoBoxDetail
 import com.jetbrains.packagesearch.plugin.ui.model.VersionSelectionDropdown
-import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.RemotePackageMorePopupContent
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.RemotePackageMoreActionsMenu
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.latestVersion
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.ExternalLink
@@ -39,6 +41,9 @@ fun RemotePackageOverviewInfo(
     selectedModules: List<PackageSearchModuleData>,
 ) {
     val service = LocalPackageSearchService.current
+    val isActionPerformingState = LocalIsActionPerformingState.current
+    val isOnlyStable = LocalIsOnlyStableVersions.current.value
+    val popupIdState = LocalGlobalPopupIdState.current
     PackageOverviewInfo(
         packageName = selectedPackage.apiPackage.name ?: "",
         packageId = selectedPackage.apiPackage.id,
@@ -132,11 +137,14 @@ fun RemotePackageOverviewInfo(
                 }
             }
         },
-        additionalActionsPopupContent = { onDismiss ->
-            RemotePackageMorePopupContent(
-                selectedPackage = selectedPackage.apiPackage,
+        additionalActionsPopupContent = { ->
+            RemotePackageMoreActionsMenu(
+                apiPackage = selectedPackage.apiPackage,
                 group = selectedPackage.group,
-                onDismissRequest = { onDismiss() }
+                isActionPerformingState = isActionPerformingState,
+                isOnlyStable = isOnlyStable,
+                service = service,
+                onActionPerformed = { popupIdState.value = null }
             )
         },
     )
