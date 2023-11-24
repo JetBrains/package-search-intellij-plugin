@@ -12,9 +12,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+import com.jetbrains.packagesearch.plugin.ui.model.PackageSearchToolWindowState
 import com.jetbrains.packagesearch.plugin.ui.model.ToolWindowViewModel
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListViewModel
 import org.jetbrains.jewel.bridge.toComposeColor
@@ -27,32 +29,36 @@ fun PackageSearchToolwindow() {
     val toolWindowViewModel: ToolWindowViewModel = viewModel()
     val packageListViewModel: PackageListViewModel = viewModel()
 
-    val backgroundColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.PanelBackground.toComposeColor()) }
+    val toolwindowState by toolWindowViewModel.toolWindowState.collectAsState()
+    when (val state = toolwindowState) {
+        is PackageSearchToolWindowState.Loading -> LoadingMessage(state.message)
 
-    val isLoading by toolWindowViewModel.isLoading.collectAsState()
-    if (isLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(backgroundColor)
-                .padding(top = 2.dp, bottom = 0.dp, start = 2.dp, end = 2.dp),
-        ) {
-            IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth().align(Alignment.TopCenter))
-            val message by toolWindowViewModel.loadingMessage.collectAsState()
-            message?.let {
-                LabelInfo(
-                    text = it,
-                    modifier = Modifier.align(Alignment.Center),
-                )
-            }
+        PackageSearchToolWindowState.NoModules -> NoModulesFound { toolWindowViewModel.openLinkInBrowser(it) }
+        PackageSearchToolWindowState.Ready -> {
+            val isInfoPanelOpen by toolWindowViewModel.isInfoPanelOpen.collectAsState()
+            PackageSearchPackagePanel(
+                onSelectionModulesSelectionChanged = { packageListViewModel.setSelectedModules(it) },
+                isInfoPanelOpen = isInfoPanelOpen,
+                onLinkClick = { toolWindowViewModel.openLinkInBrowser(it) },
+                onPackageEvent = { packageListViewModel.onPackageListItemEvent(it) },
+            )
         }
-    } else {
-        val isInfoPanelOpen by viewModel<ToolWindowViewModel>().isInfoPanelOpen.collectAsState()
-        PackageSearchPackagePanel(
-            onSelectionModulesSelectionChanged = { packageListViewModel.setSelectedModules(it) },
-            isInfoPanelOpen = isInfoPanelOpen,
-            onLinkClick = { toolWindowViewModel.openLinkInBrowser(it) },
-            onPackageEvent = { packageListViewModel.onPackageListItemEvent(it) },
+    }
+}
+
+@Composable
+private fun LoadingMessage(message: String) {
+    val backgroundColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.PanelBackground.toComposeColor()) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .padding(top = 2.dp, bottom = 0.dp, start = 2.dp, end = 2.dp),
+    ) {
+        IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth().align(Alignment.TopCenter))
+        LabelInfo(
+            text = message,
+            modifier = Modifier.align(Alignment.Center),
         )
     }
 }
