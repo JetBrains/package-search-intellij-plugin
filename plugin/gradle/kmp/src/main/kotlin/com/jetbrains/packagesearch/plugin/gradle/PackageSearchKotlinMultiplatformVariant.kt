@@ -2,8 +2,17 @@
 
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.intellij.buildsystem.model.unified.UnifiedDependency
+import com.intellij.packageSearch.mppDependencyUpdater.MppDependency
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
+import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
+import com.jetbrains.packagesearch.plugin.core.utils.toUnifiedDependency
+import com.jetbrains.packagesearch.plugin.core.utils.validateMavenDeclaredPackageType
+import com.jetbrains.packagesearch.plugin.core.utils.validateMavenPackageType
+import com.jetbrains.packagesearch.plugin.gradle.PackageSearchKotlinMultiplatformDeclaredDependency.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -26,8 +35,11 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
     ) : PackageSearchKotlinMultiplatformVariant {
 
         companion object {
-            val TERMINOLOGY = PackageSearchModuleVariant.Terminology("source set", "source sets")
+            val TERMINOLOGY = PackageSearchModule.WithVariants.Terminology("source set", "source sets")
         }
+
+        override val dependencyMustHaveAScope: Boolean
+            get() = true
 
         override val availableScopes: List<String>
             get() = listOf("implementation", "api", "compileOnly", "runtimeOnly")
@@ -38,7 +50,7 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val isPrimary: Boolean
             get() = name.contains("main", ignoreCase = true)
 
-        override val variantTerminology: PackageSearchModuleVariant.Terminology
+        override val variantTerminology: PackageSearchModule.WithVariants.Terminology
             get() = TERMINOLOGY
 
         override fun isCompatible(dependency: ApiPackage, version: ApiPackageVersion): Boolean = when (dependency) {
@@ -59,27 +71,83 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             }
         }
 
-        override fun getInstallData(
+        context(EditModuleContext)
+        override fun updateDependency(
+            declaredPackage: PackageSearchDeclaredPackage,
+            newVersion: String?,
+            newScope: String?,
+        ) {
+            validateKMPDeclaredPackageType(declaredPackage)
+            when (declaredPackage) {
+                is PackageSearchKotlinMultiplatformDeclaredDependency.Cocoapods -> TODO()
+                is Npm -> TODO()
+                is Maven -> {
+                    val oldDescriptor = declaredPackage.toMPPDependency()
+                    val newDescriptor = oldDescriptor.copy(
+                        version = newVersion ?: declaredPackage.declaredVersion.toString(),
+                        configuration = newScope ?: declaredPackage.configuration,
+                    )
+                    kmpData.update(
+                        sourceSet = name,
+                        oldDescriptor = oldDescriptor,
+                        newDescriptor = newDescriptor,
+                    )
+
+                }
+            }
+        }
+
+        context(EditModuleContext)
+        override fun addDependency(
             apiPackage: ApiPackage,
-            selectedVersion: ApiPackageVersion,
+            selectedVersion: String,
             selectedScope: String?,
-        ): KotlinMultiplatformInstallPackageData = when (apiPackage) {
-            is ApiMavenPackage -> KotlinMultiplatformInstallPackageData(
-                apiPackage = apiPackage,
-                selectedVersion = selectedVersion,
-                selectedConfiguration = selectedScope ?: "implementation",
-                variantName = name
-            )
+        ) {
+            validateContextType()
+            when (apiPackage) {
+                is ApiMavenPackage -> {
+                    val newDescriptor = MppDependency.Maven(
+                        groupId = apiPackage.groupId,
+                        artifactId = apiPackage.artifactId,
+                        version = selectedVersion,
+                        configuration = selectedScope ?: defaultScope
+                    )
+                    kmpData.install(
+                        sourceSet = name,
+                        descriptor = newDescriptor
+                    )
+                }
+            }
+        }
+
+        context(EditModuleContext)
+        override fun removeDependency(declaredPackage: PackageSearchDeclaredPackage) {
+            validateContextType()
+            validateKMPDeclaredPackageType(declaredPackage)
+            when (declaredPackage) {
+                is PackageSearchKotlinMultiplatformDeclaredDependency.Cocoapods -> TODO()
+                is Npm -> TODO()
+                is Maven -> {
+                    val oldDescriptor = declaredPackage.toMPPDependency()
+                    kmpData.remove(
+                        sourceSet = name,
+                        descriptor = oldDescriptor
+                    )
+                }
+            }
         }
     }
 
     @Serializable
     data class DependenciesBlock(
-        override val declaredDependencies: List<PackageSearchKotlinMultiplatformDeclaredDependency.Maven>,
+        override val declaredDependencies: List<Maven>,
         override val compatiblePackageTypes: List<PackagesType>,
         override val availableScopes: List<String>,
-        override val defaultScope: String?
+        override val defaultScope: String?,
     ) : PackageSearchKotlinMultiplatformVariant {
+
+        override val dependencyMustHaveAScope: Boolean
+            get() = true
 
         override val attributes: List<PackageSearchModuleVariant.Attribute>
             get() = emptyList()
@@ -92,23 +160,61 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
         override val variantTerminology = null
 
         override val isPrimary: Boolean
-            get() = false
+            get() = true
 
         override fun isCompatible(dependency: ApiPackage, version: ApiPackageVersion) = when (dependency) {
             is ApiMavenPackage -> true
             else -> false
         }
 
-        override fun getInstallData(
+        context(EditModuleContext)
+        override fun updateDependency(
+            declaredPackage: PackageSearchDeclaredPackage,
+            newVersion: String?,
+            newScope: String?,
+        ) {
+            validateContextType()
+            validateMavenDeclaredPackageType(declaredPackage)
+            val oldDescriptor = declaredPackage.toUnifiedDependency()
+            val newDescriptor = oldDescriptor.copy(
+                coordinates = oldDescriptor.coordinates.copy(
+                    version = newVersion ?: declaredPackage.declaredVersion.toString()
+                ),
+                scope = newScope ?: declaredPackage.declaredScope ?: defaultScope,
+            )
+            kmpData.modifier.updateDependency(
+                module = kmpData.nativeModule,
+                oldDescriptor = oldDescriptor,
+                newDescriptor = newDescriptor
+            )
+        }
+
+        context(EditModuleContext)
+        override fun addDependency(
             apiPackage: ApiPackage,
-            selectedVersion: ApiPackageVersion,
+            selectedVersion: String,
             selectedScope: String?,
-        ) = when (apiPackage) {
-            is ApiMavenPackage -> KotlinMultiplatformInstallPackageData(
-                apiPackage = apiPackage,
-                selectedVersion = selectedVersion,
-                selectedConfiguration = selectedScope ?: "implementation",
-                variantName = name
+        ) {
+            validateContextType()
+            validateMavenPackageType(apiPackage)
+            kmpData.modifier.addDependency(
+                module = kmpData.nativeModule,
+                descriptor = UnifiedDependency(
+                    groupId = apiPackage.groupId,
+                    artifactId = apiPackage.artifactId,
+                    version = selectedVersion,
+                    configuration = selectedScope ?: defaultScope,
+                )
+            )
+        }
+
+        context(EditModuleContext)
+        override fun removeDependency(declaredPackage: PackageSearchDeclaredPackage) {
+            validateContextType()
+            validateMavenDeclaredPackageType(declaredPackage)
+            kmpData.modifier.removeDependency(
+                module = kmpData.nativeModule,
+                descriptor = declaredPackage.toUnifiedDependency()
             )
         }
     }
@@ -145,12 +251,27 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             is ApiMavenPackage -> false
         }
 
-        override fun getInstallData(
+        context(EditModuleContext)
+        override fun updateDependency(
+            declaredPackage: PackageSearchDeclaredPackage,
+            newVersion: String?,
+            newScope: String?,
+        ) {
+            TODO("Not yet implemented")
+        }
+
+        context(EditModuleContext)
+        override fun addDependency(
             apiPackage: ApiPackage,
-            selectedVersion: ApiPackageVersion,
+            selectedVersion: String,
             selectedScope: String?,
-        ) = when (apiPackage) {
-            is ApiMavenPackage -> error("Cannot install a Maven package as a Cocoapods dependency")
+        ) {
+            TODO("Not yet implemented")
+        }
+
+        context(EditModuleContext)
+        override fun removeDependency(declaredPackage: PackageSearchDeclaredPackage) {
+            TODO("Not yet implemented")
         }
     }
 }

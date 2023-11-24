@@ -40,6 +40,10 @@ packagesearch {
     isRunIdeEnabled = true
 }
 
+val tooling: Configuration by configurations.creating {
+    isCanBeResolved = true
+}
+
 dependencies {
     implementation(projects.apiMock.apiMockClient)
     implementation(compose.desktop.linux_arm64)
@@ -54,6 +58,7 @@ dependencies {
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
     implementation(projects.plugin.maven)
+    implementation("ch.qos.logback:logback-classic:1.4.10")
 
     sourceElements(projects.plugin.core)
     sourceElements(projects.plugin.gradle)
@@ -61,17 +66,11 @@ dependencies {
     sourceElements(projects.plugin.gradle.kmp)
     sourceElements(projects.plugin.maven)
 
+    tooling(projects.plugin.gradle.tooling)
+
     testImplementation(kotlin("test-junit5"))
     testImplementation(packageSearchCatalog.junit.jupiter.api)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
-}
-
-val tooling: Configuration by configurations.creating {
-    isCanBeResolved = true
-}
-
-dependencies {
-    tooling(projects.plugin.gradle.tooling)
 }
 
 val pkgsPluginId = "com.jetbrains.packagesearch.intellij-plugin"

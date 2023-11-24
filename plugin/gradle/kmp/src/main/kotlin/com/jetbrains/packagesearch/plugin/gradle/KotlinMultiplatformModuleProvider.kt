@@ -16,7 +16,6 @@ import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationIn
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
@@ -31,7 +30,7 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 
 class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
 
-    override suspend fun FlowCollector<PackageSearchModuleData?>.transform(
+    override suspend fun FlowCollector<PackageSearchModule?>.transform(
         module: Module,
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
@@ -60,18 +59,10 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                             .toSet(),
                         variants = variants,
                         packageSearchModel = model,
-                        availableKnownRepositories = context.knownRepositories
+                        availableKnownRepositories = context.knownRepositories,
+                        nativeModule = module
                     )
-                    emit(
-                        PackageSearchModuleData(
-                            module = pkgsModule,
-                            dependencyManager = PackageSearchKotlinMultiplatformDependencyManager(
-                                model,
-                                pkgsModule,
-                                module
-                            )
-                        )
-                    )
+                    emit(pkgsModule)
                 }
 
     }
@@ -129,11 +120,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                     dependencies.map { artifactModel ->
                         PackageSearchKotlinMultiplatformDeclaredDependency.Maven(
                             id = artifactModel.packageId,
-                            declaredVersion = NormalizedVersion.from(artifactModel.version),
-                            latestStableVersion = dependencyInfo[artifactModel.packageId]?.versions?.latestStable?.normalized
-                                ?: NormalizedVersion.Missing,
-                            latestVersion = dependencyInfo[artifactModel.packageId]?.versions?.latest?.normalized
-                                ?: NormalizedVersion.Missing,
+                            declaredVersion = artifactModel.version?.let { NormalizedVersion.from(it) },
                             remoteInfo = dependencyInfo[artifactModel.packageId] as? ApiMavenPackage,
                             declarationIndexes = artifactModel.indexes,
                             groupId = artifactModel.groupId,

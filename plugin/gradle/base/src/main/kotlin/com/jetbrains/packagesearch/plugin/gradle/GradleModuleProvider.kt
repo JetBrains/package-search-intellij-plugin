@@ -5,7 +5,6 @@ package com.jetbrains.packagesearch.plugin.gradle
 import com.intellij.openapi.module.Module
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredKnownRepositories
 import kotlinx.coroutines.flow.FlowCollector
@@ -17,7 +16,7 @@ import org.jetbrains.packagesearch.api.v3.search.libraryElements
 
 class GradleModuleProvider : AbstractGradleModuleProvider() {
 
-    override suspend fun FlowCollector<PackageSearchModuleData?>.transform(
+    override suspend fun FlowCollector<PackageSearchModule?>.transform(
         module: Module,
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
@@ -82,14 +81,10 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                             mustBeRootPublication = true
                         }
                     }
-                }
+                },
+                nativeModule = module,
             )
-            emit(
-                PackageSearchModuleData(
-                    module = packageSearchGradleModule,
-                    dependencyManager = PackageSearchGradleDependencyManager(model, module)
-                )
-            )
+            emit(packageSearchGradleModule)
         }
     }
 

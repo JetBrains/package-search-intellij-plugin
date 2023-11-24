@@ -12,25 +12,10 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 @Serializable
 sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchDeclaredPackage.WithVariant {
 
-    override fun getUpdateData(newVersion: String?, newScope: String?) =
-        KotlinMultiplatformUpdatePackageData(
-            installedPackage = this,
-            newVersion = newVersion,
-            newScope = newScope,
-            sourceSetName = variantName
-        )
-
-    override fun getRemoveData() = KotlinMultiplatformRemovePackageData(
-        declaredPackage = this,
-        variantName = variantName
-    )
-
     @Serializable
     data class Maven(
         override val id: String,
-        override val declaredVersion: NormalizedVersion,
-        override val latestStableVersion: NormalizedVersion,
-        override val latestVersion: NormalizedVersion,
+        override val declaredVersion: NormalizedVersion?,
         override val remoteInfo: ApiMavenPackage?,
         override val declarationIndexes: DependencyDeclarationIndexes,
         override val groupId: String,
@@ -39,7 +24,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val icon: IconProvider.Icon,
         val configuration: String,
     ) : PackageSearchKotlinMultiplatformDeclaredDependency(), PackageSearchDeclaredMavenPackage {
-        override val scope
+        override val declaredScope
             get() = configuration
 
     }
@@ -48,8 +33,6 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
     data class Cocoapods(
         override val id: String,
         override val declaredVersion: NormalizedVersion,
-        override val latestStableVersion: NormalizedVersion,
-        override val latestVersion: NormalizedVersion,
         override val remoteInfo: ApiPackage?,
         override val declarationIndexes: DependencyDeclarationIndexes,
         override val variantName: String,
@@ -59,7 +42,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val icon
             get() = IconProvider.Icons.COCOAPODS
 
-        override val scope: String? = null
+        override val declaredScope: String? = null
 
         override val coordinates: String
             get() = displayName
@@ -69,8 +52,6 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
     data class Npm(
         override val id: String,
         override val declaredVersion: NormalizedVersion,
-        override val latestStableVersion: NormalizedVersion,
-        override val latestVersion: NormalizedVersion,
         override val remoteInfo: ApiPackage?,
         override val declarationIndexes: DependencyDeclarationIndexes,
         override val variantName: String,
@@ -81,7 +62,7 @@ sealed class PackageSearchKotlinMultiplatformDeclaredDependency : PackageSearchD
         override val icon
             get() = IconProvider.Icons.NPM
 
-        override val scope: String
+        override val declaredScope: String
             get() = configuration
         override val coordinates: String
             get() = name

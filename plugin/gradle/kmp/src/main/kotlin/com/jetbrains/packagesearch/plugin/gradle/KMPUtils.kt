@@ -1,8 +1,11 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.intellij.packageSearch.mppDependencyUpdater.MppDependency
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
+import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
-import com.jetbrains.packagesearch.plugin.core.data.flatten
+import kotlin.contracts.contract
 
 fun Set<MppCompilationInfoModel.Compilation>.buildAttributes() = buildList {
     val rawStrings = this@buildAttributes.mapNotNull {
@@ -72,6 +75,15 @@ fun Set<MppCompilationInfoModel.Compilation>.buildAttributes() = buildList {
 operator fun Set<String>.contains(attribute: PackageSearchModuleVariant.Attribute.NestedAttribute): Boolean =
     attribute.flatten().all { it in this }
 
+fun PackageSearchModuleVariant.Attribute.NestedAttribute.flatten() = buildSet {
+    val queue = mutableListOf(this@flatten)
+    while (queue.isNotEmpty()) {
+        val next = queue.removeFirst()
+        addAll(next.children.filterIsInstance<PackageSearchModuleVariant.Attribute.StringAttribute>().map { it.value })
+        queue.addAll(next.children.filterIsInstance<PackageSearchModuleVariant.Attribute.NestedAttribute>())
+    }
+}
+
 fun <K, V> Map<K, V?>.filterNotNullValues(): Map<K, V> = buildMap {
     for ((key, value) in this@filterNotNullValues) {
         if (value != null) {
@@ -85,8 +97,6 @@ fun List<PackageSearchGradleDeclaredPackage>.asKmpVariantDependencies() =
         PackageSearchKotlinMultiplatformDeclaredDependency.Maven(
             id = it.id,
             declaredVersion = it.declaredVersion,
-            latestStableVersion = it.latestStableVersion,
-            latestVersion = it.latestVersion,
             remoteInfo = it.remoteInfo,
             declarationIndexes = it.declarationIndexes,
             groupId = it.groupId,
@@ -96,3 +106,39 @@ fun List<PackageSearchGradleDeclaredPackage>.asKmpVariantDependencies() =
             icon = it.icon
         )
     }
+
+val Map<String, PackageSearchKotlinMultiplatformVariant>.commonMain: PackageSearchKotlinMultiplatformVariant.SourceSet
+    get() = get("commonMain") as PackageSearchKotlinMultiplatformVariant.SourceSet
+
+val Map<String, PackageSearchKotlinMultiplatformVariant>.dependenciesBlock: PackageSearchKotlinMultiplatformVariant.DependenciesBlock
+    get() = getValue(PackageSearchKotlinMultiplatformVariant.DependenciesBlock.NAME) as PackageSearchKotlinMultiplatformVariant.DependenciesBlock
+
+val Map<String, PackageSearchKotlinMultiplatformVariant>.cocoapods: PackageSearchKotlinMultiplatformVariant.Cocoapods?
+    get() = get(PackageSearchKotlinMultiplatformVariant.Cocoapods.NAME) as PackageSearchKotlinMultiplatformVariant.Cocoapods?
+
+internal fun validateKMPDeclaredPackageType(declaredPackage: PackageSearchDeclaredPackage) {
+    contract {
+        returns() implies (declaredPackage is PackageSearchKotlinMultiplatformDeclaredDependency)
+    }
+    require(declaredPackage is PackageSearchKotlinMultiplatformDeclaredDependency) {
+        "Declared package $declaredPackage is not a KMP dependency"
+    }
+}
+
+context(EditModuleContext)
+internal fun validateContextType(): EditKMPModuleContextData {
+    require(data is EditKMPModuleContextData) { "Context is not a KMP context" }
+    return data as EditKMPModuleContextData
+}
+
+context(EditModuleContext)
+val kmpData
+    get() = validateContextType()
+
+fun PackageSearchKotlinMultiplatformDeclaredDependency.Maven.toMPPDependency() =
+    MppDependency.Maven(
+        groupId = groupId,
+        artifactId = artifactId,
+        version = declaredVersion?.versionName,
+        configuration = configuration,
+    )

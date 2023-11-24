@@ -56,7 +56,8 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
                     "kotlinx.serialization.InternalSerializationApi",
                     "kotlinx.coroutines.ExperimentalCoroutinesApi",
                     "com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI",
-                    "kotlinx.coroutines.FlowPreview"
+                    "kotlinx.coroutines.FlowPreview",
+                    "kotlin.contracts.ExperimentalContracts"
                 )
             )
         }

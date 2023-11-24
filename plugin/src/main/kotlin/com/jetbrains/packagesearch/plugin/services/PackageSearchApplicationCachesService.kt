@@ -10,43 +10,26 @@ import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
-import com.intellij.util.io.delete
-import com.jetbrains.packagesearch.mock.SonatypeApiClient
-import com.jetbrains.packagesearch.mock.client.PackageSearchSonatypeApiClient
 import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.nitrite.div
-import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
-import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor
-import com.jetbrains.packagesearch.plugin.http.NitriteKtorCache
 import com.jetbrains.packagesearch.plugin.http.SerializableCachedResponseData
 import com.jetbrains.packagesearch.plugin.utils.ApiPackageCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.ApiRepositoryCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
-import com.jetbrains.packagesearch.plugin.utils.logDebug
-import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import java.util.concurrent.CompletableFuture
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
-import kotlin.io.path.getLastModifiedTime
-import kotlin.io.path.relativeTo
-import kotlin.io.path.walk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
 import org.dizitart.no2.IndexOptions
@@ -92,18 +75,6 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     private val repositoryCache
         get() = getRepository<ApiRepositoryCacheEntry>("repositories")
 
-    private val sonatypeApiClient = PackageSearchSonatypeApiClient(
-        httpClient = SonatypeApiClient.defaultHttpClient {
-            install(Logging) {
-                level = LogLevel.HEADERS
-                logger = KtorDebugLogger()
-            }
-            install(HttpCache) {
-                publicStorage(NitriteKtorCache(sonatypeCacheRepository))
-            }
-        },
-        onError = { logDebug("Error while retrieving packages from Sonatype", it) }
-    )
     private val devApiClient = PackageSearchApiClient(
         endpoints = PackageSearchEndpoints.DEV,
         httpClient = PackageSearchApiClient.defaultHttpClient {
@@ -114,49 +85,7 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         }
     )
 
-    private val apiClientTypeStateFlow = IntelliJApplication
-        .registryFlow("packagesearch.sonatype.api.client")
-        .map { if (it) sonatypeApiClient else devApiClient }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, sonatypeApiClient)
-
-    val apiPackageCache = apiClientTypeStateFlow
-        .map { PackageSearchApiPackageCache(packagesRepository, searchesRepository, it) }
-        .stateIn(
-            scope = coroutineScope,
-            started = SharingStarted.Eagerly,
-            initialValue = PackageSearchApiPackageCache(
-                apiPackageCache = packagesRepository,
-                searchCache = searchesRepository,
-                apiClient = sonatypeApiClient
-            )
-        )
-
-    init {
-        apiClientTypeStateFlow
-            .onEach { IntelliJApplication.PackageSearchApplicationCachesService.clearCaches() }
-            .launchIn(coroutineScope)
-        coroutineScope.launch { createIndexes() }
-        coroutineScope.launch(Dispatchers.IO) {
-            val toDelete = cacheDir.walk()
-                .sortedByDescending { it.getLastModifiedTime() }
-                .filterNot { it == cacheFilePath }
-                .drop(2)
-                .toList()
-            toDelete.forEach { it.delete() }
-            if (toDelete.isNotEmpty()) {
-                logDebug {
-                    buildString {
-                        appendLine("Deleted ${toDelete.size} old caches:")
-                        toDelete.forEach { appendLine("- ${it.relativeTo(appSystemDir)}") }
-                    }
-                }
-            }
-        }
-        if (PackageSearch.deleteCachesOnStartup) {
-            logDebug("Deleting caches on startup")
-            coroutineScope.launch { clearCaches() }
-        }
-    }
+    val apiPackageCache = PackageSearchApiPackageCache(packagesRepository, searchesRepository, devApiClient)
 
     private suspend fun createIndexes() {
         searchesRepository.createIndex(
@@ -175,6 +104,10 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
             indexOptions = IndexOptions.indexOptions(IndexType.NonUnique),
             path = SerializableCachedResponseData::url
         )
+    }
+
+    init {
+        coroutineScope.launch { createIndexes() }
     }
 
     override val actionKey: String

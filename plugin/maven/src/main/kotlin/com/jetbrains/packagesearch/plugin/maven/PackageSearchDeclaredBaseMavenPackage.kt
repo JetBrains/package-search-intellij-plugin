@@ -12,24 +12,11 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 @SerialName("maven")
 data class PackageSearchDeclaredBaseMavenPackage(
     override val id: String,
-    override val declaredVersion: NormalizedVersion,
-    override val latestStableVersion: NormalizedVersion,
-    override val latestVersion: NormalizedVersion,
+    override val declaredVersion: NormalizedVersion?,
     override val remoteInfo: ApiMavenPackage?,
     override val declarationIndexes: DependencyDeclarationIndexes,
     override val groupId: String,
     override val artifactId: String,
-    override val scope: String? = null,
+    override val declaredScope: String? = null,
     override val icon: IconProvider.Icon,
-) : PackageSearchDeclaredMavenPackage {
-
-    override fun getUpdateData(newVersion: String?, newScope: String?) =
-        MavenUpdatePackageData(
-            installedPackage = this,
-            newVersion = newVersion ?: declaredVersion.versionName,
-            newScope = newScope
-        )
-
-    override fun getRemoveData() =
-        MavenRemovePackageData(this)
-}
+) : PackageSearchDeclaredMavenPackage

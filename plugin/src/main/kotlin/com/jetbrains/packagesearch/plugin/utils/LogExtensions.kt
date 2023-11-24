@@ -45,6 +45,15 @@ fun logWarn(message: String, throwable: Throwable? = null) {
     logger.warn(message, throwable)
 }
 
+fun logTODO() {
+    logWarn("This feature is not implemented yet") {
+        "Stacktrace:\n" + Thread.currentThread().stackTrace
+            .joinToString("\n") {
+                "${it.className}.${it.methodName}(${it.fileName}:${it.lineNumber})"
+            }
+    }
+}
+
 fun logInfo(contextName: String? = null, throwable: Throwable? = null, messageProvider: () -> String) {
     logInfo(buildMessageFrom(contextName, messageProvider), throwable)
 }
@@ -88,6 +97,7 @@ fun logTrace(throwable: Throwable) = catchAndSuppress {
 
     logger.trace(throwable)
 }
+
 val warned = AtomicBoolean(false)
 private fun warnNotLoggable() {
     if (warned.getAndSet(true)) return
@@ -106,7 +116,7 @@ private fun warnNotLoggable() {
 private fun buildMessageFrom(
     contextName: String?,
     messageProvider: (() -> String)? = null,
-    message: String? = null
+    message: String? = null,
 ) = buildString {
 
     if (!contextName.isNullOrBlank()) {

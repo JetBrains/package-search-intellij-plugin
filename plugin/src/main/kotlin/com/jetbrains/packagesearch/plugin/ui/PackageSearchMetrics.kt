@@ -14,8 +14,19 @@ object PackageSearchMetrics {
         val maxHeight: Dp = 250.dp
     }
 
+    object PackageList{
+        object Item{
+            val height= 24.dp
+            val padding = 8.dp
+        }
+    }
+
     val searchBarHeight = 36.dp
     val treeActionsHeight = searchBarHeight
+
+    object Dropdown{
+        val maxHeight = 100.dp
+    }
 
     object PackagesList {
 
@@ -23,8 +34,8 @@ object PackageSearchMetrics {
 
         object Package {
             fun paddingFor(isFirstItem: Boolean, isLastItem: Boolean): PaddingValues {
-                val top = if (!isFirstItem) 4.dp else 0.dp
-                val bottom = if (isLastItem) 2.dp else 0.dp
+                val top = if (isFirstItem) 4.dp else 0.dp
+                val bottom = if (isLastItem) 4.dp else 0.dp
                 return PaddingValues(top = top, bottom = bottom)
             }
         }

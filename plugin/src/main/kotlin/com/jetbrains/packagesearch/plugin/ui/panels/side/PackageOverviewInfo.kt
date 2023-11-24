@@ -1,14 +1,12 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.side
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,81 +14,307 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.intellij.icons.AllIcons
-import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
+import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
+import com.jetbrains.packagesearch.plugin.ui.bridge.TextSelectionDropdown
+import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelContent
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.EditPackageEvent.SetPackageScope
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.EditPackageEvent.SetPackageVersion
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.EditPackageEvent.SetVariant
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.GoToSource
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Install.WithVariant
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Remove
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.DeclaredPackageActionPopup
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.RemotePackageWithVariantsActionPopup
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.ScopeSelectionDropdown
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.VersionSelectionDropdown
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.component.CircularProgressIndicator
+import org.jetbrains.jewel.ui.component.ExternalLink
 import org.jetbrains.jewel.ui.component.Icon
-import org.jetbrains.jewel.ui.component.IconButton
-import org.jetbrains.jewel.ui.component.MenuScope
-import org.jetbrains.jewel.ui.component.PopupMenu
+import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.packagesearch.api.v3.Author
-import org.jetbrains.packagesearch.api.v3.LicenseFile
-import org.jetbrains.packagesearch.api.v3.Licenses
 
 @Composable
-fun PackageOverviewInfo(
-    packageName: String,
-    packageId: String,
-    customDetails: @Composable () -> Unit,
-    typeInfo: @Composable () -> Unit,
-    bottomLinks: @Composable () -> Unit,
-    authors: List<Author>?,
-    description: String?,
-    licenses: Licenses<out LicenseFile>?,
-    mainActionButton: @Composable () -> Unit,
-    additionalActionsPopupContent: MenuScope.() -> Unit,
+internal fun PackageOverviewTab(
+    onLinkClick: (String) -> Unit,
+    onPackageEvent: (PackageListItemEvent) -> Unit,
+    content: InfoPanelContent.PackageInfo,
 ) {
-    var openActionPopup by remember { mutableStateOf(false) }
-
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(end = 8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Top) {
-            PackageOverviewNameId(modifier = Modifier.weight(1f), packageName, packageId)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                mainActionButton()
-                Box(modifier = Modifier.defaultMinSize(24.dp), contentAlignment = Alignment.Center) {
-                    IconButton(onClick = {
-                        openActionPopup = true
-                    }) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            resource = "general/chevron-down.svg",
-                            contentDescription = null,
-                            iconClass = AllIcons::class.java
-                        )
-                    }
-                    if (openActionPopup) {
-                        PopupMenu(
-                            onDismissRequest = {
-                                openActionPopup = false
-                                return@PopupMenu false
-                            },
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.heightIn(
-                                min = PackageSearchMetrics.Popups.minWidth,
-                                max = PackageSearchMetrics.Popups.maxHeight
-                            )
-                        ) {
-                            additionalActionsPopupContent()
-                        }
-                    }
-                }
-            }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            InfoPanelPackageTitle(modifier = Modifier.weight(1f), content.title, content.subtitle)
+            InfoPanelPackageActions(content, onPackageEvent)
         }
         Column(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            customDetails()
-            typeInfo()
-            if (licenses != null) {
-                LicenseLinks(licenses)
+            if (content is InfoPanelContent.PackageInfo.Declared) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    LabelInfo(
+                        modifier = Modifier.defaultMinSize(90.dp),
+                        text = message("packagesearch.ui.toolwindow.packages.details.info.version")
+                    )
+                    VersionSelectionDropdown(
+                        declaredVersion = content.declaredVersion,
+                        availableVersions = content.availableVersions,
+                        latestVersion = content.latestVersion,
+                        enabled = !content.isLoading,
+                    ) {
+                        onPackageEvent(SetPackageVersion(content.packageListId, it))
+                    }
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    LabelInfo(
+                        modifier = Modifier.defaultMinSize(90.dp),
+                        text = message("packagesearch.ui.toolwindow.packages.details.info.scope")
+                    )
+                    ScopeSelectionDropdown(
+                        declaredScope = content.declaredScope,
+                        availableScopes = content.availableScopes,
+                        enabled = !content.isLoading,
+                        allowMissingScope = content.allowMissingScope,
+                    ) {
+                        onPackageEvent(SetPackageScope(content.packageListId, it))
+                    }
+                }
             }
-            authors?.takeIf { it.isNotEmpty() }?.let { Authors(it) }
-            description?.takeIf { it.isNotEmpty() }?.let {
-                Text(modifier = Modifier.padding(2.dp), text = it)
+
+            content.type?.let { PackageType(it, content.icon) }
+            if (content.repositories.isNotEmpty()) {
+                InfoPanelPackageDetailLine(
+                    name = message("packagesearch.ui.toolwindow.packages.details.info.repositories"),
+                    value = content.repositories.map { it.name }.joinToString(", ")
+                )
             }
-            bottomLinks()
+            if (content.licenses.isNotEmpty()) {
+                InfoPanelPackageLinks(content.licenses, onLinkClick)
+            }
+            if (content.authors.isNotEmpty()) {
+                InfoPanelPackageDetailLine(
+                    name = message("packagesearch.ui.toolwindow.packages.details.info.authors"),
+                    value = content.authors.joinToString(", ")
+                )
+            }
+            content.description?.let { description ->
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = description.trimStart(),
+                    textAlign = TextAlign.Justify,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            content.scm?.let {
+                InfoPanelPackageScmLinks(it, onLinkClick)
+            }
+            content.readmeUrl?.let { readmeUrl ->
+                ExternalLink(
+                    text = message("packagesearch.ui.toolwindow.link.readme.capitalized"),
+                    onClick = { onLinkClick(readmeUrl) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoPanelPackageActions(
+    tabContent: InfoPanelContent.PackageInfo,
+    onPackageEvent: (PackageListItemEvent) -> Unit,
+) {
+    var isPopupOpen by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        when (tabContent) {
+            is InfoPanelContent.PackageInfo.Declared -> {
+                val latestVersion = tabContent.latestVersion
+                if (latestVersion != null) {
+                    OutlinedButton(
+                        onClick = { onPackageEvent(SetPackageVersion(tabContent.packageListId, latestVersion)) },
+                        enabled = !tabContent.isLoading,
+                        modifier = Modifier.padding(end = 4.dp),
+                    ) {
+                        Text(text = message("packagesearch.ui.toolwindow.packages.actions.update"))
+                    }
+                }
+                when {
+                    tabContent.isLoading -> CircularProgressIndicator()
+                    else -> DeclaredPackageActionPopup(
+                        isOpen = isPopupOpen,
+                        onDismissRequest = { isPopupOpen = false },
+                        onOpenPopupRequest = { isPopupOpen = true },
+                        onGoToSource = { onPackageEvent(GoToSource(tabContent.packageListId)) },
+                        onRemove = { onPackageEvent(Remove(tabContent.packageListId)) },
+                    )
+                }
+            }
+
+            is InfoPanelContent.PackageInfo.Remote.Base -> {
+                OutlinedButton(
+                    onClick = {
+                        val tabContentId = tabContent.packageListId
+                        val event = PackageListItemEvent.OnPackageAction.Install.Base(
+                            headerId = tabContentId.headerId,
+                            eventId = tabContentId,
+                        )
+                        onPackageEvent(event)
+                    },
+                    modifier = Modifier.padding(end = 4.dp),
+                ) {
+                    Text(text = message("packagesearch.ui.toolwindow.packages.actions.install"))
+                }
+            }
+
+            is InfoPanelContent.PackageInfo.Remote.WithVariant -> {
+                OutlinedButton(
+                    onClick = {
+                        val tabContentId = tabContent.packageListId
+                        val event = WithVariant(
+                            headerId = tabContentId.headerId,
+                            eventId = tabContentId,
+                            selectedVariantName = tabContent.primaryVariant
+                        )
+                        onPackageEvent(event)
+                    },
+                    modifier = Modifier.padding(end = 4.dp),
+                ) {
+                    Text(text = message("packagesearch.ui.toolwindow.packages.actions.install"))
+                }
+                RemotePackageWithVariantsActionPopup(
+                    isOpen = isPopupOpen,
+                    primaryVariantName = tabContent.primaryVariant,
+                    additionalVariants = tabContent.additionalVariants,
+                    onOpenPopupRequest = { isPopupOpen = true },
+                    onDismissRequest = { isPopupOpen = false },
+                    onInstall = {
+                        onPackageEvent(
+                            WithVariant(
+                                eventId = tabContent.packageListId,
+                                headerId = tabContent.packageListId.headerId,
+                                selectedVariantName = it
+                            )
+                        )
+                    },
+                    isInstalledInPrimaryVariant = tabContent.isInstalledInPrimaryVariant,
+                )
+
+            }
+        }
+    }
+}
+
+@Composable
+private fun PackageType(name: String, icon: IconProvider.Icon) {
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        LabelInfo(
+            modifier = Modifier.defaultMinSize(90.dp),
+            text = message("packagesearch.ui.toolwindow.packages.columns.type")
+        )
+        val icon = if (JewelTheme.isDark) icon.darkIconPath else icon.lightIconPath
+
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(icon, null, IconProvider::class.java)
+            Text(name)
+        }
+
+    }
+}
+
+@Composable
+private fun InfoPanelPackageDetailLine(name: String, value: String) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        LabelInfo(
+            modifier = Modifier.defaultMinSize(90.dp),
+            text = name
+        )
+        Text(value)
+    }
+}
+
+
+@Composable
+private fun InfoPanelPackageScmLinks(
+    scm: InfoPanelContent.PackageInfo.Scm,
+    onLinkClick: (String) -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ExternalLink(
+            text = message("packagesearch.ui.toolwindow.link.github"),
+            onClick = { onLinkClick(scm.url) },
+        )
+        if (scm is InfoPanelContent.PackageInfo.Scm.GitHub) {
+            Icon(resource = "icons/Rating.svg", contentDescription = null, IconProvider::class.java)
+            LabelInfo(scm.stars.toString())
+        }
+    }
+}
+
+@Composable
+private fun InfoPanelPackageTitle(
+    modifier: Modifier = Modifier,
+    name: String?,
+    id: String,
+) {
+    Row(
+        modifier = modifier.padding(12.dp, 12.dp, 4.dp, 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            org.jetbrains.jewel.ui.component.Text(name ?: id, fontWeight = FontWeight.Bold)
+            if (name != null) LabelInfo(id)
+        }
+    }
+}
+
+@Composable
+private fun InfoPanelPackageLinks(
+    licenses: List<InfoPanelContent.PackageInfo.License>,
+    onLinkClick: (String) -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        LabelInfo(
+            modifier = Modifier.defaultMinSize(90.dp),
+            text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.licenses")
+        )
+        licenses.forEachIndexed { index, license ->
+            when (license.url) {
+                null -> Text(license.name)
+                else -> ExternalLink(
+                    text = license.name,
+                    onClick = { onLinkClick(license.url) },
+                )
+            }
+            if (index != licenses.lastIndex) {
+                Text(",")
+            }
         }
     }
 }

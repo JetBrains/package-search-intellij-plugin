@@ -12,9 +12,7 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 @SerialName("gradle-version")
 data class PackageSearchGradleDeclaredPackage(
     override val id: String,
-    override val declaredVersion: NormalizedVersion,
-    override val latestStableVersion: NormalizedVersion,
-    override val latestVersion: NormalizedVersion,
+    override val declaredVersion: NormalizedVersion?,
     override val remoteInfo: ApiMavenPackage?,
     override val declarationIndexes: DependencyDeclarationIndexes,
     override val icon: IconProvider.Icon,
@@ -26,15 +24,6 @@ data class PackageSearchGradleDeclaredPackage(
         get() = module
     override val artifactId: String
         get() = name
-    override val scope: String
+    override val declaredScope: String
         get() = configuration
-
-    override fun getUpdateData(newVersion: String?, newScope: String?) =
-        GradleUpdatePackageData(
-            installedPackage = this,
-            newVersion = newVersion,
-            newScope = newScope
-        )
-
-    override fun getRemoveData() = GradleRemovePackageData(this)
 }

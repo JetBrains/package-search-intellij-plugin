@@ -16,6 +16,7 @@ fun Project.configureKotlinJvmPlugin(packageSearchExtension: PackageSearchExtens
                 compilerOptions {
                     jvmTarget = packageSearchExtension.jvmTarget
                     freeCompilerArgs.addAll(packageSearchExtension.optIns.map { it.map { "-opt-in=$it" } })
+                    freeCompilerArgs.add("-Xcontext-receivers")
                 }
             }
             withType<Test> {

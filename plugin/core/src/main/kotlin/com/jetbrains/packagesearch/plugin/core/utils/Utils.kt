@@ -2,6 +2,8 @@
 
 package com.jetbrains.packagesearch.plugin.core.utils
 
+import com.intellij.buildsystem.model.unified.UnifiedDependency
+import com.intellij.buildsystem.model.unified.UnifiedDependencyRepository
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.AreaInstance
@@ -27,8 +29,11 @@ import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import java.nio.file.Path
+import kotlin.contracts.contract
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +48,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
+import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 @RequiresOptIn("This API is internal and you should not use it.")
 annotation class PKGSInternalAPI
@@ -249,3 +256,37 @@ val Project.smartModeFlow: FlowWithInitialValue<Boolean>
         }
     }
         .withInitialValue(!DumbService.isDumb(this@smartModeFlow))
+
+fun PackageSearchDeclaredMavenPackage.toUnifiedDependency() =
+    UnifiedDependency(groupId, artifactId, declaredVersion?.versionName, declaredScope)
+
+fun ApiMavenRepository.toUnifiedRepository() =
+    UnifiedDependencyRepository(null, null, url)
+
+fun validateRepositoryType(repository: ApiRepository) {
+    contract {
+        returns() implies (repository is ApiMavenRepository)
+    }
+    require(repository is ApiMavenRepository) {
+        "repository must be ApiMavenRepository instead of ${repository::class.qualifiedName}"
+    }
+}
+
+fun validateMavenDeclaredPackageType(declaredPackage: PackageSearchDeclaredPackage) {
+    contract {
+        returns() implies (declaredPackage is PackageSearchDeclaredMavenPackage)
+    }
+    require(declaredPackage is PackageSearchDeclaredMavenPackage) {
+        "declaredPackage must be PackageSearchDeclaredMavenPackage instead " +
+                "of ${declaredPackage::class.qualifiedName}"
+    }
+}
+
+fun validateMavenPackageType(apiPackage: ApiPackage) {
+    contract {
+        returns() implies (apiPackage is ApiMavenPackage)
+    }
+    require(apiPackage is ApiMavenPackage) {
+        "apiPackage must be ApiMavenPackage instead of ${apiPackage::class.qualifiedName}"
+    }
+}

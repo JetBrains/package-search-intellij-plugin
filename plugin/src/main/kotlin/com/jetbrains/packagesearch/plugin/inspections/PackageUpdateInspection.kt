@@ -37,9 +37,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.Nls
@@ -50,28 +51,29 @@ abstract class PackageSearchInspection : LocalInspectionTool() {
     final override fun checkFile(
         file: PsiFile,
         manager: InspectionManager,
-        isOnTheFly: Boolean
+        isOnTheFly: Boolean,
     ): Array<ProblemDescriptor> {
         val path = file.virtualFile.toNioPathOrNull() ?: return emptyArray()
 
-        val moduleData = file.project.PackageSearchProjectService
-            .moduleDataByBuildFile.value[path] ?: return emptyArray()
+        val module = file.project.PackageSearchProjectService
+            .modulesByBuildFile.value[path] ?: return emptyArray()
 
         val problemsHolder = ProblemsHolder(manager, file, isOnTheFly)
 
-        problemsHolder.checkFile(
-            context = file.project.PackageSearchProjectService,
-            file = file,
-            moduleData = moduleData
-        )
+        with(file.project.PackageSearchProjectService) {
+            problemsHolder.checkFile(
+                file = file,
+                module = module
+            )
+        }
 
         return problemsHolder.resultsArray
     }
 
+    context(PackageSearchKnownRepositoriesContext)
     abstract fun ProblemsHolder.checkFile(
-        context: PackageSearchKnownRepositoriesContext,
         file: PsiFile,
-        moduleData: PackageSearchModuleData
+        module: PackageSearchModule,
     )
 
     override fun getDefaultLevel(): HighlightDisplayLevel = HighlightDisplayLevel.WARNING
@@ -99,87 +101,106 @@ class PackageUpdateInspection : PackageSearchInspection() {
         )
     }
 
+    context(PackageSearchKnownRepositoriesContext)
     override fun ProblemsHolder.checkFile(
-        context: PackageSearchKnownRepositoriesContext,
         file: PsiFile,
-        moduleData: PackageSearchModuleData
-    ) = sequence {
-        when (val module = moduleData.module) {
-            is PackageSearchModule.Base -> yieldAll(module.declaredDependencies)
-            is PackageSearchModule.WithVariants -> module.variants.values.forEach { yieldAll(it.declaredDependencies) }
-        }
-    }
-        .filterNot { declared ->
-            excludeList.asSequence()
-                .map { it.removeSuffix("*") }
-                .any { declared.id.startsWith(it) }
-        }
-        .forEach {
-            val versionElement =
-                file.getElementAt(it.declarationIndexes.versionStartIndex ?: return@forEach)
-                    .takeIf { it != file }
-                    ?: return@forEach
-            val targetVersion = if (project.PackageSearchProjectService.isStableOnlyVersions.value) {
-                it.latestStableVersion
-            } else {
-                it.latestVersion
+        module: PackageSearchModule,
+    ) {
+        val packagesByManager = buildMap<PackageSearchDependencyManager, List<PackageSearchDeclaredPackage>> {
+            when (module) {
+                is PackageSearchModule.Base -> put(module, module.declaredDependencies)
+                is PackageSearchModule.WithVariants -> module.variants.values.forEach {
+                    put(it, it.declaredDependencies)
+                }
             }
-            val normalizedVersionIsGarbage = it.declaredVersion is NormalizedVersion.Garbage
-            val declaredVersionIsMissing = it.declaredVersion == NormalizedVersion.Missing
-            val declaredVersionIsUpToDate = it.declaredVersion >= targetVersion
-            if (normalizedVersionIsGarbage || declaredVersionIsMissing || declaredVersionIsUpToDate) return@forEach
+        }
+        val packagesByManagerFiltered = packagesByManager.mapValues { (_, declaredDependencies) ->
+            declaredDependencies.filterNot { declared ->
+                excludeList.asSequence()
+                    .map { it.removeSuffix("*") }
+                    .any { declared.id.startsWith(it) }
+            }
+        }
+        packagesByManagerFiltered.forEach outer@{ (manager, dependencies) ->
+            dependencies.forEach inner@{ dependency ->
+                val versionElement =
+                    file.getElementAt(dependency.declarationIndexes.versionStartIndex ?: return@inner)
+                        .takeIf { it != file }
+                        ?: return@inner
 
-            registerProblem(
-                psiElement = versionElement,
-                descriptionTemplate = PackageSearchBundle.message(
-                    "packagesearch.inspection.upgrade.description",
-                    it.displayName,
-                    targetVersion.versionName
-                )
-            ) {
-                localQuickFixOnPsiElement(
-                    familyName = PackageSearchBundle.message("packagesearch.quickfix.upgrade.family"),
-                    text = PackageSearchBundle.message(
-                        "packagesearch.quickfix.upgrade.action",
-                        it.displayName,
-                        targetVersion.versionName
-                    ),
-                    priority = HIGH
+                val targetVersion = when {
+                    project.PackageSearchProjectService.stableOnlyStateFlow.value ->
+                        dependency.remoteInfo?.versions?.latestStable
+
+                    else -> dependency.remoteInfo?.versions?.latest
+                } ?: return@inner
+
+                val normalizedVersionIsGarbage = dependency.declaredVersion is NormalizedVersion.Garbage
+                val declaredVersionIsMissing = dependency.declaredVersion == null
+
+                if (normalizedVersionIsGarbage || declaredVersionIsMissing) return@inner
+                if (dependency.declaredVersion!! >= targetVersion.normalized) return@inner
+
+                registerProblem(
+                    psiElement = versionElement,
+                    descriptionTemplate = PackageSearchBundle.message(
+                        "packagesearch.inspection.upgrade.description",
+                        dependency.displayName,
+                        targetVersion.normalized.versionName
+                    )
                 ) {
-                    context.coroutineScope.launch {
-                        moduleData.dependencyManager.updateDependencies(
-                            context = context,
-                            data = listOf(it.getUpdateData(targetVersion.versionName, it.scope)),
-                        )
+                    localQuickFixOnPsiElement(
+                        familyName = PackageSearchBundle.message("packagesearch.quickfix.upgrade.family"),
+                        text = PackageSearchBundle.message(
+                            "packagesearch.quickfix.upgrade.action",
+                            dependency.displayName,
+                            targetVersion.normalized.versionName
+                        ),
+                        priority = HIGH
+                    ) {
+                        coroutineScope.launch {
+                            module.editModule {
+                                manager.updateDependency(
+                                    declaredPackage = dependency,
+                                    newVersion = targetVersion.normalized.versionName,
+                                    newScope = dependency.declaredScope
+                                )
+                                if (targetVersion.repositoryIds.none { it in module.declaredKnownRepositories }) {
+                                    module.addRepository(knownRepositories.getValue(targetVersion.repositoryIds.first()))
+                                }
+                            }
+                        }
                     }
-                }
-                localQuickFixOnPsiElement(
-                    familyName = PackageSearchBundle.message("packagesearch.quickfix.upgrade.exclude.family"),
-                    text = PackageSearchBundle.message(
-                        "packagesearch.quickfix.upgrade.exclude.action",
-                        it.displayName
-                    ),
-                ) {
-                    excludeList.add(it.id)
-                    ProjectInspectionProfileManager.getInstance(context.project).fireProfileChanged()
-                }
-
-                if (it is PackageSearchDeclaredMavenPackage) {
                     localQuickFixOnPsiElement(
                         familyName = PackageSearchBundle.message("packagesearch.quickfix.upgrade.exclude.family"),
                         text = PackageSearchBundle.message(
-                            "packagesearch.quickfix.upgrade.exclude.action.maven.group",
-                            it.groupId
+                            "packagesearch.quickfix.upgrade.exclude.action",
+                            dependency.displayName
                         ),
-                        priority = LOW
                     ) {
-                        excludeList.add("maven:${it.groupId}:*")
-                        ProjectInspectionProfileManager.getInstance(context.project).fireProfileChanged()
+                        excludeList.add(dependency.id)
+                        ProjectInspectionProfileManager.getInstance(project).fireProfileChanged()
+                    }
+
+                    if (dependency is PackageSearchDeclaredMavenPackage) {
+                        localQuickFixOnPsiElement(
+                            familyName = PackageSearchBundle.message("packagesearch.quickfix.upgrade.exclude.family"),
+                            text = PackageSearchBundle.message(
+                                "packagesearch.quickfix.upgrade.exclude.action.maven.group",
+                                dependency.groupId
+                            ),
+                            priority = LOW
+                        ) {
+                            excludeList.add("maven:${dependency.groupId}:*")
+                            ProjectInspectionProfileManager.getInstance(project).fireProfileChanged()
+                        }
                     }
                 }
             }
-
         }
+
+
+    }
 }
 
 internal fun PsiFile.getElementAt(offset: Int): PsiElement {
@@ -193,7 +214,7 @@ internal fun PsiFile.getElementAt(offset: Int): PsiElement {
 internal fun ProblemsHolder.registerProblem(
     psiElement: PsiElement,
     @InspectionMessage descriptionTemplate: String,
-    builder: RegisterProblemScope.() -> Unit
+    builder: RegisterProblemScope.() -> Unit,
 ) {
     registerProblem(psiElement, descriptionTemplate, *RegisterProblemScope(psiElement).apply(builder).getQuickfixes())
 }
@@ -204,7 +225,7 @@ internal class RegisterProblemScope(private val psiElement: PsiElement) {
         @Nls familyName: String,
         @Nls text: String,
         priority: PriorityAction.Priority = PriorityAction.Priority.NORMAL,
-        action: () -> Unit
+        action: () -> Unit,
     ) {
         quickfixes.add(LocalQuickFixOnPsiElement(psiElement, familyName, text, priority, action))
     }
@@ -218,11 +239,12 @@ internal fun LocalQuickFixOnPsiElement(
     @Nls familyName: String,
     @Nls text: String,
     priority: PriorityAction.Priority = PriorityAction.Priority.NORMAL,
-    action: () -> Unit
+    action: () -> Unit,
 ): LocalQuickFix = object : LocalQuickFixOnPsiElement(element), PriorityAction {
     override fun getFamilyName() = familyName
     override fun getText() = text
     override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) =
         action()
+
     override fun getPriority() = priority
 }

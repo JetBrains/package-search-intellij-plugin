@@ -6,9 +6,9 @@ import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlText
+import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
@@ -25,6 +25,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.contracts.contract
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.idea.maven.dom.MavenDomUtil
+import org.jetbrains.idea.maven.dsl.MavenDependencyModificator
 import org.jetbrains.idea.maven.project.MavenImportListener
 import org.jetbrains.idea.maven.project.MavenProject
 import org.jetbrains.idea.maven.project.MavenProjectsManager
@@ -107,7 +109,7 @@ suspend fun Module.toPackageSearch(
         buildFilePath = Paths.get(mavenProject.file.path),
         declaredKnownRepositories = getDeclaredKnownRepositories(context),
         declaredDependencies = declaredDependencies,
-        availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.scope }).distinct(),
+        availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.declaredScope }).distinct(),
         compatiblePackageTypes = buildPackageTypes {
             mavenPackages()
             gradlePackages {
@@ -125,6 +127,7 @@ suspend fun Module.toPackageSearch(
                 }
             }
         },
+        nativeModule = this
     )
 }
 
@@ -158,29 +161,19 @@ suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderCo
         .map { it.packageId }
         .distinct()
 
-    val isSonatype = Registry.`is`("packagesearch.sonatype.api.client")
-
     val remoteInfo =
-        if (isSonatype) {
-            context.getPackageInfoByIds(distinctIds.toSet())
-        } else {
-            context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
-        }
+        context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
     return declaredDependencies
         .associateBy { it.packageId }
         .mapNotNull { (packageId, declaredDependency) ->
             PackageSearchDeclaredBaseMavenPackage(
                 id = packageId,
-                declaredVersion = NormalizedVersion.from(declaredDependency.version),
-                latestStableVersion = remoteInfo[packageId]?.versions?.latestStable?.normalized
-                    ?: NormalizedVersion.Missing,
-                latestVersion = remoteInfo[packageId]?.versions?.latest?.normalized
-                    ?: NormalizedVersion.Missing,
+                declaredVersion = declaredDependency.version?.let { NormalizedVersion.from(it) },
                 remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
                 groupId = declaredDependency.groupId,
                 artifactId = declaredDependency.artifactId,
-                scope = declaredDependency.scope,
+                declaredScope = declaredDependency.scope,
                 declarationIndexes = declaredDependency.indexes,
                 icon = remoteInfo[packageId]?.icon ?: IconProvider.Icons.MAVEN
             )
@@ -196,3 +189,14 @@ suspend fun Module.getDeclaredKnownRepositories(context: PackageSearchModuleBuil
     return context.knownRepositories.filterKeys { it in declaredDependencies }
 }
 
+context(EditModuleContext)
+fun validateContextType(): MavenDependencyModificator {
+    require(data is MavenDependencyModificator) {
+        "Context must be EditMavenModuleContext"
+    }
+    return data as MavenDependencyModificator
+}
+
+context(EditModuleContext)
+val modificator
+    get() = validateContextType()

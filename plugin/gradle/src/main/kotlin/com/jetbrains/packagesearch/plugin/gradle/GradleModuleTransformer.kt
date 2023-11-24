@@ -3,8 +3,8 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.module.Module
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleData
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleProvider
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
@@ -40,7 +40,7 @@ abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
     override fun provideModule(
         context: PackageSearchModuleBuilderContext,
         nativeModule: NativeModule,
-    ): Flow<PackageSearchModuleData?> = when {
+    ): Flow<PackageSearchModule?> = when {
         nativeModule.isGradleSourceSet -> flowOf(null)
         else -> merge(
             context.project.smartModeFlow.mapUnit(),
@@ -69,7 +69,7 @@ abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
             }
     }
 
-    abstract suspend fun FlowCollector<PackageSearchModuleData?>.transform(
+    abstract suspend fun FlowCollector<PackageSearchModule?>.transform(
         module: Module,
         context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,

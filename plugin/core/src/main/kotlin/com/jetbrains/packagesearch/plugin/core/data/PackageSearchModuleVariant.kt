@@ -5,18 +5,10 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
-interface PackageSearchModuleVariant : PackageInstallDataProvider {
-
-    data class Terminology(val singular: String, val plural: String) {
-        fun getForCardinality(count: Int) = if (count > 1) plural else singular
-
-        companion object {
-            val DEFAULT = Terminology("variant", "variants")
-        }
-    }
+interface PackageSearchModuleVariant : PackageSearchDependencyManager {
 
     val name: String
-    val variantTerminology: Terminology?
+    val variantTerminology: PackageSearchModule.WithVariants.Terminology?
     val declaredDependencies: List<PackageSearchDeclaredPackage.WithVariant>
     val attributes: List<Attribute>
     val compatiblePackageTypes: List<PackagesType>
@@ -40,13 +32,4 @@ interface PackageSearchModuleVariant : PackageInstallDataProvider {
 
     fun isCompatible(dependency: ApiPackage, version: ApiPackageVersion): Boolean
 
-}
-
-fun PackageSearchModuleVariant.Attribute.NestedAttribute.flatten() = buildSet {
-    val queue = mutableListOf(this@flatten)
-    while (queue.isNotEmpty()) {
-        val next = queue.removeFirst()
-        addAll(next.children.filterIsInstance<PackageSearchModuleVariant.Attribute.StringAttribute>().map { it.value })
-        queue.addAll(next.children.filterIsInstance<PackageSearchModuleVariant.Attribute.NestedAttribute>())
-    }
 }
