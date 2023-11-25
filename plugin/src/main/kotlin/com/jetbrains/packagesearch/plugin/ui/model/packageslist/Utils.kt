@@ -69,21 +69,21 @@ internal fun PackageSearchDependencyHandlers(
     PackageSearchDependencyHandlers(module, module, declaredPackage)
 
 internal fun combineListChanges(
-    modules: Flow<List<PackageSearchModule>>,
-    searchResultMap: Flow<Map<PackageListItem.Header.Id.Remote, Search>>,
-    headerCollapsedStates: Flow<Map<PackageListItem.Header.Id, PackageListItemEvent.SetHeaderState.TargetState>>,
-    packagesLoadingState: Flow<Set<PackageListItem.Package.Id>>,
-    searchQuery: Flow<String>,
-    stableOnly: Flow<Boolean>,
-    headerLoadingStates: MutableStateFlow<Set<PackageListItem.Header.Id.Declared>>,
+    modulesFlow: Flow<List<PackageSearchModule>>,
+    searchResultMapFlow: Flow<Map<PackageListItem.Header.Id.Remote, Search>>,
+    headerCollapsedStatesFlow: Flow<Map<PackageListItem.Header.Id, PackageListItemEvent.SetHeaderState.TargetState>>,
+    packagesLoadingStateFlow: Flow<Set<PackageListItem.Package.Id>>,
+    searchQueryFlow: Flow<String>,
+    stableOnlyFlow: Flow<Boolean>,
+    headerLoadingStatesFlow: MutableStateFlow<Set<PackageListItem.Header.Id.Declared>>,
 ): Flow<PackageListChange> = combine(
-    modules,
-    searchResultMap,
-    headerCollapsedStates,
-    packagesLoadingState,
-    searchQuery,
-    stableOnly,
-    headerLoadingStates
+    modulesFlow,
+    searchResultMapFlow,
+    headerCollapsedStatesFlow,
+    packagesLoadingStateFlow,
+    searchQueryFlow,
+    stableOnlyFlow,
+    headerLoadingStatesFlow
 ) {
         modules,
         searchResultMap,

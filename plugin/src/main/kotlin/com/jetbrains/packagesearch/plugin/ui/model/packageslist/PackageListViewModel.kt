@@ -33,9 +33,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -91,23 +93,25 @@ class PackageListViewModel(
 
     private val isLoadingChannel = Channel<Boolean>()
     val isLoadingFlow = isLoadingChannel.consumeAsFlow()
-        .debounce(150.milliseconds)
+        .debounce(50.milliseconds)
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private val searchResultMapFlow: StateFlow<Map<PackageListItem.Header.Id.Remote, Search>> = combine(
+    private val searchResultMapFlow: StateFlow<Map<PackageListItem.Header.Id.Remote, Search>> = combineTransform(
         selectedModulesFlow,
         searchQueryStateFlow.debounce(1.seconds)
     ) { selectedModules, searchQuery ->
         val module = selectedModules.singleOrNull()
-        if (searchQuery.isEmpty() || module == null) {
-            return@combine emptyMap()
-        }
-        isLoadingChannel.send(true)
-        when (module) {
-            is PackageSearchModule.Base -> module.getSearchQuery(searchQuery)
-            is PackageSearchModule.WithVariants -> module.getSearchQueries(searchQuery)
+        if (searchQuery.isNotEmpty() && module != null) {
+            emit(module to searchQuery)
         }
     }
+        .mapLatest { (module, searchQuery) ->
+            isLoadingChannel.send(true)
+            when (module) {
+                is PackageSearchModule.Base -> module.getSearchQuery(searchQuery)
+                is PackageSearchModule.WithVariants -> module.getSearchQueries(searchQuery)
+            }
+        }
         .onEach { isLoadingChannel.send(false) }
         .modifiedBy(headerCollapsedStatesFlow) { current: Map<PackageListItem.Header.Id.Remote, Search>, change ->
             current.mapValues { (id, value) ->
@@ -123,13 +127,13 @@ class PackageListViewModel(
 
     val packageListItemsFlow: StateFlow<List<PackageListItem>> =
         combineListChanges(
-            modules = selectedModulesFlow,
-            searchResultMap = searchResultMapFlow,
-            headerCollapsedStates = headerCollapsedStatesFlow,
-            packagesLoadingState = packagesLoadingMutableStateFlow,
-            headerLoadingStates = headerLoadingStatesFlow,
-            searchQuery = searchQueryStateFlow,
-            stableOnly = project.PackageSearchProjectService.stableOnlyStateFlow
+            modulesFlow = selectedModulesFlow,
+            searchResultMapFlow = searchResultMapFlow,
+            headerCollapsedStatesFlow = headerCollapsedStatesFlow,
+            packagesLoadingStateFlow = packagesLoadingMutableStateFlow,
+            headerLoadingStatesFlow = headerLoadingStatesFlow,
+            searchQueryFlow = searchQueryStateFlow,
+            stableOnlyFlow = project.PackageSearchProjectService.stableOnlyStateFlow
         )
             .map { change ->
                 buildPackageList(
@@ -145,7 +149,6 @@ class PackageListViewModel(
                     addFromSearch(change.searchResultMap)
                 }
             }
-            .debounce(150.milliseconds)
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private suspend fun PackageSearchModule.Base.getSearchQuery(

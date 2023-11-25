@@ -109,7 +109,7 @@ suspend fun Module.getDeclaredDependencies(
         .map { declaredDependency ->
             PackageSearchGradleDeclaredPackage(
                 id = declaredDependency.packageId,
-                declaredVersion = declaredDependency.version?.let { NormalizedVersion.from(it) },
+                declaredVersion = declaredDependency.version?.let { NormalizedVersion.fromStringOrNull(it) },
                 remoteInfo = remoteInfo[declaredDependency.packageId]?.asMavenApiPackage(),
                 icon = remoteInfo[declaredDependency.packageId]?.icon
                     ?: IconProvider.Icons.MAVEN,
