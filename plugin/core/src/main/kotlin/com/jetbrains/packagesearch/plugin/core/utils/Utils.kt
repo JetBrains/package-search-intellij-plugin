@@ -74,9 +74,7 @@ val filesChangedEventFlow: Flow<List<VFileEvent>>
             },
             disposable
         )
-        awaitClose {
-            disposable.dispose()
-        }
+        awaitClose { Disposer.dispose(disposable) }
     }
 
 fun VirtualFileListener(action: (VirtualFileEvent) -> Unit) =
