@@ -1,9 +1,11 @@
 package com.jetbrains.packagesearch.plugin.ui.model
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
@@ -12,18 +14,21 @@ import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 
 @Service(Level.PROJECT)
-class ToolWindowViewModel(project: Project, private val viewModelScope: CoroutineScope) {
+class ToolWindowViewModel(project: Project, private val viewModelScope: CoroutineScope) : Disposable {
+
+    // for 232 compatibility
+    constructor(project: Project) : this(project, CoroutineScope(SupervisorJob()))
+
     fun openLinkInBrowser(url: String) {
         viewModelScope.openLinkInBrowser(url)
     }
@@ -67,10 +72,10 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
             initialValue = PackageSearchToolWindowState.Loading(message = easterEggMessage)
         )
 
+    override fun dispose() {
+        if ("232" in PackageSearch.intelliJVersion) {
+            viewModelScope.cancel()
+        }
+    }
 }
 
-sealed interface PackageSearchToolWindowState {
-    data class Loading(val message: String?) : PackageSearchToolWindowState
-    data object Ready : PackageSearchToolWindowState
-    data object NoModules : PackageSearchToolWindowState
-}

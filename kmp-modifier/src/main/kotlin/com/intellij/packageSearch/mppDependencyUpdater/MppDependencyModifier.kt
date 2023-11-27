@@ -130,12 +130,12 @@ object MppDependencyModifier {
 
     suspend fun updateDependency(
         module: Module,
-        data: MppModifierUpdateData
+        data: MppModifierUpdateData,
     ) = updateDependencies(module, listOf(data))
 
     suspend fun updateDependencies(
         module: Module,
-        data: List<MppModifierUpdateData>
+        data: List<MppModifierUpdateData>,
     ) {
         modifyKotlinModel(module) { kotlinModel ->
             data.map { (sourceSet, oldDescriptor, newDescriptor) ->
@@ -149,6 +149,7 @@ object MppDependencyModifier {
                         newDescriptor = newDescriptor as MppDependency.Maven,
                         sourceSet = sourceSet
                     )
+
                     is MppDependency.Npm -> TODO()
                     is MppDependency.Cocoapods -> TODO()
                 }
@@ -188,7 +189,7 @@ object MppDependencyModifier {
 
     private fun ArtifactDependencyModel.updateByDescriptor(
         oldDescriptor: MppDependency.Maven,
-        newDescriptor: MppDependency.Maven
+        newDescriptor: MppDependency.Maven,
     ) {
         if (oldDescriptor.groupId != newDescriptor.groupId) {
             updateVariableOrValue(group(), newDescriptor.groupId)
@@ -239,7 +240,10 @@ object MppDependencyModifier {
         module: Module,
         action: (KotlinDslModel) -> T,
     ): T? = readAction {
-        module.buildModel()?.getModel<KotlinDslModel>()?.let { action(it) }
+        module.buildModel()?.getModel<KotlinDslModel>()
+            ?.let {
+                action(it)
+            }
     }
 
     private suspend fun modifyKotlinModel(
@@ -281,5 +285,5 @@ typealias MppModifierRemoveData = MppModifierAddData
 data class MppModifierUpdateData(
     val sourceSet: String,
     val oldDescriptor: MppDependency,
-    val newDescriptor: MppDependency
+    val newDescriptor: MppDependency,
 )

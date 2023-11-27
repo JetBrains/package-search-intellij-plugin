@@ -429,8 +429,3 @@ class PackageListBuilder(
 
 
 }
-
-fun PackageSearchDeclaredPackage.matchesSearchQuery(searchQuery: String): Boolean {
-    if (searchQuery.isBlank()) return true
-    return searchQuery in id || searchQuery in displayName || searchQuery in coordinates
-}

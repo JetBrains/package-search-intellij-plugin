@@ -2,6 +2,8 @@
 
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.packagesearch.gradle.GeneratePackageSearchObject
+import org.jetbrains.packagesearch.gradle.SupportedIntelliJVersion.`232`
+import org.jetbrains.packagesearch.gradle.SupportedIntelliJVersion.`AS-232`
 import org.jetbrains.packagesearch.gradle.lafFile
 import org.jetbrains.packagesearch.gradle.logCategoriesFile
 import org.jetbrains.packagesearch.gradle.patchLafFile
@@ -20,6 +22,15 @@ plugins {
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     `build-config`
     `maven-publish`
+}
+
+val ijName = when (packagesearch.intellijVersion.get()) {
+    `AS-232`, `232` -> "232"
+    else -> "233"
+}
+
+kotlin.sourceSets.main {
+    kotlin.srcDir("src/${ijName}Main/kotlin")
 }
 
 packagesearch {
@@ -51,12 +62,17 @@ dependencies {
     implementation(compose.desktop.macos_x64)
     implementation(compose.desktop.windows_x64)
     implementation(packageSearchCatalog.kotlinx.serialization.core)
-    implementation(packageSearchCatalog.jewel.bridge)
+    when (packagesearch.intellijVersion.get()) {
+        `232`, `AS-232` -> implementation(packageSearchCatalog.jewel.bridge.ij232)
+        else -> implementation(packageSearchCatalog.jewel.bridge.ij233)
+    }
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
-    implementation(projects.plugin.maven)
+    if (!packagesearch.intellijVersion.get().isAndroidStudio) {
+        implementation(projects.plugin.maven)
+    }
 
     sourceElements(projects.plugin.core)
     sourceElements(projects.plugin.gradle)

@@ -10,6 +10,7 @@ import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
@@ -30,6 +31,8 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
 import org.dizitart.no2.IndexOptions
@@ -40,6 +43,9 @@ import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpoints
 
 @Service(Level.APP)
 class PackageSearchApplicationCachesService(private val coroutineScope: CoroutineScope) : Disposable, RecoveryAction {
+
+    // for 232 compatibility
+    constructor() : this(CoroutineScope(SupervisorJob()))
 
     companion object {
         private val cacheFilePath = cacheDir / "cache-${PackageSearch.pluginId}.db"
@@ -58,6 +64,9 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
 
     override fun dispose() {
         cache.close()
+        if ("232" in PackageSearch.intelliJVersion) {
+            coroutineScope.cancel()
+        }
     }
 
     private inline fun <reified T : Any> getRepository(key: String) =

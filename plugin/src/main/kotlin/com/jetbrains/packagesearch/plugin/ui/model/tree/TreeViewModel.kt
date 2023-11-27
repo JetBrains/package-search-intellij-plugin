@@ -1,14 +1,18 @@
 package com.jetbrains.packagesearch.plugin.ui.model.tree
 
 import androidx.compose.foundation.lazy.LazyListState
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
+import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.ui.model.hasUpdates
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -25,7 +29,13 @@ import org.jetbrains.jewel.foundation.lazy.tree.buildTree
 import org.jetbrains.jewel.foundation.lazy.tree.emptyTree
 
 @Service(Level.PROJECT)
-internal class TreeViewModel(project: Project, viewModelScope: CoroutineScope) {
+internal class TreeViewModel(
+    project: Project,
+    private val viewModelScope: CoroutineScope,
+) : Disposable {
+
+    // for 232 compatibility
+    constructor(project: Project) : this(project, CoroutineScope(SupervisorJob()))
 
     val tree: StateFlow<Tree<TreeItemModel>> = combine(
         project.PackageSearchProjectService.modulesStateFlow,
@@ -43,6 +53,12 @@ internal class TreeViewModel(project: Project, viewModelScope: CoroutineScope) {
 
     fun collapseAll() {
         treeState.openNodes = emptySet()
+    }
+
+    override fun dispose() {
+        if ("232" in PackageSearch.intelliJVersion) {
+            viewModelScope.cancel()
+        }
     }
 
 }

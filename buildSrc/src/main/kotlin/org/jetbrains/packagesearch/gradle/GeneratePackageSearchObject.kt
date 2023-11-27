@@ -13,6 +13,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.property
+import org.gradle.kotlin.dsl.the
 
 open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
@@ -22,6 +23,10 @@ open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactor
     @get:Input
     val pluginVersion = objects.property<String>()
         .convention(project.version.toString())
+
+    @get:Input
+    val intelliJVersion = objects.property<String>()
+        .convention(project.the<PackageSearchExtension>().intellijVersion.map { it.name })
 
     @get:Input
     val deleteCachesOnStartup = objects.property<Boolean>()
@@ -57,6 +62,15 @@ open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactor
                             .getter(
                                 FunSpec.getterBuilder()
                                     .addStatement("return %S", pluginVersion.get())
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .addProperty(
+                        PropertySpec.builder("intelliJVersion", String::class)
+                            .getter(
+                                FunSpec.getterBuilder()
+                                    .addStatement("return %S", intelliJVersion.get())
                                     .build()
                             )
                             .build()

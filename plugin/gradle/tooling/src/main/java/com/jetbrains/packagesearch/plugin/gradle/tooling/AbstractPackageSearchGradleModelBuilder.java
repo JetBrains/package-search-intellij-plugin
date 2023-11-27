@@ -9,14 +9,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.tooling.AbstractModelBuilderService;
-import org.jetbrains.plugins.gradle.tooling.Message;
+import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder;
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("UnstableApiUsage")
-public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService {
+public abstract class AbstractPackageSearchGradleModelBuilder extends AbstractModelBuilderService {
 
     @Override
     public PackageSearchGradleJavaModel buildAll(
@@ -25,6 +25,11 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
             @NotNull ModelBuilderContext context
     ) {
 
+        return buildPKGSModel(project);
+    }
+
+    @NotNull
+    private static PackageSearchGradleJavaModelImpl buildPKGSModel(@NotNull Project project) {
         List<PackageSearchGradleJavaModel.Configuration> configurations =
                 new ArrayList<>(project.getConfigurations().size());
 
@@ -96,22 +101,11 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
 
     @Override
     public boolean canBuild(String modelName) {
+        return canBuild2(modelName);
+    }
+
+    private static boolean canBuild2(String modelName) {
         return modelName.equals(PackageSearchGradleJavaModel.class.getName());
     }
 
-    @Override
-    public void reportErrorMessage(
-            @NotNull String modelName,
-            @NotNull Project project,
-            @NotNull ModelBuilderContext context,
-            @NotNull Exception exception
-    ) {
-        context.getMessageReporter()
-                .createMessage()
-                .withException(exception)
-                .withKind(Message.Kind.ERROR)
-                .withGroup("gradle.packageSearch")
-                .withText("Error while building Package Search Gradle model")
-                .reportMessage(project);
-    }
 }

@@ -28,7 +28,7 @@ internal val Project.nativeModules: List<NativeModule>
     get() = ModuleManager.getInstance(this).modules.toList()
 
 internal val Project.nativeModulesFlow: FlowWithInitialValue<List<NativeModule>>
-    get() = messageBus.flow(ModuleListener.TOPIC) {
+    get() = messageBus.flow(ModuleListenerTopic) {
         object : ModuleListener {
             override fun modulesAdded(project: Project, modules: NativeModules) {
                 trySend(nativeModules)

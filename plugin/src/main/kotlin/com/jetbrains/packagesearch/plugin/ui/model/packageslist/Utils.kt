@@ -113,3 +113,8 @@ data class PackageListChange(
     val stableOnly: Boolean,
     val headerLoadingStates: Set<PackageListItem.Header.Id.Declared>,
 )
+
+fun PackageSearchDeclaredPackage.matchesSearchQuery(searchQuery: String): Boolean {
+    if (searchQuery.isBlank()) return true
+    return searchQuery in id || searchQuery in displayName || searchQuery in coordinates
+}

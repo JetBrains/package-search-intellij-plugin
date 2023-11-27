@@ -2,7 +2,7 @@
 assertk = "0.26.1"
 caffeine = "3.1.6"
 commonsCodec = "1.16.0"
-composeDesktop = "1.5.10"
+composeDesktop = "1.5.11"
 coroutines = "1.7.3"
 detekt = "1.23.3"
 dokka = "1.9.10"
@@ -20,7 +20,8 @@ ktor = "2.3.5"
 logback = "1.4.11"
 nitrite = "3.4.4"
 packagesearchApiModels = "3.0.0-SNAPSHOT"
-jewel-bridge = "1.0.0-ij-233-SNAPSHOT"
+jewel-bridge-233 = "1.0.0-ij-233-SNAPSHOT"
+jewel-bridge-232 = "1.0.0-ij-232-SNAPSHOT"
 jewel = "1.0.0-SNAPSHOT"
 
 [libraries]
@@ -36,7 +37,8 @@ ij-platform-ide-core = { module = "com.jetbrains.intellij.platform:ide-core", ve
 ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", version.ref = "idea" }
 jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
 jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
-jewel-bridge = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge" }
+jewel-bridge-ij232 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge-232" }
+jewel-bridge-ij233 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge-233" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
