@@ -25,7 +25,6 @@ import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.contracts.contract
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -169,7 +168,7 @@ suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderCo
         .mapNotNull { (packageId, declaredDependency) ->
             PackageSearchDeclaredBaseMavenPackage(
                 id = packageId,
-                declaredVersion = declaredDependency.version?.let { NormalizedVersion.from(it) },
+                declaredVersion = declaredDependency.version?.let { NormalizedVersion.fromStringOrNull(it ) },
                 remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
                 groupId = declaredDependency.groupId,
                 artifactId = declaredDependency.artifactId,

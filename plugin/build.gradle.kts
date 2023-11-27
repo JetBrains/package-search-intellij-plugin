@@ -45,7 +45,6 @@ val tooling: Configuration by configurations.creating {
 }
 
 dependencies {
-    implementation(projects.apiMock.apiMockClient)
     implementation(compose.desktop.linux_arm64)
     implementation(compose.desktop.linux_x64)
     implementation(compose.desktop.macos_arm64)

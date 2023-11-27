@@ -27,9 +27,6 @@ if (file(".gitsubmoduleinit").run { !exists() }) {
 
 include(
     ":nitrite",
-    ":api-mock",
-    ":api-mock:api-mock-client",
-    ":api-mock:api-mock-server",
     ":plugin",
     ":plugin:core",
     ":plugin:gradle",

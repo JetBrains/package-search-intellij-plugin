@@ -1,6 +1,4 @@
 [submodule "package-search-api-models"]
 	path = package-search-api-models
 	url = https://github.com/JetBrains/package-search-api-models.git
-[submodule "jewel"]
-	path = jewel
-	url = https://github.com/JetBrains/jewel.git
+
