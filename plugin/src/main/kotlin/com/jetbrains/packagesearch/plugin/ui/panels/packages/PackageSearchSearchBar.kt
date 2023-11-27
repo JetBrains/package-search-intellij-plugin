@@ -64,12 +64,15 @@ fun PackageSearchSearchBar(
                 }
             },
             trailingIcon = {
-                IconButton(onClick = { onSearchQueryChange("") }) {
-                    Icon(
-                        resource = "actions/close.svg",
-                        contentDescription = null,
-                        iconClass = AllIcons::class.java
-                    )
+                Crossfade(searchQuery.isEmpty()) {
+                    if (it) return@Crossfade
+                    IconButton(onClick = { onSearchQueryChange("") }) {
+                        Icon(
+                            resource = "actions/close.svg",
+                            contentDescription = null,
+                            iconClass = AllIcons::class.java
+                        )
+                    }
                 }
             }
         )

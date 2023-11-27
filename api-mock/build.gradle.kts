@@ -21,7 +21,6 @@ dependencies {
     api(packageSearchCatalog.ktor.client.content.negotiation)
     api(packageSearchCatalog.ktor.serialization.kotlinx.json)
     api(packageSearchCatalog.ktor.serialization.kotlinx.protobuf)
-    implementation(packageSearchCatalog.logback.classic)
     api(packageSearchCatalog.packagesearch.http.models)
     api(packageSearchCatalog.packagesearch.build.systems.models)
 }

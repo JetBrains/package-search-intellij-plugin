@@ -5,6 +5,7 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
+import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import com.jetbrains.packagesearch.plugin.ui.model.tree.TreeViewModel
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
@@ -39,18 +40,23 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
         project.service<TreeViewModel>()
             .tree
             .map { !it.isEmpty() }
-            .debounce(250.milliseconds)
-    ) { packagesBeingDownloaded, isProjectSyncing, isTreeReady ->
+            .debounce(250.milliseconds),
+        project.smartModeFlow
+    ) { packagesBeingDownloaded, isProjectSyncing, isTreeReady, isSmartMode ->
         when {
             isTreeReady ->
                 PackageSearchToolWindowState.Ready
-            packagesBeingDownloaded ->
+            !isSmartMode ->
                 PackageSearchToolWindowState.Loading(
-                    message = easterEggMessage ?: message("packagesearch.toolwindow.loading.downloading")
+                    message = easterEggMessage ?: message("packagesearch.toolwindow.loading.dumbMode")
                 )
             isProjectSyncing ->
                 PackageSearchToolWindowState.Loading(
                     message = easterEggMessage ?: message("packagesearch.toolwindow.loading.syncing")
+                )
+            packagesBeingDownloaded ->
+                PackageSearchToolWindowState.Loading(
+                    message = easterEggMessage ?: message("packagesearch.toolwindow.loading.downloading")
                 )
             else -> PackageSearchToolWindowState.NoModules
         }
@@ -58,15 +64,13 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
-            initialValue = PackageSearchToolWindowState.Loading(
-                message = easterEggMessage ?: message("packagesearch.toolwindow.loading.downloading")
-            )
+            initialValue = PackageSearchToolWindowState.Loading(message = easterEggMessage)
         )
 
 }
 
 sealed interface PackageSearchToolWindowState {
-    data class Loading(val message: String) : PackageSearchToolWindowState
+    data class Loading(val message: String?) : PackageSearchToolWindowState
     data object Ready : PackageSearchToolWindowState
     data object NoModules : PackageSearchToolWindowState
 }

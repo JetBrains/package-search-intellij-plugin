@@ -28,12 +28,12 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
@@ -96,20 +96,32 @@ class PackageListViewModel(
         .debounce(50.milliseconds)
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private val searchResultMapFlow: StateFlow<Map<PackageListItem.Header.Id.Remote, Search>> = combineTransform(
+    private data class ModulesAndSearch(
+        val selectedModule: PackageSearchModule,
+        val searchQuery: String,
+    )
+
+    private val searchResultMapFlow: StateFlow<Map<PackageListItem.Header.Id.Remote, Search>> = combine(
         selectedModulesFlow,
-        searchQueryStateFlow.debounce(1.seconds)
+        searchQueryStateFlow
     ) { selectedModules, searchQuery ->
         val module = selectedModules.singleOrNull()
-        if (searchQuery.isNotEmpty() && module != null) {
-            emit(module to searchQuery)
+        when {
+            searchQuery.isNotEmpty() && module != null -> ModulesAndSearch(module, searchQuery)
+            else -> null
         }
     }
-        .mapLatest { (module, searchQuery) ->
-            isLoadingChannel.send(true)
-            when (module) {
-                is PackageSearchModule.Base -> module.getSearchQuery(searchQuery)
-                is PackageSearchModule.WithVariants -> module.getSearchQueries(searchQuery)
+        .mapLatest { data ->
+            when (data) {
+                null -> emptyMap()
+                else -> {
+                    isLoadingChannel.send(true)
+                    delay(250.milliseconds) // debounce for mapLatest!
+                    when (data.selectedModule) {
+                        is PackageSearchModule.Base -> data.selectedModule.getSearchQuery(data.searchQuery)
+                        is PackageSearchModule.WithVariants -> data.selectedModule.getSearchQueries(data.searchQuery)
+                    }
+                }
             }
         }
         .onEach { isLoadingChannel.send(false) }

@@ -22,12 +22,10 @@ import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import com.jetbrains.packagesearch.plugin.ui.bridge.TextSelectionDropdown
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelContent
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.EditPackageEvent.SetPackageScope
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.EditPackageEvent.SetPackageVersion
-import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.EditPackageEvent.SetVariant
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.GoToSource
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Install.WithVariant
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Remove
@@ -229,10 +227,10 @@ private fun PackageType(name: String, icon: IconProvider.Icon) {
             modifier = Modifier.defaultMinSize(90.dp),
             text = message("packagesearch.ui.toolwindow.packages.columns.type")
         )
-        val icon = if (JewelTheme.isDark) icon.darkIconPath else icon.lightIconPath
+        val iconPath = if (JewelTheme.isDark) icon.darkIconPath else icon.lightIconPath
 
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Icon(icon, null, IconProvider::class.java)
+            Icon(iconPath, null, IconProvider::class.java)
             Text(name)
         }
 

@@ -19,7 +19,6 @@ fun PackageSearchPackagePanel(
     onLinkClick: (String) -> Unit,
     onPackageEvent:(PackageListItemEvent) -> Unit,
 ) {
-
     HorizontalSplitLayout(
         first = { PackageSearchModulesTree(it, onSelectionModulesSelectionChanged) },
         second = {

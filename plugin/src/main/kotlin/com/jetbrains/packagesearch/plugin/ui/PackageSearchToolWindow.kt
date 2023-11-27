@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
@@ -32,7 +31,6 @@ fun PackageSearchToolwindow() {
     val toolwindowState by toolWindowViewModel.toolWindowState.collectAsState()
     when (val state = toolwindowState) {
         is PackageSearchToolWindowState.Loading -> LoadingMessage(state.message)
-
         PackageSearchToolWindowState.NoModules -> NoModulesFound { toolWindowViewModel.openLinkInBrowser(it) }
         PackageSearchToolWindowState.Ready -> {
             val isInfoPanelOpen by toolWindowViewModel.isInfoPanelOpen.collectAsState()
@@ -47,7 +45,7 @@ fun PackageSearchToolwindow() {
 }
 
 @Composable
-private fun LoadingMessage(message: String) {
+private fun LoadingMessage(message: String?) {
     val backgroundColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.PanelBackground.toComposeColor()) }
     Box(
         modifier = Modifier
@@ -56,10 +54,12 @@ private fun LoadingMessage(message: String) {
             .padding(top = 2.dp, bottom = 0.dp, start = 2.dp, end = 2.dp),
     ) {
         IndeterminateHorizontalProgressBar(Modifier.fillMaxWidth().align(Alignment.TopCenter))
-        LabelInfo(
-            text = message,
-            modifier = Modifier.align(Alignment.Center),
-        )
+        if (message != null) {
+            LabelInfo(
+                text = message,
+                modifier = Modifier.align(Alignment.Center),
+            )
+        }
     }
 }
 

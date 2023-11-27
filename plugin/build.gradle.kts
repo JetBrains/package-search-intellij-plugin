@@ -58,7 +58,6 @@ dependencies {
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
     implementation(projects.plugin.maven)
-    implementation("ch.qos.logback:logback-classic:1.4.10")
 
     sourceElements(projects.plugin.core)
     sourceElements(projects.plugin.gradle)

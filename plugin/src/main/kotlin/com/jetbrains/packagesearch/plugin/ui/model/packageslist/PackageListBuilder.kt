@@ -46,12 +46,20 @@ class PackageListBuilder(
 
     private fun PackageSearchDeclaredPackage.getAvailableVersionStrings() = when {
         onlyStable -> remoteInfo?.versions?.all
+            ?.asSequence()
             ?.filter { it.normalizedVersion.isStable }
-            ?.map { it.normalizedVersion.versionName }
+            ?.map { it.normalizedVersion }
+            ?.sortedDescending()
+            ?.map { it.versionName }
+            ?.toList()
             ?: emptyList()
 
         else -> remoteInfo?.versions?.all
-            ?.map { it.normalizedVersion.versionName }
+            ?.asSequence()
+            ?.map { it.normalizedVersion }
+            ?.sortedDescending()
+            ?.map { it.versionName }
+            ?.toList()
             ?: emptyList()
     }
 

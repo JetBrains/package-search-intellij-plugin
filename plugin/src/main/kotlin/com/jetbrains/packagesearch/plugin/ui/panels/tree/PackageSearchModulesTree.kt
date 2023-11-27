@@ -48,11 +48,8 @@ fun PackageSearchModulesTree(
     TreeActionToolbar(
         onExpandAll = viewModel::expandAll,
         onCollapseAll = {
-            val rootIds = tree.roots.map { it.id }
-            viewModel.treeState.selectedKeys = viewModel
-                .treeState
-                .selectedKeys
-                .filter { it in rootIds }
+            val rootIds = tree.roots.map { it.id }.toSet()
+            viewModel.treeState.selectedKeys = viewModel.treeState.selectedKeys intersect rootIds
             viewModel.collapseAll()
         },
     )
@@ -71,7 +68,7 @@ fun PackageSearchModulesTree(
             viewModel.treeState.selectedKeys = tree.walkBreadthFirst()
                 .take(1)
                 .map { it.data.id }
-                .toList()
+                .toSet()
         }
     }
 
