@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.onClick
+import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
@@ -54,7 +56,6 @@ import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.separator
 import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
 
 @Composable
@@ -303,10 +304,17 @@ internal fun RemotePackageWithVariantsActionPopup(
         onDismissRequest = onDismissRequest
     ) {
         passiveItem {
-            Text(text = message("packagesearch.ui.toolwindow.actions.addTo"), fontWeight = FontWeight.Bold)
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = message("packagesearch.ui.toolwindow.actions.addTo"),
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
         }
         if (!isInstalledInPrimaryVariant) {
-            separator()
+            passiveItem {
+                Divider(modifier = Modifier.padding(vertical = 4.dp))
+            }
             selectableItem(
                 selected = false,
                 onClick = { onInstall(primaryVariantName) }
@@ -316,7 +324,9 @@ internal fun RemotePackageWithVariantsActionPopup(
         }
 
         if (additionalVariants.isNotEmpty()) {
-            separator()
+            passiveItem {
+                Divider(modifier = Modifier.padding(vertical = 4.dp))
+            }
             additionalVariants.forEach {
                 selectableItem(
                     selected = false,
@@ -347,16 +357,32 @@ internal fun DeclaredPackageActionPopup(
         content = {
             selectableItem(
                 selected = false,
-                onClick = onGoToSource,
-            ) {
-                Text(text = message("packagesearch.ui.toolwindow.packages.actions.gotToSource"))
-            }
-            separator()
-            selectableItem(
-                selected = false,
                 onClick = onRemove,
             ) {
-                Text(text = message("packagesearch.ui.toolwindow.packages.actions.remove"))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(
+                        resource = "expui/general/delete.svg",
+                        contentDescription = null,
+                        iconClass = AllIcons::class.java,
+                    )
+                    Text(text = message("packagesearch.ui.toolwindow.packages.actions.remove"))
+                }
+            }
+            passiveItem {
+                Divider(modifier = Modifier.padding(vertical = 4.dp))
+            }
+            selectableItem(
+                selected = false,
+                onClick = onGoToSource,
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(
+                        resource = "actions/edit.svg",
+                        contentDescription = null,
+                        iconClass = AllIcons::class.java,
+                    )
+                    Text(text = message("packagesearch.ui.toolwindow.packages.actions.gotToSource"))
+                }
             }
         }
     )

@@ -87,6 +87,7 @@ fun PackageListItem(
             Text(
                 fontWeight = FontWeight(600),
                 text = content.title,
+                maxLines = 1
             )
             content.count?.let { LabelInfo(text = it.toString()) }
             if (content.attriutes.isNotEmpty()) {
@@ -98,14 +99,20 @@ fun PackageListItem(
                         .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
                     contentAlignment = Alignment.Center,
                 ) {
-                    LabelInfo(text = content.attriutes.joinToString(" "))
+                    LabelInfo(
+                        text = content.attriutes.joinToString(" "),
+                        maxLines = 1
+                    )
                 }
             }
         }
         if (content.additionalContent != null) {
             when (content.additionalContent) {
                 is PackageListItem.Header.AdditionalContent.VariantsText ->
-                    LabelInfo(text = content.additionalContent.text)
+                    LabelInfo(
+                        text = content.additionalContent.text,
+                        maxLines = 1
+                    )
 
                 is PackageListItem.Header.AdditionalContent.UpdatesAvailableCount ->
                     UpdateAllLink(content.additionalContent, content, onEvent)

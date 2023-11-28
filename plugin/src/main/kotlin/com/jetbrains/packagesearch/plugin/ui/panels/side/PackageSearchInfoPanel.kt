@@ -14,6 +14,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
@@ -82,7 +83,7 @@ private fun NoTabsAvailable() {
         Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        LabelInfo(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.noItemSelected"))
+        LabelInfo(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.noItemSelected"), textAlign = TextAlign.Center)
     }
 }
 
