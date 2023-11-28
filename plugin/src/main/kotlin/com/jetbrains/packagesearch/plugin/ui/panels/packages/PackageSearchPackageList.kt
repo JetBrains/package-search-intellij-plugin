@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -137,42 +138,52 @@ private fun SelectableLazyItemScope.PackageListItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
+
             PackageTitle(content)
-
             if (content is PackageListItem.Package.Declared && !isCompact) {
-                DeclaredPackageActions(content, onPackageListItemEvent)
+                ScopeAndVersionDropdowns(content, onPackageListItemEvent)
             }
-
-            PackageActions(content, onPackageListItemEvent, openPopupId, onOpenPopupRequest, onPopupDismissRequest)
+            PackageActions(
+                item = content,
+                onPackageListItemEvent = onPackageListItemEvent,
+                openPopupId = openPopupId,
+                onOpenPopupRequest = onOpenPopupRequest,
+                onPopupDismissRequest = onPopupDismissRequest
+            )
         }
     }
+
 }
 
+
 @Composable
-private fun RowScope.DeclaredPackageActions(
+private fun ScopeAndVersionDropdowns(
     item: PackageListItem.Package.Declared,
     onPackageListItemEvent: (PackageListItemEvent) -> Unit,
 ) {
-    Row(
-        modifier = Modifier.weight(1f).fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+    Row() {
+        Box(modifier = Modifier.widthIn(max = 180.dp)) {
+            ScopeSelectionDropdown(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                declaredScope = item.selectedScope,
+                allowMissingScope = item.allowMissingScope,
+                availableScopes = item.availableScopes,
+                enabled = !item.isLoading,
+                onScopeChanged = { onPackageListItemEvent(SetPackageScope(item.id, it)) }
+            )
+        }
 
-        ScopeSelectionDropdown(
-            declaredScope = item.selectedScope,
-            allowMissingScope = item.allowMissingScope,
-            availableScopes = item.availableScopes,
-            enabled = !item.isLoading,
-            onScopeChanged = { onPackageListItemEvent(SetPackageScope(item.id, it)) }
-        )
+        Box(modifier = Modifier.width(180.dp)) {
+            VersionSelectionDropdown(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                declaredVersion = item.declaredVersion,
+                availableVersions = item.availableVersions,
+                latestVersion = item.latestVersion,
+                enabled = !item.isLoading,
+                onVersionChanged = { onPackageListItemEvent(SetPackageVersion(item.id, it)) }
+            )
+        }
 
-        VersionSelectionDropdown(
-            declaredVersion = item.declaredVersion,
-            availableVersions = item.availableVersions,
-            latestVersion = item.latestVersion,
-            enabled = !item.isLoading,
-            onVersionChanged = { onPackageListItemEvent(SetPackageVersion(item.id, it)) }
-        )
     }
 }
 
@@ -210,6 +221,7 @@ private fun PackageActions(
                         selectedVariantName = item.primaryVariantName
                     )
                 }
+
                 else -> null
             }
         }
@@ -256,8 +268,8 @@ private fun PackageActions(
 @Composable
 private fun RowScope.PackageTitle(item: PackageListItem.Package) {
     Row(
+        modifier = Modifier.weight(2f, fill = true),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.Companion.weight(2f).fillMaxWidth()
     ) {
         Icon(
             resource = if (JewelTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath,
@@ -373,6 +385,8 @@ fun NoResultsToShow(
 
 @Composable
 fun VersionSelectionDropdown(
+    modifier: Modifier = Modifier,
+    menuModifier: Modifier = Modifier,
     declaredVersion: String?,
     availableVersions: List<String>,
     latestVersion: String?,
@@ -392,6 +406,8 @@ fun VersionSelectionDropdown(
         }
     }
     TextSelectionDropdown(
+        modifier = modifier,
+        menuModifier = menuModifier,
         items = availableVersions,
         content = contentText,
         enabled = enabled,
@@ -401,6 +417,8 @@ fun VersionSelectionDropdown(
 
 @Composable
 fun ScopeSelectionDropdown(
+    modifier: Modifier = Modifier,
+    menuModifier: Modifier = Modifier,
     declaredScope: String?,
     availableScopes: List<String>,
     allowMissingScope: Boolean,
@@ -408,6 +426,8 @@ fun ScopeSelectionDropdown(
     onScopeChanged: (String?) -> Unit,
 ) {
     TextSelectionDropdown(
+        modifier = modifier,
+        menuModifier = menuModifier,
         items = buildList {
             if (allowMissingScope) {
                 add(message("packagesearch.ui.missingScope"))

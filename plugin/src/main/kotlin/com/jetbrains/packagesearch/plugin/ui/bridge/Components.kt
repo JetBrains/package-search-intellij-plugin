@@ -1,8 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -74,13 +72,16 @@ fun LabelInfo(
 
 @Composable
 fun TextSelectionDropdown(
+    modifier: Modifier,
+    menuModifier: Modifier,
     items: List<String>,
     content: String,
     enabled: Boolean,
     onSelection: (String) -> Unit,
 ) {
     Dropdown(
-        menuModifier = Modifier.heightIn(max = PackageSearchMetrics.Dropdown.maxHeight),
+        modifier = modifier,
+        menuModifier = menuModifier.heightIn(max = PackageSearchMetrics.Dropdown.maxHeight),
         enabled = enabled && items.isNotEmpty(),
         style = packageSearchDropdownStyle(),
         menuContent = {
@@ -94,14 +95,13 @@ fun TextSelectionDropdown(
             }
         },
         content = {
-            Row(horizontalArrangement = Arrangement.End) {
-                Text(
-                    text = content,
-                    maxLines = 1,
-                    overflow = TextOverflow.Clip,
-                    textAlign = TextAlign.End
-                )
-            }
+            Text(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                text = content,
+                maxLines = 1,
+                overflow = TextOverflow.Clip,
+                textAlign = TextAlign.End
+            )
         }
     )
 }
