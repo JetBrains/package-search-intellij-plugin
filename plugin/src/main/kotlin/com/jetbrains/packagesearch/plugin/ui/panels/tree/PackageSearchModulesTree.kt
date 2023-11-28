@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.tree
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
@@ -35,6 +37,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.LazyTree
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
 @Composable
 fun PackageSearchModulesTree(
@@ -45,7 +48,9 @@ fun PackageSearchModulesTree(
     val knownNodes = remember { mutableSetOf<PackageSearchModule.Identity>() }
 
     val tree by viewModel.tree.collectAsState()
+    val isOnline by viewModel.isOnline.collectAsState()
     TreeActionToolbar(
+        isOnline = isOnline,
         onExpandAll = viewModel::expandAll,
         onCollapseAll = {
             val rootIds = tree.roots.map { it.id }.toSet()
@@ -90,33 +95,63 @@ fun PackageSearchModulesTree(
 
 @Composable
 private fun TreeActionToolbar(
+    isOnline: Boolean,
     onExpandAll: () -> Unit,
     onCollapseAll: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .height(PackageSearchMetrics.treeActionsHeight)
+        modifier = Modifier.height(PackageSearchMetrics.treeActionsHeight)
             .padding(vertical = 5.dp, horizontal = 7.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        IconButton(onClick = onExpandAll) {
-            Icon(
-                modifier = Modifier.padding(5.dp),
-                resource = "actions/expandall.svg",
-                iconClass = AllIcons::class.java,
-                contentDescription = "Collapse PKGS Tree"
+        Row {
+            Tooltip(
+                tooltip = { Text(message("packagesearch.ui.tree.tooltips.expand")) },
+                content = {
+                    IconButton(onClick = onExpandAll) {
+                        Icon(
+                            modifier = Modifier.padding(5.dp),
+                            resource = "actions/expandall.svg",
+                            iconClass = AllIcons::class.java,
+                            contentDescription = "Collapse PKGS Tree"
+                        )
+                    }
+                }
             )
-        }
-        IconButton(
-            onClick = onCollapseAll,
-        ) {
-            Icon(
-                modifier = Modifier.padding(5.dp),
-                resource = "actions/collapseall.svg",
-                iconClass = AllIcons::class.java,
-                contentDescription = "Collapse PKGS Tree"
+            Tooltip(
+                tooltip = { Text(message("packagesearch.ui.tree.tooltips.collapse")) },
+                content = {
+                    IconButton(
+                        onClick = onCollapseAll,
+                    )
+                    {
+                        Icon(
+                            modifier = Modifier.padding(5.dp),
+                            resource = "actions/collapseall.svg",
+                            iconClass = AllIcons::class.java,
+                            contentDescription = "Collapse PKGS Tree"
+                        )
+                    }
+                }
             )
         }
 
+        Crossfade(isOnline) {
+            if (!it) {
+                Tooltip(
+                    tooltip = { Text(message("packagesearch.ui.tree.tooltips.offline")) },
+                    content = {
+                        Icon(
+                            modifier = Modifier.padding(5.dp),
+                            resource = "icons/intui/toggleOfflineMode.svg",
+                            iconClass = IconProvider::class.java,
+                            contentDescription = "Package Search is offline."
+                        )
+                    },
+                )
+            }
+        }
     }
 }
 

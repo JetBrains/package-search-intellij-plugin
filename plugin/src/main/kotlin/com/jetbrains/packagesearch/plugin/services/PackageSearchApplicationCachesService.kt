@@ -10,7 +10,6 @@ import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
-import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
@@ -24,15 +23,19 @@ import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.utils.timer
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import java.util.concurrent.CompletableFuture
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
 import org.dizitart.no2.IndexOptions
@@ -48,10 +51,8 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     constructor() : this(CoroutineScope(SupervisorJob()))
 
     companion object {
-        private val cacheFilePath = cacheDir / "cache-${PackageSearch.pluginId}.db"
-
-        private val cacheDir
-            get() = appSystemDir / "packagesearch"
+        private val cacheFilePath
+            get() = appSystemDir / "caches" / "packagesearch" / "db-${PackageSearch.pluginVersion}.db"
     }
 
     @PKGSInternalAPI
@@ -90,11 +91,17 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
             install(Logging) {
                 level = LogLevel.ALL
                 logger = KtorDebugLogger()
+                filter { it.attributes.getOrNull(PackageSearchApiClient.Attributes.Cache) == true }
             }
-        }
+        },
+        scope = coroutineScope
     )
 
-    val apiPackageCache = PackageSearchApiPackageCache(packagesRepository, searchesRepository, devApiClient)
+    val apiPackageCache = PackageSearchApiPackageCache(
+        apiPackageCache = packagesRepository,
+        searchCache = searchesRepository,
+        apiClient = devApiClient
+    )
 
     private suspend fun createIndexes() {
         searchesRepository.createIndex(

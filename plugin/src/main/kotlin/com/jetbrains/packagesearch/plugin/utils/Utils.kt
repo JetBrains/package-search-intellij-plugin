@@ -85,7 +85,7 @@ suspend fun PackageSearchApiPackageCache.searchPackages(builder: SearchParameter
  * generic function that may transform emitted element, skip it or emit it multiple times.
  */
 @Suppress("UNCHECKED_CAST")
-fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any, T6 : Any, T7 : Any, R> combine(
+fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any, T6 : Any, T7 : Any, T8 : Any, R> combine(
     flow: Flow<T1>,
     flow2: Flow<T2>,
     flow3: Flow<T3>,
@@ -93,8 +93,9 @@ fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any, T6 : Any, T7 : Any, R> co
     flow5: Flow<T5>,
     flow6: Flow<T6>,
     flow7: Flow<T7>,
-    transform: suspend (T1, T2, T3, T4, T5, T6, T7) -> R,
-): Flow<R> = combine(flow, flow2, flow3, flow4, flow5, flow6, flow7) { args: Array<Any> ->
+    flow8: Flow<T8>,
+    transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8) -> R,
+): Flow<R> = combine(flow, flow2, flow3, flow4, flow5, flow6, flow7, flow8) { args: Array<Any> ->
     transform(
         args[0] as T1,
         args[1] as T2,
@@ -103,6 +104,7 @@ fun <T1 : Any, T2 : Any, T3 : Any, T4 : Any, T5 : Any, T6 : Any, T7 : Any, R> co
         args[4] as T5,
         args[5] as T6,
         args[6] as T7,
+        args[7] as T8,
     )
 }
 

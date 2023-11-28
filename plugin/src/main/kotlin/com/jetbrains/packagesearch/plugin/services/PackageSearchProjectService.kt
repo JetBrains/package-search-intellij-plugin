@@ -125,6 +125,14 @@ class PackageSearchProjectService(
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     init {
+
+        IntelliJApplication.PackageSearchApplicationCachesService
+            .apiPackageCache
+            .isOnlineFlow
+            .filter { it }
+            .onEach { restart() }
+            .launchIn(coroutineScope)
+
         combine(
             project.fileOpenedFlow,
             modulesByBuildFile.map { it.keys }

@@ -7,7 +7,9 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.ui.model.hasUpdates
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +48,11 @@ internal class TreeViewModel(
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyTree())
 
     val treeState = TreeState(SelectableLazyListState(LazyListState()))
+
+    val isOnline
+        get() = IntelliJApplication.PackageSearchApplicationCachesService
+            .apiPackageCache
+            .isOnlineFlow
 
     fun expandAll() {
         treeState.openNodes = tree.value.walkBreadthFirst().map { it.id }.toSet()

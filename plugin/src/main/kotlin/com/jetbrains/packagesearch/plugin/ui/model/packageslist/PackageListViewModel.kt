@@ -26,7 +26,6 @@ import com.jetbrains.packagesearch.plugin.utils.logTODO
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import com.jetbrains.packagesearch.plugin.utils.searchPackages
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -62,6 +61,11 @@ class PackageListViewModel(
     // for 232 compatibility
     constructor(project: Project) : this(project, CoroutineScope(SupervisorJob()))
 
+    private val isOnline
+        get() = IntelliJApplication.PackageSearchApplicationCachesService
+            .apiPackageCache
+            .isOnlineFlow
+
     val isCompactFlow
         get() = project.service<ToolWindowViewModel>().isInfoPanelOpen
 
@@ -72,9 +76,10 @@ class PackageListViewModel(
         .consumeAsFlow()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
-    val isOnlineSearchEnabledFlow = selectedModuleIdsSharedFlow
-        .map { it.size == 1 }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+    val isOnlineSearchEnabledFlow =
+        combine(listOf(selectedModuleIdsSharedFlow.map { it.size == 1 }, isOnline)) {
+            it.all { it }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     private val selectedModulesFlow
         get() = combine(
@@ -152,7 +157,8 @@ class PackageListViewModel(
             packagesLoadingStateFlow = packagesLoadingMutableStateFlow,
             headerLoadingStatesFlow = headerLoadingStatesFlow,
             searchQueryFlow = searchQueryStateFlow,
-            stableOnlyFlow = project.PackageSearchProjectService.stableOnlyStateFlow
+            stableOnlyFlow = project.PackageSearchProjectService.stableOnlyStateFlow,
+            isOnlineSearchEnabledFlow = isOnlineSearchEnabledFlow,
         )
             .map { change ->
                 buildPackageList(
@@ -165,7 +171,9 @@ class PackageListViewModel(
                     modulesMap = change.selectedModules.associateBy { it.identity },
                 ) {
                     addFromModules(change.selectedModules)
-                    addFromSearch(change.searchResultMap)
+                    if (change.isOnlineSearchEnabled) {
+                        addFromSearch(change.searchResultMap)
+                    }
                 }
             }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

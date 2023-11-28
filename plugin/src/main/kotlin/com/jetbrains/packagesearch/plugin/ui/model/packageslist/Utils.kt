@@ -76,6 +76,7 @@ internal fun combineListChanges(
     searchQueryFlow: Flow<String>,
     stableOnlyFlow: Flow<Boolean>,
     headerLoadingStatesFlow: MutableStateFlow<Set<PackageListItem.Header.Id.Declared>>,
+    isOnlineSearchEnabledFlow: Flow<Boolean>,
 ): Flow<PackageListChange> = combine(
     modulesFlow,
     searchResultMapFlow,
@@ -83,7 +84,8 @@ internal fun combineListChanges(
     packagesLoadingStateFlow,
     searchQueryFlow,
     stableOnlyFlow,
-    headerLoadingStatesFlow
+    headerLoadingStatesFlow,
+    isOnlineSearchEnabledFlow
 ) {
         modules,
         searchResultMap,
@@ -92,6 +94,7 @@ internal fun combineListChanges(
         searchQuery,
         stableOnly,
         headerLoadingStates,
+        isOnlineSearchEnabled
     ->
     PackageListChange(
         selectedModules = modules,
@@ -101,6 +104,7 @@ internal fun combineListChanges(
         searchQuery = searchQuery,
         stableOnly = stableOnly,
         headerLoadingStates = headerLoadingStates,
+        isOnlineSearchEnabled = isOnlineSearchEnabled
     )
 }
 
@@ -112,6 +116,7 @@ data class PackageListChange(
     val searchQuery: String,
     val stableOnly: Boolean,
     val headerLoadingStates: Set<PackageListItem.Header.Id.Declared>,
+    val isOnlineSearchEnabled: Boolean,
 )
 
 fun PackageSearchDeclaredPackage.matchesSearchQuery(searchQuery: String): Boolean {

@@ -8,6 +8,7 @@ import korlibs.crypto.SHA256
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
@@ -73,7 +74,7 @@ class PackageSearchApiPackageCache(
             .toList()
             .associateBy { it.id }
         val missingIds = ids - localDatabaseResults.keys
-        if (missingIds.isNotEmpty()) {
+        if (missingIds.isNotEmpty() && isOnlineFlow.value) {
             val networkResults = apiCall(missingIds)
             // TODO cache also miss in network to avoid pointless empty query
             if (networkResults.isNotEmpty()) {

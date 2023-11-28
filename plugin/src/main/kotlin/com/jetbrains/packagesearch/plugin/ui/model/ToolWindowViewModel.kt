@@ -49,20 +49,20 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
         project.smartModeFlow
     ) { packagesBeingDownloaded, isProjectSyncing, isTreeReady, isSmartMode ->
         when {
-            isTreeReady ->
-                PackageSearchToolWindowState.Ready
-            !isSmartMode ->
-                PackageSearchToolWindowState.Loading(
-                    message = easterEggMessage ?: message("packagesearch.toolwindow.loading.dumbMode")
-                )
-            isProjectSyncing ->
-                PackageSearchToolWindowState.Loading(
-                    message = easterEggMessage ?: message("packagesearch.toolwindow.loading.syncing")
-                )
-            packagesBeingDownloaded ->
-                PackageSearchToolWindowState.Loading(
-                    message = easterEggMessage ?: message("packagesearch.toolwindow.loading.downloading")
-                )
+            isTreeReady -> PackageSearchToolWindowState.Ready
+
+            !isSmartMode -> PackageSearchToolWindowState.Loading(
+                message = easterEggMessage ?: message("packagesearch.toolwindow.loading.dumbMode")
+            )
+
+            isProjectSyncing -> PackageSearchToolWindowState.Loading(
+                message = easterEggMessage ?: message("packagesearch.toolwindow.loading.syncing")
+            )
+
+            packagesBeingDownloaded -> PackageSearchToolWindowState.Loading(
+                message = easterEggMessage ?: message("packagesearch.toolwindow.loading.downloading")
+            )
+
             else -> PackageSearchToolWindowState.NoModules
         }
     }
