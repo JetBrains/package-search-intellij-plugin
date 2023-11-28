@@ -16,15 +16,15 @@ import org.jetbrains.packagesearch.api.v3.search.libraryElements
 
 class GradleModuleProvider : AbstractGradleModuleProvider() {
 
+    context(PackageSearchModuleBuilderContext)
     override suspend fun FlowCollector<PackageSearchModule?>.transform(
         module: Module,
-        context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
     ) {
         if (!model.isKotlinMultiplatformApplied) {
             val availableKnownRepositories =
                 model.repositories.toSet().let { availableGradleRepositories ->
-                    context.knownRepositories.filterValues {
+                    knownRepositories.filterValues {
                         it is ApiMavenRepository && it.alternateUrls.intersect(availableGradleRepositories).isNotEmpty()
                     }
                 }
@@ -32,7 +32,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
             val configurationNames = model.configurations
                 .filter { it.canBeDeclared }
                 .map { it.name }
-            val declaredDependencies = module.getDeclaredDependencies(context)
+            val declaredDependencies = module.getDeclaredDependencies()
             val packageSearchGradleModule = PackageSearchGradleModule(
                 name = model.projectName,
                 identity = PackageSearchModule.Identity(
@@ -40,7 +40,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                     path = model.projectIdentityPath
                 ),
                 buildFilePath = model.buildFilePath,
-                declaredKnownRepositories = module.getDeclaredKnownRepositories(context),
+                declaredKnownRepositories = module.getDeclaredKnownRepositories(),
                 declaredDependencies = declaredDependencies,
                 availableKnownRepositories = availableKnownRepositories,
                 packageSearchModel = model,

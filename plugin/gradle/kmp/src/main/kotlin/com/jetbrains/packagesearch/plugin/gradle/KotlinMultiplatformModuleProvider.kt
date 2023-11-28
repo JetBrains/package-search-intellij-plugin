@@ -5,7 +5,6 @@ package com.jetbrains.packagesearch.plugin.gradle
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Android
@@ -30,16 +29,15 @@ import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedV
 
 class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
 
+    context(PackageSearchModuleBuilderContext)
     override suspend fun FlowCollector<PackageSearchModule?>.transform(
         module: Module,
-        context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
     ) {
         if (model.isKotlinMultiplatformApplied)
-            MppCompilationInfoProvider.sourceSetsMap(context.project, model.projectDir)
+            MppCompilationInfoProvider.sourceSetsMap(project, model.projectDir)
                 .collect { compilationModel ->
                     val variants = module.getKMPVariants(
-                        context = context,
                         compilationModel = compilationModel,
                         availableScopes = model.configurations
                             .filter { it.canBeDeclared }
@@ -52,14 +50,14 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                             path = model.projectIdentityPath
                         ),
                         buildFilePath = model.buildFilePath,
-                        declaredKnownRepositories = context.knownRepositories - DependencyModifierService
-                            .getInstance(context.project)
+                        declaredKnownRepositories = knownRepositories - DependencyModifierService
+                            .getInstance(project)
                             .declaredRepositories(module)
                             .mapNotNull { it.id }
                             .toSet(),
                         variants = variants,
                         packageSearchModel = model,
-                        availableKnownRepositories = context.knownRepositories,
+                        availableKnownRepositories = knownRepositories,
                         nativeModule = module
                     )
                     emit(pkgsModule)
@@ -67,13 +65,13 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
 
     }
 
+    context(PackageSearchModuleBuilderContext)
     suspend fun Module.getKMPVariants(
         compilationModel: Map<String, Set<MppCompilationInfoModel.Compilation>>,
-        context: PackageSearchModuleBuilderContext,
         availableScopes: List<String>,
     ): List<PackageSearchKotlinMultiplatformVariant> = coroutineScope {
         val dependenciesBlockVariant = async {
-            val declaredDependencies = getDeclaredDependencies(context)
+            val declaredDependencies = getDeclaredDependencies()
             PackageSearchKotlinMultiplatformVariant.DependenciesBlock(
                 declaredDependencies = declaredDependencies.asKmpVariantDependencies(),
                 compatiblePackageTypes = buildPackageTypes {
@@ -107,12 +105,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
             .distinct()
             .map { it.packageId }
 
-        val isSonatype = Registry.`is`("packagesearch.sonatype.api.client")
-        val dependencyInfo = if (!isSonatype) {
-            context.getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
-        } else {
-            context.getPackageInfoByIds(packageIds.toSet())
-        }
+        val dependencyInfo =  getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
         val declaredSourceSetDependencies =
             rawDeclaredSourceSetDependencies

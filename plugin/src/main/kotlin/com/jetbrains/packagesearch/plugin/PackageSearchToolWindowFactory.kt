@@ -1,5 +1,3 @@
-@file:Suppress("DialogTitleCapitalization", "NonExtendableApiUsage")
-
 package com.jetbrains.packagesearch.plugin
 
 import androidx.compose.runtime.CompositionLocalProvider

@@ -37,24 +37,24 @@ typealias BaseGradleModuleProvider = AbstractGradleModuleProvider
 
 abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
 
+    context(PackageSearchModuleBuilderContext)
     override fun provideModule(
-        context: PackageSearchModuleBuilderContext,
         nativeModule: NativeModule,
     ): Flow<PackageSearchModule?> = when {
         nativeModule.isGradleSourceSet -> flowOf(null)
         else -> merge(
-            context.project.smartModeFlow.mapUnit(),
-            context.project.gradleSyncNotifierFlow,
+            project.smartModeFlow.mapUnit(),
+            project.gradleSyncNotifierFlow,
         )
             .mapNotNull { nativeModule.gradleIdentityPathOrNull }
             .flatMapLatest { gradleIdentityPath ->
-                context.getGradleModelRepository()
+                getGradleModelRepository()
                     .changes()
                     .flatMapLatest { it.changedItems }
                     .map { it.item.data }
                     .filter { it.projectIdentityPath == gradleIdentityPath }
                     .onStart {
-                        context.getGradleModelRepository()
+                        getGradleModelRepository()
                             .gradleModel(forIdentityPath = gradleIdentityPath)
                             ?.let { emit(it) }
                     }
@@ -65,13 +65,13 @@ abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
                     .onStart { emit(model) }
             }
             .transformLatest { model ->
-                transform(nativeModule, context, model)
+                transform(nativeModule, model)
             }
     }
 
+    context(PackageSearchModuleBuilderContext)
     abstract suspend fun FlowCollector<PackageSearchModule?>.transform(
         module: Module,
-        context: PackageSearchModuleBuilderContext,
         model: PackageSearchGradleModel,
     )
 }

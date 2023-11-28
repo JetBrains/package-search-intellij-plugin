@@ -6,7 +6,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.registry.Registry
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
@@ -71,20 +70,18 @@ fun getModuleChangesFlow(
     )
 }
 
-suspend fun Module.getDeclaredKnownRepositories(
-    context: PackageSearchModuleBuilderContext,
-): Map<String, ApiRepository> {
+context(PackageSearchModuleBuilderContext)
+suspend fun Module.getDeclaredKnownRepositories(): Map<String, ApiRepository> {
     val declaredDependencies = readAction {
         DependencyModifierService.getInstance(project).declaredRepositories(this)
     }.mapNotNull { it.id }
-    return context.knownRepositories.filterKeys { it in declaredDependencies }
+    return knownRepositories.filterKeys { it in declaredDependencies }
 }
 
-suspend fun Module.getDeclaredDependencies(
-    context: PackageSearchModuleBuilderContext,
-): List<PackageSearchGradleDeclaredPackage> {
+context(PackageSearchModuleBuilderContext)
+suspend fun Module.getDeclaredDependencies(): List<PackageSearchGradleDeclaredPackage> {
     val declaredDependencies = readAction {
-        ProjectBuildModel.get(context.project).getModuleBuildModel(this)
+        ProjectBuildModel.get(project).getModuleBuildModel(this)
             ?.dependencies()
             ?.artifacts()
             ?.map { it.toGradleDependencyModel() }
@@ -96,14 +93,7 @@ suspend fun Module.getDeclaredDependencies(
         .map { it.packageId }
         .distinct()
 
-    val isSonatype = Registry.`is`("packagesearch.sonatype.api.client")
-
-    val remoteInfo =
-        if (!isSonatype) {
-            context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
-        } else {
-            context.getPackageInfoByIds(distinctIds.toSet())
-        }
+    val remoteInfo = getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
     return declaredDependencies
         .map { declaredDependency ->

@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface PackageSearchModuleProvider {
 
-    fun provideModule(context: PackageSearchModuleBuilderContext, nativeModule: Module): Flow<PackageSearchModule?>
+    context(PackageSearchModuleBuilderContext)
+    fun provideModule(nativeModule: Module): Flow<PackageSearchModule?>
 
 }

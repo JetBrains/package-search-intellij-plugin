@@ -15,16 +15,14 @@ import com.intellij.openapi.module.Module as NativeModule
 
 class MavenModuleProvider : PackageSearchModuleProvider {
 
-    override fun provideModule(
-        context: PackageSearchModuleBuilderContext,
-        nativeModule: NativeModule,
-    ): Flow<PackageSearchModule?> = nativeModule.project
+    context(PackageSearchModuleBuilderContext)
+    override fun provideModule(nativeModule: NativeModule, ): Flow<PackageSearchModule?> = nativeModule.project
         .smartModeFlow
         .flatMapLatest {
-            when (val mavenProject = context.project.findMavenProjectFor(nativeModule)) {
+            when (val mavenProject = project.findMavenProjectFor(nativeModule)) {
                 null -> emptyFlow()
-                else -> getModuleChangesFlow(context, Paths.get(mavenProject.file.path))
-                    .map { nativeModule.toPackageSearch(context, mavenProject) }
+                else -> getModuleChangesFlow(Paths.get(mavenProject.file.path))
+                    .map { nativeModule.toPackageSearch(mavenProject) }
             }
         }
 }

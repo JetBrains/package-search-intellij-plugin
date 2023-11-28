@@ -23,16 +23,13 @@ Supports Maven and Gradle projects.
     <extensions defaultExtensionNs="com.intellij">
         <recoveryAction
                 implementation="com.jetbrains.packagesearch.plugin.services.CleanPackageSearchApplicationCacheAction"/>
-        <toolWindow id="Package Search"
+        <toolWindow id="PackageSearch"
                     anchor="bottom"
                     secondary="false"
                     canCloseContents="true"
                     icon="PlatformDependencyToolwindowIcons.ArtifactSmall"
-                    factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory"/>
-        <registryKey defaultValue="false"
-                     description="Uses Sonatype APIS instead of package Search APIs"
-                     key="packagesearch.sonatype.api.client"
-                     restartRequired="false"/>
+                    factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory">
+        </toolWindow>
         <registryKey id="packagesearch.plugin.debug.logging"
                      key="packagesearch.plugin.debug.logging"
                      defaultValue="false"

@@ -1,1 +1,4 @@
-GET https://maven-central.storage-download.googleapis.com/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.5.0/kotlinx-coroutines-core-1.5.0.module
+GET https://api.dev.package-search.services.jetbrains.com/package-info-by-hashes
+Content-Type: application/json
+
+["6d2eceeb52da1da9817f4fb83d0c8a98173960f3690eb65206b606ad14b2f1d1"]

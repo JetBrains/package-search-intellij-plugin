@@ -66,10 +66,10 @@ val Project.mavenImportFlow
             trySend(Unit)
         }
     }
-
-fun getModuleChangesFlow(context: ProjectContext, pomPath: Path): Flow<Unit> = merge(
+context(ProjectContext)
+fun getModuleChangesFlow(pomPath: Path): Flow<Unit> = merge(
     watchExternalFileChanges(mavenSettingsFilePath),
-    context.project.mavenImportFlow,
+    project.mavenImportFlow,
     filesChangedEventFlow
         .flatMapLatest { it.map { it.path }.asFlow() }
         .map { Paths.get(it) }
@@ -94,11 +94,11 @@ private fun buildMavenParentHierarchy(pomFile: File): String {
     return parentHierarchy.suffixIfNot(":") + projectName
 }
 
+context(PackageSearchModuleBuilderContext)
 suspend fun Module.toPackageSearch(
-    context: PackageSearchModuleBuilderContext,
     mavenProject: MavenProject,
 ): PackageSearchMavenModule {
-    val declaredDependencies = getDeclaredDependencies(context)
+    val declaredDependencies = getDeclaredDependencies()
     return PackageSearchMavenModule(
         name = mavenProject.name ?: name,
         identity = PackageSearchModule.Identity(
@@ -106,7 +106,7 @@ suspend fun Module.toPackageSearch(
             path = buildMavenParentHierarchy(mavenProject.file.asRegularFile())
         ),
         buildFilePath = Paths.get(mavenProject.file.path),
-        declaredKnownRepositories = getDeclaredKnownRepositories(context),
+        declaredKnownRepositories = getDeclaredKnownRepositories(),
         declaredDependencies = declaredDependencies,
         availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.declaredScope }).distinct(),
         compatiblePackageTypes = buildPackageTypes {
@@ -130,12 +130,13 @@ suspend fun Module.toPackageSearch(
     )
 }
 
-suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderContext): List<PackageSearchDeclaredBaseMavenPackage> {
+context(PackageSearchModuleBuilderContext)
+suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredBaseMavenPackage> {
     val declaredDependencies = readAction {
-        MavenProjectsManager.getInstance(context.project)
+        MavenProjectsManager.getInstance(project)
             .findProject(this@getDeclaredDependencies)
             ?.file
-            ?.let { MavenDomUtil.getMavenDomProjectModel(context.project, it) }
+            ?.let { MavenDomUtil.getMavenDomProjectModel(project, it) }
             ?.dependencies
             ?.dependencies
             ?.mapNotNull {
@@ -160,8 +161,7 @@ suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderCo
         .map { it.packageId }
         .distinct()
 
-    val remoteInfo =
-        context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
+    val remoteInfo = getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
     return declaredDependencies
         .associateBy { it.packageId }
@@ -179,13 +179,14 @@ suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderCo
         }
 }
 
-suspend fun Module.getDeclaredKnownRepositories(context: PackageSearchModuleBuilderContext): Map<String, ApiRepository> {
+context(PackageSearchModuleBuilderContext)
+suspend fun Module.getDeclaredKnownRepositories(): Map<String, ApiRepository> {
     val declaredDependencies = readAction {
         DependencyModifierService.getInstance(project)
             .declaredRepositories(this)
     }
         .mapNotNull { it.id }
-    return context.knownRepositories.filterKeys { it in declaredDependencies }
+    return knownRepositories.filterKeys { it in declaredDependencies }
 }
 
 context(EditModuleContext)
