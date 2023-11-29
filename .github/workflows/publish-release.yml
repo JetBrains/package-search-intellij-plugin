@@ -1,4 +1,4 @@
-name: Build Package Search
+name: Publish to Marketplace
 
 on:
   release:
