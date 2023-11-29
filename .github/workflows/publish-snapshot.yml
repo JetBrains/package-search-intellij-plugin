@@ -1,4 +1,4 @@
-name: Publish to TBE
+name: Publish snapshot to TBE
 
 on:
   push:
