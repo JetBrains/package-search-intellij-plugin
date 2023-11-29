@@ -48,10 +48,10 @@ import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 @Service(Level.PROJECT)
-class PackageSearchProjectService(
-    override val project: Project,
-    override val coroutineScope: CoroutineScope,
-) : PackageSearchKnownRepositoriesContext {
+class PackageSearchProjectService(override val project: Project) : PackageSearchKnownRepositoriesContext, Disposable {
+
+    override val coroutineScope: CoroutineScope = CoroutineScope(SupervisorJob())
+
 
     private val restartChannel = Channel<Unit>()
 
@@ -97,7 +97,7 @@ class PackageSearchProjectService(
         ) { nativeModules, transformerExtensions, context ->
             transformerExtensions.flatMap { transformer ->
                 nativeModules.map { module ->
-                    with (context) {
+                    with(context) {
                         transformer.provideModule(module).startWithNull()
                     }
                 }
@@ -151,6 +151,9 @@ class PackageSearchProjectService(
             .launchIn(coroutineScope)
     }
 
+    override fun dispose() {
+        coroutineScope.cancel()
+    }
 }
 
 

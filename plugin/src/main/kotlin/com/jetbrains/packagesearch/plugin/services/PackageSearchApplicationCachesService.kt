@@ -10,8 +10,8 @@ import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
-import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
+import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
@@ -23,19 +23,15 @@ import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
-import com.jetbrains.packagesearch.plugin.utils.timer
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import java.util.concurrent.CompletableFuture
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
 import org.dizitart.no2.IndexOptions
@@ -45,23 +41,29 @@ import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpoints
 
 @Service(Level.APP)
-class PackageSearchApplicationCachesService(private val coroutineScope: CoroutineScope) : Disposable, RecoveryAction {
+class PackageSearchApplicationCachesService : RecoveryAction, Disposable {
+
+
+    private val coroutineScope: CoroutineScope = CoroutineScope(SupervisorJob())
 
     companion object {
         private val cacheFilePath
-            get() = appSystemDir / "caches" / "packagesearch" / "db-${PackageSearch.pluginVersion}.db"
+            get() = cacheDirectory / "db-${PackageSearch.pluginVersion}.db"
+
+        private val cacheDirectory
+            get() = appSystemDir / "caches" / "packagesearch"
     }
 
     @PKGSInternalAPI
     val cache = buildDefaultNitrate(
-        path = appSystemDir
-            .resolve(cacheFilePath)
+        path = cacheFilePath
             .apply { parent.toFile().mkdirs() }
             .absolutePathString()
     )
 
     override fun dispose() {
         cache.close()
+        coroutineScope.cancel()
     }
 
     private inline fun <reified T : Any> getRepository(key: String) =

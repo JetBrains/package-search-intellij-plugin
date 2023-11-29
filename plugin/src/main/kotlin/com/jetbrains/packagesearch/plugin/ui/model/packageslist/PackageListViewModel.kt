@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.ui.model.packageslist
 
 import androidx.compose.foundation.lazy.LazyListState
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
@@ -26,6 +27,8 @@ import com.jetbrains.packagesearch.plugin.utils.searchPackages
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,10 +52,10 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.buildSearchParameters
 
 @Service(Level.PROJECT)
-class PackageListViewModel(
-    private val project: Project,
-    private val viewModelScope: CoroutineScope,
-) {
+class PackageListViewModel(private val project: Project) : Disposable {
+
+    private val viewModelScope: CoroutineScope = CoroutineScope(SupervisorJob())
+
 
     private val isOnline
         get() = IntelliJApplication.PackageSearchApplicationCachesService
@@ -614,4 +617,7 @@ class PackageListViewModel(
         }
     }
 
+    override fun dispose() {
+        viewModelScope.cancel()
+    }
 }
