@@ -17,12 +17,10 @@ packagesearch {
 }
 
 intellij {
-    plugins.add("org.jetbrains.plugins.gradle")
-    if (packagesearch.intellijVersion.get().isAndroidStudio) {
-        plugins.add("android")
-    } else {
-        plugins.add("org.jetbrains.idea.gradle.dsl")
-    }
+    plugins.addAll(
+        "org.jetbrains.plugins.gradle",
+        "org.jetbrains.idea.gradle.dsl"
+    )
 }
 
 dependencies {

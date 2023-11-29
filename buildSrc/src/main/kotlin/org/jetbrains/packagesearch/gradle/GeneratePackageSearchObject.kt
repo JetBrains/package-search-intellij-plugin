@@ -25,10 +25,6 @@ open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactor
         .convention(project.version.toString())
 
     @get:Input
-    val intelliJVersion = objects.property<String>()
-        .convention(project.the<PackageSearchExtension>().intellijVersion.map { it.name })
-
-    @get:Input
     val deleteCachesOnStartup = objects.property<Boolean>()
         .convention(System.getenv("CI") != "true")
 
@@ -62,15 +58,6 @@ open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactor
                             .getter(
                                 FunSpec.getterBuilder()
                                     .addStatement("return %S", pluginVersion.get())
-                                    .build()
-                            )
-                            .build()
-                    )
-                    .addProperty(
-                        PropertySpec.builder("intelliJVersion", String::class)
-                            .getter(
-                                FunSpec.getterBuilder()
-                                    .addStatement("return %S", intelliJVersion.get())
                                     .build()
                             )
                             .build()

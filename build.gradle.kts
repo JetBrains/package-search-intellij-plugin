@@ -12,7 +12,7 @@ plugins {
 allprojects {
     group = "org.jetbrains.packagesearch"
     version = project.properties["pluginVersion"]?.toString()
-        ?: "${LocalDate.now().year}.10.0"
+        ?: "2.0.0"
 
     repositories {
         mavenCentral()

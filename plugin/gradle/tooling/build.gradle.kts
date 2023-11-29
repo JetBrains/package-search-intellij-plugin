@@ -1,9 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import org.jetbrains.packagesearch.gradle.SupportedIntelliJVersion
-import org.jetbrains.packagesearch.gradle.SupportedIntelliJVersion.*
-
-
 plugins {
     java
     id(packageSearchCatalog.plugins.idea.gradle.plugin)
@@ -19,18 +15,6 @@ packagesearch {
     }
     java {
         languageVersion = JavaLanguageVersion.of(8)
-    }
-}
-
-sourceSets {
-    val intelliJName = when (packagesearch.intellijVersion.get()) {
-        `232`, `AS-232` -> "232"
-        else -> "233"
-    }
-    main {
-        java {
-            srcDir("src/${intelliJName}Main/java")
-        }
     }
 }
 

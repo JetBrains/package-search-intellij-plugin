@@ -1,0 +1,22 @@
+name: Build Package Search
+
+on: [push]
+
+jobs:
+  build:
+    strategy:
+        matrix:
+          supported-ij-version: [232, 233, 241]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Run :buildShadowPlugin task
+        run: ./gradlew :plugin:buildShadowPlugin -PintelliJversion=${{ matrix.supported-ij-version }}

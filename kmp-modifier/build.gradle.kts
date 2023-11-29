@@ -26,10 +26,6 @@ intellij {
     plugins.addAll(
         "org.jetbrains.kotlin",
         "org.jetbrains.plugins.gradle",
+        "org.jetbrains.idea.gradle.dsl"
     )
-    if (packagesearch.intellijVersion.get().isAndroidStudio) {
-        plugins.add("android")
-    } else {
-        plugins.add("org.jetbrains.idea.gradle.dsl")
-    }
 }

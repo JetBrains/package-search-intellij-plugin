@@ -4,6 +4,7 @@ package com.jetbrains.packagesearch.plugin.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import com.intellij.ProjectTopics
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
@@ -28,7 +29,7 @@ internal val Project.nativeModules: List<NativeModule>
     get() = ModuleManager.getInstance(this).modules.toList()
 
 internal val Project.nativeModulesFlow: FlowWithInitialValue<List<NativeModule>>
-    get() = messageBus.flow(ModuleListenerTopic) {
+    get() = messageBus.flow(ProjectTopics.MODULES) {
         object : ModuleListener {
             override fun modulesAdded(project: Project, modules: NativeModules) {
                 trySend(nativeModules)

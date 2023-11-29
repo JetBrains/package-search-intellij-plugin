@@ -53,13 +53,17 @@ job("Publish plugin nightly") {
                 syncWithAutomationJob = true
             )
 
-            val isSuccess = api.runCatchingGradlew {
-                task(":plugin:publishShadowPlugin")
-                task("publish")
-                param("pluginVersion", pluginSnapshotVersion)
+            val isSuccess = listOf("232", "233", "241").all {
+                api.runCatchingGradlew {
+                    task(":plugin:publishShadowPlugin")
+                    task("publish")
+                    param("pluginVersion", pluginSnapshotVersion)
+                    param("intelliJVersion", it)
+                }
             }
 
-            val buildScanLink = File(".").walkTopDown()
+            val buildScanLink = File(".")
+                .walkTopDown()
                 .maxDepth(2)
                 .find { it.name == "build-scan-url.txt" }
                 ?.readLines()

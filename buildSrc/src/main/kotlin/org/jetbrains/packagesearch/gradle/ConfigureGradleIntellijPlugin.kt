@@ -15,7 +15,7 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
 
     plugins.withId("org.jetbrains.intellij") {
         extensions.withType<IntelliJPluginExtension> {
-            version = packageSearchExtension.intellijVersion.map { it.version }
+            version = "2023.2.5"
             instrumentCode = false
             downloadSources = !isCI
         }

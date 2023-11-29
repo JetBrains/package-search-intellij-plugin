@@ -17,9 +17,7 @@ packagesearch {
 }
 
 intellij {
-    if (!packagesearch.intellijVersion.get().isAndroidStudio) {
-        plugins.addAll("org.jetbrains.idea.maven")
-    }
+    plugins.add("org.jetbrains.idea.maven")
 }
 
 dependencies {

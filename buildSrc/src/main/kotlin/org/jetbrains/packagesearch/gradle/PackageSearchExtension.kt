@@ -76,20 +76,9 @@ abstract class PackageSearchExtension(project: Project) : ExtensionAware {
 
     val librariesToKeep = project.objects.listProperty<String>()
 
-    val intellijVersion = project.objects
-        .property<SupportedIntelliJVersion>()
-
     val detektFile = project.objects.fileProperty()
 
     val isRunIdeEnabled = project.objects.property<Boolean>()
         .convention(false)
 
-}
-
-@Suppress("EnumEntryName", "RedundantSuppression")
-enum class SupportedIntelliJVersion(val version: String, val isAndroidStudio: Boolean = false) {
-    `241`("LATEST-TRUNK-SNAPSHOT"),
-    `233`("233-EAP-SNAPSHOT"),
-    `232`("2023.2.5"),
-    `AS-232`("AI-232.10072.27.2321.11006994", true)
 }

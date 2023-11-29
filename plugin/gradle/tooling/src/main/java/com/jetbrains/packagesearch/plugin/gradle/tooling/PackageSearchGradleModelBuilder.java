@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("UnstableApiUsage")
-public abstract class AbstractPackageSearchGradleModelBuilder extends AbstractModelBuilderService {
+public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService {
 
     @Override
     public PackageSearchGradleJavaModel buildAll(
@@ -25,11 +25,6 @@ public abstract class AbstractPackageSearchGradleModelBuilder extends AbstractMo
             @NotNull ModelBuilderContext context
     ) {
 
-        return buildPKGSModel(project);
-    }
-
-    @NotNull
-    private static PackageSearchGradleJavaModelImpl buildPKGSModel(@NotNull Project project) {
         List<PackageSearchGradleJavaModel.Configuration> configurations =
                 new ArrayList<>(project.getConfigurations().size());
 
@@ -101,11 +96,17 @@ public abstract class AbstractPackageSearchGradleModelBuilder extends AbstractMo
 
     @Override
     public boolean canBuild(String modelName) {
-        return canBuild2(modelName);
+        return modelName.equals(PackageSearchGradleJavaModel.class.getName());
     }
 
-    private static boolean canBuild2(String modelName) {
-        return modelName.equals(PackageSearchGradleJavaModel.class.getName());
+    @NotNull
+    @Override
+    public ErrorMessageBuilder getErrorMessageBuilder(@NotNull Project project, @NotNull Exception e) {
+        return ErrorMessageBuilder
+                .create(project, e, "Gradle import errors")
+                .withDescription("Unable to import resolved versions " +
+                        "from configurations in project ''${project.name}'' for" +
+                        " the Dependencies toolwindow.");
     }
 
 }
