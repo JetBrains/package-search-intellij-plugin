@@ -117,6 +117,7 @@ tasks {
             rename {
                 "package-search-plugin" + when {
                     it.endsWith("-SNAPSHOT.jar") -> it.replace(".jar", "-$snapshotDateSuffix.jar")
+                        .also { logger.lifecycle("Snapshot version -> $it") }
                     else -> it
                 }
             }

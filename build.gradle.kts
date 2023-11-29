@@ -14,9 +14,13 @@ plugins {
 
 allprojects {
     group = "org.jetbrains.packagesearch"
+    val baseVersion = "2.0.0-SNAPSHOT"
     version = when (val ref = getenv("GITHUB_REF")) {
-        null -> "2.0.0-SNAPSHOT"
-        else -> ref.substringAfterLast("/")
+        null -> baseVersion
+        else -> when {
+            ref.startsWith("refs/tags/") -> ref.removePrefix("refs/tags/")
+            else -> baseVersion
+        }
     }
 
     repositories {
