@@ -21,7 +21,7 @@ package com.jetbrains.packagesearch.plugin.utils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.jetbrains.packagesearch.plugin.FeatureFlags
-import com.jetbrains.packagesearch.plugin.PackageSearch
+import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 

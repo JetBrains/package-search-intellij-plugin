@@ -10,7 +10,6 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.psi.PsiManager
-import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.PackageSearchModuleBaseTransformerUtils
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
@@ -52,10 +51,7 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 class PackageSearchProjectService(
     override val project: Project,
     override val coroutineScope: CoroutineScope,
-) : PackageSearchKnownRepositoriesContext, Disposable {
-
-    // for 232 compatibility
-    constructor(project: Project) : this(project, CoroutineScope(SupervisorJob()))
+) : PackageSearchKnownRepositoriesContext {
 
     private val restartChannel = Channel<Unit>()
 
@@ -155,11 +151,6 @@ class PackageSearchProjectService(
             .launchIn(coroutineScope)
     }
 
-    override fun dispose() {
-        if ("232" in PackageSearch.intelliJVersion) {
-            coroutineScope.cancel()
-        }
-    }
 }
 
 

@@ -1,6 +1,9 @@
 @file:Suppress("UnstableApiUsage")
 
-import java.time.LocalDate
+import java.lang.System.getenv
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.packagesearch.gradle.pkgsSpace
 
 plugins {
@@ -11,8 +14,10 @@ plugins {
 
 allprojects {
     group = "org.jetbrains.packagesearch"
-    version = project.properties["pluginVersion"]?.toString()
-        ?: "2.0.0"
+    version = when (val ref = getenv("GITHUB_REF")) {
+        null -> "2.0.0-SNAPSHOT"
+        else -> ref.substringAfterLast("/")
+    }
 
     repositories {
         mavenCentral()

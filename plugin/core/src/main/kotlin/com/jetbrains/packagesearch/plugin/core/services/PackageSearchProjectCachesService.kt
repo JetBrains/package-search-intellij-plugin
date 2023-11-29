@@ -5,17 +5,24 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
+import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.div
 
 @Service(Level.PROJECT)
-class PackageSearchProjectCachesService(project: Project ) : Disposable {
+class PackageSearchProjectCachesService(private val project: Project) : Disposable {
+
+    private val cacheFilePath
+        get() = cachesDirectory / "db-${PackageSearch.pluginVersion}.db"
+
+    private val cachesDirectory
+        get() = project.getProjectDataPath("caches") / "packagesearch"
 
     @PKGSInternalAPI
     val cache = buildDefaultNitrate(
-        path = project.getProjectDataPath("packagesearch")
-            .resolve("cache.db")
+        path = cacheFilePath
             .apply { parent.toFile().mkdirs() }
             .absolutePathString()
     )
@@ -28,4 +35,3 @@ class PackageSearchProjectCachesService(project: Project ) : Disposable {
         cache.getRepository<T>(key)
 
 }
-

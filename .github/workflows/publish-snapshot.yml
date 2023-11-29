@@ -1,9 +1,12 @@
 name: Build Package Search
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches: [ master ]
 
 jobs:
-  build:
+  publish:
+    name: Publish Package Search Snapshot to TBE
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,7 +17,8 @@ jobs:
           distribution: 'zulu'
           cache: gradle
       - uses: gradle/gradle-build-action@v2
-      - name: Run :buildShadowPlugin task
-        run: ./gradlew :plugin:buildShadowPlugin
+      - name: Run :publishShadowPlugin task
+        run: ./gradlew :plugin:publishShadowPlugin
         env:
+          TOOLBOX_ENTERPRISE_TOKEN: ${{ secrets.TOOLBOX_ENTERPRISE_TOKEN }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}

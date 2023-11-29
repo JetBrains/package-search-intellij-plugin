@@ -17,14 +17,6 @@ dependencyResolutionManagement {
     }
 }
 
-if (file(".gitsubmoduleinit").run { !exists() }) {
-    logger.lifecycle("Initializing git submodules")
-    exec {
-        commandLine("git", "submodule", "update", "--init")
-    }
-    file(".gitsubmoduleinit").writeText("stub")
-}
-
 include(
     ":nitrite",
     ":plugin",

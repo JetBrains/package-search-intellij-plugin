@@ -1,20 +1,25 @@
 name: Build Package Search
 
-on: [ push, pull_request ]
+on:
+  release:
+    types: [published]
 
 jobs:
-  build:
+  publish:
+    name: Publish Package Search to Marketplace
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'zulu'
-          cache: gradle
       - uses: gradle/gradle-build-action@v2
-      - name: Run :buildShadowPlugin task
-        run: ./gradlew :plugin:buildShadowPlugin
+      - name: Run :publishShadowPlugin task
+        run: ./gradlew :plugin:publishShadowPluginToMarketplace
         env:
+          MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}

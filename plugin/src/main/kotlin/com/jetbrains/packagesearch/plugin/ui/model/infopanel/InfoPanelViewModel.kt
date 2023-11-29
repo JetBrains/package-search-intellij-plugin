@@ -1,20 +1,16 @@
 package com.jetbrains.packagesearch.plugin.ui.model.infopanel
 
 import androidx.compose.foundation.ScrollState
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListViewModel
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,11 +28,8 @@ import org.jetbrains.packagesearch.api.v3.ApiPackage
 @Service(Level.PROJECT)
 class InfoPanelViewModel(
     private val project: Project,
-    private val viewModelScope: CoroutineScope,
-) : Disposable {
-
-    // for 232 compatibility
-    constructor(project: Project) : this(project, CoroutineScope(SupervisorJob()))
+    viewModelScope: CoroutineScope,
+) {
 
     private val setDataEventChannel = Channel<InfoPanelContentEvent>()
 
@@ -142,11 +135,6 @@ class InfoPanelViewModel(
         )
     }
 
-    override fun dispose() {
-        if ("232" in PackageSearch.intelliJVersion) {
-            viewModelScope.cancel()
-        }
-    }
 }
 
 

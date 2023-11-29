@@ -30,4 +30,5 @@ dependencies {
     implementation(packageSearchCatalog.kotlinx.serialization.json)
     implementation("com.squareup:kotlinpoet:1.14.2")
     implementation("io.github.pdvrieze.xmlutil:serialization:0.86.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 }

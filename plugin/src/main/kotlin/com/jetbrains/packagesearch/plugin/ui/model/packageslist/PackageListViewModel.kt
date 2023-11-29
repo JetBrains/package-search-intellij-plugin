@@ -1,7 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.model.packageslist
 
 import androidx.compose.foundation.lazy.LazyListState
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
@@ -9,7 +8,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleEditor
@@ -28,8 +26,6 @@ import com.jetbrains.packagesearch.plugin.utils.searchPackages
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,10 +52,7 @@ import org.jetbrains.packagesearch.api.v3.search.buildSearchParameters
 class PackageListViewModel(
     private val project: Project,
     private val viewModelScope: CoroutineScope,
-) : Disposable {
-
-    // for 232 compatibility
-    constructor(project: Project) : this(project, CoroutineScope(SupervisorJob()))
+) {
 
     private val isOnline
         get() = IntelliJApplication.PackageSearchApplicationCachesService
@@ -621,9 +614,4 @@ class PackageListViewModel(
         }
     }
 
-    override fun dispose() {
-        if ("232" in PackageSearch.intelliJVersion) {
-            viewModelScope.cancel()
-        }
-    }
 }

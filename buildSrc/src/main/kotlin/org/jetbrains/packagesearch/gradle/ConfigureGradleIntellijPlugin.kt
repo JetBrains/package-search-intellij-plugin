@@ -15,7 +15,7 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
 
     plugins.withId("org.jetbrains.intellij") {
         extensions.withType<IntelliJPluginExtension> {
-            version = "2023.2.5"
+            version = "233-EAP-SNAPSHOT"
             instrumentCode = false
             downloadSources = !isCI
         }
@@ -32,6 +32,7 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
                             && !it.name.containsAny(packageSearchExtension.librariesToKeep.get())
                 }
                 exclude { it.name == "module-info.class" }
+                exclude { it.name.endsWith("kotlin_module") }
             }
             named<PrepareSandboxTask>("prepareSandbox") {
                 pluginJar = shadowJar.flatMap { it.archiveFile }

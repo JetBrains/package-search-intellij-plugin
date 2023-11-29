@@ -1,7 +1,9 @@
 @file:Suppress("UnstableApiUsage")
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.intellij.tasks.PublishPluginTask
-import org.jetbrains.packagesearch.gradle.GeneratePackageSearchObject
 import org.jetbrains.packagesearch.gradle.lafFile
 import org.jetbrains.packagesearch.gradle.logCategoriesFile
 import org.jetbrains.packagesearch.gradle.patchLafFile
@@ -51,7 +53,7 @@ dependencies {
     implementation(compose.desktop.macos_x64)
     implementation(compose.desktop.windows_x64)
     implementation(packageSearchCatalog.kotlinx.serialization.core)
-    implementation(packageSearchCatalog.jewel.bridge.ij232)
+    implementation(packageSearchCatalog.jewel.bridge.ij233)
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)
@@ -71,13 +73,7 @@ dependencies {
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
 }
 
-val pkgsPluginId = "com.jetbrains.packagesearch.intellij-plugin"
-
-val generatedDir: Provider<Directory> = layout.buildDirectory.dir("generated/main/kotlin")
-
-kotlin.sourceSets.main {
-    kotlin.srcDirs(generatedDir)
-}
+val pkgsPluginId: String by project
 
 tasks {
     val patchIdeSettings by registering {
@@ -96,36 +92,39 @@ tasks {
     runIde {
         dependsOn(patchIdeSettings)
     }
-    val generatePluginDataSources by registering(GeneratePackageSearchObject::class) {
-        pluginId = pkgsPluginId
-        outputDir = generatedDir
-        packageName = "com.jetbrains.packagesearch.plugin"
-    }
-    sourcesJar {
-        dependsOn(generatePluginDataSources)
-    }
-    dokkaHtml {
-        dependsOn(generatePluginDataSources)
-    }
-    shadowJar {
-        archiveBaseName = "packagesearch-plugin"
-    }
     prepareSandbox {
         runtimeClasspathFiles = tooling
     }
-    compileKotlin {
-        dependsOn(generatePluginDataSources)
+    val snapshotDateSuffix = buildString {
+        val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+        append(now.year)
+        append(now.monthNumber)
+        append(now.dayOfMonth)
+        append(now.hour.toString().padStart(2, '0'))
+        append(now.minute.toString().padStart(2, '0'))
+        append(now.second.toString().padStart(2, '0'))
     }
     patchPluginXml {
         pluginId = pkgsPluginId
-        sinceBuild = "232.*"
-        untilBuild = "232.*"
+        version = when {
+            project.version.toString().endsWith("-SNAPSHOT") -> "${project.version}-$snapshotDateSuffix"
+            else -> project.version.toString()
+        }
     }
-
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
-        from(shadowJar, tooling, jarSearchableOptions)
-        into("com.jetbrains.packagesearch.intellij-plugin/lib") // <-- ONLY ONE into()!
+        from(shadowJar) {
+            rename {
+                "package-search-plugin" + when {
+                    it.endsWith("-SNAPSHOT.jar") -> it.replace(".jar", "-$snapshotDateSuffix.jar")
+                    else -> it
+                }
+            }
+        }
+        from(tooling) {
+            rename { "gradle-tooling.jar" }
+        }
+        into("$pkgsPluginId/lib")
         archiveFileName.set("packagesearch-plugin.zip")
         destinationDirectory = layout.buildDirectory.dir("distributions")
     }
@@ -138,6 +137,13 @@ tasks {
         token = project.properties["toolboxEnterpriseToken"]?.toString()
             ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
         channels = listOf("Stable")
+    }
+
+    register<PublishPluginTask>("publishShadowPluginToMarketplace") {
+        group = "publishing"
+        distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
+        token = project.properties["marketplaceToken"]?.toString()
+            ?: System.getenv("MARKETPLACE_TOKEN")
     }
 
 }

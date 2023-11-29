@@ -10,8 +10,8 @@ import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
-import com.jetbrains.packagesearch.plugin.PackageSearch
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
+import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
@@ -47,9 +47,6 @@ import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpoints
 @Service(Level.APP)
 class PackageSearchApplicationCachesService(private val coroutineScope: CoroutineScope) : Disposable, RecoveryAction {
 
-    // for 232 compatibility
-    constructor() : this(CoroutineScope(SupervisorJob()))
-
     companion object {
         private val cacheFilePath
             get() = appSystemDir / "caches" / "packagesearch" / "db-${PackageSearch.pluginVersion}.db"
@@ -65,9 +62,6 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
 
     override fun dispose() {
         cache.close()
-        if ("232" in PackageSearch.intelliJVersion) {
-            coroutineScope.cancel()
-        }
     }
 
     private inline fun <reified T : Any> getRepository(key: String) =
