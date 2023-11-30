@@ -95,12 +95,33 @@ tasks {
     prepareSandbox {
         runtimeClasspathFiles = tooling
     }
+    val snapshotDateSuffix = buildString {
+        val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+        append(now.year)
+        append(now.monthNumber)
+        append(now.dayOfMonth)
+        append(now.hour.toString().padStart(2, '0'))
+        append(now.minute.toString().padStart(2, '0'))
+        append(now.second.toString().padStart(2, '0'))
+    }
     patchPluginXml {
         pluginId = pkgsPluginId
+        version = when {
+            project.version.toString().endsWith("-SNAPSHOT") -> "${project.version}-$snapshotDateSuffix"
+            else -> project.version.toString()
+        }
     }
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
-        from(shadowJar)
+        from(shadowJar) {
+            rename {
+                "package-search-plugin" + when {
+                    it.endsWith("-SNAPSHOT.jar") -> it.replace(".jar", "-$snapshotDateSuffix.jar")
+                        .also { logger.lifecycle("Snapshot version -> $it") }
+                    else -> it
+                }
+            }
+        }
         from(tooling) {
             rename { "gradle-tooling.jar" }
         }

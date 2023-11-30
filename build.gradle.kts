@@ -14,7 +14,14 @@ plugins {
 
 allprojects {
     group = "org.jetbrains.packagesearch"
-    version = "1.1.0"
+    val baseVersion = "232.10227-SNAPSHOT"
+    version = when (val ref = getenv("GITHUB_REF")) {
+        null -> baseVersion
+        else -> when {
+            ref.startsWith("refs/tags/") -> ref.removePrefix("refs/tags/")
+            else -> baseVersion
+        }
+    }
 
     repositories {
         mavenCentral()
