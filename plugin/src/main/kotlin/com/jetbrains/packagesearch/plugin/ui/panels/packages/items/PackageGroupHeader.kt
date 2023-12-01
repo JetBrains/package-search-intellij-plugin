@@ -32,7 +32,8 @@ import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
 
 @Composable
-fun PackageListItem(
+fun PackageListHeader(
+    additionalContentModifier: Modifier = Modifier,
     content: PackageListItem.Header,
     onEvent: (PackageListItemEvent) -> Unit,
 ) {
@@ -107,17 +108,22 @@ fun PackageListItem(
             }
         }
         if (content.additionalContent != null) {
-            when (content.additionalContent) {
-                is PackageListItem.Header.AdditionalContent.VariantsText ->
-                    LabelInfo(
-                        text = content.additionalContent.text,
-                        maxLines = 1
-                    )
+            Box(
+                modifier = additionalContentModifier,
+            ) {
 
-                is PackageListItem.Header.AdditionalContent.UpdatesAvailableCount ->
-                    UpdateAllLink(content.additionalContent, content, onEvent)
+                when (content.additionalContent) {
+                    is PackageListItem.Header.AdditionalContent.VariantsText ->
+                        LabelInfo(
+                            text = content.additionalContent.text,
+                            maxLines = 1
+                        )
 
-                PackageListItem.Header.AdditionalContent.Loading -> CircularProgressIndicator()
+                    is PackageListItem.Header.AdditionalContent.UpdatesAvailableCount ->
+                        UpdateAllLink(content.additionalContent, content, onEvent)
+
+                    PackageListItem.Header.AdditionalContent.Loading -> CircularProgressIndicator()
+                }
             }
         }
     }

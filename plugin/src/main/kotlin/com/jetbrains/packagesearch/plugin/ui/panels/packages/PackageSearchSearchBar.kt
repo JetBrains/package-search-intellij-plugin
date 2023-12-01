@@ -1,7 +1,9 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.packages
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -10,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
@@ -21,7 +24,10 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
+import org.jetbrains.jewel.ui.component.styling.LazyTreeMetrics
+import org.jetbrains.jewel.ui.component.styling.LazyTreeStyle
 import org.jetbrains.jewel.ui.component.styling.LocalDefaultTabStyle
+import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
 import org.jetbrains.jewel.ui.component.styling.LocalTextFieldStyle
 import org.jetbrains.jewel.ui.component.styling.TabMetrics
 import org.jetbrains.jewel.ui.component.styling.TabStyle
@@ -117,4 +123,28 @@ fun packageSearchGlobalColors(): GlobalColors {
         )
     }
 }
+
+
+@Composable
+internal fun PackageSearchTreeStyle(): LazyTreeStyle {
+    val paddings = LocalLazyTreeStyle.current.metrics.elementPadding
+    return LazyTreeStyle(
+        LocalLazyTreeStyle.current.colors,
+        metrics = LazyTreeMetrics(
+            indentSize = LocalLazyTreeStyle.current.metrics.indentSize,
+            elementPadding = PaddingValues(
+                top = paddings.calculateTopPadding(),
+                bottom = paddings.calculateBottomPadding(),
+                start = paddings.calculateStartPadding(LocalLayoutDirection.current),
+                end = 0.dp
+            ),
+            elementContentPadding = LocalLazyTreeStyle.current.metrics.elementContentPadding,
+            elementMinHeight = LocalLazyTreeStyle.current.metrics.elementMinHeight,
+            chevronContentGap = LocalLazyTreeStyle.current.metrics.chevronContentGap,
+            elementBackgroundCornerSize = LocalLazyTreeStyle.current.metrics.elementBackgroundCornerSize,
+        ),
+        LocalLazyTreeStyle.current.icons,
+    )
+}
+
 

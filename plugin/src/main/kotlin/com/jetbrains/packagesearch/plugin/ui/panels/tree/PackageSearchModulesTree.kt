@@ -3,14 +3,17 @@ package com.jetbrains.packagesearch.plugin.ui.panels.tree
 import androidx.compose.animation.Crossfade
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,6 +41,7 @@ import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.LazyTree
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
+import org.jetbrains.jewel.ui.component.VerticalScrollbar
 
 @Composable
 fun PackageSearchModulesTree(
@@ -76,21 +80,28 @@ fun PackageSearchModulesTree(
                 .toSet()
         }
     }
-
-    LazyTree(
-        modifier = Modifier.padding(top = 4.dp),
-        tree = tree,
-        treeState = viewModel.treeState,
-        onSelectionChange = {
-            onSelectionChanged(
-                it.map { it.id }
-                    .filterIsInstance<PackageSearchModule.Identity>()
-                    .toSet()
-            )
-        },
-    ) { item ->
-        TreeItem(item)
+    Box {
+        LazyTree(
+            modifier = Modifier.padding(top = 4.dp, end = PackageSearchMetrics.scrollbarWidth),
+            tree = tree,
+            treeState = viewModel.treeState,
+            onSelectionChange = {
+                onSelectionChanged(
+                    it.map { it.id }
+                        .filterIsInstance<PackageSearchModule.Identity>()
+                        .toSet()
+                )
+            },
+        ) { item ->
+            TreeItem(item)
+        }
+        VerticalScrollbar(
+            adapter = rememberScrollbarAdapter(scrollState = viewModel.lazyListState),
+            modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+        )
     }
+
+
 }
 
 @Composable
@@ -181,7 +192,7 @@ private fun TreeItem(element: Tree.Element<TreeItemModel>) {
         }
         if (element.data.hasUpdates) {
             Icon(
-                modifier = Modifier.padding(end = 20.dp),
+                modifier = Modifier.padding(end = 12.dp),
                 resource = "icons/intui/upgradableMark.svg",
                 iconClass = IconProvider::class.java,
                 contentDescription = ""
