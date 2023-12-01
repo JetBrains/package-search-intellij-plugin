@@ -56,7 +56,7 @@ fun PackageSearchInfoPanel(
             Box(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
-                        .padding(start = 4.dp, top = 4.dp, end = 16.dp, bottom = 12.dp)
+                        .padding(start = 4.dp, end = 16.dp)
                         .verticalScroll(viewModel.scrollState)
                 ) {
                     val tab = activeTab
