@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelContent
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelViewModel
@@ -56,7 +57,7 @@ fun PackageSearchInfoPanel(
             Box(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
-                        .padding(start = 4.dp, top = 4.dp, end = 16.dp, bottom = 12.dp)
+                        .padding(start = 4.dp, end = PackageSearchMetrics.scrollbarWidth)
                         .verticalScroll(viewModel.scrollState)
                 ) {
                     val tab = activeTab
@@ -83,7 +84,10 @@ private fun NoTabsAvailable() {
         Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        LabelInfo(PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.noItemSelected"), textAlign = TextAlign.Center)
+        LabelInfo(
+            PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.noItemSelected"),
+            textAlign = TextAlign.Center
+        )
     }
 }
 

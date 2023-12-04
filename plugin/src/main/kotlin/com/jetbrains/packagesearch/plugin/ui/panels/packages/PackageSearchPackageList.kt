@@ -46,7 +46,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemE
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.GoToSource
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Install
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Remove
-import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.PackageListItem
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.PackageListHeader
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyItemScope
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
@@ -60,6 +60,7 @@ import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
 
 @Composable
 fun PackageSearchPackageList(
+    modifier: Modifier = Modifier,
     packagesList: List<PackageListItem>,
     isCompact: Boolean,
     selectableLazyListState: SelectableLazyListState,
@@ -67,6 +68,7 @@ fun PackageSearchPackageList(
 ) {
     var openPopupId by remember { mutableStateOf<PackageListItem.Package.Id?>(null) }
     SelectableLazyColumn(
+        modifier = modifier,
         selectionMode = SelectionMode.Single,
         state = selectableLazyListState,
         onSelectedIndexesChanged = {
@@ -80,12 +82,17 @@ fun PackageSearchPackageList(
     ) {
         packagesList.forEachIndexed { index, item ->
             when (item) {
-                is PackageListItem.Header -> stickyHeader(item.id, "header") {
-                    PackageListItem(item, onPackageEvent)
+                is PackageListItem.Header -> stickyHeader(key = item.id, contentType = "header") {
+                    PackageListHeader(
+                        additionalContentModifier = Modifier.padding(end = PackageSearchMetrics.scrollbarWidth),
+                        content = item,
+                        onEvent = onPackageEvent
+                    )
                 }
 
-                is PackageListItem.Package -> item(item.id, contentType = item.contentType()) {
+                is PackageListItem.Package -> item(key = item.id, contentType = item.contentType()) {
                     PackageListItem(
+                        modifier = Modifier.padding(end = PackageSearchMetrics.scrollbarWidth),
                         content = item,
                         packagesList = packagesList,
                         index = index,
@@ -103,6 +110,7 @@ fun PackageSearchPackageList(
 
 @Composable
 private fun SelectableLazyItemScope.PackageListItem(
+    modifier: Modifier = Modifier,
     content: PackageListItem.Package,
     packagesList: List<PackageListItem>,
     index: Int,
@@ -117,7 +125,7 @@ private fun SelectableLazyItemScope.PackageListItem(
         isLastItem = packagesList.getOrNull(index + 1) !is PackageListItem.Package
     )
     Box(
-        modifier = Modifier
+        modifier = modifier
             .padding(itemPaddings)
             .onClick(
                 interactionSource = remember { MutableInteractionSource() },
