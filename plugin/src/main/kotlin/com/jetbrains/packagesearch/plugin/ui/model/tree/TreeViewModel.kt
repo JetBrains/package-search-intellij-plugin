@@ -31,7 +31,8 @@ internal class TreeViewModel(
     }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyTree())
 
-    val treeState = TreeState(SelectableLazyListState(LazyListState()))
+    internal val lazyListState = LazyListState()
+    internal val treeState = TreeState(SelectableLazyListState(lazyListState))
 
     val isOnline
         get() = IntelliJApplication.PackageSearchApplicationCachesService
