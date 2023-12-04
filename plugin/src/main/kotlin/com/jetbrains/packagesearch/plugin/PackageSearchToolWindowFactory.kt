@@ -7,9 +7,9 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.jetbrains.packagesearch.plugin.ui.LocalComponentManager
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.PackageSearchTabStyle
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.PackageSearchTreeStyle
-import com.jetbrains.packagesearch.plugin.ui.panels.packages.packageSearchGlobalColors
-import com.jetbrains.packagesearch.plugin.ui.panels.packages.packageSearchTabStyle
+import com.jetbrains.packagesearch.plugin.ui.panels.packages.PackageSearchGlobalColors
 import com.jetbrains.packagesearch.plugin.utils.installActions
 import org.jetbrains.jewel.bridge.addComposeTab
 import org.jetbrains.jewel.foundation.LocalGlobalColors
@@ -22,8 +22,8 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.addComposeTab(PackageSearchBundle.message("packagesearch.title.tab")) {
             CompositionLocalProvider(
                 LocalComponentManager provides project,
-                LocalGlobalColors provides packageSearchGlobalColors(),
-                LocalDefaultTabStyle provides packageSearchTabStyle(),
+                LocalGlobalColors provides PackageSearchGlobalColors(),
+                LocalDefaultTabStyle provides PackageSearchTabStyle(),
                 LocalLazyTreeStyle provides PackageSearchTreeStyle()
             ) {
                 PackageSearchToolwindow()

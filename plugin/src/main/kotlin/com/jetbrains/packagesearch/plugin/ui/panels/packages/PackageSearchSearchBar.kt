@@ -88,7 +88,7 @@ fun PackageSearchSearchBar(
 }
 
 @Composable
-internal fun packageSearchTabStyle(): TabStyle {
+internal fun PackageSearchTabStyle(): TabStyle {
     val current = LocalDefaultTabStyle.current
     return TabStyle(
         colors = current.colors,
@@ -105,7 +105,7 @@ internal fun packageSearchTabStyle(): TabStyle {
 
 
 @Composable
-fun packageSearchGlobalColors(): GlobalColors {
+fun PackageSearchGlobalColors(): GlobalColors {
     val colors = LocalGlobalColors.current
 
     return remember(colors) {

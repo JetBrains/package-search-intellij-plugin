@@ -82,7 +82,7 @@ fun PackageSearchPackageList(
     ) {
         packagesList.forEachIndexed { index, item ->
             when (item) {
-                is PackageListItem.Header -> stickyHeader(item.id, "header") {
+                is PackageListItem.Header -> stickyHeader(key = item.id, contentType = "header") {
                     PackageListHeader(
                         additionalContentModifier = Modifier.padding(end = PackageSearchMetrics.scrollbarWidth),
                         content = item,
@@ -90,7 +90,7 @@ fun PackageSearchPackageList(
                     )
                 }
 
-                is PackageListItem.Package -> item(item.id, contentType = item.contentType()) {
+                is PackageListItem.Package -> item(key = item.id, contentType = item.contentType()) {
                     PackageListItem(
                         modifier = Modifier.padding(end = PackageSearchMetrics.scrollbarWidth),
                         content = item,
