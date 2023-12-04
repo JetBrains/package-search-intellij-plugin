@@ -14,7 +14,7 @@ plugins {
 
 allprojects {
     group = "org.jetbrains.packagesearch"
-    val baseVersion = "233.11200-SNAPSHOT"
+    val baseVersion = "233.13000-SNAPSHOT"
     version = when (val ref = getenv("GITHUB_REF")) {
         null -> baseVersion
         else -> when {
