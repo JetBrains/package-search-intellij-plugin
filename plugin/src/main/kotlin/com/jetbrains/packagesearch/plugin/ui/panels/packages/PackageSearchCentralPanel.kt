@@ -2,16 +2,20 @@ package com.jetbrains.packagesearch.plugin.ui.panels.packages
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListViewModel
 import com.jetbrains.packagesearch.plugin.ui.viewModel
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
+import org.jetbrains.jewel.ui.component.VerticalScrollbar
 
 @Composable
 fun PackageSearchCentralPanel(
@@ -38,6 +42,10 @@ fun PackageSearchCentralPanel(
                     isCompact = isCompact,
                     selectableLazyListState = viewModel.selectableLazyListState,
                     onPackageEvent = viewModel::onPackageListItemEvent,
+                )
+                VerticalScrollbar(
+                    adapter = rememberScrollbarAdapter(scrollState = viewModel.selectableLazyListState.lazyListState),
+                    modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
                 )
             }
         }
