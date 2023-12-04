@@ -48,7 +48,7 @@ internal fun PackageOverviewTab(
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().padding(start = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
