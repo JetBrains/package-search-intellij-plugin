@@ -173,7 +173,6 @@ private fun ScopeAndVersionDropdowns(
     Row() {
         Box(modifier = Modifier.widthIn(max = 180.dp)) {
             ScopeSelectionDropdown(
-                modifier = Modifier.align(Alignment.CenterEnd),
                 declaredScope = item.selectedScope,
                 allowMissingScope = item.allowMissingScope,
                 availableScopes = item.availableScopes,
@@ -182,9 +181,8 @@ private fun ScopeAndVersionDropdowns(
             )
         }
 
-        Box(modifier = Modifier.width(180.dp)) {
+        Box(modifier = Modifier.width(180.dp), contentAlignment = Alignment.CenterEnd) {
             VersionSelectionDropdown(
-                modifier = Modifier.align(Alignment.CenterEnd),
                 declaredVersion = item.declaredVersion,
                 availableVersions = item.availableVersions,
                 latestVersion = item.latestVersion,

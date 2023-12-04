@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -19,16 +18,17 @@ import androidx.compose.ui.unit.TextUnit
 import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
-import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.DropdownLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.MenuScope
 import org.jetbrains.jewel.ui.component.PopupMenu
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.styling.DropdownColors
-import org.jetbrains.jewel.ui.component.styling.DropdownStyle
-import org.jetbrains.jewel.ui.theme.dropdownStyle
+import org.jetbrains.jewel.ui.component.styling.LinkColors
+import org.jetbrains.jewel.ui.component.styling.LinkStyle
+import org.jetbrains.jewel.ui.theme.linkStyle
 
 @Composable
 fun LabelInfo(
@@ -79,11 +79,11 @@ fun TextSelectionDropdown(
     enabled: Boolean,
     onSelection: (String) -> Unit,
 ) {
-    Dropdown(
+    DropdownLink(
         modifier = modifier,
         menuModifier = menuModifier.heightIn(max = PackageSearchMetrics.Dropdown.maxHeight),
         enabled = enabled && items.isNotEmpty(),
-        style = packageSearchDropdownStyle(),
+        style = packageSearchDropdownLinkStyle(),
         menuContent = {
             items.forEach {
                 selectableItem(
@@ -94,15 +94,7 @@ fun TextSelectionDropdown(
                 }
             }
         },
-        content = {
-            Text(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                text = content,
-                maxLines = 1,
-                overflow = TextOverflow.Clip,
-                textAlign = TextAlign.End
-            )
-        }
+        text = content
     )
 }
 
@@ -143,34 +135,20 @@ internal fun PackageActionPopup(
 }
 
 @Composable
-private fun packageSearchDropdownStyle(): DropdownStyle {
-    val currentStyle = JewelTheme.dropdownStyle
-    return DropdownStyle(
-        colors = DropdownColors(
-            background = Color.Transparent,
-            backgroundDisabled = Color.Transparent,
-            backgroundFocused = Color.Transparent,
-            backgroundPressed = Color.Transparent,
-            backgroundHovered = Color.Transparent,
-            content = currentStyle.colors.content,
+private fun packageSearchDropdownLinkStyle(): LinkStyle {
+    val currentStyle = JewelTheme.linkStyle
+    val contentColor= LocalContentColor.current
+    return LinkStyle(
+        colors = LinkColors(
+            content = contentColor,
             contentDisabled = currentStyle.colors.contentDisabled,
-            contentFocused = currentStyle.colors.contentFocused,
-            contentPressed = currentStyle.colors.contentPressed,
-            contentHovered = currentStyle.colors.contentHovered,
-            border = Color.Transparent,
-            borderDisabled = Color.Transparent,
-            borderFocused = Color.Transparent,
-            borderPressed = Color.Transparent,
-            borderHovered = Color.Transparent,
-            iconTintDisabled = Color.Transparent,
-            iconTint = currentStyle.colors.iconTint,
-            iconTintFocused = currentStyle.colors.iconTintFocused,
-            iconTintPressed = currentStyle.colors.iconTintPressed,
-            iconTintHovered = currentStyle.colors.iconTintHovered,
+            contentHovered = contentColor,
+            contentPressed = contentColor,
+            contentFocused = contentColor,
+            contentVisited = contentColor,
         ),
         metrics = currentStyle.metrics,
         icons = currentStyle.icons,
-        textStyle = currentStyle.textStyle,
-        menuStyle = currentStyle.menuStyle,
+        textStyles = currentStyle.textStyles,
     )
 }
