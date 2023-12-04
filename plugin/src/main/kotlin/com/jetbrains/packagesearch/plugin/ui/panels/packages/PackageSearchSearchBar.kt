@@ -127,23 +127,24 @@ fun PackageSearchGlobalColors(): GlobalColors {
 
 @Composable
 internal fun PackageSearchTreeStyle(): LazyTreeStyle {
-    val paddings = LocalLazyTreeStyle.current.metrics.elementPadding
+    val currentStyle = LocalLazyTreeStyle.current
+    val paddings = currentStyle.metrics.elementPadding
     return LazyTreeStyle(
-        LocalLazyTreeStyle.current.colors,
+        currentStyle.colors,
         metrics = LazyTreeMetrics(
-            indentSize = LocalLazyTreeStyle.current.metrics.indentSize,
+            indentSize = currentStyle.metrics.indentSize,
             elementPadding = PaddingValues(
                 top = paddings.calculateTopPadding(),
                 bottom = paddings.calculateBottomPadding(),
                 start = paddings.calculateStartPadding(LocalLayoutDirection.current),
                 end = 0.dp
             ),
-            elementContentPadding = LocalLazyTreeStyle.current.metrics.elementContentPadding,
-            elementMinHeight = LocalLazyTreeStyle.current.metrics.elementMinHeight,
-            chevronContentGap = LocalLazyTreeStyle.current.metrics.chevronContentGap,
-            elementBackgroundCornerSize = LocalLazyTreeStyle.current.metrics.elementBackgroundCornerSize,
+            elementContentPadding = currentStyle.metrics.elementContentPadding,
+            elementMinHeight = currentStyle.metrics.elementMinHeight,
+            chevronContentGap = currentStyle.metrics.chevronContentGap,
+            elementBackgroundCornerSize = currentStyle.metrics.elementBackgroundCornerSize,
         ),
-        LocalLazyTreeStyle.current.icons,
+        currentStyle.icons,
     )
 }
 
