@@ -3,7 +3,9 @@ package com.jetbrains.packagesearch.plugin.ui.bridge
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
@@ -27,7 +29,7 @@ import org.jetbrains.jewel.ui.theme.linkStyle
 @Composable
 internal fun PackageSearchDropdownLinkStyle(): LinkStyle {
     val currentStyle = JewelTheme.linkStyle
-    val contentColor= LocalContentColor.current
+    val contentColor = LocalContentColor.current
     return LinkStyle(
         colors = LinkColors(
             content = contentColor,
@@ -102,3 +104,9 @@ internal fun PackageSearchTreeStyle(): LazyTreeStyle {
         currentStyle.icons,
     )
 }
+
+
+internal val LocalPackageSearchDropdownLinkStyle: ProvidableCompositionLocal<LinkStyle> =
+    staticCompositionLocalOf {
+        error("No PackageSearchDropdownLinkStyle provided. Have you forgotten the theme?")
+    }

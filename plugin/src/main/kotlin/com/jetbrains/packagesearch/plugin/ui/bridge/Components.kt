@@ -67,7 +67,7 @@ fun LabelInfo(
 
 
 @Composable
-fun TextSelectionDropdown(
+fun PackageSearchDropdownLink(
     modifier: Modifier,
     menuModifier: Modifier,
     items: List<String>,
@@ -79,7 +79,7 @@ fun TextSelectionDropdown(
         modifier = modifier,
         menuModifier = menuModifier.heightIn(max = PackageSearchMetrics.Dropdown.maxHeight),
         enabled = enabled && items.isNotEmpty(),
-        style = PackageSearchDropdownLinkStyle(),
+        style = LocalPackageSearchDropdownLinkStyle.current,
         menuContent = {
             items.forEach {
                 selectableItem(
@@ -93,6 +93,7 @@ fun TextSelectionDropdown(
         text = content
     )
 }
+
 
 @Composable
 internal fun PackageActionPopup(

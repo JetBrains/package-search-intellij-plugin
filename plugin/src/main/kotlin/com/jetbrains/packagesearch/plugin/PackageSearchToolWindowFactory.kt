@@ -7,6 +7,8 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.jetbrains.packagesearch.plugin.ui.LocalComponentManager
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchToolwindow
+import com.jetbrains.packagesearch.plugin.ui.bridge.LocalPackageSearchDropdownLinkStyle
+import com.jetbrains.packagesearch.plugin.ui.bridge.PackageSearchDropdownLinkStyle
 import com.jetbrains.packagesearch.plugin.ui.bridge.PackageSearchGlobalColors
 import com.jetbrains.packagesearch.plugin.ui.bridge.PackageSearchTabStyle
 import com.jetbrains.packagesearch.plugin.ui.bridge.PackageSearchTreeStyle
@@ -24,7 +26,8 @@ class PackageSearchToolWindowFactory : ToolWindowFactory, DumbAware {
                 LocalComponentManager provides project,
                 LocalGlobalColors provides PackageSearchGlobalColors(),
                 LocalDefaultTabStyle provides PackageSearchTabStyle(),
-                LocalLazyTreeStyle provides PackageSearchTreeStyle()
+                LocalLazyTreeStyle provides PackageSearchTreeStyle(),
+                LocalPackageSearchDropdownLinkStyle provides PackageSearchDropdownLinkStyle(),
             ) {
                 PackageSearchToolwindow()
             }
