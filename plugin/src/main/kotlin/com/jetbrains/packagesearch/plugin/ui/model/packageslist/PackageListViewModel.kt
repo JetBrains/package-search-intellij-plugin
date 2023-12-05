@@ -288,7 +288,7 @@ class PackageListViewModel(
         when (event.eventId) {
             is PackageListItem.Package.Remote.Base.Id -> {
                 val headerId = PackageListItem.Header.Id.Remote.Base(event.eventId.moduleIdentity)
-                val search = searchResultMapFlow.value.getValue(headerId) as? Search.Results.Base
+                val search = searchResultMapFlow.value[headerId] as? Search.Results.Base
                     ?: return
                 infoPanelViewModel.setPackage(
                     module = event.eventId.getModule() as? PackageSearchModule.Base ?: return,
