@@ -4,7 +4,6 @@ package com.jetbrains.packagesearch.plugin.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import com.intellij.ProjectTopics
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
