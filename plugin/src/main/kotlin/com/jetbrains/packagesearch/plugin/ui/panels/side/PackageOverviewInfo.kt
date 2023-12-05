@@ -18,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
@@ -50,10 +49,7 @@ internal fun PackageOverviewTab(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxSize().padding(start = 4.dp)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.Top
-        ) {
+        Row(verticalAlignment = Alignment.Top) {
             InfoPanelPackageTitle(modifier = Modifier.weight(1f), content.title, content.subtitle)
             InfoPanelPackageActions(content, onPackageEvent)
         }
@@ -63,7 +59,7 @@ internal fun PackageOverviewTab(
         ) {
             if (content is InfoPanelContent.PackageInfo.Declared) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.Top
                 ) {
                     LabelInfo(
@@ -80,7 +76,7 @@ internal fun PackageOverviewTab(
                     }
                 }
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.Top
                 ) {
                     LabelInfo(
@@ -222,7 +218,7 @@ private fun InfoPanelPackageActions(
 
 @Composable
 private fun PackageType(name: String, icon: IconProvider.Icon) {
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
         LabelInfo(
             modifier = Modifier.defaultMinSize(90.dp),
             text = message("packagesearch.ui.toolwindow.packages.columns.type")
@@ -244,7 +240,7 @@ private fun InfoPanelPackageDetailLine(name: String, value: String) {
         verticalAlignment = Alignment.Top,
     ) {
         LabelInfo(
-            modifier = Modifier.defaultMinSize(90.dp),
+            modifier = Modifier.defaultMinSize(90.dp,16.dp),
             text = name
         )
         Text(value)
@@ -283,7 +279,7 @@ private fun InfoPanelPackageTitle(
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            org.jetbrains.jewel.ui.component.Text(name ?: id, fontWeight = FontWeight.Bold)
+            Text(name ?: id, fontWeight = FontWeight.Bold)
             if (name != null) LabelInfo(id)
         }
     }
@@ -300,7 +296,7 @@ private fun InfoPanelPackageLinks(
     ) {
         LabelInfo(
             modifier = Modifier.defaultMinSize(90.dp),
-            text = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.details.info.licenses")
+            text = message("packagesearch.ui.toolwindow.packages.details.info.licenses")
         )
         licenses.forEachIndexed { index, license ->
             when (license.url) {

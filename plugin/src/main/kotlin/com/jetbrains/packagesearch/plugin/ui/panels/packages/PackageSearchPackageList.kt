@@ -36,7 +36,7 @@ import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.bridge.PackageActionPopup
-import com.jetbrains.packagesearch.plugin.ui.bridge.TextSelectionDropdown
+import com.jetbrains.packagesearch.plugin.ui.bridge.PackageSearchDropdownLink
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.EditPackageEvent.SetPackageScope
@@ -173,7 +173,6 @@ private fun ScopeAndVersionDropdowns(
     Row() {
         Box(modifier = Modifier.widthIn(max = 180.dp)) {
             ScopeSelectionDropdown(
-                modifier = Modifier.align(Alignment.CenterEnd),
                 declaredScope = item.selectedScope,
                 allowMissingScope = item.allowMissingScope,
                 availableScopes = item.availableScopes,
@@ -182,9 +181,8 @@ private fun ScopeAndVersionDropdowns(
             )
         }
 
-        Box(modifier = Modifier.width(180.dp)) {
+        Box(modifier = Modifier.width(180.dp), contentAlignment = Alignment.CenterEnd) {
             VersionSelectionDropdown(
-                modifier = Modifier.align(Alignment.CenterEnd),
                 declaredVersion = item.declaredVersion,
                 availableVersions = item.availableVersions,
                 latestVersion = item.latestVersion,
@@ -439,7 +437,7 @@ fun VersionSelectionDropdown(
             }
         }
     }
-    TextSelectionDropdown(
+    PackageSearchDropdownLink(
         modifier = modifier,
         menuModifier = menuModifier,
         items = availableVersions,
@@ -459,7 +457,7 @@ fun ScopeSelectionDropdown(
     enabled: Boolean,
     onScopeChanged: (String?) -> Unit,
 ) {
-    TextSelectionDropdown(
+    PackageSearchDropdownLink(
         modifier = modifier,
         menuModifier = menuModifier,
         items = buildList {
