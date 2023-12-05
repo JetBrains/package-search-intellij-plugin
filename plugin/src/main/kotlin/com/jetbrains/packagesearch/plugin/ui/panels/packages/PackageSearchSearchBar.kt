@@ -1,36 +1,22 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.packages
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
-import org.jetbrains.jewel.foundation.GlobalColors
-import org.jetbrains.jewel.foundation.LocalGlobalColors
-import org.jetbrains.jewel.foundation.OutlineColors
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
-import org.jetbrains.jewel.ui.component.styling.LazyTreeMetrics
-import org.jetbrains.jewel.ui.component.styling.LazyTreeStyle
-import org.jetbrains.jewel.ui.component.styling.LocalDefaultTabStyle
-import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
 import org.jetbrains.jewel.ui.component.styling.LocalTextFieldStyle
-import org.jetbrains.jewel.ui.component.styling.TabMetrics
-import org.jetbrains.jewel.ui.component.styling.TabStyle
 
 @Composable
 fun PackageSearchSearchBar(
@@ -84,68 +70,4 @@ fun PackageSearchSearchBar(
         )
     }
 
-
 }
-
-@Composable
-internal fun PackageSearchTabStyle(): TabStyle {
-    val current = LocalDefaultTabStyle.current
-    return TabStyle(
-        colors = current.colors,
-        metrics = TabMetrics(
-            underlineThickness = current.metrics.underlineThickness,
-            tabPadding = current.metrics.tabPadding,
-            tabHeight = PackageSearchMetrics.searchBarHeight,
-            closeContentGap = current.metrics.closeContentGap,
-        ),
-        icons = current.icons,
-        contentAlpha = current.contentAlpha
-    )
-}
-
-
-@Composable
-fun PackageSearchGlobalColors(): GlobalColors {
-    val colors = LocalGlobalColors.current
-
-    return remember(colors) {
-        GlobalColors(
-            borders = colors.borders,
-            outlines = OutlineColors(
-                focused = Color.Transparent,
-                focusedWarning = colors.outlines.focusedWarning,
-                focusedError = colors.outlines.focusedError,
-                warning = colors.outlines.warning,
-                error = colors.outlines.error,
-            ),
-            infoContent = colors.infoContent,
-            paneBackground = colors.paneBackground,
-        )
-    }
-}
-
-
-@Composable
-internal fun PackageSearchTreeStyle(): LazyTreeStyle {
-    val currentStyle = LocalLazyTreeStyle.current
-    val paddings = currentStyle.metrics.elementPadding
-    return LazyTreeStyle(
-        currentStyle.colors,
-        metrics = LazyTreeMetrics(
-            indentSize = currentStyle.metrics.indentSize,
-            elementPadding = PaddingValues(
-                top = paddings.calculateTopPadding(),
-                bottom = paddings.calculateBottomPadding(),
-                start = paddings.calculateStartPadding(LocalLayoutDirection.current),
-                end = 0.dp
-            ),
-            elementContentPadding = currentStyle.metrics.elementContentPadding,
-            elementMinHeight = currentStyle.metrics.elementMinHeight,
-            chevronContentGap = currentStyle.metrics.chevronContentGap,
-            elementBackgroundCornerSize = currentStyle.metrics.elementBackgroundCornerSize,
-        ),
-        currentStyle.icons,
-    )
-}
-
-
