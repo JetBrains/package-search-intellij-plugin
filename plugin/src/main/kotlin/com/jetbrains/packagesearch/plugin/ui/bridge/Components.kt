@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.TextUnit
 import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import org.jetbrains.jewel.foundation.theme.JewelTheme
-import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.DropdownLink
 import org.jetbrains.jewel.ui.component.Icon
@@ -26,9 +25,6 @@ import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.MenuScope
 import org.jetbrains.jewel.ui.component.PopupMenu
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.styling.LinkColors
-import org.jetbrains.jewel.ui.component.styling.LinkStyle
-import org.jetbrains.jewel.ui.theme.linkStyle
 
 @Composable
 fun LabelInfo(
@@ -83,7 +79,7 @@ fun TextSelectionDropdown(
         modifier = modifier,
         menuModifier = menuModifier.heightIn(max = PackageSearchMetrics.Dropdown.maxHeight),
         enabled = enabled && items.isNotEmpty(),
-        style = packageSearchDropdownLinkStyle(),
+        style = PackageSearchDropdownLinkStyle(),
         menuContent = {
             items.forEach {
                 selectableItem(
@@ -132,23 +128,4 @@ internal fun PackageActionPopup(
             )
         }
     }
-}
-
-@Composable
-private fun packageSearchDropdownLinkStyle(): LinkStyle {
-    val currentStyle = JewelTheme.linkStyle
-    val contentColor= LocalContentColor.current
-    return LinkStyle(
-        colors = LinkColors(
-            content = contentColor,
-            contentDisabled = currentStyle.colors.contentDisabled,
-            contentHovered = contentColor,
-            contentPressed = contentColor,
-            contentFocused = contentColor,
-            contentVisited = contentColor,
-        ),
-        metrics = currentStyle.metrics,
-        icons = currentStyle.icons,
-        textStyles = currentStyle.textStyles,
-    )
 }
