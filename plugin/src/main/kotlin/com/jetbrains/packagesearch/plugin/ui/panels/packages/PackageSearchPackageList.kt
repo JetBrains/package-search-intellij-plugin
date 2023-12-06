@@ -109,7 +109,7 @@ fun PackageSearchPackageList(
 }
 
 @Composable
-private fun SelectableLazyItemScope.PackageListItem(
+internal fun SelectableLazyItemScope.PackageListItem(
     modifier: Modifier = Modifier,
     content: PackageListItem.Package,
     packagesList: List<PackageListItem>,
