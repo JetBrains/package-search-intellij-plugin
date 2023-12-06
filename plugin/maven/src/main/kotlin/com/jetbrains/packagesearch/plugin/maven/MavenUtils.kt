@@ -42,6 +42,7 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
+import org.jetbrains.packagesearch.api.v3.search.jvmMavenPackages
 import org.jetbrains.packagesearch.maven.POM_XML_NAMESPACE
 import org.jetbrains.packagesearch.maven.ProjectObjectModel
 import org.jetbrains.packagesearch.maven.decodeFromString
@@ -110,21 +111,7 @@ suspend fun Module.toPackageSearch(
         declaredDependencies = declaredDependencies,
         availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.declaredScope }).distinct(),
         compatiblePackageTypes = buildPackageTypes {
-            mavenPackages()
-            gradlePackages {
-                mustBeRootPublication = false
-                variant {
-                    mustHaveFilesAttribute = true
-                    javaApi()
-                }
-            }
-            gradlePackages {
-                mustBeRootPublication = false
-                variant {
-                    mustHaveFilesAttribute = true
-                    javaRuntime()
-                }
-            }
+            jvmMavenPackages()
         },
         nativeModule = this
     )

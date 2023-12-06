@@ -23,7 +23,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.FlowCollector
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.search.androidPackages
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
+import org.jetbrains.packagesearch.api.v3.search.jvmGradlePackages
 import org.jetbrains.packagesearch.api.v3.search.kotlinMultiplatform
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
@@ -77,7 +79,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                 compatiblePackageTypes = buildPackageTypes {
                     mavenPackages()
                     gradlePackages {
-                        mustBeRootPublication = true
+                        isRootPublication = true
                     }
                 },
                 availableScopes = availableScopes,
@@ -105,7 +107,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
             .distinct()
             .map { it.packageId }
 
-        val dependencyInfo =  getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
+        val dependencyInfo = getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
         val declaredSourceSetDependencies =
             rawDeclaredSourceSetDependencies
@@ -133,19 +135,16 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                     declaredDependencies = declaredSourceSetDependencies[sourceSetName] ?: emptyList(),
                     attributes = compilationTargets.buildAttributes(),
                     compatiblePackageTypes = buildPackageTypes {
-                        if (compilationTargets.singleOrNull() == Jvm) {
-                            mavenPackages()
-                        } else gradlePackages {
+                        gradlePackages {
                             kotlinMultiplatform {
                                 compilationTargets.forEach { compilationTarget ->
-                                    when (compilationTarget) {
-                                        is Js -> when (compilationTarget.compiler) {
+                                    when  {
+                                        compilationTarget is Js -> when (compilationTarget.compiler) {
                                             Js.Compiler.IR -> jsIr()
                                             Js.Compiler.LEGACY -> jsLegacy()
                                         }
-
-                                        is Native -> native(compilationTarget.target)
-                                        else -> {}
+                                        compilationTarget is Native -> native(compilationTarget.target)
+                                        compilationTarget == MppCompilationInfoModel.Wasm -> wasm()
                                     }
                                 }
                                 when {
@@ -161,5 +160,6 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
 
         sourceSetVariants + dependenciesBlockVariant.await()
     }
+
 }
 

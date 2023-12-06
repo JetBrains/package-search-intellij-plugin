@@ -1,4 +1,30 @@
-GET https://api.dev.package-search.services.jetbrains.com/package-info-by-hashes
+GET https://api.dev.package-search.services.jetbrains.com/search-packages
 Content-Type: application/json
 
-["6d2eceeb52da1da9817f4fb83d0c8a98173960f3690eb65206b606ad14b2f1d1"]
+{
+  "packagesType": [
+    {
+      "type": "maven"
+    },
+    {
+      "type": "gradle",
+      "variants": [
+        {
+          "attributes": {
+            "org.gradle.usage": {
+              "type": "exactMatch",
+              "value": "java-runtime"
+            },
+            "org.gradle.libraryelements": {
+              "type": "exactMatch",
+              "value": "jar"
+            }
+          },
+          "mustBeWithFiles": false
+        }
+      ],
+      "mustBeRootPublication": true
+    }
+  ],
+  "searchQuery": "kotlinx-datetime"
+}
