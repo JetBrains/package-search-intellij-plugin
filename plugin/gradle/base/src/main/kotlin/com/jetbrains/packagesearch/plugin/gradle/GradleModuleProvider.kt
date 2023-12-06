@@ -9,9 +9,11 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredKnownRepositories
 import kotlinx.coroutines.flow.FlowCollector
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
+import org.jetbrains.packagesearch.api.v3.search.androidPackages
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.javaApi
 import org.jetbrains.packagesearch.api.v3.search.javaRuntime
+import org.jetbrains.packagesearch.api.v3.search.jvmGradlePackages
 import org.jetbrains.packagesearch.api.v3.search.libraryElements
 
 class GradleModuleProvider : AbstractGradleModuleProvider() {
@@ -49,36 +51,10 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                 compatiblePackageTypes = buildPackageTypes {
                     mavenPackages()
                     when {
-                        model.isKotlinJvmApplied -> gradlePackages {
-                            mustBeRootPublication = true
-                            variant {
-                                javaApi()
-                                javaRuntime()
-                                libraryElements("jar")
-                            }
-                        }
-
-                        model.isKotlinAndroidApplied -> {
-                            gradlePackages {
-                                mustBeRootPublication = true
-                                variant {
-                                    javaApi()
-                                    javaRuntime()
-                                    libraryElements("aar")
-                                }
-                            }
-                            gradlePackages {
-                                mustBeRootPublication = true
-                                variant {
-                                    javaApi()
-                                    javaRuntime()
-                                    libraryElements("jar")
-                                }
-                            }
-                        }
-
+                        model.isKotlinAndroidApplied -> androidPackages()
+                        model.isJavaApplied -> jvmGradlePackages("jar")
                         else -> gradlePackages {
-                            mustBeRootPublication = true
+                            isRootPublication = true
                         }
                     }
                 },

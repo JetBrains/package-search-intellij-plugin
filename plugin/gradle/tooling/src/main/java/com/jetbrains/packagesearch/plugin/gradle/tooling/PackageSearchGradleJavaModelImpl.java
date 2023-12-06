@@ -73,7 +73,7 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         return isKotlinAndroidApplied;
     }
 
-    public boolean isKotlinJvmApplied() {
+    public boolean isJavaApplied() {
         return isKotlinJvmApplied;
     }
 
