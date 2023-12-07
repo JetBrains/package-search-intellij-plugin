@@ -1,6 +1,8 @@
 name: Publish snapshot to TBE
 
-on: [ push ]
+on:
+  push:
+    branches: [ releases/232 ]
 
 jobs:
   publish:
