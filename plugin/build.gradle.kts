@@ -106,9 +106,12 @@ tasks {
     }
     patchPluginXml {
         pluginId = pkgsPluginId
+        val versionString = project.version.toString()
         version = when {
-            project.version.toString().endsWith("-SNAPSHOT") -> "${project.version}-$snapshotDateSuffix"
-            else -> project.version.toString()
+            versionString.endsWith("-SNAPSHOT") ->
+                "${versionString.removePrefix("-SNAPSHOT")}.$snapshotDateSuffix"
+
+            else -> versionString
         }
     }
     val buildShadowPlugin by registering(Zip::class) {
@@ -116,8 +119,10 @@ tasks {
         from(shadowJar) {
             rename {
                 "package-search-plugin" + when {
-                    it.endsWith("-SNAPSHOT.jar") -> it.replace(".jar", "-$snapshotDateSuffix.jar")
-                        .also { logger.lifecycle("Snapshot version -> $it") }
+                    it.endsWith("-SNAPSHOT.jar") ->
+                        it.replace("-SNAPSHOT.jar", ".$snapshotDateSuffix.jar")
+                            .also { logger.lifecycle("Snapshot version -> $it") }
+
                     else -> it
                 }
             }
