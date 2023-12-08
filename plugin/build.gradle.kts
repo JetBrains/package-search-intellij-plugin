@@ -101,30 +101,19 @@ tasks {
 
     patchPluginXml {
         pluginId = pkgsPluginId
-        version = when {
-            versionString.endsWith("-SNAPSHOT") ->
-                "${versionString.removePrefix("-SNAPSHOT")}.$snapshotMinorVersion"
-
-            else -> versionString
-        }
+        version = versionString.replace("-SNAPSHOT", ".$snapshotMinorVersion")
     }
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
         from(shadowJar) {
-            rename {
-                "package-search-plugin-" + when {
-                    versionString.endsWith("-SNAPSHOT") ->
-                        versionString.replace("-SNAPSHOT", ".$snapshotMinorVersion")
-
-                    else -> versionString
-                } + ".jar"
-            }
+            rename { "packageSearch.jar" }
         }
         from(tooling) {
             rename { "gradle-tooling.jar" }
         }
         into("$pkgsPluginId/lib")
-        archiveFileName = "packagesearch-plugin.zip"
+        archiveFileName = "packageSearch-${project.version}.zip"
+            .replace("-SNAPSHOT", ".$snapshotMinorVersion")
         destinationDirectory = layout.buildDirectory.dir("distributions")
     }
 
