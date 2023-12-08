@@ -56,7 +56,6 @@ class PackageListViewModel(
 
     private val isOnline
         get() = IntelliJApplication.PackageSearchApplicationCachesService
-            .apiPackageCache
             .isOnlineFlow
 
     val isCompactFlow

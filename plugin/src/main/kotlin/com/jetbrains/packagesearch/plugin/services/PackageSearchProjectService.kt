@@ -126,7 +126,7 @@ class PackageSearchProjectService(
 
         IntelliJApplication.PackageSearchApplicationCachesService
             .apiPackageCache
-            .isOnlineFlow
+            .isOnlineFlow()
             .filter { it }
             .onEach { restart() }
             .launchIn(coroutineScope)
