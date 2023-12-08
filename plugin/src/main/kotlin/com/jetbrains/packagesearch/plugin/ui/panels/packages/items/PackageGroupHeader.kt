@@ -37,7 +37,6 @@ fun PackageListHeader(
     content: PackageListItem.Header,
     onEvent: (PackageListItemEvent) -> Unit,
 ) {
-    // TODO check if needed
     val backgroundColor =
         if (JewelTheme.isDark) {
             pickComposeColorFromLaf("ToolWindow.HeaderTab.selectedInactiveBackground")
@@ -90,8 +89,7 @@ fun PackageListHeader(
                 text = content.title,
                 maxLines = 1
             )
-            content.count?.let { LabelInfo(text = it.toString()) }
-            if (content.attriutes.isNotEmpty()) {
+            if (content.attributes.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .onClick {
@@ -101,7 +99,7 @@ fun PackageListHeader(
                     contentAlignment = Alignment.Center,
                 ) {
                     LabelInfo(
-                        text = content.attriutes.joinToString(" "),
+                        text = content.attributes.joinToString(" "),
                         maxLines = 1
                     )
                 }
