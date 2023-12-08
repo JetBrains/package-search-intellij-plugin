@@ -35,12 +35,8 @@ class PackageListBuilder(
         }
 
     private fun List<PackageSearchDeclaredPackage>.getUpdatesAvailableAdditionalContent() =
-        count { it.hasUpdates(onlyStable) }
-            .takeIf { it > 0 }
-            ?.let { PackageListItem.Header.AdditionalContent.UpdatesAvailableCount(it) }
-
-    private fun PackageSearchModuleVariant.getUpdatesAvailableAdditionalContent() =
-        declaredDependencies.count { it.hasUpdates(onlyStable) }
+        filter { it.matchesSearchQuery() }
+            .count { it.hasUpdates(onlyStable) }
             .takeIf { it > 0 }
             ?.let { PackageListItem.Header.AdditionalContent.UpdatesAvailableCount(it) }
 
@@ -189,7 +185,7 @@ class PackageListBuilder(
                     attributes = variant.attributes.map { it.value },
                     additionalContent = when (id) {
                         in headerLoadingStates -> PackageListItem.Header.AdditionalContent.Loading
-                        else -> variant.getUpdatesAvailableAdditionalContent()
+                        else -> variant.declaredDependencies.getUpdatesAvailableAdditionalContent()
                     }
                 )
                 if (state == PackageListItem.Header.State.OPEN) {
