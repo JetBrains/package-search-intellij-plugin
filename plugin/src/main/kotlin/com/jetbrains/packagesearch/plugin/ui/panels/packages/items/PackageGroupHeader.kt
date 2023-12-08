@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.packages.items
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
@@ -54,7 +55,7 @@ fun PackageListHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(
+            Row(
                 modifier = Modifier.onClick(enabled = content.state != State.LOADING) {
                     onEvent(
                         PackageListItemEvent.SetHeaderState(
@@ -65,6 +66,8 @@ fun PackageListHeader(
                         )
                     )
                 }
+                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 when (content.state) {
                     State.OPEN -> Icon(
@@ -83,12 +86,13 @@ fun PackageListHeader(
 
                     State.LOADING -> CircularProgressIndicator()
                 }
+
+                Text(
+                    fontWeight = FontWeight(600),
+                    text = content.title,
+                    maxLines = 1
+                )
             }
-            Text(
-                fontWeight = FontWeight(600),
-                text = content.title,
-                maxLines = 1
-            )
             if (content.attributes.isNotEmpty()) {
                 Box(
                     modifier = Modifier
