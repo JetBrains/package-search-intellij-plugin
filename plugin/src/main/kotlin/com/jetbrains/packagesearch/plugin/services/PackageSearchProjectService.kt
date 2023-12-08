@@ -20,6 +20,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.withInitialValue
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
+import com.jetbrains.packagesearch.plugin.utils.logWarn
 import com.jetbrains.packagesearch.plugin.utils.nativeModulesFlow
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
 import com.jetbrains.packagesearch.plugin.utils.timer
@@ -33,6 +34,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
@@ -45,6 +47,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 @Service(Level.PROJECT)
@@ -97,7 +101,7 @@ class PackageSearchProjectService(
         ) { nativeModules, transformerExtensions, context ->
             transformerExtensions.flatMap { transformer ->
                 nativeModules.map { module ->
-                    with (context) {
+                    with(context) {
                         transformer.provideModule(module).startWithNull()
                     }
                 }
@@ -109,9 +113,25 @@ class PackageSearchProjectService(
     private val restartFlow = restartChannel.consumeAsFlow()
         .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
 
+    private var counter = 0
+    private val counterMutex = Mutex()
+
+    private suspend fun restartWithCounter() = counterMutex.withLock {
+        if (counter++ < 3) {
+            restart()
+        }
+    }
+
+    private suspend fun resetCounter() = counterMutex.withLock { counter = 0 }
+
     val modulesStateFlow = restartFlow
         .withInitialValue(Unit)
         .flatMapLatest { moduleProvidersList }
+        .catch {
+            logWarn("${this::class.simpleName}#modulesStateFlow", throwable = it)
+            restartWithCounter()
+        }
+        .onEach { resetCounter() }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
 
     val modulesByBuildFile = modulesStateFlow
@@ -125,8 +145,7 @@ class PackageSearchProjectService(
     init {
 
         IntelliJApplication.PackageSearchApplicationCachesService
-            .apiPackageCache
-            .isOnlineFlow()
+            .isOnlineFlow
             .filter { it }
             .onEach { restart() }
             .launchIn(coroutineScope)

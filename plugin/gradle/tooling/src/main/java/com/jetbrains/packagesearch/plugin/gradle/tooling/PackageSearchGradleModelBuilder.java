@@ -9,7 +9,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.tooling.AbstractModelBuilderService;
-import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder;
 import org.jetbrains.plugins.gradle.tooling.Message;
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext;
 
