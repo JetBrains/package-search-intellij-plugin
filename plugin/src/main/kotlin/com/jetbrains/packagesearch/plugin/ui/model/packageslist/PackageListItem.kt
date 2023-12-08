@@ -18,8 +18,7 @@ sealed interface PackageListItem {
         override val title: String,
         override val id: Id,
         val state: State,
-        val count: Int? = null,
-        val attriutes: List<String> = emptyList(),
+        val attributes: List<String> = emptyList(),
         val additionalContent: AdditionalContent? = null,
     ) : PackageListItem {
 

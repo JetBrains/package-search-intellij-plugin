@@ -81,16 +81,17 @@ class PackageListBuilder(
         val dependenciesToShow = base.declaredDependencies
             .filter { it.matchesSearchQuery() }
         val state = getStateForOrOpen(id)
-        addHeader(
-            title = base.name,
-            id = id,
-            count = base.declaredDependencies.size,
-            state = state,
-            additionalContent = when (id) {
-                in headerLoadingStates -> PackageListItem.Header.AdditionalContent.Loading
-                else -> dependenciesToShow.getUpdatesAvailableAdditionalContent()
-            }
-        )
+        if (dependenciesToShow.isNotEmpty() || isCompact) {
+            addHeader(
+                title = base.name,
+                id = id,
+                state = state,
+                additionalContent = when (id) {
+                    in headerLoadingStates -> PackageListItem.Header.AdditionalContent.Loading
+                    else -> dependenciesToShow.getUpdatesAvailableAdditionalContent()
+                }
+            )
+        }
         if (state == PackageListItem.Header.State.OPEN) {
             dependenciesToShow
                 .filter { it.matchesSearchQuery() }
@@ -144,7 +145,6 @@ class PackageListBuilder(
         title: String,
         id: PackageListItem.Header.Id,
         state: PackageListItem.Header.State,
-        count: Int?,
         attributes: List<String> = emptyList(),
         additionalContent: PackageListItem.Header.AdditionalContent? = null,
     ) {
@@ -153,8 +153,7 @@ class PackageListBuilder(
                 title = title,
                 id = id,
                 state = state,
-                count = count,
-                attriutes = attributes,
+                attributes = attributes,
                 additionalContent = additionalContent,
             )
         )
@@ -186,9 +185,8 @@ class PackageListBuilder(
                         moduleIdentity = module.identity,
                         variantName = variant.name
                     ),
-                    count = variant.declaredDependencies.size,
-                    attributes = variant.attributes.map { it.value },
                     state = state,
+                    attributes = variant.attributes.map { it.value },
                     additionalContent = when (id) {
                         in headerLoadingStates -> PackageListItem.Header.AdditionalContent.Loading
                         else -> variant.getUpdatesAvailableAdditionalContent()
@@ -229,7 +227,6 @@ class PackageListBuilder(
         addHeader(
             title = module.name,
             id = id,
-            count = dependenciesToShow.size,
             state = state,
             additionalContent = when (id) {
                 in headerLoadingStates -> PackageListItem.Header.AdditionalContent.Loading
@@ -270,8 +267,7 @@ class PackageListBuilder(
                     state = when (headerCollapsedStates[headerId]) {
                         TargetState.OPEN -> PackageListItem.Header.State.LOADING
                         else -> PackageListItem.Header.State.CLOSED
-                    },
-                    count = null
+                    }
                 )
 
                 is Search.Query.WithVariants -> addHeader(
@@ -282,8 +278,7 @@ class PackageListBuilder(
                         else -> PackageListItem.Header.State.CLOSED
                     },
                     attributes = search.attributes,
-                    additionalContent = search.buildVariantsText(),
-                    count = null
+                    additionalContent = search.buildVariantsText()
                 )
 
                 is Search.Results.Base -> addFromSearchQueryBase(
@@ -313,7 +308,6 @@ class PackageListBuilder(
         addHeader(
             title = PackageSearchBundle.message("packagesearch.ui.toolwindow.tab.packages.searchResults"),
             id = headerId,
-            count = search.packages.size,
             state = state,
             attributes = search.attributes,
             additionalContent = search.buildVariantsText(),
@@ -366,7 +360,6 @@ class PackageListBuilder(
         addHeader(
             title = PackageSearchBundle.message("packagesearch.ui.toolwindow.tab.packages.searchResults"),
             id = headerId,
-            count = search.packages.size,
             state = state
         )
         if (state == PackageListItem.Header.State.OPEN) {
