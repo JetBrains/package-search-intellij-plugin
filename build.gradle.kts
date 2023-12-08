@@ -1,9 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
 import java.lang.System.getenv
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.packagesearch.gradle.pkgsSpace
 
 plugins {
