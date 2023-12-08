@@ -1,8 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.packagesearch.gradle.lafFile
 import org.jetbrains.packagesearch.gradle.logCategoriesFile
@@ -12,6 +9,7 @@ import org.jetbrains.packagesearch.gradle.patchSettingsFile
 import org.jetbrains.packagesearch.gradle.patchTextRegistryFile
 import org.jetbrains.packagesearch.gradle.registryTextFile
 import org.jetbrains.packagesearch.gradle.settingsFile
+import kotlin.math.max
 
 
 plugins {
@@ -95,21 +93,17 @@ tasks {
     prepareSandbox {
         runtimeClasspathFiles = tooling
     }
-    val snapshotDateSuffix = buildString {
-        val now = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-        append(now.year)
-        append(now.monthNumber)
-        append(now.dayOfMonth)
-        append(now.hour.toString().padStart(2, '0'))
-        append(now.minute.toString().padStart(2, '0'))
-        append(now.second.toString().padStart(2, '0'))
-    }
+
+    val runNumber  = System.getenv("RUN_NUMBER")?.toInt() ?: 0
+    val runAttempt  = System.getenv("RUN_ATTEMPT")?.toInt() ?: 0
+    val snapshotMinorVersion = max(0, runNumber + runAttempt - 1)
+    val versionString = project.version.toString()
+
     patchPluginXml {
         pluginId = pkgsPluginId
-        val versionString = project.version.toString()
         version = when {
             versionString.endsWith("-SNAPSHOT") ->
-                "${versionString.removePrefix("-SNAPSHOT")}.$snapshotDateSuffix"
+                "${versionString.removePrefix("-SNAPSHOT")}.$snapshotMinorVersion"
 
             else -> versionString
         }
@@ -118,20 +112,19 @@ tasks {
         group = "intellij"
         from(shadowJar) {
             rename {
-                "package-search-plugin" + when {
-                    it.endsWith("-SNAPSHOT.jar") ->
-                        it.replace("-SNAPSHOT.jar", ".$snapshotDateSuffix.jar")
-                            .also { logger.lifecycle("Snapshot version -> $it") }
+                "package-search-plugin-" + when {
+                    versionString.endsWith("-SNAPSHOT") ->
+                        versionString.replace("-SNAPSHOT", ".$snapshotMinorVersion")
 
-                    else -> it
-                }
+                    else -> versionString
+                } + ".jar"
             }
         }
         from(tooling) {
             rename { "gradle-tooling.jar" }
         }
         into("$pkgsPluginId/lib")
-        archiveFileName.set("packagesearch-plugin.zip")
+        archiveFileName = "packagesearch-plugin.zip"
         destinationDirectory = layout.buildDirectory.dir("distributions")
     }
 
