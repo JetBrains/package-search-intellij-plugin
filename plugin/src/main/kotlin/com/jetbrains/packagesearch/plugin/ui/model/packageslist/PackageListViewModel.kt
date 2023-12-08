@@ -136,6 +136,13 @@ class PackageListViewModel(
                     else -> value
                 }
             }
+        }.modifiedBy(selectedModulesFlow) { current: Map<PackageListItem.Header.Id.Remote, Search>, change ->
+            val changeIdentities = change.map { it.identity }
+            if (current.keys.any { it.moduleIdentity !in changeIdentities }) {
+                emptyMap()
+            } else {
+                current
+            }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
