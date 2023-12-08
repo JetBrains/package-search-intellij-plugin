@@ -92,7 +92,9 @@ class PackageListBuilder(
             }
         )
         if (state == PackageListItem.Header.State.OPEN) {
-            dependenciesToShow.forEach { dependency ->
+            dependenciesToShow
+                .filter { it.matchesSearchQuery() }
+                .forEach { dependency ->
                 addDeclaredPackage(
                     title = dependency.displayName,
                     subtitle = dependency.coordinates,
@@ -193,7 +195,9 @@ class PackageListBuilder(
                     }
                 )
                 if (state == PackageListItem.Header.State.OPEN) {
-                    variant.declaredDependencies.forEach { dependency ->
+                    variant.declaredDependencies
+                        .filter { it.matchesSearchQuery() }
+                        .forEach { dependency ->
                         addDeclaredPackage(
                             title = dependency.displayName,
                             subtitle = dependency.coordinates,
@@ -234,7 +238,9 @@ class PackageListBuilder(
             }
         )
         if (state == PackageListItem.Header.State.OPEN) {
-            dependenciesToShow.forEach { (variant, dependency) ->
+            dependenciesToShow
+                .filter { it.second.matchesSearchQuery() }
+                .forEach { (variant, dependency) ->
                 addDeclaredPackage(
                     title = dependency.displayName,
                     subtitle = variant.name,
