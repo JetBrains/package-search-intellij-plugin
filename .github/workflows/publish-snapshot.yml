@@ -26,3 +26,5 @@ jobs:
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           MAVEN_SPACE_PASSWORD: ${{ secrets.MAVEN_SPACE_PASSWORD }}
           MAVEN_SPACE_USERNAME: ${{ secrets.MAVEN_SPACE_USERNAME }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
