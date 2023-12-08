@@ -305,7 +305,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
                     event.eventId.moduleIdentity,
                     event.eventId.headerId.compatibleVariantNames
                 )
-                val search = searchResultMapFlow.value.getValue(headerId) as? Search.Results.WithVariants
+                val search = searchResultMapFlow.value[headerId] as? Search.Results.WithVariants
                     ?: return
                 infoPanelViewModel.setPackage(
                     module = event.eventId.getModule() as? PackageSearchModule.WithVariants ?: return,
@@ -328,7 +328,8 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 val module = event.eventId
                     .getModule() as? PackageSearchModule.WithVariants
                     ?: return
-                val variant = module.variants.getValue(event.eventId.variantName)
+                val variant = module.variants[event.eventId.variantName]
+                    ?: return
                 val declaredPackage = variant.declaredDependencies
                     .firstOrNull { it.id == event.eventId.packageId }
                     ?: return
@@ -369,8 +370,8 @@ class PackageListViewModel(private val project: Project) : Disposable {
                     val eventId = actionType
                         .eventId as? PackageListItem.Package.Declared.Id.WithVariant
                         ?: return@editModule
-                    val variant = module.variants
-                        .getValue(eventId.variantName)
+                    val variant = module.variants[eventId.variantName]
+                        ?: return@editModule
                     val declaredPackage = variant.declaredDependencies
                         .firstOrNull { it.id == eventId.packageId }
                         ?: return@editModule
@@ -385,7 +386,8 @@ class PackageListViewModel(private val project: Project) : Disposable {
         val module = actionType.eventId
             .getModule() as? PackageSearchModule.WithVariants
             ?: return
-        val variant = module.variants.getValue(actionType.selectedVariantName)
+        val variant = module.variants[actionType.selectedVariantName]
+            ?: return
         val search = searchResultMapFlow
             .value[actionType.headerId] as? Search.Results.WithVariants
             ?: return
@@ -446,7 +448,8 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 val eventId = actionType
                     .eventId as? PackageListItem.Package.Declared.Id.WithVariant
                     ?: return
-                val variant = module.variants.getValue(eventId.variantName)
+                val variant = module.variants[eventId.variantName]
+                    ?: return
                 variant.declaredDependencies.firstOrNull { it.id == eventId.packageId }
             }
 
@@ -505,11 +508,13 @@ class PackageListViewModel(private val project: Project) : Disposable {
         val module = event.eventId
             .getModule() as? PackageSearchModule.WithVariants
             ?: return
-        val variant = module.variants.getValue(event.eventId.variantName)
+        val variant = module.variants[event.eventId.variantName]
+            ?: return
         val declaredPackage = variant.declaredDependencies
             .firstOrNull { it.id == event.eventId.packageId }
             ?: return
-        val newVariant = module.variants.getValue(event.selectedVariantName)
+        val newVariant = module.variants[event.selectedVariantName]
+            ?: return
         module.editModule {
             variant.removeDependency(declaredPackage)
 //            newVariant.addDependency(
@@ -605,7 +610,8 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 val withVariants =
                     modulesById[moduleIdentity] as? PackageSearchModule.WithVariants
                         ?: return null
-                val variant = withVariants.variants.getValue(variantName)
+                val variant = withVariants.variants[variantName]
+                    ?: return null
                 PackageSearchDependencyHandlers(
                     modifier = withVariants,
                     manager = variant,
