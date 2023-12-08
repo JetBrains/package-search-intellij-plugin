@@ -22,7 +22,7 @@ fun PackageSearchPackagePanel(
             if (isInfoPanelOpen) {
                 HorizontalSplitLayout(
                     modifier = it,
-                    initialDividerPosition = 900.dp,
+                    initialDividerPosition = 700.dp,
                     first = { PackageSearchCentralPanel(it, onLinkClick) },
                     second = { PackageSearchInfoPanel(it, onLinkClick, onPackageEvent) },
                     maxRatio = 0.8f
