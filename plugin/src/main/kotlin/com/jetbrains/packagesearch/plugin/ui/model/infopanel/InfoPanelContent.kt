@@ -23,13 +23,14 @@ sealed interface InfoPanelContent {
             ) : Scm
         }
         data class Repository(val name: String, val url: String)
+        data class Type(val name: String, val icon: IconProvider.Icon)
 
         val packageListId: PackageListItem.Package.Id
         val moduleId: PackageSearchModule.Identity
         val title: String
         val subtitle: String
         val icon: IconProvider.Icon
-        val type: String?
+        val type: Type?
         val licenses: List<License>
         val authors: List<String>
         val description: String?
@@ -55,7 +56,7 @@ sealed interface InfoPanelContent {
                 override val title: String,
                 override val subtitle: String,
                 override val icon: IconProvider.Icon,
-                override val type: String,
+                override val type: Type?,
                 override val licenses: List<License>,
                 override val authors: List<String>,
                 override val description: String?,
@@ -78,7 +79,7 @@ sealed interface InfoPanelContent {
                 override val title: String,
                 override val subtitle: String,
                 override val icon: IconProvider.Icon,
-                override val type: String,
+                override val type: Type?,
                 override val licenses: List<License>,
                 override val authors: List<String>,
                 override val description: String?,
@@ -107,7 +108,7 @@ sealed interface InfoPanelContent {
                 override val title: String,
                 override val subtitle: String,
                 override val icon: IconProvider.Icon,
-                override val type: String,
+                override val type: Type,
                 override val licenses: List<License>,
                 override val authors: List<String>,
                 override val description: String?,
@@ -124,7 +125,7 @@ sealed interface InfoPanelContent {
                 override val title: String,
                 override val subtitle: String,
                 override val icon: IconProvider.Icon,
-                override val type: String,
+                override val type: Type,
                 override val licenses: List<License>,
                 override val authors: List<String>,
                 override val description: String?,
