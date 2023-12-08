@@ -50,8 +50,8 @@ internal fun PackageOverviewTab(
         modifier = Modifier.fillMaxSize().padding(start = 4.dp)
     ) {
         Row(verticalAlignment = Alignment.Top) {
-            InfoPanelPackageTitle(modifier = Modifier.weight(1f), content.title, content.subtitle)
-            InfoPanelPackageActions(content, onPackageEvent)
+            PackageTitle(modifier = Modifier.weight(1f), content.title, content.subtitle)
+            Actions(content, onPackageEvent)
         }
         Column(
             modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -94,18 +94,18 @@ internal fun PackageOverviewTab(
                 }
             }
 
-            content.type?.let { PackageType(it, content.icon) }
+            content.type?.let { PackageType(it) }
             if (content.repositories.isNotEmpty()) {
-                InfoPanelPackageDetailLine(
+                DetailLabel(
                     name = message("packagesearch.ui.toolwindow.packages.details.info.repositories"),
                     value = content.repositories.map { it.name }.joinToString(", ")
                 )
             }
             if (content.licenses.isNotEmpty()) {
-                InfoPanelPackageLinks(content.licenses, onLinkClick)
+                PackageLinks(content.licenses, onLinkClick)
             }
             if (content.authors.isNotEmpty()) {
-                InfoPanelPackageDetailLine(
+                DetailLabel(
                     name = message("packagesearch.ui.toolwindow.packages.details.info.authors"),
                     value = content.authors.joinToString(", ")
                 )
@@ -120,7 +120,7 @@ internal fun PackageOverviewTab(
             }
 
             content.scm?.let {
-                InfoPanelPackageScmLinks(it, onLinkClick)
+                ScmLinks(it, onLinkClick)
             }
             content.readmeUrl?.let { readmeUrl ->
                 ExternalLink(
@@ -132,7 +132,7 @@ internal fun PackageOverviewTab(
 }
 
 @Composable
-private fun InfoPanelPackageActions(
+private fun Actions(
     tabContent: InfoPanelContent.PackageInfo,
     onPackageEvent: (PackageListItemEvent) -> Unit,
 ) {
@@ -217,24 +217,27 @@ private fun InfoPanelPackageActions(
 }
 
 @Composable
-private fun PackageType(name: String, icon: IconProvider.Icon) {
-    Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun PackageType(type: InfoPanelContent.PackageInfo.Type) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         LabelInfo(
             modifier = Modifier.defaultMinSize(90.dp),
             text = message("packagesearch.ui.toolwindow.packages.columns.type")
         )
-        val iconPath = if (JewelTheme.isDark) icon.darkIconPath else icon.lightIconPath
+        val iconPath = if (JewelTheme.isDark) type.icon.darkIconPath else type.icon.lightIconPath
 
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             Icon(iconPath, null, IconProvider::class.java)
-            Text(name)
+            Text(type.name)
         }
 
     }
 }
 
 @Composable
-private fun InfoPanelPackageDetailLine(name: String, value: String) {
+private fun DetailLabel(name: String, value: String) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.Top,
@@ -247,9 +250,8 @@ private fun InfoPanelPackageDetailLine(name: String, value: String) {
     }
 }
 
-
 @Composable
-private fun InfoPanelPackageScmLinks(
+private fun ScmLinks(
     scm: InfoPanelContent.PackageInfo.Scm,
     onLinkClick: (String) -> Unit,
 ) {
@@ -269,7 +271,7 @@ private fun InfoPanelPackageScmLinks(
 }
 
 @Composable
-private fun InfoPanelPackageTitle(
+private fun PackageTitle(
     modifier: Modifier = Modifier,
     name: String?,
     id: String,
@@ -286,7 +288,7 @@ private fun InfoPanelPackageTitle(
 }
 
 @Composable
-private fun InfoPanelPackageLinks(
+private fun PackageLinks(
     licenses: List<InfoPanelContent.PackageInfo.License>,
     onLinkClick: (String) -> Unit,
 ) {
