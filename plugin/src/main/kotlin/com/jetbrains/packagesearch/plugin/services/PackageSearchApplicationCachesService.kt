@@ -23,17 +23,13 @@ import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
-import com.jetbrains.packagesearch.plugin.utils.timer
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import java.util.concurrent.CompletableFuture
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
@@ -87,9 +83,11 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
                 logger = KtorDebugLogger()
                 filter { it.attributes.getOrNull(PackageSearchApiClient.Attributes.Cache) == true }
             }
-        },
-        scope = coroutineScope
+        }
     )
+
+    val isOnlineFlow = devApiClient.isOnlineFlow()
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     val apiPackageCache = PackageSearchApiPackageCache(
         apiPackageCache = packagesRepository,

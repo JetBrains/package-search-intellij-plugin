@@ -35,9 +35,7 @@ internal class TreeViewModel(
     internal val treeState = TreeState(SelectableLazyListState(lazyListState))
 
     val isOnline
-        get() = IntelliJApplication.PackageSearchApplicationCachesService
-            .apiPackageCache
-            .isOnlineFlow
+        get() = IntelliJApplication.PackageSearchApplicationCachesService.isOnlineFlow
 
     fun expandAll() {
         treeState.openNodes = tree.value.walkBreadthFirst().map { it.id }.toSet()
