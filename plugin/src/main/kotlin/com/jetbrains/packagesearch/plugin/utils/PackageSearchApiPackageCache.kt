@@ -74,8 +74,9 @@ class PackageSearchApiPackageCache(
             .toList()
             .associateBy { it.id }
         val missingIds = ids - localDatabaseResults.keys
-        if (missingIds.isNotEmpty() && isOnlineFlow.value) {
-            val networkResults = apiCall(missingIds)
+        if (missingIds.isNotEmpty()) {
+            val networkResults = runCatching { apiCall(missingIds) }
+                .getOrDefault(emptyMap())
             // TODO cache also miss in network to avoid pointless empty query
             if (networkResults.isNotEmpty()) {
                 val packageEntries = networkResults.values.map { it.asCacheEntry() }

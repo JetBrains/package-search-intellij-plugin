@@ -10,8 +10,8 @@ import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
-import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
+import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
@@ -32,6 +32,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
 import org.dizitart.no2.IndexOptions
@@ -89,9 +91,11 @@ class PackageSearchApplicationCachesService : RecoveryAction, Disposable {
                 logger = KtorDebugLogger()
                 filter { it.attributes.getOrNull(PackageSearchApiClient.Attributes.Cache) == true }
             }
-        },
-        scope = coroutineScope
+        }
     )
+
+    val isOnlineFlow = devApiClient.isOnlineFlow()
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     val apiPackageCache = PackageSearchApiPackageCache(
         apiPackageCache = packagesRepository,

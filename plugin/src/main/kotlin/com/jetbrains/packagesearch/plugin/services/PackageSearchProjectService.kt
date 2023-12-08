@@ -126,7 +126,7 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
 
         IntelliJApplication.PackageSearchApplicationCachesService
             .apiPackageCache
-            .isOnlineFlow
+            .isOnlineFlow()
             .filter { it }
             .onEach { restart() }
             .launchIn(coroutineScope)

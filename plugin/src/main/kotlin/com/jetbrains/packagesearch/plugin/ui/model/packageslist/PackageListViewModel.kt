@@ -59,7 +59,6 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
     private val isOnline
         get() = IntelliJApplication.PackageSearchApplicationCachesService
-            .apiPackageCache
             .isOnlineFlow
 
     val isCompactFlow
