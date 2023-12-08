@@ -97,7 +97,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
         val rawDeclaredSourceSetDependencies = MppDependencyModifier
             .dependenciesBySourceSet(this@getKMPVariants)
             ?.filterNotNullValues()
-            ?.mapValues { readAction { it.value.artifacts().map { it.toGradleDependencyModel() } } }
+            ?.mapValues { readAction { it.value.artifacts().map { it.toGradleDependencyModel() } }.distinct() }
             ?: emptyMap()
 
         val packageIds = rawDeclaredSourceSetDependencies
