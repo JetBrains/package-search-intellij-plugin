@@ -10,13 +10,14 @@ data class PackageSearchGradleModel(
     val configurations: List<Configuration>,
     val repositories: List<String>,
     val isJavaApplied: Boolean,
+    val isAmperApplied: Boolean,
     val isKotlinAndroidApplied: Boolean,
     val isKotlinMultiplatformApplied: Boolean,
     val projectIdentityPath: String,
     val projectName: String,
     val rootProjectName: String,
     @Serializable(with = NioPathSerializer::class) val buildFilePath: Path?,
-    @Serializable(with = NioPathSerializer::class) val rootProjectPath: Path
+    @Serializable(with = NioPathSerializer::class) val rootProjectPath: Path,
 ) {
 
     @Serializable
