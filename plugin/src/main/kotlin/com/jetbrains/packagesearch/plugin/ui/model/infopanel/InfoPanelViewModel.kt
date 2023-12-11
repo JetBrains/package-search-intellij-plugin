@@ -65,7 +65,8 @@ class InfoPanelViewModel(private val project: Project) : Disposable {
                 }
             }
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val activeTabTitleMutableStateFlow: MutableStateFlow<String?> = MutableStateFlow(null)
     val activeTabTitleFlow = activeTabTitleMutableStateFlow.asStateFlow()
@@ -73,7 +74,6 @@ class InfoPanelViewModel(private val project: Project) : Disposable {
     fun setActiveTabTitle(title: String) {
         activeTabTitleMutableStateFlow.value = title
     }
-
 
     init {
         combine(
@@ -86,7 +86,6 @@ class InfoPanelViewModel(private val project: Project) : Disposable {
             .onEach { activeTabTitleMutableStateFlow.emit(it) }
             .launchIn(viewModelScope)
     }
-
 
     fun setPackage(
         module: PackageSearchModule.Base,

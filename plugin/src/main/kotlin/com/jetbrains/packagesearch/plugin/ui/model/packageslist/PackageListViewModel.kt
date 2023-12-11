@@ -13,6 +13,20 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManag
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleEditor
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import com.jetbrains.packagesearch.plugin.fus.logGoToSource
+import com.jetbrains.packagesearch.plugin.fus.logHeaderAttributesClick
+import com.jetbrains.packagesearch.plugin.fus.logHeaderVariantsClick
+import com.jetbrains.packagesearch.plugin.fus.logInfoPanelOpened
+import com.jetbrains.packagesearch.plugin.fus.logPackageInstalled
+import com.jetbrains.packagesearch.plugin.fus.logPackageRemoved
+import com.jetbrains.packagesearch.plugin.fus.logPackageScopeChanged
+import com.jetbrains.packagesearch.plugin.fus.logPackageSelected
+import com.jetbrains.packagesearch.plugin.fus.logPackageVariantChanged
+import com.jetbrains.packagesearch.plugin.fus.logPackageVersionChanged
+import com.jetbrains.packagesearch.plugin.fus.logSearchQueryClear
+import com.jetbrains.packagesearch.plugin.fus.logSearchRequest
+import com.jetbrains.packagesearch.plugin.fus.logTargetModuleSelected
+import com.jetbrains.packagesearch.plugin.fus.logUpgradeAll
 import com.jetbrains.packagesearch.plugin.ui.model.ToolWindowViewModel
 import com.jetbrains.packagesearch.plugin.ui.model.getLatestVersion
 import com.jetbrains.packagesearch.plugin.ui.model.hasUpdates
@@ -38,9 +52,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -74,18 +91,30 @@ class PackageListViewModel(private val project: Project) : Disposable {
     val isOnlineSearchEnabledFlow =
         combine(listOf(selectedModuleIdsSharedFlow.map { it.size == 1 }, isOnline)) {
             it.all { it }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, true)
-
-    private val selectedModulesFlow
-        get() = combine(
-            selectedModuleIdsSharedFlow,
-            project.PackageSearchProjectService.modulesByIdentity
-        ) { selectedModules, modulesByIdentity ->
-            modulesByIdentity.filterKeys { it in selectedModules }.values.toList()
         }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    private val selectedModulesFlow = combine(
+        selectedModuleIdsSharedFlow,
+        project.PackageSearchProjectService.modulesByIdentity
+    ) { selectedModules, modulesByIdentity ->
+        modulesByIdentity.filterKeys { it in selectedModules }.values.toList()
+    }
+        .shareIn(viewModelScope, SharingStarted.Lazily)
 
     private val searchQueryMutableStateFlow = MutableStateFlow("")
     val searchQueryStateFlow = searchQueryMutableStateFlow.asStateFlow()
+
+    init {
+        searchQueryStateFlow
+            .filter { it.isNotEmpty() }
+            .onEach { logSearchRequest(it) }
+            .launchIn(viewModelScope)
+
+        selectedModulesFlow
+            .onEach { logTargetModuleSelected(it) }
+            .launchIn(viewModelScope)
+    }
 
     private val headerCollapsedStatesFlow: MutableStateFlow<Map<PackageListItem.Header.Id, TargetState>> =
         MutableStateFlow(emptyMap())
@@ -253,6 +282,13 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 headerId to search
             }
 
+    fun clearSearchQuery() {
+        viewModelScope.launch {
+            searchQueryMutableStateFlow.emit("")
+            logSearchQueryClear()
+        }
+    }
+
     fun setSearchQuery(searchQuery: String) {
         viewModelScope.launch { searchQueryMutableStateFlow.emit(searchQuery) }
     }
@@ -273,8 +309,8 @@ class PackageListViewModel(private val project: Project) : Disposable {
         viewModelScope.launch {
             when (event) {
                 is PackageListItemEvent.EditPackageEvent -> handle(event)
-                is PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick -> logTODO()
-                is PackageListItemEvent.InfoPanelEvent.OnHeaderVariantsClick -> logTODO()
+                is PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick -> handle(event)
+                is PackageListItemEvent.InfoPanelEvent.OnHeaderVariantsClick -> handle(event)
                 is PackageListItemEvent.InfoPanelEvent.OnPackageSelected -> handle(event)
                 is PackageListItemEvent.InfoPanelEvent.OnPackageDoubleClick -> handle(event)
                 is PackageListItemEvent.OnPackageAction.GoToSource -> handle(event)
@@ -288,12 +324,19 @@ class PackageListViewModel(private val project: Project) : Disposable {
         }
     }
 
+    private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderVariantsClick) {
+        logTODO()
+        logHeaderVariantsClick()
+    }
+
     private suspend fun handle(event: PackageListItemEvent.InfoPanelEvent.OnPackageDoubleClick) {
         project.service<ToolWindowViewModel>().isInfoPanelOpen.emit(true)
+        logInfoPanelOpened()
     }
 
     private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnPackageSelected) {
         val infoPanelViewModel = project.service<InfoPanelViewModel>()
+        logPackageSelected(event.eventId is PackageListItem.Package.Declared.Id)
         when (event.eventId) {
             is PackageListItem.Package.Remote.Base.Id -> {
                 val headerId = PackageListItem.Header.Id.Remote.Base(event.eventId.moduleIdentity)
@@ -346,7 +389,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
     private suspend fun handle(actionType: PackageListItemEvent.OnPackageAction.Update) {
         packagesLoadingMutableStateFlow.update { it + actionType.eventId }
-        val (editor, manager, dependency) =
+        val (module, editor, manager, dependency) =
             actionType.eventId.getDependencyManagers() ?: return
         val newVersion = when {
             project.PackageSearchProjectService.stableOnlyStateFlow.value ->
@@ -355,6 +398,12 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
             else -> dependency.remoteInfo?.versions?.latest?.normalized?.versionName
         } ?: return
+        logPackageVersionChanged(
+            packageIdentifier = dependency.id,
+            packageFromVersion = dependency.declaredVersion?.versionName,
+            packageTargetVersion = newVersion,
+            targetModule = module
+        )
         editor.editModule {
             manager.updateDependency(dependency, newVersion, dependency.declaredScope)
         }
@@ -369,6 +418,11 @@ class PackageListViewModel(private val project: Project) : Disposable {
                     val declaredPackage = module.declaredDependencies
                         .firstOrNull { it.id == actionType.eventId.packageId }
                         ?: return@editModule
+                    logPackageRemoved(
+                        packageIdentifier = actionType.eventId.packageId,
+                        packageVersion = declaredPackage.declaredVersion?.versionName,
+                        targetModule = module
+                    )
                     module.removeDependency(declaredPackage)
                 }
 
@@ -381,6 +435,11 @@ class PackageListViewModel(private val project: Project) : Disposable {
                     val declaredPackage = variant.declaredDependencies
                         .firstOrNull { it.id == eventId.packageId }
                         ?: return@editModule
+                    logPackageRemoved(
+                        packageIdentifier = actionType.eventId.packageId,
+                        packageVersion = declaredPackage.declaredVersion?.versionName,
+                        targetModule = module
+                    )
                     variant.removeDependency(declaredPackage)
                 }
             }
@@ -400,6 +459,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
         val apiPackage = search.packages
             .firstOrNull { it.id == actionType.eventId.packageId }
             ?: return
+        logPackageInstalled(apiPackage.id, module)
         installDependency(
             manager = variant,
             updater = module,
@@ -417,6 +477,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
         val apiPackage = search.packages
             .firstOrNull { it.id == actionType.eventId.packageId }
             ?: return
+        logPackageInstalled(apiPackage.id, module)
         installDependency(
             manager = module,
             updater = module,
@@ -461,6 +522,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
             null -> return
         } ?: return
+        logGoToSource(module, dependency.id)
         val buildFile = module.buildFilePath
             ?.let { LocalFileSystem.getInstance().findFileByNioFile(it) }
             ?: return
@@ -486,28 +548,57 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
     private suspend fun handle(event: PackageListItemEvent.EditPackageEvent) {
         packagesLoadingMutableStateFlow.update { it + event.eventId }
+        val (module, editor, manager, dependency) =
+            event.eventId.getDependencyManagers() ?: return
         runCatching {
-            val (editor, manager, dependency) =
-                event.eventId.getDependencyManagers() ?: return
             editor.editModule {
                 when (event) {
-                    is PackageListItemEvent.EditPackageEvent.SetPackageScope ->
+                    is PackageListItemEvent.EditPackageEvent.SetPackageScope -> {
+                        viewModelScope.launch {
+                            logPackageScopeChanged(dependency.id, module)
+                        }
                         manager.updateDependency(
                             declaredPackage = dependency,
                             newVersion = dependency.declaredVersion?.versionName,
                             newScope = event.scope
                         )
+                    }
 
-                    is PackageListItemEvent.EditPackageEvent.SetPackageVersion ->
-                        manager.updateDependency(dependency, event.version, dependency.declaredScope)
+                    is PackageListItemEvent.EditPackageEvent.SetPackageVersion -> {
+                        viewModelScope.launch {
+                            logPackageVersionChanged(
+                                packageIdentifier = dependency.id,
+                                packageFromVersion = dependency.declaredVersion?.versionName,
+                                packageTargetVersion = event.version,
+                                targetModule = module
+                            )
+                        }
+                        manager.updateDependency(
+                            declaredPackage = dependency,
+                            newVersion = event.version,
+                            newScope = dependency.declaredScope
+                        )
+                    }
 
-                    is PackageListItemEvent.EditPackageEvent.SetVariant -> logTODO()
+                    is PackageListItemEvent.EditPackageEvent.SetVariant -> {
+                        viewModelScope.launch {
+                            logPackageVariantChanged(dependency.id, module)
+                        }
+                        logTODO()
+                    }
                 }
             }
         }
             .onFailure {
                 logWarn("Failed to set scope for package:\n${json.encodeToString(event)}", it)
             }
+    }
+
+    private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick) {
+        logTODO()
+        logHeaderAttributesClick(
+            isSearchHeader = event.eventId is PackageListItem.Header.Id.Remote
+        )
     }
 
     private suspend fun handle(event: PackageListItemEvent.EditPackageEvent.SetVariant) {
@@ -533,6 +624,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
     private suspend fun handle(event: PackageListItemEvent.UpdateAllPackages) {
         headerLoadingStatesFlow.update { it + event.eventId }
+        logUpgradeAll()
         val onlyStable = project.PackageSearchProjectService.stableOnlyStateFlow.value
         when (val module = event.eventId.getModule()) {
             is PackageSearchModule.Base -> {
@@ -619,6 +711,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 val variant = withVariants.variants[variantName]
                     ?: return null
                 PackageSearchDependencyHandlers(
+                    module = withVariants,
                     modifier = withVariants,
                     manager = variant,
                     declaredPackage = variant.declaredDependencies
