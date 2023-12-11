@@ -44,9 +44,9 @@ private val buildSystemField = EventFields.Class(FUSGroupIds.MODULE_OPERATION_PR
 private val packageIdField =
     EventFields.StringValidatedByCustomRule(FUSGroupIds.PACKAGE_ID, TopPackageIdValidationRule::class.java)
 private val packageVersionField =
-    EventFields.StringValidatedByRegexpReference(FUSGroupIds.PACKAGE_VERSION, regexpRef = "version")
+    EventFields.StringValidatedByRegexp(FUSGroupIds.PACKAGE_VERSION, regexpRef = "version")
 private val packageFromVersionField =
-    EventFields.StringValidatedByRegexpReference(FUSGroupIds.PACKAGE_FROM_VERSION, regexpRef = "version")
+    EventFields.StringValidatedByRegexp(FUSGroupIds.PACKAGE_FROM_VERSION, regexpRef = "version")
 private val repositoryIdField = EventFields.Enum<FUSGroupIds.IndexedRepositories>(FUSGroupIds.REPOSITORY_ID)
 private val repositoryUrlField =
     EventFields.String(FUSGroupIds.REPOSITORY_URL, allowedValues = FUSGroupIds.indexedRepositoryUrls)
@@ -55,13 +55,14 @@ private val packageIsInstalledField = EventFields.Boolean(FUSGroupIds.PACKAGE_IS
 private val targetModulesCountField = EventFields.Int(FUSGroupIds.TARGET_MODULES)
 private val targetModulesMixedBuildSystemsField =
     EventFields.Boolean(FUSGroupIds.TARGET_MODULES_MIXED_BUILD_SYSTEMS)
-val preferencesGradleScopeCountField = EventFields.Int(FUSGroupIds.PREFERENCES_GRADLE_SCOPES_COUNT)
-val preferencesUpdateScopesOnUsageField = EventFields.Boolean(FUSGroupIds.PREFERENCES_UPDATE_SCOPES_ON_USAGE)
-val preferencesDefaultGradleScopeChangedField =
+
+private val preferencesGradleScopeCountField = EventFields.Int(FUSGroupIds.PREFERENCES_GRADLE_SCOPES_COUNT)
+private val preferencesUpdateScopesOnUsageField = EventFields.Boolean(FUSGroupIds.PREFERENCES_UPDATE_SCOPES_ON_USAGE)
+private val preferencesDefaultGradleScopeChangedField =
     EventFields.Boolean(FUSGroupIds.PREFERENCES_DEFAULT_GRADLE_SCOPE_CHANGED)
-val preferencesDefaultMavenScopeChangedField =
+private val preferencesDefaultMavenScopeChangedField =
     EventFields.Boolean(FUSGroupIds.PREFERENCES_DEFAULT_MAVEN_SCOPE_CHANGED)
-internal val preferencesAutoAddRepositoriesField =
+private val preferencesAutoAddRepositoriesField =
     EventFields.Boolean(FUSGroupIds.PREFERENCES_AUTO_ADD_REPOSITORIES)
 private val detailsLinkLabelField =
     EventFields.Enum<FUSGroupIds.DetailsLinkTypes>(FUSGroupIds.DETAILS_LINK_LABEL)
