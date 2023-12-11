@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 
 @Service(Level.PROJECT)
@@ -66,9 +65,5 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
             initialValue = PackageSearchToolWindowState.Loading(message = easterEggMessage)
         )
 
-    init {
-        isInfoPanelOpen
-            .onEach { }
-    }
 }
 
