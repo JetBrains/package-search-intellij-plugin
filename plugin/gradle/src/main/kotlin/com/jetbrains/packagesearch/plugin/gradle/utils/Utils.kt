@@ -34,7 +34,8 @@ val Module.gradleIdentityPathOrNull: String?
         ?.data
         ?.gradleIdentityPathOrNull
 
-fun PackageSearchModuleBuilderContext.getGradleModelRepository(): CoroutineObjectRepository<GradleModelCacheEntry> =
+context(PackageSearchModuleBuilderContext)
+fun getGradleModelRepository(): CoroutineObjectRepository<GradleModelCacheEntry> =
     projectCaches.getRepository<GradleModelCacheEntry>("gradle")
 
 val Project.gradleSyncNotifierFlow: Flow<Unit>

@@ -9,7 +9,8 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
 
     private final List<String> repositories;
     private final String projectIdentityPath;
-    boolean isKotlinJvmApplied;
+    boolean isJavaApplied;
+    private boolean isAmperApplied;
     boolean isKotlinMultiplatformApplied;
     boolean isKotlinAndroidApplied;
     private final String projectName;
@@ -24,7 +25,8 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
             String projectIdentityPath,
             List<Configuration> configurations,
             List<String> repositories,
-            boolean isKotlinJvmApplied,
+            boolean isJavaApplied,
+            boolean isAmperApplied,
             boolean isKotlinMultiplatformApplied,
             boolean isKotlinAndroidApplied,
             String buildFilePath,
@@ -34,13 +36,14 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         this.configurations = configurations;
         this.repositories = repositories;
         this.projectIdentityPath = projectIdentityPath;
-        this.isKotlinJvmApplied = isKotlinJvmApplied;
+        this.isJavaApplied = isJavaApplied;
         this.isKotlinMultiplatformApplied = isKotlinMultiplatformApplied;
         this.isKotlinAndroidApplied = isKotlinAndroidApplied;
         this.projectName = projectName;
         this.rootProjectName = rootProjectName;
         this.buildFilePath = buildFilePath;
         this.rootProjectPath = rootProjectPath;
+        this.isAmperApplied = isAmperApplied;
     }
 
     @Override
@@ -74,7 +77,12 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
     }
 
     public boolean isJavaApplied() {
-        return isKotlinJvmApplied;
+        return isJavaApplied;
+    }
+
+    @Override
+    public boolean isAmperApplied() {
+        return isAmperApplied;
     }
 
     @Override

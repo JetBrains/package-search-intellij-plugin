@@ -87,6 +87,7 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
                 configurations,
                 repositories,
                 project.getPluginManager().hasPlugin("org.gradle.java"),
+                project.getPluginManager().hasPlugin("org.jetbrains.amper.settings.plugin"),
                 project.getPluginManager().hasPlugin("org.jetbrains.kotlin.multiplatform"),
                 project.getPluginManager().hasPlugin("org.jetbrains.kotlin.android"),
                 buildFilePath,

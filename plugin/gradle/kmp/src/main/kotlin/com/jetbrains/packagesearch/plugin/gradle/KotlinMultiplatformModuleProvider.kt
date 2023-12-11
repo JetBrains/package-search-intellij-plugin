@@ -23,9 +23,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.FlowCollector
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.api.v3.search.androidPackages
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
-import org.jetbrains.packagesearch.api.v3.search.jvmGradlePackages
 import org.jetbrains.packagesearch.api.v3.search.kotlinMultiplatform
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
@@ -36,7 +34,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
         module: Module,
         model: PackageSearchGradleModel,
     ) {
-        if (model.isKotlinMultiplatformApplied)
+        if (model.isKotlinMultiplatformApplied && !model.isAmperApplied)
             MppCompilationInfoProvider.sourceSetsMap(project, model.projectDir)
                 .collect { compilationModel ->
                     val variants = module.getKMPVariants(
