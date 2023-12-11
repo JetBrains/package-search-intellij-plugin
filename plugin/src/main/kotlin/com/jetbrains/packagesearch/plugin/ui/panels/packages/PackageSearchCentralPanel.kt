@@ -29,6 +29,7 @@ fun PackageSearchCentralPanel(
         onlineSearchEnabled = isOnlineSearchEnabled,
         searchQuery = searchQuery,
         onSearchQueryChange = { viewModel.setSearchQuery(it) },
+        onSearchQueryClear = { viewModel.clearSearchQuery() }
     )
     Divider(Orientation.Horizontal)
     val packagesList by viewModel.packageListItemsFlow.collectAsState()

@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+import kotlin.math.max
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.packagesearch.gradle.lafFile
 import org.jetbrains.packagesearch.gradle.logCategoriesFile
@@ -9,7 +10,6 @@ import org.jetbrains.packagesearch.gradle.patchSettingsFile
 import org.jetbrains.packagesearch.gradle.patchTextRegistryFile
 import org.jetbrains.packagesearch.gradle.registryTextFile
 import org.jetbrains.packagesearch.gradle.settingsFile
-import kotlin.math.max
 
 
 plugins {
@@ -38,6 +38,10 @@ packagesearch {
         "org.jetbrains.jewel.foundation.ExperimentalJewelApi"
     )
     isRunIdeEnabled = true
+}
+
+intellij {
+    plugins.add("org.jetbrains.idea.reposearch")
 }
 
 val tooling: Configuration by configurations.creating {

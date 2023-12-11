@@ -15,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
@@ -36,12 +35,10 @@ fun PackageSearchInfoPanel(
     val viewModel = viewModel<InfoPanelViewModel>()
     val tabs by viewModel.tabs.collectAsState()
     val activeTabTitle by viewModel.activeTabTitleFlow.collectAsState()
-    val activeTab by derivedStateOf {
-        tabs.firstOrNull { it.tabTitle == activeTabTitle }
-    }
+    // if you use `by derivedStateOf`, the then will fail
+    val activeTab = derivedStateOf { tabs.firstOrNull { it.tabTitle == activeTabTitle } }.value
     when {
         tabs.isEmpty() || activeTab == null -> NoTabsAvailable()
-
         else -> Column(modifier = Modifier.fillMaxSize()) {
             TabStrip(
                 modifier = Modifier.fillMaxWidth(),
@@ -60,13 +57,14 @@ fun PackageSearchInfoPanel(
                         .padding(end = PackageSearchMetrics.scrollbarWidth)
                         .verticalScroll(viewModel.scrollState)
                 ) {
-                    val tab = activeTab
-                    if (tab is InfoPanelContent.PackageInfo) {
-                        PackageOverviewTab(
-                            onLinkClick = onLinkClick,
-                            onPackageEvent = onPackageEvent,
-                            content = tab
-                        )
+                    when (activeTab) {
+                        is InfoPanelContent.PackageInfo -> {
+                            PackageOverviewTab(
+                                onLinkClick = onLinkClick,
+                                onPackageEvent = onPackageEvent,
+                                content = activeTab
+                            )
+                        }
                     }
                 }
                 VerticalScrollbar(

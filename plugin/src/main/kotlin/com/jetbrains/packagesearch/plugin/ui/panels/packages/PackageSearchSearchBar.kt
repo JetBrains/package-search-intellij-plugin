@@ -23,6 +23,7 @@ fun PackageSearchSearchBar(
     onlineSearchEnabled: Boolean,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
+    onSearchQueryClear: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -58,7 +59,7 @@ fun PackageSearchSearchBar(
             trailingIcon = {
                 Crossfade(searchQuery.isEmpty()) {
                     if (it) return@Crossfade
-                    IconButton(onClick = { onSearchQueryChange("") }) {
+                    IconButton(onClick = { onSearchQueryClear() }) {
                         Icon(
                             resource = "actions/close.svg",
                             contentDescription = null,

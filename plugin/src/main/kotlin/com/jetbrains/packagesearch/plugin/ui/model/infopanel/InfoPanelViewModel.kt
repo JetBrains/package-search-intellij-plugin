@@ -63,7 +63,8 @@ class InfoPanelViewModel(
                 }
             }
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val activeTabTitleMutableStateFlow: MutableStateFlow<String?> = MutableStateFlow(null)
     val activeTabTitleFlow = activeTabTitleMutableStateFlow.asStateFlow()
@@ -71,7 +72,6 @@ class InfoPanelViewModel(
     fun setActiveTabTitle(title: String) {
         activeTabTitleMutableStateFlow.value = title
     }
-
 
     init {
         combine(
@@ -84,7 +84,6 @@ class InfoPanelViewModel(
             .onEach { activeTabTitleMutableStateFlow.emit(it) }
             .launchIn(viewModelScope)
     }
-
 
     fun setPackage(
         module: PackageSearchModule.Base,

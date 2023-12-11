@@ -57,6 +57,7 @@ internal fun buildPackageList(
 ).apply(block).build()
 
 internal data class PackageSearchDependencyHandlers(
+    val module: PackageSearchModule,
     val modifier: PackageSearchModuleEditor,
     val manager: PackageSearchDependencyManager,
     val declaredPackage: PackageSearchDeclaredPackage,
@@ -65,8 +66,12 @@ internal data class PackageSearchDependencyHandlers(
 internal fun PackageSearchDependencyHandlers(
     module: PackageSearchModule.Base,
     declaredPackage: PackageSearchDeclaredPackage,
-) =
-    PackageSearchDependencyHandlers(module, module, declaredPackage)
+) = PackageSearchDependencyHandlers(
+    module = module,
+    modifier = module,
+    manager = module,
+    declaredPackage = declaredPackage
+)
 
 internal fun combineListChanges(
     modulesFlow: Flow<List<PackageSearchModule>>,
