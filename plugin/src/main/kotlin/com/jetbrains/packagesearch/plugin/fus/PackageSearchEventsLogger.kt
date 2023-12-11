@@ -31,7 +31,7 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 private const val FUS_ENABLED = true
 
-class PackageSearchEventsLogger : CounterUsagesCollector() {
+internal class PackageSearchEventsLogger : CounterUsagesCollector() {
     override fun getGroup() = GROUP
 }
 
@@ -55,13 +55,13 @@ private val packageIsInstalledField = EventFields.Boolean(FUSGroupIds.PACKAGE_IS
 private val targetModulesCountField = EventFields.Int(FUSGroupIds.TARGET_MODULES)
 private val targetModulesMixedBuildSystemsField =
     EventFields.Boolean(FUSGroupIds.TARGET_MODULES_MIXED_BUILD_SYSTEMS)
-val preferencesGradleScopeCountField = EventFields.Int(FUSGroupIds.PREFERENCES_GRADLE_SCOPES_COUNT)
-val preferencesUpdateScopesOnUsageField = EventFields.Boolean(FUSGroupIds.PREFERENCES_UPDATE_SCOPES_ON_USAGE)
-val preferencesDefaultGradleScopeChangedField =
+private val preferencesGradleScopeCountField = EventFields.Int(FUSGroupIds.PREFERENCES_GRADLE_SCOPES_COUNT)
+private val preferencesUpdateScopesOnUsageField = EventFields.Boolean(FUSGroupIds.PREFERENCES_UPDATE_SCOPES_ON_USAGE)
+private val preferencesDefaultGradleScopeChangedField =
     EventFields.Boolean(FUSGroupIds.PREFERENCES_DEFAULT_GRADLE_SCOPE_CHANGED)
-val preferencesDefaultMavenScopeChangedField =
+private val preferencesDefaultMavenScopeChangedField =
     EventFields.Boolean(FUSGroupIds.PREFERENCES_DEFAULT_MAVEN_SCOPE_CHANGED)
-internal val preferencesAutoAddRepositoriesField =
+private val preferencesAutoAddRepositoriesField =
     EventFields.Boolean(FUSGroupIds.PREFERENCES_AUTO_ADD_REPOSITORIES)
 private val detailsLinkLabelField =
     EventFields.Enum<FUSGroupIds.DetailsLinkTypes>(FUSGroupIds.DETAILS_LINK_LABEL)
@@ -139,14 +139,15 @@ private val headerAttributesClick = GROUP.registerEvent(
     eventField1 = isSearchHeader
 )
 private val headerVariantClick = GROUP.registerEvent(FUSGroupIds.HEADER_VARIANTS_CLICK)
-fun logPackageInstalled(
+
+internal fun logPackageInstalled(
     packageIdentifier: String,
     targetModule: PackageSearchModule,
 ) = runSafelyIfEnabled(packageInstalledEvent) {
     log(packageIdentifier, targetModule::class.java)
 }
 
-fun logPackageRemoved(
+internal fun logPackageRemoved(
     packageIdentifier: String,
     packageVersion: String?,
     targetModule: PackageSearchModule,
@@ -154,7 +155,7 @@ fun logPackageRemoved(
     log(packageIdentifier, packageVersion, targetModule::class.java)
 }
 
-fun logPackageVersionChanged(
+internal fun logPackageVersionChanged(
     packageIdentifier: String,
     packageFromVersion: String?,
     packageTargetVersion: String,
@@ -168,25 +169,25 @@ fun logPackageVersionChanged(
     )
 }
 
-fun logPackageVariantChanged(
+internal fun logPackageVariantChanged(
     packageIdentifier: String,
     targetModule: PackageSearchModule,
 ) = runSafelyIfEnabled(packageVariantChangedEvent) {
     log(packageIdentifier, targetModule::class.java)
 }
 
-fun logPackageScopeChanged(
+internal fun logPackageScopeChanged(
     packageIdentifier: String,
     targetModule: PackageSearchModule,
 ) = runSafelyIfEnabled(packageScopeChangedEvent) {
     log(packageIdentifier, targetModule::class.java)
 }
 
-fun logRepositoryAdded(model: ApiRepository) = runSafelyIfEnabled(repositoryAddedEvent) {
+internal fun logRepositoryAdded(model: ApiRepository) = runSafelyIfEnabled(repositoryAddedEvent) {
     log(FUSGroupIds.IndexedRepositories.forId(model.id), FUSGroupIds.IndexedRepositories.validateUrl(model.url))
 }
 
-fun logRepositoryRemoved(model: ApiRepository) = runSafelyIfEnabled(repositoryRemovedEvent) {
+internal fun logRepositoryRemoved(model: ApiRepository) = runSafelyIfEnabled(repositoryRemovedEvent) {
     val repository = FUSGroupIds.IndexedRepositories.forId(model.id)
     val validatedUrl = FUSGroupIds.IndexedRepositories.validateUrl(model.url)
     val usesCustomUrl = repository != FUSGroupIds.IndexedRepositories.NONE &&
@@ -195,57 +196,57 @@ fun logRepositoryRemoved(model: ApiRepository) = runSafelyIfEnabled(repositoryRe
     log(repository, validatedUrl, usesCustomUrl)
 }
 
-fun logPreferencesRestoreDefaults() = runSafelyIfEnabled(preferencesRestoreDefaultsEvent) {
+internal fun logPreferencesRestoreDefaults() = runSafelyIfEnabled(preferencesRestoreDefaultsEvent) {
     log()
 }
 
-fun logTargetModuleSelected(targetModules: List<PackageSearchModule>) =
+internal fun logTargetModuleSelected(targetModules: List<PackageSearchModule>) =
     runSafelyIfEnabled(targetModulesSelectedEvent) {
         if (targetModules.isNotEmpty()) {
             log(targetModules.size, targetModules.groupBy { it.identity.group }.keys.size != 1)
         }
     }
 
-fun logPackageSelected(isInstalled: Boolean) = runSafelyIfEnabled(packageSelectedEvent) {
+internal fun logPackageSelected(isInstalled: Boolean) = runSafelyIfEnabled(packageSelectedEvent) {
     log(isInstalled)
 }
 
-fun logDetailsLinkClick(type: FUSGroupIds.DetailsLinkTypes) = runSafelyIfEnabled(detailsLinkClickEvent) {
+internal fun logDetailsLinkClick(type: FUSGroupIds.DetailsLinkTypes) = runSafelyIfEnabled(detailsLinkClickEvent) {
     log(type)
 }
 
-fun logOnlyStableToggle(state: Boolean) = runSafelyIfEnabled(onlyStableToggleEvent) {
+internal fun logOnlyStableToggle(state: Boolean) = runSafelyIfEnabled(onlyStableToggleEvent) {
     log(state)
 }
 
-fun logSearchRequest(query: String) = runSafelyIfEnabled(searchRequestEvent) {
+internal fun logSearchRequest(query: String) = runSafelyIfEnabled(searchRequestEvent) {
     log(query.length)
 }
 
-fun logSearchQueryClear() = runSafelyIfEnabled(searchQueryClearEvent) {
+internal fun logSearchQueryClear() = runSafelyIfEnabled(searchQueryClearEvent) {
     log()
 }
 
-fun logUpgradeAll() = runSafelyIfEnabled(upgradeAllEvent) {
+internal fun logUpgradeAll() = runSafelyIfEnabled(upgradeAllEvent) {
     log()
 }
 
-fun logInfoPanelOpened() = runSafelyIfEnabled(infoPanelOpenedEvent) {
+internal fun logInfoPanelOpened() = runSafelyIfEnabled(infoPanelOpenedEvent) {
     log()
 }
 
-fun logGoToSource(
+internal fun logGoToSource(
     module: PackageSearchModule,
     packageId: String,
 ) = runSafelyIfEnabled(goToSourceEvent) {
     log(module::class.java, packageId)
 }
 
-fun logHeaderAttributesClick(isSearchHeader: Boolean) = runSafelyIfEnabled(headerAttributesClick) {
+internal fun logHeaderAttributesClick(isSearchHeader: Boolean) = runSafelyIfEnabled(headerAttributesClick) {
     log(isSearchHeader)
 }
 
-fun logHeaderVariantsClick() = runSafelyIfEnabled(headerVariantClick) {
+internal fun logHeaderVariantsClick() = runSafelyIfEnabled(headerVariantClick) {
     log()
 }
 
