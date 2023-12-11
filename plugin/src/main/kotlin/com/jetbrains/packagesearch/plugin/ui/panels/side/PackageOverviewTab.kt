@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.fus.FUSGroupIds
+import com.jetbrains.packagesearch.plugin.fus.logDetailsLinkClick
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelContent
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent
@@ -114,7 +116,7 @@ internal fun PackageOverviewTab(
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = description.trimStart(),
-                    textAlign = TextAlign.Justify,
+                    textAlign = TextAlign.Start,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -122,10 +124,15 @@ internal fun PackageOverviewTab(
             content.scm?.let {
                 ScmLinks(it, onLinkClick)
             }
+
             content.readmeUrl?.let { readmeUrl ->
                 ExternalLink(
                     text = message("packagesearch.ui.toolwindow.link.readme.capitalized"),
-                    onClick = { onLinkClick(readmeUrl) })
+                    onClick = {
+                        onLinkClick(readmeUrl)
+                        logDetailsLinkClick(FUSGroupIds.DetailsLinkTypes.Readme)
+                    }
+                )
             }
         }
     }
@@ -243,7 +250,7 @@ private fun DetailLabel(name: String, value: String) {
         verticalAlignment = Alignment.Top,
     ) {
         LabelInfo(
-            modifier = Modifier.defaultMinSize(90.dp,16.dp),
+            modifier = Modifier.defaultMinSize(90.dp, 16.dp),
             text = name
         )
         Text(value)
@@ -261,7 +268,10 @@ private fun ScmLinks(
     ) {
         ExternalLink(
             text = message("packagesearch.ui.toolwindow.link.github"),
-            onClick = { onLinkClick(scm.url) },
+            onClick = {
+                logDetailsLinkClick(FUSGroupIds.DetailsLinkTypes.Scm)
+                onLinkClick(scm.url)
+            },
         )
         if (scm is InfoPanelContent.PackageInfo.Scm.GitHub) {
             Icon(resource = "icons/Rating.svg", contentDescription = null, IconProvider::class.java)
@@ -305,7 +315,10 @@ private fun PackageLinks(
                 null -> Text(license.name)
                 else -> ExternalLink(
                     text = license.name,
-                    onClick = { onLinkClick(license.url) },
+                    onClick = {
+                        onLinkClick(license.url)
+                        logDetailsLinkClick(FUSGroupIds.DetailsLinkTypes.License)
+                    },
                 )
             }
             if (index != licenses.lastIndex) {

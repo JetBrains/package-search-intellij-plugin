@@ -13,6 +13,7 @@ Supports Maven and Gradle projects.
 
     <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
     <depends optional="true" config-file="gradle.xml">com.intellij.gradle</depends>
+    <depends>org.jetbrains.idea.reposearch</depends>
 
     <extensionPoints>
         <extensionPoint qualifiedName="com.intellij.packagesearch.moduleProvider"
@@ -21,6 +22,8 @@ Supports Maven and Gradle projects.
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
+        <statistics.counterUsagesCollector
+                implementationClass="com.jetbrains.packagesearch.plugin.fus.PackageSearchEventsLogger"/>
         <recoveryAction
                 implementation="com.jetbrains.packagesearch.plugin.services.CleanPackageSearchApplicationCacheAction"/>
         <toolWindow id="PackageSearch"

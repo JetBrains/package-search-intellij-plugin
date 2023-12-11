@@ -3,7 +3,6 @@
 package com.jetbrains.packagesearch.plugin.services
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
@@ -17,6 +16,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesS
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.core.utils.withInitialValue
+import com.jetbrains.packagesearch.plugin.fus.logOnlyStableToggle
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
@@ -27,8 +27,6 @@ import com.jetbrains.packagesearch.plugin.utils.timer
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -143,6 +141,10 @@ class PackageSearchProjectService(
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     init {
+
+        stableOnlyStateFlow
+            .onEach { logOnlyStableToggle(it) }
+            .launchIn(coroutineScope)
 
         IntelliJApplication.PackageSearchApplicationCachesService
             .isOnlineFlow
