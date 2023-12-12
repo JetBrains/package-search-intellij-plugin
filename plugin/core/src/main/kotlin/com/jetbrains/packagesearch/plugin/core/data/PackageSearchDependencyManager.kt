@@ -21,7 +21,7 @@ interface PackageSearchDependencyManager {
 }
 
 interface EditModuleContext {
-    val data: Any
+    val data: Any?
 }
 
 interface PackageSearchModuleEditor {

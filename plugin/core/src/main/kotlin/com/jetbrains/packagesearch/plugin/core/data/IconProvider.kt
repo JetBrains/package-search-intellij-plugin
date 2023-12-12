@@ -13,6 +13,7 @@ interface IconProvider {
         val COCOAPODS = Icon("icons/cocoapods.svg")
         val NPM = Icon("icons/npm.svg")
         val KOTLIN = Icon("org/jetbrains/kotlin/idea/icons/kotlin.svg")
+        val IDEA = Icon("icons/idea.svg")
     }
 
     val icon: Icon
