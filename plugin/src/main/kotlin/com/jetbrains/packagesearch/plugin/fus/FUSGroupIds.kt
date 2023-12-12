@@ -30,6 +30,8 @@ object FUSGroupIds {
     const val PACKAGE_ID = "package_id"
     const val PACKAGE_VERSION = "package_version"
     const val PACKAGE_FROM_VERSION = "package_from_version"
+    const val PACKAGE_FROM_SCOPE = "package_from_scope"
+    const val PACKAGE_TO_SCOPE = "package_to_scope"
     const val REPOSITORY_ID = "repository_id"
     const val REPOSITORY_URL = "repository_url"
     const val REPOSITORY_USES_CUSTOM_URL = "repository_uses_custom_url"
