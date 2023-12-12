@@ -41,4 +41,3 @@ fun isLightTheme(): Boolean {
 
 private fun Color.getBrightness() = (red * 299 + green * 587 + blue * 114) / 1000
 
-fun Modifier.pointerChangeToHandModifier() = this.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
