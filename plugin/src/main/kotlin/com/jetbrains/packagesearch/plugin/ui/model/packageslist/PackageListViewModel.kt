@@ -552,7 +552,7 @@ class PackageListViewModel(
                 when (event) {
                     is PackageListItemEvent.EditPackageEvent.SetPackageScope -> {
                         viewModelScope.launch {
-                            logPackageScopeChanged(dependency.id, module)
+                            logPackageScopeChanged(dependency.id, dependency.declaredScope, event.scope, module)
                         }
                         manager.updateDependency(
                             declaredPackage = dependency,
