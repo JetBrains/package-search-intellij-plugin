@@ -21,6 +21,7 @@ package com.jetbrains.packagesearch.plugin.fus
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.events.BaseEventId
 import com.intellij.internal.statistic.eventLog.events.EventFields
+import com.intellij.internal.statistic.eventLog.validator.rules.impl.LocalFileCustomValidationRule
 import com.intellij.internal.statistic.service.fus.collectors.CounterUsagesCollector
 import com.intellij.openapi.diagnostic.RuntimeExceptionWithAttachments
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
@@ -39,6 +40,12 @@ private const val VERSION = 13
 
 private val GROUP = EventLogGroup(FUSGroupIds.GROUP_ID, VERSION)
 
+internal class TopScopesValidationRule : LocalFileCustomValidationRule(
+    /* ruleId = */ "top_scopes_id",
+    /* resource = */ TopScopesValidationRule::class.java,
+    /* path = */ "/fus/scopes.txt"
+)
+
 // FIELDS
 private val buildSystemField = EventFields.Class(FUSGroupIds.MODULE_OPERATION_PROVIDER_CLASS)
 private val packageIdField =
@@ -47,6 +54,10 @@ private val packageVersionField =
     EventFields.StringValidatedByRegexpReference(FUSGroupIds.PACKAGE_VERSION, regexpRef = "version")
 private val packageFromVersionField =
     EventFields.StringValidatedByRegexpReference(FUSGroupIds.PACKAGE_FROM_VERSION, regexpRef = "version")
+private val packageScopeFromField =
+    EventFields.StringValidatedByCustomRule<TopScopesValidationRule>(FUSGroupIds.PACKAGE_FROM_SCOPE)
+private val packageScopeToField =
+    EventFields.StringValidatedByCustomRule<TopScopesValidationRule>(FUSGroupIds.PACKAGE_TO_SCOPE)
 private val repositoryIdField = EventFields.Enum<FUSGroupIds.IndexedRepositories>(FUSGroupIds.REPOSITORY_ID)
 private val repositoryUrlField =
     EventFields.String(FUSGroupIds.REPOSITORY_URL, allowedValues = FUSGroupIds.indexedRepositoryUrls)
@@ -85,11 +96,12 @@ private val packageVersionChangedEvent = GROUP.registerVarargEvent(
     eventId = FUSGroupIds.PACKAGE_VERSION_UPDATED,
     packageIdField, packageFromVersionField, packageVersionField, buildSystemField
 )
-private val packageScopeChangedEvent = GROUP.registerEvent(
+
+private val packageScopeChangedEvent = GROUP.registerVarargEvent(
     eventId = FUSGroupIds.PACKAGE_SCOPE_UPDATED,
-    eventField1 = packageIdField,
-    eventField2 = buildSystemField
+    packageIdField, packageScopeFromField, packageScopeToField, buildSystemField
 )
+
 private val packageVariantChangedEvent = GROUP.registerEvent(
     eventId = FUSGroupIds.PACKAGE_VARIANT_UPDATED,
     eventField1 = packageIdField,
@@ -178,9 +190,16 @@ internal fun logPackageVariantChanged(
 
 internal fun logPackageScopeChanged(
     packageIdentifier: String,
+    scopeFrom: String?,
+    scopeTo: String?,
     targetModule: PackageSearchModule,
 ) = runSafelyIfEnabled(packageScopeChangedEvent) {
-    log(packageIdentifier, targetModule::class.java)
+    log(
+        packageIdField.with(packageIdentifier),
+        packageScopeFromField.with(scopeFrom ?: "[default]"),
+        packageScopeToField.with(scopeTo ?: "[default]"),
+        buildSystemField.with(targetModule::class.java)
+    )
 }
 
 internal fun logRepositoryAdded(model: ApiRepository) = runSafelyIfEnabled(repositoryAddedEvent) {
