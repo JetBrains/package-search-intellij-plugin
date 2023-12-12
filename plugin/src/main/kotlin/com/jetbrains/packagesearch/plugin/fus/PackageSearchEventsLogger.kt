@@ -51,9 +51,9 @@ private val buildSystemField = EventFields.Class(FUSGroupIds.MODULE_OPERATION_PR
 private val packageIdField =
     EventFields.StringValidatedByCustomRule(FUSGroupIds.PACKAGE_ID, TopPackageIdValidationRule::class.java)
 private val packageVersionField =
-    EventFields.StringValidatedByRegexpReference(FUSGroupIds.PACKAGE_VERSION, regexpRef = "version")
+    EventFields.StringValidatedByRegexp(FUSGroupIds.PACKAGE_VERSION, regexpRef = "version")
 private val packageFromVersionField =
-    EventFields.StringValidatedByRegexpReference(FUSGroupIds.PACKAGE_FROM_VERSION, regexpRef = "version")
+    EventFields.StringValidatedByRegexp(FUSGroupIds.PACKAGE_FROM_VERSION, regexpRef = "version")
 private val packageScopeFromField =
     EventFields.StringValidatedByCustomRule<TopScopesValidationRule>(FUSGroupIds.PACKAGE_FROM_SCOPE)
 private val packageScopeToField =
