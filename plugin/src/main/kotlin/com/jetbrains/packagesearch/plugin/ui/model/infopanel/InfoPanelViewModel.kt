@@ -7,8 +7,10 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListViewModel
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.modifiedBy
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -61,6 +63,14 @@ class InfoPanelViewModel(
                             event.asPanelContent(isLoading)
                     }
                 }
+            }
+
+            is InfoPanelContentEvent.Attributes.Declared -> {
+                event.asPanelContent()
+            }
+
+            is InfoPanelContentEvent.Attributes.Search -> {
+                event.asPanelContent()
             }
         }
     }
@@ -130,6 +140,32 @@ class InfoPanelViewModel(
                 primaryVariantName = primaryVariantName,
                 compatibleVariantNames = packageId.headerId.compatibleVariantNames,
                 packageListId = packageId
+            )
+        )
+    }
+
+    fun setDeclaredHeaderAttributes(
+        variantName: String,
+        attributes: List<PackageSearchModuleVariant.Attribute>,
+    ) {
+        setDataEventChannel.trySend(
+            InfoPanelContentEvent.Attributes.Declared(
+                variantName = variantName,
+                attributes = attributes
+            )
+        )
+    }
+
+    fun setSearchHeaderAttributes(
+        defaultVariant: String,
+        additionalVariants: List<String>,
+        attributes: List<PackageSearchModuleVariant.Attribute>,
+    ) {
+        setDataEventChannel.trySend(
+            InfoPanelContentEvent.Attributes.Search(
+                defaultVariant = defaultVariant,
+                additionalVariants = additionalVariants,
+                attributes = attributes
             )
         )
     }

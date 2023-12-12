@@ -56,6 +56,7 @@ dependencies {
     implementation(compose.desktop.windows_x64)
     implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.jewel.bridge.ij233)
+    implementation(packageSearchCatalog.jewel.standalone)
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)

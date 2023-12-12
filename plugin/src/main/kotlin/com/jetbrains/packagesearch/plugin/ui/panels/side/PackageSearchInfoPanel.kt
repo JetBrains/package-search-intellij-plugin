@@ -65,6 +65,14 @@ fun PackageSearchInfoPanel(
                                 content = activeTab
                             )
                         }
+
+                        is InfoPanelContent.Attributes.Declared -> {
+                            HeaderAttributesTab(content = activeTab, scrollState = viewModel.scrollState)
+
+                        }
+                        is InfoPanelContent.Attributes.Search -> {
+                            HeaderAttributesTab(content = activeTab, scrollState = viewModel.scrollState)
+                        }
                     }
                 }
                 VerticalScrollbar(
