@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+import kotlin.math.max
 import org.jetbrains.packagesearch.gradle.GeneratePackageSearchObject
 
 
@@ -42,6 +43,11 @@ kotlin.sourceSets.main {
 
 val pkgsPluginId: String by project
 
+val runNumber = System.getenv("RUN_NUMBER")?.toInt() ?: 0
+val runAttempt = System.getenv("RUN_ATTEMPT")?.toInt() ?: 0
+val snapshotMinorVersion = max(0, runNumber + runAttempt - 1)
+val versionString = project.version.toString()
+
 tasks {
     withType<Test> {
         environment("DB_PATH", layout.buildDirectory.file("tests/cache.db").get().asFile.absolutePath)
@@ -49,6 +55,7 @@ tasks {
     val generatePluginDataSources by registering(GeneratePackageSearchObject::class) {
         pluginId = pkgsPluginId
         outputDir = generatedDir
+        pluginVersion = versionString.replace("-SNAPSHOT", ".$snapshotMinorVersion")
         packageName = "com.jetbrains.packagesearch.plugin.core"
     }
     sourcesJar {
