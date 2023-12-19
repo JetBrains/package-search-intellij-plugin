@@ -28,7 +28,7 @@ import org.jetbrains.jewel.ui.component.VerticalScrollbar
 
 @Composable
 fun PackageSearchInfoPanel(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onLinkClick: (String) -> Unit,
     onPackageEvent: (PackageListItemEvent) -> Unit,
 ) = Box(modifier) {
