@@ -34,7 +34,7 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
 
     val toolWindowState = combine(
         project.PackageSearchProjectService.packagesBeingDownloadedFlow,
-        project.isProjectSyncing,
+        project.isProjectImportingFlow,
         project.service<TreeViewModel>()
             .tree
             .map { !it.isEmpty() }

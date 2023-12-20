@@ -36,9 +36,9 @@ fun NoModulesFound(
         if (hasExternalProjects) {
             Row {
                 LabelInfo("Try ")
-                val isEnabled by viewModel.isRefreshing.collectAsState()
+                val isRefreshing by viewModel.isRefreshing.collectAsState()
                 Link(
-                    enabled = isEnabled,
+                    enabled = !isRefreshing,
                     text = "refreshing",
                     onClick = { viewModel.refreshExternalProjects() },
                 )
