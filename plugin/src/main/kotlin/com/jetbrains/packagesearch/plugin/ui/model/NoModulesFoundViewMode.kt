@@ -28,7 +28,7 @@ class NoModulesFoundViewMode(
     private val isRefreshingChannel = Channel<Boolean>()
 
     val isRefreshing = isRefreshingChannel.consumeAsFlow()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val hasExternalProjects = ExternalSystemManager.EP_NAME
         .availableExtensionsFlow
