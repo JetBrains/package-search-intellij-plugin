@@ -39,7 +39,7 @@ class ToolWindowViewModel(project: Project) : Disposable {
 
     val toolWindowState = combine(
         project.PackageSearchProjectService.packagesBeingDownloadedFlow,
-        project.isProjectSyncing,
+        project.isProjectImportingFlow,
         project.service<TreeViewModel>()
             .tree
             .map { !it.isEmpty() }

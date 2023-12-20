@@ -21,7 +21,7 @@ internal fun PackageSearchDeclaredPackage.getLatestVersion(onlyStable: Boolean):
     }
 }
 
-internal val Project.isProjectSyncing
+internal val Project.isProjectImportingFlow
     get() = messageBus.flow(ProjectDataImportListener.TOPIC) {
         object : ProjectDataImportListener {
             override fun onImportStarted(projectPath: String?) {
