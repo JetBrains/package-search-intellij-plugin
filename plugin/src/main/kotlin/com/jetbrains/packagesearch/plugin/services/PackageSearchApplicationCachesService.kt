@@ -86,13 +86,24 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         }
     )
 
-    val isOnlineFlow = devApiClient.isOnlineFlow()
+    private val prodApiClient = PackageSearchApiClient(
+        endpoints = PackageSearchEndpoints.PROD,
+        httpClient = PackageSearchApiClient.defaultHttpClient {
+            install(Logging) {
+                level = LogLevel.ALL
+                logger = KtorDebugLogger()
+                filter { it.attributes.getOrNull(PackageSearchApiClient.Attributes.Cache) == true }
+            }
+        }
+    )
+
+    val isOnlineFlow = prodApiClient.isOnlineFlow()
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     val apiPackageCache = PackageSearchApiPackageCache(
         apiPackageCache = packagesRepository,
         searchCache = searchesRepository,
-        apiClient = devApiClient
+        apiClient = prodApiClient
     )
 
     private suspend fun createIndexes() {
