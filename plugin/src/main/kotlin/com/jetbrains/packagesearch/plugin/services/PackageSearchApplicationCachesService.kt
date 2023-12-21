@@ -75,17 +75,6 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     private val repositoryCache
         get() = getRepository<ApiRepositoryCacheEntry>("repositories")
 
-    private val devApiClient = PackageSearchApiClient(
-        endpoints = PackageSearchEndpoints.DEV,
-        httpClient = PackageSearchApiClient.defaultHttpClient {
-            install(Logging) {
-                level = LogLevel.ALL
-                logger = KtorDebugLogger()
-                filter { it.attributes.getOrNull(PackageSearchApiClient.Attributes.Cache) == true }
-            }
-        }
-    )
-
     private val apiClient = PackageSearchApiClient(
         endpoints = PackageSearchEndpoints.PROD,
         httpClient = PackageSearchApiClient.defaultHttpClient {
@@ -97,7 +86,7 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         }
     )
 
-    val isOnlineFlow = prodApiClient.isOnlineFlow()
+    val isOnlineFlow = apiClient.isOnlineFlow()
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     val apiPackageCache = PackageSearchApiPackageCache(
