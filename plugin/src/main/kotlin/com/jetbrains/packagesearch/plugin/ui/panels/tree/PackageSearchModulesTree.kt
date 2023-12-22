@@ -158,7 +158,7 @@ private fun TreeActionToolbar(
                             modifier = Modifier.padding(5.dp),
                             resource = "icons/intui/toggleOfflineMode.svg",
                             iconClass = IconProvider::class.java,
-                            contentDescription = "Package Search is offline."
+                            contentDescription = "Package FromSearch is offline."
                         )
                     },
                 )

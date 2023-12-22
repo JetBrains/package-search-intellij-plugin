@@ -64,7 +64,7 @@ private fun HeaderAttributesTabImpl(
     val attributeGlobalPositionMap = remember { mutableMapOf<Int, Int>() }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(12.dp)) {
-        if (content is InfoPanelContent.Attributes.Search) {
+        if (content is InfoPanelContent.Attributes.FromSearch) {
             Text(
                 text = contentTitle,
                 fontSize = 14.sp,
@@ -82,7 +82,7 @@ private fun HeaderAttributesTabImpl(
             }
         }
 
-        if (content is InfoPanelContent.Attributes.Search) {
+        if (content is InfoPanelContent.Attributes.FromSearch) {
             SourceSetsList(content, sourceSetString)
         }
 
@@ -93,7 +93,7 @@ private fun HeaderAttributesTabImpl(
 
 @Composable
 private fun ColumnScope.SourceSetsList(
-    content: InfoPanelContent.Attributes.Search,
+    content: InfoPanelContent.Attributes.FromSearch,
     title: String,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -181,8 +181,8 @@ fun AttributeItem(modifier: Modifier = Modifier, attributeName: String, nestedAt
 @Preview
 @Composable
 private fun HeaderAttributesPreviewTab() {
-    val activeTabMock = InfoPanelContent.Attributes.Declared(
-        tabTitle = "Declared",
+    val activeTabMock = InfoPanelContent.Attributes.FromVariant(
+        tabTitle = "FromVariant",
         variantName = "jvm",
         attributes = generateAttributesMock()
     )
@@ -193,7 +193,7 @@ private fun HeaderAttributesPreviewTab() {
                 HeaderAttributesTabImpl(
                     content = activeTabMock,
                     scrollState = scrollStateMock,
-                    contentTitle = "Search results that support:",
+                    contentTitle = "FromSearch results that support:",
                     attributeTypeName = "Platforms:",
                     sourceSetString = "Source Sets:"
                 )
@@ -210,7 +210,7 @@ private fun HeaderAttributesPreviewTab() {
                 HeaderAttributesTabImpl(
                     content = activeTabMock,
                     scrollState = scrollStateMock,
-                    contentTitle = "Search results that support:",
+                    contentTitle = "FromSearch results that support:",
                     attributeTypeName = "Platforms:",
                     sourceSetString = "Source Sets:"
                 )

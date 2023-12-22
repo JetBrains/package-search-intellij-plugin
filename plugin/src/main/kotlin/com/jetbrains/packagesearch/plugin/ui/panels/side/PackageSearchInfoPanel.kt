@@ -66,11 +66,11 @@ fun PackageSearchInfoPanel(
                             )
                         }
 
-                        is InfoPanelContent.Attributes.Declared -> {
+                        is InfoPanelContent.Attributes.FromVariant -> {
                             HeaderAttributesTab(content = activeTab, scrollState = viewModel.scrollState)
 
                         }
-                        is InfoPanelContent.Attributes.Search -> {
+                        is InfoPanelContent.Attributes.FromSearch -> {
                             HeaderAttributesTab(content = activeTab, scrollState = viewModel.scrollState)
                         }
                     }

@@ -144,13 +144,13 @@ sealed interface InfoPanelContent {
     sealed interface Attributes : InfoPanelContent{
         val attributes: List<PackageSearchModuleVariant.Attribute>
 
-        data class Declared(
+        data class FromVariant(
             override val tabTitle: String,
             val variantName: String,
             override val attributes: List<PackageSearchModuleVariant.Attribute>,
         ) : Attributes
 
-        data class Search(
+        data class FromSearch(
             override val tabTitle: String,
             override val attributes: List<PackageSearchModuleVariant.Attribute>,
             val defaultSourceSet: String,
