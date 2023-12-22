@@ -7,6 +7,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListViewModel
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
@@ -61,6 +62,14 @@ class InfoPanelViewModel(
                             event.asPanelContent(isLoading)
                     }
                 }
+            }
+
+            is InfoPanelContentEvent.Attributes.FromVariant -> {
+                event.asPanelContent()
+            }
+
+            is InfoPanelContentEvent.Attributes.FromSearch -> {
+                event.asPanelContent()
             }
         }
     }
@@ -130,6 +139,32 @@ class InfoPanelViewModel(
                 primaryVariantName = primaryVariantName,
                 compatibleVariantNames = packageId.headerId.compatibleVariantNames,
                 packageListId = packageId
+            )
+        )
+    }
+
+    fun setDeclaredHeaderAttributes(
+        variantName: String,
+        attributes: List<PackageSearchModuleVariant.Attribute>,
+    ) {
+        setDataEventChannel.trySend(
+            InfoPanelContentEvent.Attributes.FromVariant(
+                variantName = variantName,
+                attributes = attributes
+            )
+        )
+    }
+
+    fun setSearchHeaderAttributes(
+        defaultVariant: String,
+        additionalVariants: List<String>,
+        attributes: List<PackageSearchModuleVariant.Attribute>,
+    ) {
+        setDataEventChannel.trySend(
+            InfoPanelContentEvent.Attributes.FromSearch(
+                defaultVariant = defaultVariant,
+                additionalVariants = additionalVariants,
+                attributes = attributes
             )
         )
     }

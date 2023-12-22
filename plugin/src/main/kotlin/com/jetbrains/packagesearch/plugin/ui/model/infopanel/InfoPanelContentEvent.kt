@@ -2,14 +2,14 @@ package com.jetbrains.packagesearch.plugin.ui.model.infopanel
 
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 
 sealed interface InfoPanelContentEvent {
 
-    val module: PackageSearchModule
-
     sealed interface Package : InfoPanelContentEvent {
+        val module: PackageSearchModule
 
         val packageListId: PackageListItem.Package.Id
 
@@ -51,5 +51,20 @@ sealed interface InfoPanelContentEvent {
         }
     }
 
+    sealed interface Attributes : InfoPanelContentEvent {
+        val attributes: List<PackageSearchModuleVariant.Attribute>
+
+        data class FromVariant(
+            val variantName: String,
+            override val attributes: List<PackageSearchModuleVariant.Attribute>,
+        ) : Attributes
+
+        data class FromSearch(
+            val defaultVariant: String,
+            val additionalVariants: List<String>,
+            override val attributes: List<PackageSearchModuleVariant.Attribute>,
+        ) : Attributes
+
+    }
 
 }

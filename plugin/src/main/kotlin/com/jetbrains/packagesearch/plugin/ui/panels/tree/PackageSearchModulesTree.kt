@@ -34,6 +34,7 @@ import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.buildTree
 import org.jetbrains.jewel.foundation.lazy.tree.rememberTreeState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
@@ -157,7 +158,7 @@ private fun TreeActionToolbar(
                             modifier = Modifier.padding(5.dp),
                             resource = "icons/intui/toggleOfflineMode.svg",
                             iconClass = IconProvider::class.java,
-                            contentDescription = "Package Search is offline."
+                            contentDescription = "Package FromSearch is offline."
                         )
                     },
                 )
@@ -237,13 +238,15 @@ private fun TreeItemPreview() {
         }
         addLeaf(items[3], items[3].id)
     }
-    LazyTree(
-        modifier = Modifier.padding(top = 4.dp),
-        tree = tree,
-        treeState = rememberTreeState(),
-        onSelectionChange = {},
-    ) { item ->
-        TreeItem(item)
+    IntUiTheme {
+        LazyTree(
+            modifier = Modifier.padding(top = 4.dp),
+            tree = tree,
+            treeState = rememberTreeState(),
+            onSelectionChange = {},
+        ) { item ->
+            TreeItem(item)
+        }
     }
 }
 

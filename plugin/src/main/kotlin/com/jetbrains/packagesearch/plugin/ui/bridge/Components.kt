@@ -1,11 +1,20 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
+import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.onClick
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -15,10 +24,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchColors
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
+import java.awt.Cursor
+import org.jetbrains.jewel.foundation.LocalGlobalColors
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.ui.component.DropdownLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
@@ -129,4 +143,44 @@ internal fun PackageActionPopup(
             )
         }
     }
+}
+
+
+@Composable
+internal fun AttributeBadge(text: String, onClick: () -> Unit) {
+    val isDark= JewelTheme.isDark
+    val background = remember(isDark) {
+        PackageSearchColors.Backgrounds.attributeBadge()
+    }
+
+    Box(
+        modifier = Modifier
+            .background(color = background, shape = RoundedCornerShape(12.dp))
+            .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
+            .onClick { onClick() },
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), text = text,
+        )
+    }
+
+}
+
+@Preview
+@Composable
+internal fun AttributeBadgePreview() {
+    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        IntUiTheme {
+            Box(Modifier.background(LocalGlobalColors.current.paneBackground).padding(16.dp)) {
+                AttributeBadge(text = "Android") {}
+            }
+        }
+        IntUiTheme(true) {
+            Box(Modifier.background(LocalGlobalColors.current.paneBackground).padding(16.dp)) {
+                AttributeBadge(text = "Android") {}
+            }
+        }
+    }
+
+
 }

@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.ui.model.infopanel
 
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
+import org.jetbrains.jewel.foundation.lazy.tree.buildTree
 import org.jetbrains.packagesearch.api.v3.ApiGitHub
 import org.jetbrains.packagesearch.api.v3.ApiScm
 import org.jetbrains.packagesearch.api.v3.LicenseFile
@@ -25,3 +26,4 @@ internal fun LicenseFile.toInfoPanelLicense(): InfoPanelContent.PackageInfo.Lice
     val name = name ?: url ?: return null
     return InfoPanelContent.PackageInfo.License(name, url)
 }
+
