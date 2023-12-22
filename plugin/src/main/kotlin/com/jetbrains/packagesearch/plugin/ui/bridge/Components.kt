@@ -1,11 +1,17 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -15,8 +21,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
+import java.awt.Cursor
+import org.jetbrains.compose.splitpane.SplitPaneScope
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
 import org.jetbrains.jewel.ui.component.DropdownLink
@@ -127,6 +136,38 @@ internal fun PackageActionPopup(
                 ),
                 content = content
             )
+        }
+    }
+}
+
+
+
+internal fun SplitPaneScope.packageSearchSplitter(
+    splitterColor: Color,
+    cursor: PointerIcon = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)),
+    hidden: Boolean = false,
+) {
+    splitter {
+        visiblePart {
+            if (!hidden) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                        .background(splitterColor),
+                )
+            }
+        }
+        handle {
+            if (!hidden) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(8.dp)
+                        .markAsHandle()
+                        .pointerHoverIcon(cursor),
+                )
+            }
         }
     }
 }
