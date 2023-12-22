@@ -142,7 +142,7 @@ internal fun PackageActionPopup(
 
 
 
-internal fun SplitPaneScope.defaultPKGSSplitter(
+internal fun SplitPaneScope.packageSearchSplitter(
     splitterColor: Color,
     cursor: PointerIcon = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)),
     hidden: Boolean = false,
