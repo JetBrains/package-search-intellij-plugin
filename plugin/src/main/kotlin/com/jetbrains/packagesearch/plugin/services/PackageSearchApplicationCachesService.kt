@@ -103,7 +103,7 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     val apiPackageCache = PackageSearchApiPackageCache(
         apiPackageCache = packagesRepository,
         searchCache = searchesRepository,
-        apiClient = prodApiClient
+        apiClient = apiClient
     )
 
     private suspend fun createIndexes() {
