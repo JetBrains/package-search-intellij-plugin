@@ -54,12 +54,12 @@ sealed interface InfoPanelContentEvent {
     sealed interface Attributes : InfoPanelContentEvent {
         val attributes: List<PackageSearchModuleVariant.Attribute>
 
-        data class Declared(
+        data class FromVariant(
             val variantName: String,
             override val attributes: List<PackageSearchModuleVariant.Attribute>,
         ) : Attributes
 
-        data class Search(
+        data class FromSearch(
             val defaultVariant: String,
             val additionalVariants: List<String>,
             override val attributes: List<PackageSearchModuleVariant.Attribute>,

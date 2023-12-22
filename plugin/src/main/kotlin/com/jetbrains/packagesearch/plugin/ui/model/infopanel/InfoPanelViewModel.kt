@@ -10,7 +10,6 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListViewModel
-import com.jetbrains.packagesearch.plugin.ui.model.packageslist.modifiedBy
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -65,11 +64,11 @@ class InfoPanelViewModel(
                 }
             }
 
-            is InfoPanelContentEvent.Attributes.Declared -> {
+            is InfoPanelContentEvent.Attributes.FromVariant -> {
                 event.asPanelContent()
             }
 
-            is InfoPanelContentEvent.Attributes.Search -> {
+            is InfoPanelContentEvent.Attributes.FromSearch -> {
                 event.asPanelContent()
             }
         }
@@ -149,7 +148,7 @@ class InfoPanelViewModel(
         attributes: List<PackageSearchModuleVariant.Attribute>,
     ) {
         setDataEventChannel.trySend(
-            InfoPanelContentEvent.Attributes.Declared(
+            InfoPanelContentEvent.Attributes.FromVariant(
                 variantName = variantName,
                 attributes = attributes
             )
@@ -162,7 +161,7 @@ class InfoPanelViewModel(
         attributes: List<PackageSearchModuleVariant.Attribute>,
     ) {
         setDataEventChannel.trySend(
-            InfoPanelContentEvent.Attributes.Search(
+            InfoPanelContentEvent.Attributes.FromSearch(
                 defaultVariant = defaultVariant,
                 additionalVariants = additionalVariants,
                 attributes = attributes

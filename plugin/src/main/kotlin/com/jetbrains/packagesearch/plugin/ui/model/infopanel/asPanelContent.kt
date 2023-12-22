@@ -187,14 +187,14 @@ internal fun InfoPanelContentEvent.Package.Remote.Base.asPanelContent(
     )
 )
 
-internal fun InfoPanelContentEvent.Attributes.Declared.asPanelContent() = listOf(
+internal fun InfoPanelContentEvent.Attributes.FromVariant.asPanelContent() = listOf(
     InfoPanelContent.Attributes.FromVariant(
         variantName = variantName,
         tabTitle = message("packagesearch.ui.toolwindow.sidepanel.platforms"),
         attributes = attributes,
     )
 )
-internal fun InfoPanelContentEvent.Attributes.Search.asPanelContent() = listOf(
+internal fun InfoPanelContentEvent.Attributes.FromSearch.asPanelContent() = listOf(
     InfoPanelContent.Attributes.FromSearch(
         tabTitle = message("packagesearch.ui.toolwindow.packages.details.info.attributes"),
         defaultSourceSet = defaultVariant,
