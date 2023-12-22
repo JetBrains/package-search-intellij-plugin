@@ -86,7 +86,7 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         }
     )
 
-    private val prodApiClient = PackageSearchApiClient(
+    private val apiClient = PackageSearchApiClient(
         endpoints = PackageSearchEndpoints.PROD,
         httpClient = PackageSearchApiClient.defaultHttpClient {
             install(Logging) {
