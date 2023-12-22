@@ -77,7 +77,7 @@ private fun HeaderAttributesTabImpl(
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             attributes.forEachIndexed { index, attribute ->
                 AttributeBadge(text = attribute.value) {
-                    scrollToAttribute(scope, scrollState, attributeGlobalPositionMap, index)
+                    scope.scrollToAttribute(scrollState, attributeGlobalPositionMap, index)
                 }
             }
         }
@@ -143,13 +143,12 @@ private fun PackageSearchModuleVariant.Attribute.flatten(): List<String> =
     }
 
 
-private fun scrollToAttribute(
-    coroutineScope: CoroutineScope,
+private fun CoroutineScope.scrollToAttribute(
     scrollState: ScrollState,
     attributeGlobalPosition: MutableMap<Int, Int>,
     index: Int,
 ) {
-    coroutineScope.launch {
+    launch {
         scrollState.animateScrollTo(
             value = attributeGlobalPosition[index] ?: 0,
             animationSpec = spring(
