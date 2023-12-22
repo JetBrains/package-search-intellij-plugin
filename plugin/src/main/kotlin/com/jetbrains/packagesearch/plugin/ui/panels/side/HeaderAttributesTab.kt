@@ -244,7 +244,7 @@ private fun generateAttributesMock(): List<PackageSearchModuleVariant.Attribute>
 
 }
 
-internal val platformListMock = buildList {
+internal val platformListMock get() =  buildList {
     add("Android")
     add("android")
     add("Apple")
