@@ -75,8 +75,8 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     private val repositoryCache
         get() = getRepository<ApiRepositoryCacheEntry>("repositories")
 
-    private val devApiClient = PackageSearchApiClient(
-        endpoints = PackageSearchEndpoints.DEV,
+    private val apiClient = PackageSearchApiClient(
+        endpoints = PackageSearchEndpoints.DEFAULT,
         httpClient = PackageSearchApiClient.defaultHttpClient {
             install(Logging) {
                 level = LogLevel.ALL
@@ -86,13 +86,13 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         }
     )
 
-    val isOnlineFlow = devApiClient.isOnlineFlow()
+    val isOnlineFlow = apiClient.isOnlineFlow()
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     val apiPackageCache = PackageSearchApiPackageCache(
         apiPackageCache = packagesRepository,
         searchCache = searchesRepository,
-        apiClient = devApiClient
+        apiClient = apiClient
     )
 
     private suspend fun createIndexes() {
