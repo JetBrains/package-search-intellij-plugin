@@ -1,4 +1,4 @@
-# Package Search
+# Package Search [![official JetBrains project](https://jb.gg/badges/official-flat-square.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 
 Package Search is an IntelliJ plugin that allows you to search for packages from the editor. It supports searching for
 packages from the following package managers by default:
