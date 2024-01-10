@@ -1,7 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.packages.items
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Box
@@ -11,6 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,17 +23,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchColors
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
-import com.jetbrains.packagesearch.plugin.ui.bridge.pickComposeColorFromLaf
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem.Header.State
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent
 import java.awt.Cursor
+import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.theme.linkStyle
 
 @Composable
 fun PackageListHeader(
@@ -38,12 +43,10 @@ fun PackageListHeader(
     content: PackageListItem.Header,
     onEvent: (PackageListItemEvent) -> Unit,
 ) {
-    val backgroundColor =
-        if (JewelTheme.isDark) {
-            pickComposeColorFromLaf("ToolWindow.HeaderTab.selectedInactiveBackground")
-        } else {
-            pickComposeColorFromLaf("Tree.selectionInactiveBackground")
-        }
+    val isDarkTheme = JewelTheme.isDark
+    val backgroundColor = remember(isDarkTheme) {
+        PackageSearchColors.Backgrounds.packageItemHeader()
+    }
 
     Row(
         modifier = Modifier
@@ -88,22 +91,40 @@ fun PackageListHeader(
                 }
 
                 Text(
-                    fontWeight = FontWeight(600),
+                    fontWeight = FontWeight.ExtraBold,
                     text = content.title,
                     maxLines = 1
                 )
             }
             if (content.attributes.isNotEmpty()) {
+                var attributeTextColor by remember { mutableStateOf(Color.Unspecified) }
+                val linkTextColor = JewelTheme.linkStyle.colors.content
                 Box(
                     modifier = Modifier
                         .onClick {
-                            onEvent(PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick(content.id))
+                            val event =
+                                when (content.id) {
+                                    is PackageListItem.Header.Id.Declared.Base -> return@onClick
+                                    is PackageListItem.Header.Id.Remote -> PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick.SearchHeaderAttributesClick(
+                                        eventId = content.id,
+                                        attributesNames = content.attributes
+                                    )
+                                    is PackageListItem.Header.Id.Declared.WithVariant -> PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick.DeclaredHeaderAttributesClick(
+                                        eventId = content.id,
+                                        variantName = content.title,
+                                    )
+                                }
+                            onEvent(event)
+                        }
+                        .onHover {
+                            attributeTextColor = if (it) linkTextColor else Color.Unspecified
                         }
                         .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
                     contentAlignment = Alignment.Center,
                 ) {
-                    LabelInfo(
+                    Text(
                         text = content.attributes.joinToString(" "),
+                        color = attributeTextColor,
                         maxLines = 1
                     )
                 }

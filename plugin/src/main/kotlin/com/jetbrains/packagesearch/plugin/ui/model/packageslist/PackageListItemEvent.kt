@@ -21,7 +21,19 @@ sealed interface PackageListItemEvent {
     sealed interface InfoPanelEvent : PackageListItemEvent {
 
         @Serializable
-        data class OnHeaderAttributesClick(override val eventId: PackageListItem.Header.Id) : InfoPanelEvent
+        sealed interface OnHeaderAttributesClick : InfoPanelEvent {
+            @Serializable
+            data class DeclaredHeaderAttributesClick(
+                override val eventId: PackageListItem.Header.Id.Declared,
+                val variantName: String,
+            ) : OnHeaderAttributesClick
+            @Serializable
+            data class SearchHeaderAttributesClick(
+                override val eventId: PackageListItem.Header.Id.Remote,
+                val attributesNames: List<String>
+            ) : OnHeaderAttributesClick
+
+        }
 
         @Serializable
         data class OnHeaderVariantsClick(override val eventId: PackageListItem.Header.Id) : InfoPanelEvent
@@ -31,6 +43,11 @@ sealed interface PackageListItemEvent {
 
         @Serializable
         data class OnPackageDoubleClick(override val eventId: PackageListItem.Id) : InfoPanelEvent
+
+        @Serializable
+        data class OnSelectedPackageClick(override val eventId: PackageListItem.Id) : InfoPanelEvent
+
+
     }
 
     @Serializable
@@ -85,9 +102,6 @@ sealed interface PackageListItemEvent {
                 val selectedVariantName: String,
             ) : Install
         }
-
-
-
 
 
         @Serializable
