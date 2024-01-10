@@ -1,11 +1,13 @@
 package com.jetbrains.packagesearch.plugin.ui.model
 
+import androidx.compose.runtime.mutableStateOf
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
 import com.jetbrains.packagesearch.plugin.ui.model.tree.TreeViewModel
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
@@ -19,9 +21,24 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
+import org.jetbrains.compose.splitpane.SplitPaneState
 
 @Service(Level.PROJECT)
 class ToolWindowViewModel(project: Project, private val viewModelScope: CoroutineScope) {
+
+
+    val firstSplitPaneState = mutableStateOf(
+        SplitPaneState(
+            initialPositionPercentage = PackageSearchMetrics.Splitpane.firstSplitterPositionPercentage,
+            moveEnabled = true,
+        )
+    )
+    val secondSplitPaneState = mutableStateOf(
+        SplitPaneState(
+            initialPositionPercentage = PackageSearchMetrics.Splitpane.secondSplittePositionPercentage,
+            moveEnabled = true,
+        )
+    )
 
     fun openLinkInBrowser(url: String) {
         viewModelScope.openLinkInBrowser(url)
