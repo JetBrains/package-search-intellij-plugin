@@ -19,7 +19,7 @@ import org.jetbrains.jewel.ui.component.VerticalScrollbar
 
 @Composable
 fun PackageSearchCentralPanel(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onLinkClick: (String) -> Unit,
 ) = Column(modifier) {
     val viewModel: PackageListViewModel = viewModel()
