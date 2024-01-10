@@ -1,7 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.panels.tree
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +33,7 @@ import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.buildTree
 import org.jetbrains.jewel.foundation.lazy.tree.rememberTreeState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.foundation.theme.ThemeDefinition
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
@@ -58,7 +58,7 @@ fun PackageSearchModulesTree(
         onExpandAll = viewModel::expandAll,
         onCollapseAll = {
             val rootIds = tree.roots.map { it.id }.toSet()
-            viewModel.treeState.selectedKeys = viewModel.treeState.selectedKeys intersect rootIds
+            viewModel.treeState.selectedKeys = (viewModel.treeState.selectedKeys intersect rootIds).toList()
             viewModel.collapseAll()
         },
     )
@@ -77,7 +77,7 @@ fun PackageSearchModulesTree(
             viewModel.treeState.selectedKeys = tree.walkBreadthFirst()
                 .take(1)
                 .map { it.data.id }
-                .toSet()
+                .toList()
         }
     }
     Box {
@@ -200,52 +200,52 @@ private fun TreeItem(element: Tree.Element<TreeItemModel>) {
         }
     }
 }
-
-@Preview
-@Composable
-private fun TreeItemPreview() {
-    val items = listOf(
-        TreeItemModel(
-            id = PackageSearchModule.Identity("a", ":"),
-            text = "JetBrains",
-            hasUpdates = true,
-            icon = IconProvider.Icon("icons/npm.svg"),
-        ),
-        TreeItemModel(
-            id = PackageSearchModule.Identity("a", ":b"),
-            text = "Kotlin",
-            hasUpdates = false,
-            icon = IconProvider.Icon("icons/maven.svg"),
-        ),
-        TreeItemModel(
-            id = PackageSearchModule.Identity("a", ":c"),
-            text = "Ktor",
-            hasUpdates = false,
-            icon = IconProvider.Icon("icons/cocoapods.svg.svg"),
-        ),
-        TreeItemModel(
-            id = PackageSearchModule.Identity("a", ":c:d"),
-            text = "Compose",
-            hasUpdates = true,
-            icon = IconProvider.Icon("icons/npm.svg"),
-        ),
-    )
-    val tree = buildTree {
-        addLeaf(items[0], items[0].id)
-        addNode(items[1], items[1].id) {
-            addLeaf(items[2], items[2].id)
-        }
-        addLeaf(items[3], items[3].id)
-    }
-    LazyTree(
-        modifier = Modifier.padding(top = 4.dp),
-        tree = tree,
-        treeState = rememberTreeState(),
-        onSelectionChange = {},
-    ) { item ->
-        TreeItem(item)
-    }
-}
-
-
-
+//
+//@Preview
+//@Composable
+//private fun TreeItemPreview() {
+//    val items = listOf(
+//        TreeItemModel(
+//            id = PackageSearchModule.Identity("a", ":"),
+//            text = "JetBrains",
+//            hasUpdates = true,
+//            icon = IconProvider.Icon("icons/npm.svg"),
+//        ),
+//        TreeItemModel(
+//            id = PackageSearchModule.Identity("a", ":b"),
+//            text = "Kotlin",
+//            hasUpdates = false,
+//            icon = IconProvider.Icon("icons/maven.svg"),
+//        ),
+//        TreeItemModel(
+//            id = PackageSearchModule.Identity("a", ":c"),
+//            text = "Ktor",
+//            hasUpdates = false,
+//            icon = IconProvider.Icon("icons/cocoapods.svg.svg"),
+//        ),
+//        TreeItemModel(
+//            id = PackageSearchModule.Identity("a", ":c:d"),
+//            text = "Compose",
+//            hasUpdates = true,
+//            icon = IconProvider.Icon("icons/npm.svg"),
+//        ),
+//    )
+//    val tree = buildTree {
+//        addLeaf(items[0], items[0].id)
+//        addNode(items[1], items[1].id) {
+//            addLeaf(items[2], items[2].id)
+//        }
+//        addLeaf(items[3], items[3].id)
+//    }
+//    LazyTree(
+//        modifier = Modifier.padding(top = 4.dp),
+//        tree = tree,
+//        treeState = rememberTreeState(),
+//        onSelectionChange = {},
+//    ) { item ->
+//        TreeItem(item)
+//    }
+//}
+//
+//
+//

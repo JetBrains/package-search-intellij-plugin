@@ -24,9 +24,6 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
                 relocate("io.ktor", "shadow.io.ktor")
                 relocate("kotlinx.serialization", "shadow.kotlinx.serialization")
                 relocate("kotlinx.datetime", "shadow.kotlinx.datetime")
-                relocate("androidx", "shadow.androidx")
-                relocate("org.jetbrains.jewel", "shadow.org.jetbrains.jewel")
-                relocate("org.jetbrains.compose", "shadow.org.jetbrains.compose")
                 exclude {
                     it.name.containsAny(packageSearchExtension.librariesToDelete.get())
                             && !it.name.containsAny(packageSearchExtension.librariesToKeep.get())
