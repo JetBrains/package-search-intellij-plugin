@@ -126,6 +126,11 @@ internal fun InfoPanelContentEvent.Package.Declared.WithVariant.asPanelContent(
         declaredVariant = variantName,
         allowMissingScope = !module.dependencyMustHaveAScope,
         variantTerminology = module.variantTerminology
+    ),
+    InfoPanelContent.Attributes.FromVariant(
+        variantName = variantName,
+        tabTitle = message("packagesearch.ui.toolwindow.sidepanel.platforms"),
+        attributes = module.variants.getValue(variantName).attributes
     )
 )
 
@@ -152,6 +157,11 @@ internal fun InfoPanelContentEvent.Package.Remote.WithVariants.asPanelContent(
         isLoading = isLoading,
         isInstalledInPrimaryVariant = module.variants.getValue(primaryVariantName).declaredDependencies
             .any { it.id == apiPackage.id }
+    ),
+    InfoPanelContent.Attributes.FromVariant(
+        tabTitle = message("packagesearch.ui.toolwindow.sidepanel.platforms"),
+        variantName = primaryVariantName,
+        attributes = module.variants.getValue(primaryVariantName).attributes
     )
 )
 
@@ -174,5 +184,22 @@ internal fun InfoPanelContentEvent.Package.Remote.Base.asPanelContent(
         readmeUrl = apiPackage.scm?.readme?.htmlUrl ?: apiPackage.scm?.readmeUrl,
         repositories = apiPackage.repositories(),
         isLoading = isLoading
+    )
+)
+
+internal fun InfoPanelContentEvent.Attributes.FromVariant.asPanelContent() = listOf(
+    InfoPanelContent.Attributes.FromVariant(
+        variantName = variantName,
+        tabTitle = message("packagesearch.ui.toolwindow.sidepanel.platforms"),
+        attributes = attributes,
+    )
+)
+
+internal fun InfoPanelContentEvent.Attributes.FromSearch.asPanelContent() = listOf(
+    InfoPanelContent.Attributes.FromSearch(
+        tabTitle = message("packagesearch.ui.toolwindow.packages.details.info.attributes"),
+        defaultSourceSet = defaultVariant,
+        additionalSourceSets = additionalVariants,
+        attributes = attributes,
     )
 )

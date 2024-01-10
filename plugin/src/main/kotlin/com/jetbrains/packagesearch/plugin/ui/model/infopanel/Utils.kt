@@ -25,3 +25,4 @@ internal fun LicenseFile.toInfoPanelLicense(): InfoPanelContent.PackageInfo.Lice
     val name = name ?: url ?: return null
     return InfoPanelContent.PackageInfo.License(name, url)
 }
+

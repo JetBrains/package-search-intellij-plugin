@@ -2,6 +2,7 @@ package com.jetbrains.packagesearch.plugin.ui.model.infopanel
 
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 
 sealed interface InfoPanelContent {
@@ -138,6 +139,23 @@ sealed interface InfoPanelContent {
                 val additionalVariants: List<String>,
             ) : Remote
         }
+    }
+
+    sealed interface Attributes : InfoPanelContent {
+        val attributes: List<PackageSearchModuleVariant.Attribute>
+
+        data class FromVariant(
+            override val tabTitle: String,
+            val variantName: String,
+            override val attributes: List<PackageSearchModuleVariant.Attribute>,
+        ) : Attributes
+
+        data class FromSearch(
+            override val tabTitle: String,
+            override val attributes: List<PackageSearchModuleVariant.Attribute>,
+            val defaultSourceSet: String,
+            val additionalSourceSets: List<String>,
+        ) : Attributes
     }
 
 }
