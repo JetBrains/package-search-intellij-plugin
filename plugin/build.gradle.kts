@@ -50,6 +50,10 @@ val tooling: Configuration by configurations.creating {
 
 dependencies {
     implementation(packageSearchCatalog.kotlinx.serialization.core)
+    implementation(packageSearchCatalog.compose.desktop.components.splitpane){
+        exclude(group = "org.jetbrains.compose.runtime")
+        exclude(group = "org.jetbrains.compose.foundation")
+    }
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)
