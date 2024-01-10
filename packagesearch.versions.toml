@@ -39,6 +39,7 @@ jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
 jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
 jewel-bridge-ij232 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge-232" }
 jewel-bridge-ij233 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge-233" }
+compose-desktop-components-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "composeDesktop" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
