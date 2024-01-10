@@ -30,10 +30,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.tree.TreeItemModel
 import com.jetbrains.packagesearch.plugin.ui.model.tree.TreeViewModel
 import com.jetbrains.packagesearch.plugin.ui.viewModel
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
-import org.jetbrains.jewel.foundation.lazy.tree.buildTree
-import org.jetbrains.jewel.foundation.lazy.tree.rememberTreeState
 import org.jetbrains.jewel.foundation.theme.JewelTheme
-import org.jetbrains.jewel.foundation.theme.ThemeDefinition
 import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
@@ -157,7 +154,7 @@ private fun TreeActionToolbar(
                             modifier = Modifier.padding(5.dp),
                             resource = "icons/intui/toggleOfflineMode.svg",
                             iconClass = IconProvider::class.java,
-                            contentDescription = "Package Search is offline."
+                            contentDescription = "Package FromSearch is offline."
                         )
                     },
                 )
