@@ -4,7 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.onClick
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
+import com.jetbrains.packagesearch.plugin.ui.PackageSearchColors
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import java.awt.Cursor
 import org.jetbrains.compose.splitpane.SplitPaneScope
@@ -141,7 +145,6 @@ internal fun PackageActionPopup(
 }
 
 
-
 internal fun SplitPaneScope.packageSearchSplitter(
     splitterColor: Color,
     cursor: PointerIcon = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)),
@@ -171,3 +174,43 @@ internal fun SplitPaneScope.packageSearchSplitter(
         }
     }
 }
+
+
+@Composable
+internal fun AttributeBadge(text: String, onClick: () -> Unit) {
+    val isDark = JewelTheme.isDark
+    val background = remember(isDark) {
+        PackageSearchColors.Backgrounds.attributeBadge()
+    }
+
+    Box(
+        modifier = Modifier
+            .background(color = background, shape = RoundedCornerShape(12.dp))
+            .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
+            .onClick { onClick() },
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), text = text,
+        )
+    }
+
+}
+
+//@Preview
+//@Composable
+//internal fun AttributeBadgePreview() {
+//    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+//        IntUiTheme {
+//            Box(Modifier.background(LocalGlobalColors.current.paneBackground).padding(16.dp)) {
+//                AttributeBadge(text = "Android") {}
+//            }
+//        }
+//        IntUiTheme(true) {
+//            Box(Modifier.background(LocalGlobalColors.current.paneBackground).padding(16.dp)) {
+//                AttributeBadge(text = "Android") {}
+//            }
+//        }
+//    }
+//
+//
+//}

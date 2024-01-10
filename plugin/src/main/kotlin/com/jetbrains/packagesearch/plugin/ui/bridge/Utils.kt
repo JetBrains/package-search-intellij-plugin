@@ -1,10 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.bridge
 
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
-import java.awt.Cursor
 import java.awt.Desktop
 import java.net.URI
 import javax.swing.UIDefaults
@@ -41,4 +37,3 @@ fun isLightTheme(): Boolean {
 
 private fun Color.getBrightness() = (red * 299 + green * 587 + blue * 114) / 1000
 
-fun Modifier.pointerChangeToHandModifier() = this.pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))

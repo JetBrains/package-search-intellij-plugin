@@ -131,7 +131,12 @@ internal fun SelectableLazyItemScope.PackageListItem(
             .onClick(
                 interactionSource = remember { MutableInteractionSource() },
                 onDoubleClick = { onPackageListItemEvent(OnPackageDoubleClick(content.id)) },
-                onClick = { }
+                onClick = {
+                    //this event should be handled when you click on a selected package to refresh side panel content
+                    if (isSelected) onPackageListItemEvent(
+                        PackageListItemEvent.InfoPanelEvent.OnSelectedPackageClick(content.id)
+                    )
+                }
             ),
     ) {
         Row(
