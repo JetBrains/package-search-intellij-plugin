@@ -314,6 +314,7 @@ class PackageListViewModel(
                 is PackageListItemEvent.InfoPanelEvent.OnHeaderVariantsClick -> handle(event)
                 is PackageListItemEvent.InfoPanelEvent.OnPackageSelected -> handle(event)
                 is PackageListItemEvent.InfoPanelEvent.OnPackageDoubleClick -> handle(event)
+                is PackageListItemEvent.InfoPanelEvent.OnSelectedPackageClick -> handle(event)
                 is PackageListItemEvent.OnPackageAction.GoToSource -> handle(event)
                 is PackageListItemEvent.OnPackageAction.Install.Base -> handle(event)
                 is PackageListItemEvent.OnPackageAction.Install.WithVariant -> handle(event)
@@ -333,6 +334,12 @@ class PackageListViewModel(
     private suspend fun handle(event: PackageListItemEvent.InfoPanelEvent.OnPackageDoubleClick) {
         project.service<ToolWindowViewModel>().isInfoPanelOpen.emit(true)
         logInfoPanelOpened()
+    }
+
+    private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnSelectedPackageClick) {
+        if (event.eventId is PackageListItem.Package.Id) handle(
+            PackageListItemEvent.InfoPanelEvent.OnPackageSelected(event.eventId)
+        )
     }
 
     private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnPackageSelected) {
@@ -595,12 +602,45 @@ class PackageListViewModel(
             }
     }
 
-    private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick) {
-        logTODO()
-        logHeaderAttributesClick(
-            isSearchHeader = event.eventId is PackageListItem.Header.Id.Remote
-        )
+    private suspend fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick) {
+        logHeaderAttributesClick(isSearchHeader = event.eventId is PackageListItem.Header.Id.Remote)
+        val infoPanelViewModel = project.service<InfoPanelViewModel>()
+
+        val module = event.eventId.getModule() as? PackageSearchModule.WithVariants ?: return
+
+        when (event) {
+            is PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick.DeclaredHeaderAttributesClick -> {
+                val attributes = module.variants[event.variantName]?.attributes ?: return
+                infoPanelViewModel.setDeclaredHeaderAttributes(event.variantName, attributes = attributes)
+            }
+
+            is PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick.SearchHeaderAttributesClick -> {
+                val attributes = module
+                    .variants
+                    .map { it.value.attributes }
+                    .flatten()
+                    .filter { it.value in event.attributesNames }
+                    .distinct()
+
+                val variants = module.variants.values.map { it.name } - module.mainVariantName
+
+                infoPanelViewModel.setSearchHeaderAttributes(
+                    defaultVariant = module.mainVariantName,
+                    additionalVariants = variants,
+                    attributes = attributes
+                )
+            }
+        }
+
+
+        project.service<ToolWindowViewModel>().isInfoPanelOpen.let { openStateFlow ->
+            if (!openStateFlow.value) {
+                openStateFlow.emit(true)
+            }
+        }
+
     }
+
 
     private suspend fun handle(event: PackageListItemEvent.EditPackageEvent.SetVariant) {
         val module = event.eventId
