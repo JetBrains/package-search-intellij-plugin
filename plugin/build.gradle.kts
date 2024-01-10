@@ -49,6 +49,12 @@ val tooling: Configuration by configurations.creating {
 }
 
 dependencies {
+    implementation(compose.desktop.linux_arm64)
+    implementation(compose.desktop.linux_x64)
+    implementation(compose.desktop.macos_arm64)
+    implementation(compose.desktop.macos_x64)
+    implementation(compose.desktop.windows_x64)
+    implementation(packageSearchCatalog.jewel.bridge.ij233)
     implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.compose.desktop.components.splitpane){
         exclude(group = "org.jetbrains.compose.runtime")
