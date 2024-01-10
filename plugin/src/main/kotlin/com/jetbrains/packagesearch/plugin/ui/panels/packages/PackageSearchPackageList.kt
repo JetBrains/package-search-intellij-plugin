@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.onClick
-import androidx.compose.material.Divider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,7 +51,9 @@ import org.jetbrains.jewel.foundation.lazy.SelectableLazyItemScope
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
@@ -319,7 +320,7 @@ internal fun RemotePackageWithVariantsActionPopup(
         }
         if (!isInstalledInPrimaryVariant) {
             passiveItem {
-                Divider(modifier = Modifier.padding(vertical = 4.dp))
+                Divider(Orientation.Horizontal,modifier = Modifier.padding(vertical = 4.dp))
             }
             selectableItem(
                 selected = false,
@@ -331,7 +332,7 @@ internal fun RemotePackageWithVariantsActionPopup(
 
         if (additionalVariants.isNotEmpty()) {
             passiveItem {
-                Divider(modifier = Modifier.padding(vertical = 4.dp))
+                Divider(Orientation.Horizontal,modifier = Modifier.padding(vertical = 4.dp))
             }
             additionalVariants.forEach {
                 selectableItem(
@@ -375,7 +376,7 @@ internal fun DeclaredPackageActionPopup(
                 }
             }
             passiveItem {
-                Divider(modifier = Modifier.padding(vertical = 4.dp))
+                Divider(Orientation.Horizontal,modifier = Modifier.padding(vertical = 4.dp))
             }
             selectableItem(
                 selected = false,
