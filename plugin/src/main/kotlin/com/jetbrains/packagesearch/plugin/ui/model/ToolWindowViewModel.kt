@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 
 @Service(Level.PROJECT)
@@ -64,6 +65,7 @@ class ToolWindowViewModel(project: Project) : Disposable {
             else -> PackageSearchToolWindowState.NoModules
         }
     }
+        .retry()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,

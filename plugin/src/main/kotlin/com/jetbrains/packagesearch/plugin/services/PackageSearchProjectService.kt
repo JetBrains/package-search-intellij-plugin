@@ -35,7 +35,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
@@ -46,6 +45,8 @@ import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Mutex
@@ -72,7 +73,12 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
             .apiPackageCache
             .getKnownRepositories()
             .associateBy { it.id }
-    }.stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+    }
+        .retry {
+            logWarn("${this::class.simpleName}#knownRepositoriesStateFlow", throwable = it)
+            true
+        }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     override val knownRepositories: Map<String, ApiRepository>
         get() = knownRepositoriesStateFlow.value
@@ -117,20 +123,15 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
     private var counter = 0
     private val counterMutex = Mutex()
 
-    private suspend fun restartWithCounter() = counterMutex.withLock {
-        if (counter++ < 3) {
-            restart()
-        }
-    }
-
     private suspend fun resetCounter() = counterMutex.withLock { counter = 0 }
 
     val modulesStateFlow = restartFlow
         .withInitialValue(Unit)
         .flatMapLatest { moduleProvidersList }
-        .catch {
-            logWarn("${this::class.simpleName}#modulesStateFlow", throwable = it)
-            restartWithCounter()
+        .retryWhen { cause, attempt ->
+            logWarn("${this::class.simpleName}#modulesStateFlow", throwable = cause)
+            restart()
+            attempt < 3
         }
         .onEach { resetCounter() }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
@@ -147,12 +148,20 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
 
         stableOnlyStateFlow
             .onEach { logOnlyStableToggle(it) }
+            .retry {
+                logWarn("${this::class.simpleName}#stableOnlyStateFlow", throwable = it)
+                true
+            }
             .launchIn(coroutineScope)
 
         IntelliJApplication.PackageSearchApplicationCachesService
             .isOnlineFlow
             .filter { it }
             .onEach { restart() }
+            .retry {
+                logWarn("${this::class.simpleName}#isOnlineFlow", throwable = it)
+                true
+            }
             .launchIn(coroutineScope)
 
         combine(
@@ -171,6 +180,10 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
                         .findFile(it)
                         ?.let { DaemonCodeAnalyzer.getInstance(project).restart(it) }
                 }
+            }
+            .retry {
+                logWarn("${this::class.simpleName}#fileOpenedFlow", throwable = it)
+                true
             }
             .launchIn(coroutineScope)
     }

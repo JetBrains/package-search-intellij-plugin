@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 
@@ -66,6 +67,7 @@ class InfoPanelViewModel(private val project: Project) : Disposable {
             }
         }
     }
+        .retry()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val activeTabTitleMutableStateFlow: MutableStateFlow<String?> = MutableStateFlow(null)
