@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -165,7 +166,8 @@ class PackageListViewModel(
                     else -> value
                 }
             }
-        }.modifiedBy(selectedModulesFlow) { current: Map<PackageListItem.Header.Id.Remote, Search>, change ->
+        }
+        .modifiedBy(selectedModulesFlow) { current: Map<PackageListItem.Header.Id.Remote, Search>, change ->
             val changeIdentities = change.map { it.identity }
             if (current.keys.any { it.moduleIdentity !in changeIdentities }) {
                 emptyMap()
@@ -173,6 +175,7 @@ class PackageListViewModel(
                 current
             }
         }
+        .retry()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     val selectableLazyListState = SelectableLazyListState(LazyListState())
@@ -204,6 +207,7 @@ class PackageListViewModel(
                     }
                 }
             }
+            .retry()
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private suspend fun PackageSearchModule.Base.getSearchQuery(

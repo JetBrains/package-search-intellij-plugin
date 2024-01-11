@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
@@ -29,6 +30,7 @@ internal class TreeViewModel(
     ) { modules, stableOnly ->
         modules.asTree(stableOnly)
     }
+        .retry()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyTree())
 
     internal val lazyListState = LazyListState()
