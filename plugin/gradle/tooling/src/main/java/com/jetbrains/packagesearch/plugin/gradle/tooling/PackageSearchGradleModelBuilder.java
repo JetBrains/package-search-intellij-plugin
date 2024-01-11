@@ -28,6 +28,7 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
         List<PackageSearchGradleJavaModel.Configuration> configurations =
                 new ArrayList<>(project.getConfigurations().size());
 
+        GradleVersion currentGradleVersion = GradleVersion.current();
         for (Configuration configuration : project.getConfigurations()) {
             List<PackageSearchGradleJavaModel.Dependency> dependencies =
                     new ArrayList<>(configuration.getDependencies().size());
@@ -42,10 +43,7 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
             }
 
             boolean isCanBeDeclared = true;
-            String[] gradleVersion = project.getGradle().getGradleVersion().split("\\.");
-            int major = Integer.parseInt(gradleVersion[0]);
-            int middle = Integer.parseInt(gradleVersion[1]);
-            if (major > 8 || (major == 8 && middle > 2)) {
+            if (currentGradleVersion.compareTo(GradleVersion.version("8.2")) >= 0) {
                 isCanBeDeclared = configuration.isCanBeDeclared();
             }
 
@@ -70,7 +68,7 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
             }
         }
 
-        String projectIdentityPath = GradleVersion.current().compareTo(GradleVersion.version("3.3")) >= 0 ?
+        String projectIdentityPath = currentGradleVersion.compareTo(GradleVersion.version("3.3")) >= 0 ?
                 ((ProjectInternal) project).getIdentityPath().getPath() : project.getPath();
 
         String buildFilePath = null;
