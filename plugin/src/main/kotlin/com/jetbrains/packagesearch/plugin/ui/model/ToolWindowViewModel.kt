@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.compose.splitpane.SplitPaneState
 
@@ -76,6 +77,7 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
             else -> PackageSearchToolWindowState.NoModules
         }
     }
+        .retry()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
