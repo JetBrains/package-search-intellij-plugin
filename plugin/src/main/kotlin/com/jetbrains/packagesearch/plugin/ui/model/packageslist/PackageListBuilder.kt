@@ -4,7 +4,6 @@ import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.model.getLatestVersion
 import com.jetbrains.packagesearch.plugin.ui.model.hasUpdates
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.SetHeaderState.TargetState
@@ -26,7 +25,9 @@ class PackageListBuilder(
 
     private val items = mutableListOf<PackageListItem>()
 
-    fun build(): List<PackageListItem> = items.toList()
+    // build packageListItem with distinctBy
+    // prevent id crashes if there is a dependency declared twice ( same groupId, and same artifactId )
+    fun build(): List<PackageListItem> = items.distinctBy { it.id }
 
     private fun getStateForOrOpen(id: PackageListItem.Header.Id) =
         when (headerCollapsedStates[id]) {
