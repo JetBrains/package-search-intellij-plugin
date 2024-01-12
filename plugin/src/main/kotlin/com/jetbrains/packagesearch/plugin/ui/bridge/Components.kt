@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextLayoutResult
@@ -148,12 +147,11 @@ internal fun PackageActionPopup(
 
 
 internal fun SplitPaneScope.packageSearchSplitter(
-    splitterColor: Color,
     cursor: PointerIcon = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)),
 ) {
     splitter {
         visiblePart {
-            Divider(orientation = Orientation.Vertical, color = splitterColor)
+            Divider(orientation = Orientation.Vertical)
         }
         handle {
             Box(

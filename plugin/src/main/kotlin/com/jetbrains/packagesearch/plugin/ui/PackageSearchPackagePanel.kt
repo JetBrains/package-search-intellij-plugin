@@ -35,14 +35,14 @@ fun PackageSearchPackagePanel(
         first(PackageSearchMetrics.Splitpane.minWidth) {
             PackageSearchModulesTree(Modifier, onSelectionModulesSelectionChanged)
         }
-        packageSearchSplitter(splitterColor)
+        packageSearchSplitter()
         second {
             if (isInfoPanelOpen) {
                 HorizontalSplitPane(Modifier.fillMaxSize(), innerSplitPaneState) {
                     first(PackageSearchMetrics.Splitpane.minWidth) {
                         PackageSearchCentralPanel(onLinkClick = onLinkClick)
                     }
-                    packageSearchSplitter(splitterColor)
+                    packageSearchSplitter()
                     second(PackageSearchMetrics.Splitpane.minWidth) {
                         PackageSearchInfoPanel(onLinkClick = onLinkClick, onPackageEvent = onPackageEvent)
                     }
