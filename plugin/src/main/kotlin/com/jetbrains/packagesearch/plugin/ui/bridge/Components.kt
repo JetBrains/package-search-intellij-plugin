@@ -29,15 +29,17 @@ import com.intellij.icons.AllIcons
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchColors
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import java.awt.Cursor
+import org.jetbrains.compose.splitpane.SplitPaneScope
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalTextStyle
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.DropdownLink
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.MenuScope
 import org.jetbrains.jewel.ui.component.PopupMenu
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.compose.splitpane.SplitPaneScope
 
 @Composable
 fun LabelInfo(
@@ -148,29 +150,19 @@ internal fun PackageActionPopup(
 internal fun SplitPaneScope.packageSearchSplitter(
     splitterColor: Color,
     cursor: PointerIcon = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)),
-    hidden: Boolean = false,
 ) {
     splitter {
         visiblePart {
-            if (!hidden) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp)
-                        .background(splitterColor),
-                )
-            }
+            Divider(orientation = Orientation.Vertical, color = splitterColor)
         }
         handle {
-            if (!hidden) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(8.dp)
-                        .markAsHandle()
-                        .pointerHoverIcon(cursor),
-                )
-            }
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(3.dp)
+                    .markAsHandle()
+                    .pointerHoverIcon(cursor),
+            )
         }
     }
 }
