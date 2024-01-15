@@ -130,7 +130,7 @@ internal fun PackageActionPopup(
         }
         if (isOpen) {
             PopupMenu(
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.End,
                 onDismissRequest = { _ ->
                     onDismissRequest()
                     true
