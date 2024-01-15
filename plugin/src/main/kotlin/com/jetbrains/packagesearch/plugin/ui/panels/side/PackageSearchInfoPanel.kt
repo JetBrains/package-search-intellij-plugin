@@ -22,6 +22,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelContent
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelViewModel
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent
 import com.jetbrains.packagesearch.plugin.ui.viewModel
+import org.jetbrains.jewel.ui.component.SimpleTabContent
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
@@ -45,8 +46,10 @@ fun PackageSearchInfoPanel(
                 tabs = tabs.map { infoPanelContent ->
                     TabData.Default(
                         selected = activeTabTitle == infoPanelContent.tabTitle,
-                        label = infoPanelContent.tabTitle,
                         closable = false,
+                        content = { tabState ->
+                            SimpleTabContent(infoPanelContent.tabTitle, tabState)
+                        },
                         onClick = { viewModel.setActiveTabTitle(infoPanelContent.tabTitle) },
                     )
                 }
@@ -97,4 +100,3 @@ private fun NoTabsAvailable() {
         )
     }
 }
-
