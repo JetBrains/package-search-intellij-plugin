@@ -26,7 +26,7 @@ include(
     ":plugin:gradle:kmp",
     ":plugin:gradle:tooling",
     ":plugin:maven",
-    ":plugin:jps",
+//    ":plugin:jps",
     ":kmp-modifier",
 )
 
