@@ -56,6 +56,7 @@ internal fun PackageSearchTabStyle(): TabStyle {
             tabPadding = current.metrics.tabPadding,
             tabHeight = PackageSearchMetrics.searchBarHeight,
             closeContentGap = current.metrics.closeContentGap,
+            tabContentSpacing = current.metrics.tabContentSpacing,
         ),
         icons = current.icons,
         contentAlpha = current.contentAlpha
