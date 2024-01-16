@@ -20,9 +20,9 @@ ktor = "2.3.5"
 logback = "1.4.11"
 nitrite = "3.4.4"
 packagesearchApiModels = "3.0.0-SNAPSHOT"
-jewel-bridge-233 = "1.0.0-ij-233-SNAPSHOT"
-jewel-bridge-232 = "1.0.0-ij-232-SNAPSHOT"
-jewel = "1.0.0-SNAPSHOT"
+jewel-bridge-233 = "0.13.2-ij-233"
+jewel-bridge-232 = "0.13.2-ij-232"
+jewel = "0.13.2"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
@@ -37,7 +37,7 @@ ij-platform-ide-core = { module = "com.jetbrains.intellij.platform:ide-core", ve
 ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", version.ref = "idea" }
 jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
 jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
-jewel-standalone = { module= "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
+jewel-standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
 jewel-bridge-ij232 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge-232" }
 jewel-bridge-ij233 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge-233" }
 compose-desktop-components-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "composeDesktop" }
@@ -69,6 +69,12 @@ packagesearch-api-client = { module = "org.jetbrains.packagesearch:packagesearch
 packagesearch-api-models = { module = "org.jetbrains.packagesearch:packagesearch-api-models", version.ref = "packagesearchApiModels" }
 packagesearch-build-systems-models = { module = "org.jetbrains.packagesearch:packagesearch-build-systems-models", version.ref = "packagesearchApiModels" }
 packagesearch-http-models = { module = "org.jetbrains.packagesearch:packagesearch-http-models", version.ref = "packagesearchApiModels" }
+compose-desktop-jvm-linux-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-x64", version.ref = "composeDesktop" }
+compose-desktop-jvm-linux-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-arm64", version.ref = "composeDesktop" }
+compose-desktop-jvm-windows-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-windows-x64", version.ref = "composeDesktop" }
+compose-desktop-jvm-macos-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-x64", version.ref = "composeDesktop" }
+compose-desktop-jvm-macos-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-arm64", version.ref = "composeDesktop" }
+
 
 # Plugin libraries for build-logic's convention plugins to use to resolve the types/tasks coming from these plugins
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
@@ -90,4 +96,3 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinterGradlePlugin" }
-
