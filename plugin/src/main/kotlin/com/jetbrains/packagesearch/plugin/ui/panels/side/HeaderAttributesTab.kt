@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.bridge.AttributeBadge
+import com.jetbrains.packagesearch.plugin.ui.bridge.FlowRow
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelContent
 import kotlin.math.roundToInt
@@ -67,8 +68,7 @@ private fun HeaderAttributesTabImpl(
             )
         }
 
-
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        FlowRow(xSpacing = 4.dp) {
             attributes.forEachIndexed { index, attribute ->
                 AttributeBadge(text = attribute.value) {
                     scope.scrollToAttribute(scrollState, attributeGlobalPositionMap, index)
