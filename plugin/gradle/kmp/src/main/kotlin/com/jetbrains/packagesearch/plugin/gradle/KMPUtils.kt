@@ -7,7 +7,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import kotlin.contracts.contract
 
-fun Set<MppCompilationInfoModel.Compilation>.buildAttributes() = buildList {
+fun Set<MppCompilationInfoModel.Compilation>.buildAttributes(): List<PackageSearchModuleVariant.Attribute> {
     val rawStrings = this@buildAttributes.mapNotNull {
         when (it) {
             is MppCompilationInfoModel.Js -> when (it.compiler) {
@@ -19,58 +19,29 @@ fun Set<MppCompilationInfoModel.Compilation>.buildAttributes() = buildList {
             MppCompilationInfoModel.Common -> null
             else -> it.platformId
         }
-    }
-        .toMutableSet()
+    }.toSet()
 
-    val hasIos = KMPAttributes.ios in rawStrings
-    val hasMacOs = KMPAttributes.macos in rawStrings
-    val hasTvOs = KMPAttributes.tvos in rawStrings
-    val hasWatchOs = KMPAttributes.watchos in rawStrings
-
-    val hasApple = hasIos && hasMacOs && hasTvOs && hasWatchOs
-
-    val hasJs = KMPAttributes.js in rawStrings
-    val hasAndroidNative = KMPAttributes.androidNative in rawStrings
-    val hasLinux = KMPAttributes.linux in rawStrings
-    when {
-        hasApple -> {
-            add(KMPAttributes.apple)
-            rawStrings.removeAll(KMPAttributes.apple.flatten())
-        }
-
-        else -> {
-            if (hasIos) {
-                add(KMPAttributes.ios)
-                rawStrings.removeAll(KMPAttributes.ios.flatten())
-            }
-            if (hasMacOs) {
-                add(KMPAttributes.macos)
-                rawStrings.removeAll(KMPAttributes.macos.flatten())
-            }
-            if (hasTvOs) {
-                add(KMPAttributes.tvos)
-                rawStrings.removeAll(KMPAttributes.tvos.flatten())
-            }
-            if (hasWatchOs) {
-                add(KMPAttributes.watchos)
-                rawStrings.removeAll(KMPAttributes.watchos.flatten())
-            }
-        }
-    }
-    if (hasJs) {
-        add(KMPAttributes.js)
-        rawStrings.removeAll(KMPAttributes.js.flatten())
-    }
-    if (hasAndroidNative) {
-        add(KMPAttributes.androidNative)
-        rawStrings.removeAll(KMPAttributes.androidNative.flatten())
-    }
-    if (hasLinux) {
-        add(KMPAttributes.linux)
-        rawStrings.removeAll(KMPAttributes.linux.flatten())
-    }
-    addAll(rawStrings.map { PackageSearchModuleVariant.Attribute.StringAttribute(it) })
+    return buildAttributesFromRawStrings(rawStrings)
 }
+
+fun buildAttributesFromRawStrings(rawStrings: Set<String>) = buildList {
+    var queue = rawStrings.toList()
+    for (attributeTitle in KMP_ATTRIBUTES_GROUPS) {
+        val (targets, rest) = queue
+            .partition { it.contains(attributeTitle.aggregationKeyword, true) }
+
+        if (targets.isEmpty()) continue
+        add(
+            PackageSearchModuleVariant.Attribute.NestedAttribute(
+                attributeTitle.displayName,
+                targets.map { PackageSearchModuleVariant.Attribute.StringAttribute(it) })
+        )
+        queue = rest
+    }
+    addAll(queue.map { PackageSearchModuleVariant.Attribute.StringAttribute(it) })
+
+}
+
 
 operator fun Set<String>.contains(attribute: PackageSearchModuleVariant.Attribute.NestedAttribute): Boolean =
     attribute.flatten().all { it in this }
