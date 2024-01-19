@@ -5,7 +5,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -58,7 +57,7 @@ private fun HeaderAttributesTabImpl(
     val attributeGlobalPositionMap = remember { mutableMapOf<Int, Int>() }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.padding(12.dp)) {
-        if (content is InfoPanelContent.Attributes.FromSearch) {
+        if (content is InfoPanelContent.Attributes.FromSearchHeader) {
             Text(
                 text = contentTitle,
                 fontSize = 14.sp,
@@ -76,7 +75,7 @@ private fun HeaderAttributesTabImpl(
             }
         }
 
-        if (content is InfoPanelContent.Attributes.FromSearch) {
+        if (content is InfoPanelContent.Attributes.FromSearchHeader) {
             SourceSetsList(content, sourceSetString)
         }
 
@@ -86,8 +85,8 @@ private fun HeaderAttributesTabImpl(
 
 
 @Composable
-private fun ColumnScope.SourceSetsList(
-    content: InfoPanelContent.Attributes.FromSearch,
+private fun SourceSetsList(
+    content: InfoPanelContent.Attributes.FromSearchHeader,
     title: String,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -175,7 +174,7 @@ fun AttributeItem(modifier: Modifier = Modifier, attributeName: String, nestedAt
 //@Composable
 //private fun HeaderAttributesPreviewTab() {
 //    val activeTabMock = InfoPanelContent.Attributes.FromVariant(
-//        tabTitle = "FromVariant",
+//        tabTitleData = "FromVariant",
 //        variantName = "jvm",
 //        attributes = generateAttributesMock()
 //    )

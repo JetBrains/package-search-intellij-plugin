@@ -36,7 +36,7 @@ fun PackageSearchInfoPanel(
     val tabs by viewModel.tabs.collectAsState()
     val activeTabTitle by viewModel.activeTabTitleFlow.collectAsState()
     // if you use `by derivedStateOf`, the then will fail
-    val activeTab = derivedStateOf { tabs.firstOrNull { it.tabTitle == activeTabTitle } }.value
+    val activeTab = derivedStateOf { tabs.firstOrNull { it.tabTitleData.tabTitle == activeTabTitle } }.value
     when {
         tabs.isEmpty() || activeTab == null -> NoTabsAvailable()
         else -> Column(modifier = Modifier.fillMaxSize()) {
@@ -44,10 +44,10 @@ fun PackageSearchInfoPanel(
                 modifier = Modifier.fillMaxWidth(),
                 tabs = tabs.map {
                     TabData.Default(
-                        selected = activeTabTitle == it.tabTitle,
-                        label = it.tabTitle,
+                        selected = activeTabTitle == it.tabTitleData.tabTitle,
+                        label = it.tabTitleData.tabTitle,
                         closable = false,
-                        onClick = { viewModel.setActiveTabTitle(it.tabTitle) },
+                        onClick = { viewModel.setActiveTabTitle(it.tabTitleData.tabTitle) },
                     )
                 }
             )
@@ -66,13 +66,19 @@ fun PackageSearchInfoPanel(
                             )
                         }
 
-                        is InfoPanelContent.Attributes.FromVariant -> {
+                        is InfoPanelContent.Attributes.FromVariantHeader -> {
                             HeaderAttributesTab(content = activeTab, scrollState = viewModel.scrollState)
 
                         }
-                        is InfoPanelContent.Attributes.FromSearch -> {
+
+                        is InfoPanelContent.Attributes.FromSearchHeader -> {
                             HeaderAttributesTab(content = activeTab, scrollState = viewModel.scrollState)
                         }
+
+                        is InfoPanelContent.Attributes.FromPackage -> HeaderAttributesTab(
+                            content = activeTab,
+                            scrollState = viewModel.scrollState
+                        )
                     }
                 }
                 VerticalScrollbar(

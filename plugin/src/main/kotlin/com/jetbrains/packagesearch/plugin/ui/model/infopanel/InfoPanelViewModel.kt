@@ -57,10 +57,10 @@ class InfoPanelViewModel(
                             event.asPanelContent(onlyStable, isLoading)
 
                         is InfoPanelContentEvent.Package.Remote.Base ->
-                            event.asPanelContent(isLoading)
+                            event.asPanelContent(onlyStable,isLoading)
 
                         is InfoPanelContentEvent.Package.Remote.WithVariants ->
-                            event.asPanelContent(isLoading)
+                            event.asPanelContent(onlyStable,isLoading)
                     }
                 }
             }
@@ -86,10 +86,10 @@ class InfoPanelViewModel(
 
     init {
         combine(
-            tabs.map { it.map { it.tabTitle } },
+            tabs.map { it.map { it.tabTitleData } },
             activeTabTitleMutableStateFlow
         ) { tabTitles, activeTabTitle ->
-            if (activeTabTitle !in tabTitles) tabTitles.firstOrNull() else activeTabTitle
+            if (activeTabTitle !in tabTitles.map{it.tabTitle}) tabTitles.firstOrNull()?.tabTitle else activeTabTitle
         }
             .mapNotNull { it }
             .onEach { activeTabTitleMutableStateFlow.emit(it) }
