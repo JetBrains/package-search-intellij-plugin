@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.bridge.AttributeBadge
+import com.jetbrains.packagesearch.plugin.ui.bridge.FlowRow
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelContent
 import kotlin.math.roundToInt
@@ -66,8 +67,7 @@ private fun HeaderAttributesTabImpl(
             )
         }
 
-
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        FlowRow(xSpacing = 4.dp) {
             attributes.forEachIndexed { index, attribute ->
                 AttributeBadge(text = attribute.value) {
                     scope.scrollToAttribute(scrollState, attributeGlobalPositionMap, index)
@@ -237,49 +237,50 @@ private fun generateAttributesMock(): List<PackageSearchModuleVariant.Attribute>
 
 }
 
-internal val platformListMock get() =  buildList {
-    add("Android")
-    add("android")
-    add("Apple")
-    add("iOS")
-    add("iosX64")
-    add("iosArm64")
-    add("iosSimulatorArm64")
-    add("macOS")
-    add("macosArm64")
-    add("macosX64")
+internal val platformListMock
+    get() = buildList {
+        add("Android")
+        add("android")
+        add("Apple")
+        add("iOS")
+        add("iosX64")
+        add("iosArm64")
+        add("iosSimulatorArm64")
+        add("macOS")
+        add("macosArm64")
+        add("macosX64")
 
-    add("watchOS")
-    add("watchosArm32")
-    add("watchosArm64")
-    add("watchosX64")
-    add("watchosSimulatorArm64")
+        add("watchOS")
+        add("watchosArm32")
+        add("watchosArm64")
+        add("watchosX64")
+        add("watchosSimulatorArm64")
 
-    add("tvOS")
-    add("tvosX64")
-    add("tvosArm64")
-    add("tvosSimulatorArm64")
+        add("tvOS")
+        add("tvosX64")
+        add("tvosArm64")
+        add("tvosSimulatorArm64")
 
 
-    add("Java")
-    add("jvm")
+        add("Java")
+        add("jvm")
 
-    add("JavaScript")
-    add("jsLegacy")
-    add("jslr")
+        add("JavaScript")
+        add("jsLegacy")
+        add("jslr")
 
-    add("Linux")
-    add("LinuxMipsel32")
-    add("LinuxArm64")
-    add("LinuxArm32Hfp")
-    add("LinuxX64")
+        add("Linux")
+        add("LinuxMipsel32")
+        add("LinuxArm64")
+        add("LinuxArm32Hfp")
+        add("LinuxX64")
 
-    add("Windows")
-    add("WindowsX64")
-    add("WindowsX86")
+        add("Windows")
+        add("WindowsX64")
+        add("WindowsX86")
 
-    add("WebAssembly")
-    add("wasm")
-    add("wasm32")
+        add("WebAssembly")
+        add("wasm")
+        add("wasm32")
 
-}
+    }
