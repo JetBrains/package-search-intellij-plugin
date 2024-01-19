@@ -37,7 +37,7 @@ fun PackageSearchInfoPanel(
     val tabs by viewModel.tabs.collectAsState()
     val activeTabTitle by viewModel.activeTabTitleFlow.collectAsState()
     // if you use `by derivedStateOf`, the then will fail
-    val activeTab = derivedStateOf { tabs.firstOrNull { it.tabTitle == activeTabTitle } }.value
+    val activeTab = derivedStateOf { tabs.firstOrNull { it.tabTitleData.tabTitle == activeTabTitle } }.value
     when {
         tabs.isEmpty() || activeTab == null -> NoTabsAvailable()
         else -> Column(modifier = Modifier.fillMaxSize()) {
@@ -45,12 +45,12 @@ fun PackageSearchInfoPanel(
                 modifier = Modifier.fillMaxWidth(),
                 tabs = tabs.map { infoPanelContent ->
                     TabData.Default(
-                        selected = activeTabTitle == infoPanelContent.tabTitle,
+                        selected = activeTabTitle == infoPanelContent.tabTitleData.tabTitle,
                         closable = false,
                         content = { tabState ->
-                            SimpleTabContent(infoPanelContent.tabTitle, tabState)
+                            SimpleTabContent(infoPanelContent.tabTitleData.tabTitle, tabState)
                         },
-                        onClick = { viewModel.setActiveTabTitle(infoPanelContent.tabTitle) },
+                        onClick = { viewModel.setActiveTabTitle(infoPanelContent.tabTitleData.tabTitle) },
                     )
                 }
             )
@@ -69,14 +69,19 @@ fun PackageSearchInfoPanel(
                             )
                         }
 
-                        is InfoPanelContent.Attributes.FromVariant -> {
+                        is InfoPanelContent.Attributes.FromVariantHeader -> {
                             HeaderAttributesTab(content = activeTab, scrollState = viewModel.scrollState)
 
                         }
 
-                        is InfoPanelContent.Attributes.FromSearch -> {
+                        is InfoPanelContent.Attributes.FromSearchHeader -> {
                             HeaderAttributesTab(content = activeTab, scrollState = viewModel.scrollState)
                         }
+
+                        is InfoPanelContent.Attributes.FromPackage -> HeaderAttributesTab(
+                            content = activeTab,
+                            scrollState = viewModel.scrollState
+                        )
                     }
                 }
                 VerticalScrollbar(

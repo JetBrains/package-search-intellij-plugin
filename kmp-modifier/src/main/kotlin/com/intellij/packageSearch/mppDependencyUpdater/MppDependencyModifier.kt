@@ -16,11 +16,11 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.packageSearch.mppDependencyUpdater.dsl.models.KotlinDslModel
 import com.intellij.packageSearch.mppDependencyUpdater.dsl.models.SourceSetModel
-import com.intellij.util.alsoIfNull
 
 private val LOG = logger<MppDependencyModifier>()
 
 object MppDependencyModifier {
+    @Suppress("unused")
     suspend fun isAvailable(module: Module): Boolean =
         readFromKotlinModel(module) { it.isAvailable } ?: false
 
@@ -72,13 +72,20 @@ object MppDependencyModifier {
         val artifactSpec = mppDependency.artifactDependencySpec()
 
         val sourceSetModel = model.getOrCreateSourceSet(sourceSet, createIfMissing)
-            .alsoIfNull { LOG.warn("Requested source set ${sourceSet} not found") }
-            ?: return
 
-        sourceSetModel.getOrCreateDependenciesBlock(createIfMissing)
-            ?.addArtifact(mppDependency.configuration, artifactSpec)
-            .alsoIfNull { LOG.warn("Could not find dependencies block in source set ${sourceSet}") }
-            ?: return
+        if (sourceSetModel == null) {
+            LOG.warn("Requested source set ${sourceSet} not found")
+            return
+        }
+
+        val dependenciesBlockModel = sourceSetModel.getOrCreateDependenciesBlock(createIfMissing)
+
+        if (dependenciesBlockModel == null) {
+            LOG.warn("Could not find dependencies block in source set ${sourceSet}")
+            return
+        }
+
+        dependenciesBlockModel.addArtifact(mppDependency.configuration, artifactSpec)
     }
 
     suspend fun removeDependency(
@@ -109,16 +116,22 @@ object MppDependencyModifier {
 
     private fun removeFromKotlinModel(model: KotlinDslModel, sourceSet: String, dependency: MppDependency.Maven) {
         val sourceSetModel = model.sourceSets()?.get(sourceSet)
-            .alsoIfNull { LOG.warn("Requested source set ${sourceSet} not found") }
-            ?: return
+
+        if (sourceSetModel == null) {
+            LOG.warn("Requested source set ${sourceSet} not found")
+            return
+        }
 
         val dependencies = sourceSetModel.dependencies()
-            .alsoIfNull { LOG.warn("Could not find dependencies block in source set ${sourceSet}") }
-            ?: return
+        if (dependencies == null) {
+            LOG.warn("Could not find dependencies block in source set ${sourceSet}")
+            return
+        }
 
-        dependencies.findDependency(dependency)?.also { dependencies.remove(it) }
-            .alsoIfNull { LOG.warn("Could not find dependency $dependency") }
-            ?: return
+        dependencies.findDependency(dependency)
+            ?.let { dependencies.remove(it) }
+            ?: LOG.warn("Could not find dependency $dependency")
+
     }
 
     suspend fun updateDependency(
@@ -164,28 +177,46 @@ object MppDependencyModifier {
         sourceSet: String,
     ) {
         val sourceSetModel = model.sourceSets()?.get(sourceSet)
-            .alsoIfNull { LOG.warn("Requested source set ${sourceSet} not found") }
-            ?: return
+        if (sourceSetModel == null) {
+            LOG.warn("Requested source set ${sourceSet} not found")
+            return
+        }
+
         val dependencies = sourceSetModel.dependencies()
-            .alsoIfNull { LOG.warn("Dependencies block not found in source set ${sourceSet}") }
-            ?: return
+        if (dependencies == null) {
+            LOG.warn("Dependencies block not found in source set ${sourceSet}")
+            return
+        }
+
 
         val artifactDependencyModel = dependencies.findDependency(oldDescriptor)
-            .alsoIfNull { LOG.warn("Could not find dependency $oldDescriptor") }
-            ?: return
+        if (artifactDependencyModel == null) {
+            LOG.warn("Could not find dependency $oldDescriptor")
+            return
+        }
 
         artifactDependencyModel.updateByDescriptor(oldDescriptor, newDescriptor)
     }
 
-    private fun KotlinDslModel.getOrCreateSourceSet(sourceSet: String, createIfMissing: Boolean): SourceSetModel? =
-        sourceSets()?.get(sourceSet)
-            .alsoIfNull { LOG.warn("Requested source set $sourceSet not found") }
-            ?: if (createIfMissing) declareSourceSet(sourceSet) else null
+    private fun KotlinDslModel.getOrCreateSourceSet(sourceSet: String, createIfMissing: Boolean): SourceSetModel? {
+        val foundSourceSet = sourceSets()?.get(sourceSet)
+        if (foundSourceSet != null) {
+            return foundSourceSet
+        }
 
-    private fun SourceSetModel.getOrCreateDependenciesBlock(createIfMissing: Boolean): DependenciesModel? =
-        dependencies()
-            .alsoIfNull { LOG.warn("Dependencies block not found in source set $name") }
-            ?: if (createIfMissing) addDependenciesBlock() else null
+        LOG.warn("Requested source set $sourceSet not found")
+        return if (createIfMissing) declareSourceSet(sourceSet) else null
+    }
+
+    private fun SourceSetModel.getOrCreateDependenciesBlock(createIfMissing: Boolean): DependenciesModel? {
+        val dependenciesModel = dependencies()
+        if (dependenciesModel != null) {
+            return dependenciesModel
+        }
+
+        LOG.warn("Dependencies block not found in source set $name")
+        return if (createIfMissing) addDependenciesBlock() else null
+    }
 
     private fun ArtifactDependencyModel.updateByDescriptor(
         oldDescriptor: MppDependency.Maven,
@@ -262,8 +293,11 @@ object MppDependencyModifier {
         }
     }
 
-    private fun Module.buildModel() = ProjectBuildModel.get(project).getModuleBuildModel(this)
-        .alsoIfNull { LOG.warn("Could not create gradle model for module $this") }
+    private fun Module.buildModel(): GradleBuildModel? {
+        val buildModel = ProjectBuildModel.get(project).getModuleBuildModel(this)
+        if (buildModel == null) LOG.warn("Could not create gradle model for module $this")
+        return buildModel
+    }
 
     private fun MppDependency.Maven.artifactDependencySpec(): ArtifactDependencySpec =
         ArtifactDependencySpec.create(
