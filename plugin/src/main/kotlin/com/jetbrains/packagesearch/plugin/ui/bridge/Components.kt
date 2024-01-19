@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -23,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
@@ -185,8 +188,50 @@ internal fun AttributeBadge(text: String, onClick: () -> Unit) {
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), text = text,
         )
     }
-
 }
+
+@Composable
+internal fun FlowRow(
+    xSpacing: Dp = 0.dp,
+    ySpacing: Dp = 0.dp,
+    content: @Composable () -> Unit,
+) {
+    Layout(
+        content = content
+    ) { measurables, constraints ->
+        val childConstraints = constraints.copy(minWidth = 0, minHeight = 0)
+        val placeables = measurables.map { it.measure(childConstraints) }
+
+        val rows = mutableListOf<List<Placeable>>()
+        var currentRow = mutableListOf<Placeable>()
+        var currentWidth = 0
+
+        placeables.forEach { placeable ->
+            if (currentWidth + placeable.width > constraints.maxWidth) {
+                rows.add(currentRow)
+                currentRow = mutableListOf()
+                currentWidth = 0
+            }
+            currentRow.add(placeable)
+            currentWidth += placeable.width + xSpacing.roundToPx()
+        }
+        rows.add(currentRow)
+
+        val height = rows.sumOf { it.maxOf { it.height } + ySpacing.roundToPx() } - ySpacing.roundToPx()
+        layout(constraints.maxWidth, height) {
+            var yPosition = 0
+            rows.forEach { row ->
+                var xPosition = 0
+                row.forEach { placeable ->
+                    placeable.placeRelative(xPosition, yPosition)
+                    xPosition += placeable.width + xSpacing.roundToPx()
+                }
+                yPosition += row.maxOf { it.height } + ySpacing.roundToPx()
+            }
+        }
+    }
+}
+
 
 //@Preview
 //@Composable
