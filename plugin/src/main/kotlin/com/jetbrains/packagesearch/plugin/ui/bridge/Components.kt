@@ -192,8 +192,8 @@ internal fun AttributeBadge(text: String, onClick: () -> Unit) {
 
 @Composable
 internal fun FlowRow(
-    xSpacing: Dp = 0.dp,
-    ySpacing: Dp = 0.dp,
+    horizontalPadding: Dp = 0.dp,
+    verticalPadding: Dp = 0.dp,
     content: @Composable () -> Unit,
 ) {
     Layout(
@@ -213,20 +213,20 @@ internal fun FlowRow(
                 currentWidth = 0
             }
             currentRow.add(placeable)
-            currentWidth += placeable.width + xSpacing.roundToPx()
+            currentWidth += placeable.width + horizontalPadding.roundToPx()
         }
         rows.add(currentRow)
 
-        val height = rows.sumOf { it.maxOf { it.height } + ySpacing.roundToPx() } - ySpacing.roundToPx()
+        val height = rows.sumOf { it.maxOf { it.height } + verticalPadding.roundToPx() } - verticalPadding.roundToPx()
         layout(constraints.maxWidth, height) {
             var yPosition = 0
             rows.forEach { row ->
                 var xPosition = 0
                 row.forEach { placeable ->
                     placeable.placeRelative(xPosition, yPosition)
-                    xPosition += placeable.width + xSpacing.roundToPx()
+                    xPosition += placeable.width + horizontalPadding.roundToPx()
                 }
-                yPosition += row.maxOf { it.height } + ySpacing.roundToPx()
+                yPosition += row.maxOf { it.height } + verticalPadding.roundToPx()
             }
         }
     }
