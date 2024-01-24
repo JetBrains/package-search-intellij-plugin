@@ -40,8 +40,6 @@ import org.jetbrains.idea.maven.project.MavenProjectsManager
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
-import org.jetbrains.packagesearch.api.v3.search.javaApi
-import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.api.v3.search.jvmMavenPackages
 import org.jetbrains.packagesearch.maven.POM_XML_NAMESPACE
 import org.jetbrains.packagesearch.maven.ProjectObjectModel
@@ -63,10 +61,16 @@ val commonScopes = listOf("compile", "provided", "runtime", "test", "system", "i
 
 val Project.mavenImportFlow
     get() = messageBus.flow(MavenImportListener.TOPIC) {
-        MavenImportListener { _, _ ->
-            trySend(Unit)
+        object : MavenImportListener {
+            override fun importFinished(
+                importedProjects: MutableCollection<MavenProject>,
+                newModules: MutableList<Module>,
+            ) {
+                trySend(Unit)
+            }
         }
     }
+
 context(ProjectContext)
 fun getModuleChangesFlow(pomPath: Path): Flow<Unit> = merge(
     watchExternalFileChanges(mavenSettingsFilePath),
