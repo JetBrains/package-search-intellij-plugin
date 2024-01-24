@@ -67,7 +67,7 @@ private fun HeaderAttributesTabImpl(
             )
         }
 
-        FlowRow(xSpacing = 4.dp) {
+        FlowRow(horizontalPadding = 4.dp, verticalPadding = 4.dp) {
             attributes.forEachIndexed { index, attribute ->
                 AttributeBadge(text = attribute.value) {
                     scope.scrollToAttribute(scrollState, attributeGlobalPositionMap, index)
