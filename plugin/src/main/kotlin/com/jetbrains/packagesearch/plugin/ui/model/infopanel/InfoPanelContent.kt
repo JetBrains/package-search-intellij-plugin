@@ -7,7 +7,12 @@ import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 
 sealed interface InfoPanelContent {
 
-    val tabTitle: String
+    data class TabTitleData(
+        val tabTitle: String,
+        val quantity: Int? = null,
+    )
+
+    val tabTitleData: TabTitleData
 
     sealed interface PackageInfo : InfoPanelContent {
 
@@ -52,7 +57,7 @@ sealed interface InfoPanelContent {
 
             data class Base(
                 override val packageListId: PackageListItem.Package.Declared.Id.Base,
-                override val tabTitle: String,
+                override val tabTitleData: TabTitleData,
                 override val moduleId: PackageSearchModule.Identity,
                 override val title: String,
                 override val subtitle: String,
@@ -70,12 +75,12 @@ sealed interface InfoPanelContent {
                 override val availableVersions: List<String>,
                 override val declaredScope: String,
                 override val availableScopes: List<String>,
-                override val allowMissingScope: Boolean
-                ) : Declared
+                override val allowMissingScope: Boolean,
+            ) : Declared
 
             data class WithVariant(
                 override val packageListId: PackageListItem.Package.Declared.Id.WithVariant,
-                override val tabTitle: String,
+                override val tabTitleData: TabTitleData,
                 override val moduleId: PackageSearchModule.Identity,
                 override val title: String,
                 override val subtitle: String,
@@ -96,7 +101,7 @@ sealed interface InfoPanelContent {
                 override val allowMissingScope: Boolean,
                 val declaredVariant: String,
                 val compatibleVariants: List<String>,
-                val variantTerminology: PackageSearchModule.WithVariants.Terminology
+                val variantTerminology: PackageSearchModule.WithVariants.Terminology,
             ) : Declared
         }
 
@@ -104,7 +109,7 @@ sealed interface InfoPanelContent {
 
             data class Base(
                 override val packageListId: PackageListItem.Package.Remote.Base.Id,
-                override val tabTitle: String,
+                override val tabTitleData: TabTitleData,
                 override val moduleId: PackageSearchModule.Identity,
                 override val title: String,
                 override val subtitle: String,
@@ -121,7 +126,7 @@ sealed interface InfoPanelContent {
 
             data class WithVariant(
                 override val packageListId: PackageListItem.Package.Remote.WithVariant.Id,
-                override val tabTitle: String,
+                override val tabTitleData: TabTitleData,
                 override val moduleId: PackageSearchModule.Identity,
                 override val title: String,
                 override val subtitle: String,
@@ -144,14 +149,19 @@ sealed interface InfoPanelContent {
     sealed interface Attributes : InfoPanelContent {
         val attributes: List<PackageSearchModuleVariant.Attribute>
 
-        data class FromVariant(
-            override val tabTitle: String,
+        data class FromPackage(
+            override val attributes: List<PackageSearchModuleVariant.Attribute>,
+            override val tabTitleData: TabTitleData,
+        ) : Attributes
+
+        data class FromVariantHeader(
+            override val tabTitleData: TabTitleData,
             val variantName: String,
             override val attributes: List<PackageSearchModuleVariant.Attribute>,
         ) : Attributes
 
-        data class FromSearch(
-            override val tabTitle: String,
+        data class FromSearchHeader(
+            override val tabTitleData: TabTitleData,
             override val attributes: List<PackageSearchModuleVariant.Attribute>,
             val defaultSourceSet: String,
             val additionalSourceSets: List<String>,
@@ -159,3 +169,4 @@ sealed interface InfoPanelContent {
     }
 
 }
+
