@@ -61,6 +61,7 @@ dependencies {
         exclude(group = "org.jetbrains.compose.foundation")
     }
     implementation(packageSearchCatalog.ktor.client.logging)
+    implementation(packageSearchCatalog.ktor.client.java)
     implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
