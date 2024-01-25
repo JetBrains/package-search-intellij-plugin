@@ -23,6 +23,8 @@ import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.java.Java
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import java.util.concurrent.CompletableFuture
@@ -77,7 +79,7 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
 
     private val apiClient = PackageSearchApiClient(
         endpoints = PackageSearchEndpoints.DEFAULT,
-        httpClient = PackageSearchApiClient.defaultHttpClient {
+        httpClient = PackageSearchApiClient.defaultHttpClient(Java) {
             install(Logging) {
                 level = LogLevel.ALL
                 logger = KtorDebugLogger()
