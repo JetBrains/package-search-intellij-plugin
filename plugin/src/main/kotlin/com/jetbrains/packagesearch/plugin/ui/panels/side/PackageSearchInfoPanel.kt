@@ -45,12 +45,12 @@ fun PackageSearchInfoPanel(
                 modifier = Modifier.fillMaxWidth(),
                 tabs = tabs.map { infoPanelContent ->
                     TabData.Default(
-                        selected = activeTabTitle == infoPanelContent.tabTitle,
+                        selected = activeTabTitle == infoPanelContent.tabTitleData.tabTitle,
                         closable = false,
                         content = { tabState ->
-                            SimpleTabContent(infoPanelContent.tabTitle, tabState)
+                            SimpleTabContent(infoPanelContent.tabTitleData.tabTitle, tabState)
                         },
-                        onClick = { viewModel.setActiveTabTitle(infoPanelContent.tabTitle) },
+                        onClick = { viewModel.setActiveTabTitle(infoPanelContent.tabTitleData.tabTitle) },
                     )
                 }
             )
