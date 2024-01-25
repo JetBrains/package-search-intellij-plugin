@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
@@ -48,7 +49,9 @@ fun PackageSearchInfoPanel(
                         selected = activeTabTitle == infoPanelContent.tabTitle,
                         closable = false,
                         content = { tabState ->
-                            SimpleTabContent(infoPanelContent.tabTitle, tabState)
+                            Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
+                                SimpleTabContent(infoPanelContent.tabTitle, tabState)
+                            }
                         },
                         onClick = { viewModel.setActiveTabTitle(infoPanelContent.tabTitle) },
                     )
