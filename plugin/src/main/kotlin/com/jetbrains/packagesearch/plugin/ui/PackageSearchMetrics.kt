@@ -55,10 +55,12 @@ object PackageSearchMetrics {
         val header = PaddingValues(bottom = 1.dp)
 
         object Package {
+            @Composable
             fun paddingFor(isFirstItem: Boolean, isLastItem: Boolean): PaddingValues {
                 val top = if (isFirstItem) 4.dp else 0.dp
                 val bottom = if (isLastItem) 4.dp else 0.dp
-                return PaddingValues(top = top, bottom = bottom)
+                val end = scrollbarWidth
+                return PaddingValues(top = top, bottom = bottom, end = end)
             }
         }
     }
