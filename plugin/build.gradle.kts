@@ -56,11 +56,12 @@ dependencies {
     implementation(compose.desktop.windows_x64)
     implementation(packageSearchCatalog.jewel.bridge.ij233)
     implementation(packageSearchCatalog.kotlinx.serialization.core)
-    implementation(packageSearchCatalog.compose.desktop.components.splitpane){
+    implementation(packageSearchCatalog.compose.desktop.components.splitpane) {
         exclude(group = "org.jetbrains.compose.runtime")
         exclude(group = "org.jetbrains.compose.foundation")
     }
     implementation(packageSearchCatalog.ktor.client.logging)
+    implementation(packageSearchCatalog.ktor.client.java)
     implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
@@ -102,8 +103,8 @@ tasks {
         runtimeClasspathFiles = tooling
     }
 
-    val runNumber  = System.getenv("RUN_NUMBER")?.toInt() ?: 0
-    val runAttempt  = System.getenv("RUN_ATTEMPT")?.toInt() ?: 0
+    val runNumber = System.getenv("RUN_NUMBER")?.toInt() ?: 0
+    val runAttempt = System.getenv("RUN_ATTEMPT")?.toInt() ?: 0
     val snapshotMinorVersion = max(0, runNumber + runAttempt - 1)
     val versionString = project.version.toString()
 
