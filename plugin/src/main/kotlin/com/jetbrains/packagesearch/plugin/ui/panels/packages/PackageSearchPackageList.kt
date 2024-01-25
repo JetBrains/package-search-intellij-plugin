@@ -85,7 +85,7 @@ fun PackageSearchPackageList(
             when (item) {
                 is PackageListItem.Header -> stickyHeader(key = item.id, contentType = "header") {
                     PackageListHeader(
-                        additionalContentModifier = Modifier.padding(end = PackageSearchMetrics.scrollbarWidth),
+                        additionalContentModifier = Modifier,
                         content = item,
                         onEvent = onPackageEvent
                     )
@@ -93,7 +93,7 @@ fun PackageSearchPackageList(
 
                 is PackageListItem.Package -> item(key = item.id, contentType = item.contentType()) {
                     PackageListItem(
-                        modifier = Modifier.padding(end = PackageSearchMetrics.scrollbarWidth),
+                        modifier = Modifier,
                         content = item,
                         packagesList = packagesList,
                         index = index,
@@ -127,6 +127,13 @@ internal fun SelectableLazyItemScope.PackageListItem(
     )
     Box(
         modifier = modifier
+            .background(
+                when {
+                    isSelected && isActive -> LocalLazyTreeStyle.current.colors.elementBackgroundSelectedFocused
+                    isSelected && !isActive -> LocalLazyTreeStyle.current.colors.elementBackgroundSelected
+                    else -> Color.Transparent
+                },
+            )
             .padding(itemPaddings)
             .onClick(
                 interactionSource = remember { MutableInteractionSource() },
@@ -143,13 +150,7 @@ internal fun SelectableLazyItemScope.PackageListItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(PackageSearchMetrics.PackageList.Item.height)
-                .background(
-                    when {
-                        isSelected && isActive -> LocalLazyTreeStyle.current.colors.elementBackgroundSelectedFocused
-                        isSelected && !isActive -> LocalLazyTreeStyle.current.colors.elementBackgroundSelected
-                        else -> Color.Transparent
-                    },
-                ).padding(start = PackageSearchMetrics.PackageList.Item.padding),
+                .padding(start = PackageSearchMetrics.PackageList.Item.padding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
