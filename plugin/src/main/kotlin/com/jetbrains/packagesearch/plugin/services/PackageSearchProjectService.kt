@@ -65,17 +65,20 @@ class PackageSearchProjectService(
     // Todo SAVE
     internal val stableOnlyStateFlow = MutableStateFlow(true)
 
-    val knownRepositoriesStateFlow = timer(12.hours) {
+    val knownRepositoriesStateFlow =
         IntelliJApplication.PackageSearchApplicationCachesService
             .apiPackageCache
-            .getKnownRepositories()
-            .associateBy { it.id }
-    }
-        .retry {
-            logWarn("${this::class.simpleName}#knownRepositoriesStateFlow", throwable = it)
-            true
-        }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+            .flatMapLatest { caches ->
+                timer(12.hours) {
+                    caches.getKnownRepositories()
+                        .associateBy { it.id }
+                }
+            }
+            .retry {
+                logWarn("${this::class.simpleName}#knownRepositoriesStateFlow", throwable = it)
+                true
+            }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     override val knownRepositories: Map<String, ApiRepository>
         get() = knownRepositoriesStateFlow.value
@@ -85,11 +88,14 @@ class PackageSearchProjectService(
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     private val contextFlow
-        get() = knownRepositoriesStateFlow.map { repositories ->
+        get() = combine(
+            knownRepositoriesStateFlow,
+            IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache
+        ) { repositories, cache ->
             WindowedModuleBuilderContext(
                 project = project,
                 knownRepositories = repositories,
-                packagesCache = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
+                packagesCache = cache,
                 coroutineScope = coroutineScope,
                 projectCaches = project.PackageSearchProjectCachesService.cache,
                 applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache,
