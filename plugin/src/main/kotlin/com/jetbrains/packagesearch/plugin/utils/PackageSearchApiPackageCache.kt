@@ -28,6 +28,7 @@ class PackageSearchApiPackageCache(
     private val searchCache: CoroutineObjectRepository<ApiSearchEntry>,
     private val apiClient: PackageSearchApi,
     private val maxAge: Duration = Random.nextDouble(0.5, 1.0).days,
+    private val isOnline: Boolean,
 ) : PackageSearchApi by apiClient {
 
     private val cachesMutex = Mutex()
@@ -74,7 +75,7 @@ class PackageSearchApiPackageCache(
             .toList()
             .associateBy { it.id }
         val missingIds = ids - localDatabaseResults.keys
-        if (missingIds.isNotEmpty()) {
+        if (missingIds.isNotEmpty() && isOnline) {
             val networkResults = apiCall(missingIds)
             // TODO cache also miss in network to avoid pointless empty query
             if (networkResults.isNotEmpty()) {

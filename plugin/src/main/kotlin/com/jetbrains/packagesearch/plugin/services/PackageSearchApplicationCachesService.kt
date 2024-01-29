@@ -35,6 +35,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
@@ -99,11 +101,16 @@ class PackageSearchApplicationCachesService : RecoveryAction, Disposable {
     val isOnlineFlow = apiClient.isOnlineFlow()
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    val apiPackageCache = PackageSearchApiPackageCache(
-        apiPackageCache = packagesRepository,
-        searchCache = searchesRepository,
-        apiClient = apiClient
-    )
+    val apiPackageCache = isOnlineFlow
+        .map {
+            PackageSearchApiPackageCache(
+                apiPackageCache = packagesRepository,
+                searchCache = searchesRepository,
+                apiClient = apiClient,
+                isOnline = it
+            )
+        }
+        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
     private suspend fun createIndexes() {
         searchesRepository.createIndex(
