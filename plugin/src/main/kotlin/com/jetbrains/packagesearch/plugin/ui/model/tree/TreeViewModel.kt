@@ -7,10 +7,12 @@ import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.utils.logDebug
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
@@ -24,13 +26,14 @@ internal class TreeViewModel(
     viewModelScope: CoroutineScope,
 ) {
 
-    val tree: StateFlow<Tree<TreeItemModel>> = combine(
+    val treeStateFlow: StateFlow<Tree<TreeItemModel>> = combine(
         project.PackageSearchProjectService.modulesStateFlow,
         project.PackageSearchProjectService.stableOnlyStateFlow
     ) { modules, stableOnly ->
         modules.asTree(stableOnly)
     }
         .retry()
+        .onEach { logDebug("${this::class.qualifiedName}#treeStateFlow") { "tree roots -> ${it.roots.size}" } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyTree())
 
     internal val lazyListState = LazyListState()
@@ -40,7 +43,7 @@ internal class TreeViewModel(
         get() = IntelliJApplication.PackageSearchApplicationCachesService.isOnlineFlow
 
     fun expandAll() {
-        treeState.openNodes = tree.value.walkBreadthFirst().map { it.id }.toSet()
+        treeState.openNodes = treeStateFlow.value.walkBreadthFirst().map { it.id }.toSet()
     }
 
     fun collapseAll() {
