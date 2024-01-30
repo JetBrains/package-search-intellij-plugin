@@ -16,14 +16,12 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor
-import com.jetbrains.packagesearch.plugin.http.SerializableCachedResponseData
 import com.jetbrains.packagesearch.plugin.utils.ApiPackageCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.ApiRepositoryCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.engine.java.Java
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
@@ -67,9 +65,6 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     private inline fun <reified T : Any> getRepository(key: String) =
         cache.getRepository<T>(key)
 
-    private val sonatypeCacheRepository
-        get() = getRepository<SerializableCachedResponseData>("sonatype-cache")
-
     private val packagesRepository
         get() = getRepository<ApiPackageCacheEntry>("packages")
 
@@ -98,6 +93,7 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
             PackageSearchApiPackageCache(
                 apiPackageCache = packagesRepository,
                 searchCache = searchesRepository,
+                repositoryCache = repositoryCache,
                 apiClient = apiClient,
                 isOnline = it
             )
@@ -111,15 +107,11 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         )
         packagesRepository.createIndex(
             indexOptions = IndexOptions.indexOptions(IndexType.Unique),
-            path = ApiPackageCacheEntry::data / ApiPackage::id
+            path = ApiPackageCacheEntry::packageId
         )
         packagesRepository.createIndex(
             indexOptions = IndexOptions.indexOptions(IndexType.Unique),
-            path = ApiPackageCacheEntry::data / ApiPackage::idHash
-        )
-        sonatypeCacheRepository.createIndex(
-            indexOptions = IndexOptions.indexOptions(IndexType.NonUnique),
-            path = SerializableCachedResponseData::url
+            path = ApiPackageCacheEntry::packageIdHash
         )
     }
 
@@ -148,7 +140,6 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         searchesRepository.removeAll()
         packagesRepository.removeAll()
         repositoryCache.removeAll()
-        sonatypeCacheRepository.removeAll()
     }
 }
 
