@@ -59,7 +59,7 @@ class ToolWindowViewModel(project: Project) : Disposable {
         project.PackageSearchProjectService.packagesBeingDownloadedFlow,
         project.isProjectImportingFlow,
         project.service<TreeViewModel>()
-            .tree
+            .treeStateFlow
             .map { !it.isEmpty() }
             .debounce(250.milliseconds),
         project.smartModeFlow

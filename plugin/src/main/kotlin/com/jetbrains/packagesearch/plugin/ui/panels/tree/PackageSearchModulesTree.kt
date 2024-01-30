@@ -48,7 +48,7 @@ fun PackageSearchModulesTree(
     val viewModel: TreeViewModel = viewModel()
     val knownNodes = remember { mutableSetOf<PackageSearchModule.Identity>() }
 
-    val tree by viewModel.tree.collectAsState()
+    val tree by viewModel.treeStateFlow.collectAsState()
     val isOnline by viewModel.isOnline.collectAsState()
     TreeActionToolbar(
         isOnline = isOnline,
