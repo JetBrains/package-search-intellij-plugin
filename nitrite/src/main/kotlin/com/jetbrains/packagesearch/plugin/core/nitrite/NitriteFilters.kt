@@ -19,6 +19,9 @@ object NitriteFilters {
         fun `in`(path: DocumentPathBuilder, value: Collection<Any>): ObjectFilter =
             `in`(path, value.toTypedArray())
 
+        fun <T> `in`(path: KProperty<T>, value: Collection<Any>): ObjectFilter =
+            ObjectFilters.`in`(path.name, *value.toTypedArray())
+
         fun `in`(path: String, value: Collection<Any>): ObjectFilter =
             ObjectFilters.`in`(path, *value.toTypedArray())
 
