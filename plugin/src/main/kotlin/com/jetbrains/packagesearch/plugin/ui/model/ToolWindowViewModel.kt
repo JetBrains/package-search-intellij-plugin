@@ -54,7 +54,7 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
         project.PackageSearchProjectService.packagesBeingDownloadedFlow,
         project.isProjectImportingFlow,
         project.service<TreeViewModel>()
-            .tree
+            .treeStateFlow
             .map { !it.isEmpty() }
             .debounce(250.milliseconds),
         project.smartModeFlow
