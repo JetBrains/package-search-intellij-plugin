@@ -20,6 +20,7 @@ import com.jetbrains.packagesearch.plugin.fus.logOnlyStableToggle
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
+import com.jetbrains.packagesearch.plugin.utils.logDebug
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import com.jetbrains.packagesearch.plugin.utils.nativeModulesFlow
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
@@ -137,6 +138,8 @@ class PackageSearchProjectService(
             attempt < 3
         }
         .onEach { resetCounter() }
+        .filter { it.isNotEmpty() }
+        .onEach { logDebug("${this::class.qualifiedName}#modulesStateFlow") { "Total modules -> ${it.size}" } }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
 
     val modulesByBuildFile = modulesStateFlow
