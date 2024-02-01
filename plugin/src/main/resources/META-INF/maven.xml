@@ -1,4 +1,8 @@
 <idea-plugin implementation-detail="true">
+    <projectListeners>
+        <listener class="com.jetbrains.packagesearch.plugin.maven.MavenSyncStateService"
+                  topic="org.jetbrains.idea.maven.project.MavenImportListener#To"/>
+    </projectListeners>
     <extensions defaultExtensionNs="com.intellij.packagesearch">
         <moduleProvider implementation="com.jetbrains.packagesearch.plugin.maven.MavenModuleProvider"/>
     </extensions>

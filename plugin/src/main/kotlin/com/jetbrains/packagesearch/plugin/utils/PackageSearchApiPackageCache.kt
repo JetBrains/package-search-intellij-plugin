@@ -4,6 +4,7 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import com.jetbrains.packagesearch.plugin.core.nitrite.insert
 import korlibs.crypto.SHA256
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -27,7 +28,7 @@ class PackageSearchApiPackageCache(
     private val repositoryCache: CoroutineObjectRepository<ApiRepositoryCacheEntry>,
     private val apiClient: PackageSearchApi,
     private val maxAge: Duration = Random.nextDouble(0.5, 1.0).days,
-    private val isOnline: Boolean,
+    private val isOnline: () -> Boolean,
 ) : PackageSearchApi by apiClient {
 
     private val cachesMutex = Mutex()
@@ -66,10 +67,10 @@ class PackageSearchApiPackageCache(
 
     override suspend fun getKnownRepositories(): List<ApiRepository> {
         val cached = repositoryCache.find().singleOrNull()
-        if (cached != null && (Clock.System.now() < cached.lastUpdate + maxAge || !isOnline)) {
+        if (cached != null && (Clock.System.now() < cached.lastUpdate + maxAge || !isOnline())) {
             return cached.data
         }
-        return if (isOnline) apiClient.getKnownRepositories()
+        return if (isOnline()) apiClient.getKnownRepositories()
             .also {
                 repositoryCache.removeAll()
                 repositoryCache.insert(ApiRepositoryCacheEntry(it))
@@ -85,7 +86,7 @@ class PackageSearchApiPackageCache(
     ): Map<String, ApiPackage> = cachesMutex.withLock {
         if (ids.isEmpty()) return emptyMap()
         val localDatabaseResults = apiPackageCache.find(query(ids))
-            .filter { if (isOnline) Clock.System.now() < it.lastUpdate + maxAge else true }
+            .filter { if (isOnline()) Clock.System.now() < it.lastUpdate + maxAge else true }
             .toList()
         val missingIds = ids - when {
             useHashes -> localDatabaseResults.map { it.packageIdHash }.toSet()
@@ -96,19 +97,26 @@ class PackageSearchApiPackageCache(
             .mapNotNull { it.data }
             .associateBy { it.id }
         when {
-            missingIds.isEmpty() || !isOnline -> localDatabaseResultsData
+            missingIds.isEmpty() || !isOnline() -> localDatabaseResultsData
             else -> {
-                val networkResults = apiCall(missingIds)
-                    .takeIf { it.isNotEmpty() }
-                    ?: return emptyMap()
-                val packageEntries = networkResults.values.map { it.asCacheEntry() }
-                apiPackageCache.remove(NitriteFilters.Object.`in`(
-                    path = ApiPackageCacheEntry::packageId,
-                    value = packageEntries.map { it.packageId }
-                ))
-                apiPackageCache.insert(packageEntries)
+                val networkResults = runCatching { apiCall(missingIds) }
+                    .onFailure { if (it is CancellationException) throw it }
+                    .onFailure { logDebug("${this::class.qualifiedName}#getPackages", it) }
+                    .getOrNull()
+                    ?: emptyMap()
+                if (networkResults.isNotEmpty()) {
+                    val packageEntries = networkResults.values.map { it.asCacheEntry() }
+                    apiPackageCache.remove(
+                        filter = NitriteFilters.Object.`in`(
+                            path = ApiPackageCacheEntry::packageId,
+                            value = packageEntries.map { it.packageId }
+                        )
+                    )
+                    apiPackageCache.insert(packageEntries)
+                }
                 localDatabaseResultsData + networkResults
             }
         }
     }
 }
+

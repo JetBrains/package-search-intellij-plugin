@@ -17,6 +17,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.core.utils.withInitialValue
 import com.jetbrains.packagesearch.plugin.fus.logOnlyStableToggle
+import com.jetbrains.packagesearch.plugin.ui.model.packageslist.modifiedBy
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
@@ -28,8 +29,8 @@ import com.jetbrains.packagesearch.plugin.utils.timer
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
@@ -37,16 +38,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiRepository
@@ -66,50 +71,45 @@ class PackageSearchProjectService(
     // Todo SAVE
     internal val stableOnlyStateFlow = MutableStateFlow(true)
 
-    val knownRepositoriesStateFlow =
+    val isProjectExecutingSyncStateFlow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
+        .map { it.map { it.getSyncStateFlow(project) } }
+        .flatMapLatest { combine(it) { it.all { it } } }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+
+    private val knownRepositoriesStateFlow = timer(12.hours) {
         IntelliJApplication.PackageSearchApplicationCachesService
             .apiPackageCache
-            .flatMapLatest { caches ->
-                timer(12.hours) {
-                    caches.getKnownRepositories()
-                        .associateBy { it.id }
-                }
-            }
-            .retry {
-                logWarn("${this::class.simpleName}#knownRepositoriesStateFlow", throwable = it)
-                true
-            }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+            .getKnownRepositories()
+            .associateBy { it.id }
+    }
+        .retry {
+            logWarn("${this::class.simpleName}#knownRepositoriesStateFlow", throwable = it)
+            true
+        }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     override val knownRepositories: Map<String, ApiRepository>
         get() = knownRepositoriesStateFlow.value
 
-    private val packagesBeingDownloadedChannel = Channel<Boolean>(onBufferOverflow = DROP_OLDEST)
-    val packagesBeingDownloadedFlow = packagesBeingDownloadedChannel.consumeAsFlow()
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    private val context = WindowedModuleBuilderContext(
+        project = project,
+        knownRepositoriesGetter = { knownRepositories },
+        packagesCache = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
+        coroutineScope = coroutineScope,
+        projectCaches = project.PackageSearchProjectCachesService.cache,
+        applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache,
+    )
 
-    private val contextFlow
-        get() = combine(
-            knownRepositoriesStateFlow,
-            IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache
-        ) { repositories, cache ->
-            WindowedModuleBuilderContext(
-                project = project,
-                knownRepositories = repositories,
-                packagesCache = cache,
-                coroutineScope = coroutineScope,
-                projectCaches = project.PackageSearchProjectCachesService.cache,
-                applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache,
-                isLoadingChannel = packagesBeingDownloadedChannel,
-            )
-        }
+    val packagesBeingDownloadedFlow = context.getLoadingFLow()
+        .distinctUntilChanged()
+        .onEach { logDebug("${this::class.qualifiedName}#packagesBeingDownloadedFlow") { "$it" } }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     private val moduleProvidersList
         get() = combine(
             project.nativeModulesFlow,
-            PackageSearchModuleBaseTransformerUtils.extensionsFlow,
-            contextFlow
-        ) { nativeModules, transformerExtensions, context ->
+            PackageSearchModuleBaseTransformerUtils.extensionsFlow
+        ) { nativeModules, transformerExtensions ->
             transformerExtensions.flatMap { transformer ->
                 nativeModules.map { module ->
                     with(context) {
@@ -119,27 +119,19 @@ class PackageSearchProjectService(
             }
         }
             .flatMapLatest { combine(it) { it.filterNotNull() } }
+            .drop(1) { it.isEmpty() }
+            .debounce(1.seconds)
             .distinctUntilChanged()
 
     private val restartFlow = restartChannel.consumeAsFlow()
-        .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
-
-    private var counter = 0
-    private val counterMutex = Mutex()
-
-    private suspend fun resetCounter() = counterMutex.withLock { counter = 0 }
+        .shareIn(coroutineScope, SharingStarted.Eagerly, 0)
 
     val modulesStateFlow = restartFlow
-        .withInitialValue(Unit)
+        .onStart { emit(Unit) }
         .flatMapLatest { moduleProvidersList }
-        .retryWhen { cause, attempt ->
-            logWarn("${this::class.simpleName}#modulesStateFlow", throwable = cause)
-            restart()
-            attempt < 3
-        }
-        .onEach { resetCounter() }
-        .filter { it.isNotEmpty() }
-        .onEach { logDebug("${this::class.qualifiedName}#modulesStateFlow") { "Total modules -> ${it.size}" } }
+        .retry(5)
+        .onEach { logDebug("${this::class.qualifiedName}#modulesStateFlow") { "modules.size = ${it.size}" } }
+        .modifiedBy(restartFlow) { _, _ -> emptyList() }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
 
     val modulesByBuildFile = modulesStateFlow
@@ -196,4 +188,14 @@ class PackageSearchProjectService(
 
 }
 
+private fun <T> Flow<T>.drop(count: Int, function: (T) -> Boolean) = flow {
+    var current = 0
+    collect {
+        if (current < count && function(it)) {
+            current++
+        } else {
+            emit(it)
+        }
+    }
+}
 

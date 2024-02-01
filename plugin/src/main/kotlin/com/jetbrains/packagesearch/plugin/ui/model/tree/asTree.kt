@@ -6,19 +6,28 @@ import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.lazy.tree.TreeGeneratorScope
 import org.jetbrains.jewel.foundation.lazy.tree.buildTree
 
-internal fun Iterable<PackageSearchModule>.asTree(stableOnly: Boolean): Tree<TreeItemModel> =
+internal fun List<PackageSearchModule>.asTree(stableOnly: Boolean): Tree<TreeItemModel> =
     buildTree {
         groupBy { it.identity.group }
             .map { (_, modules) ->
                 val sortedItems = modules.sortedBy { it.identity.path }
                 val roots = sortedItems.filter { it.identity.path == ":" }.toSet()
-                roots.forEach { module ->
-                    addElements(
-                        sortedItems = sortedItems - roots,
-                        currentData = module,
-                        onlyStable = stableOnly,
-                        isRoot = true
-                    )
+                when {
+                    roots.isNotEmpty() -> roots.forEach { module ->
+                        addElements(
+                            sortedItems = sortedItems - roots,
+                            currentData = module,
+                            onlyStable = stableOnly,
+                            isRoot = true
+                        )
+                    }
+
+                    else -> sortedItems.forEach { module ->
+                        addLeaf(
+                            data = module.asViewModel(stableOnly),
+                            id = module.identity
+                        )
+                    }
                 }
             }
     }
