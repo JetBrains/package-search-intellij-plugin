@@ -33,7 +33,6 @@ import com.jetbrains.packagesearch.plugin.ui.model.hasUpdates
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelViewModel
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.SetHeaderState.TargetState
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.SetHeaderState.TargetState.OPEN
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.utils.logTODO
@@ -62,7 +61,6 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.zip
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -150,19 +148,15 @@ class PackageListViewModel(private val project: Project) : Disposable {
             else -> null
         }
     }
-        .zip(IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache) { a, b -> a to b }
-        .mapLatest { (data, apis) ->
+        .mapLatest { data ->
             when (data) {
                 null -> emptyMap()
                 else -> {
                     isLoadingChannel.send(true)
                     delay(250.milliseconds) // debounce for mapLatest!
                     when (data.selectedModule) {
-                        is PackageSearchModule.Base -> data.selectedModule.getSearchQuery(data.searchQuery, apis)
-                        is PackageSearchModule.WithVariants -> data.selectedModule.getSearchQueries(
-                            data.searchQuery,
-                            apis
-                        )
+                        is PackageSearchModule.Base -> data.selectedModule.getSearchQuery(data.searchQuery)
+                        is PackageSearchModule.WithVariants -> data.selectedModule.getSearchQueries(data.searchQuery)
                     }
                 }
             }
@@ -221,11 +215,12 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
     private suspend fun PackageSearchModule.Base.getSearchQuery(
         searchQuery: String,
-        apis: PackageSearchApiPackageCache,
     ): Map<PackageListItem.Header.Id.Remote, Search.Results.Base> {
         val headerId = PackageListItem.Header.Id.Remote.Base(identity)
         val results = Search.Results.Base(
-            packages = apis.searchPackages(buildSearchParameters {
+            packages = IntelliJApplication.PackageSearchApplicationCachesService
+                .apiPackageCache
+                .searchPackages(buildSearchParameters {
                     this.searchQuery = searchQuery
                     packagesType = compatiblePackageTypes
                 }),
@@ -241,7 +236,6 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
     private suspend fun PackageSearchModule.WithVariants.getSearchQueries(
         searchQuery: String,
-        apis: PackageSearchApiPackageCache,
     ): Map<PackageListItem.Header.Id.Remote, Search> =
         variants.groupByCompatiblePackageTypes()
             .entries
@@ -260,7 +254,9 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 val search: Search = when (mainVariantName) {
                     in variants.map { it.name } -> {
                         val results = Search.Results.WithVariants(
-                            packages = apis.searchPackages {
+                            packages = IntelliJApplication.PackageSearchApplicationCachesService
+                                .apiPackageCache
+                                .searchPackages {
                                     this.searchQuery = searchQuery
                                     this.packagesType = packagesType
                                 },
@@ -283,7 +279,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
                             this.searchQuery = searchQuery
                             this.packagesType = packagesType
                         },
-                        apis = apis,
+                        apis = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
                         attributes = attributes,
                         primaryVariantName = primaryVariantName,
                         additionalVariants = additionalVariants,
