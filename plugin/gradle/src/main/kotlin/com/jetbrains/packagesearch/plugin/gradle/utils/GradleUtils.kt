@@ -5,6 +5,11 @@ package com.jetbrains.packagesearch.plugin.gradle.utils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.components.service
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.service.internal.ExternalSystemProcessingManager
+import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
@@ -118,3 +123,14 @@ internal val Project.initializeProjectFlow
         awaitExternalSystemInitialization()
         emit(Unit)
     }
+
+internal fun isResolveTask(id: ExternalSystemTaskId): Boolean {
+    if (id.type == ExternalSystemTaskType.RESOLVE_PROJECT) {
+        val task = IntelliJApplication.service<ExternalSystemProcessingManager>()
+            .findTask(id)
+        if (task is ExternalSystemResolveProjectTask) {
+            return !task.isPreviewMode
+        }
+    }
+    return false
+}

@@ -19,6 +19,7 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.awaitExternalSystemInitia
 import com.jetbrains.packagesearch.plugin.gradle.utils.getModuleChangesFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.initializeProjectFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
+import com.jetbrains.packagesearch.plugin.gradle.utils.isResolveTask
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transformLatest
 import org.jetbrains.plugins.gradle.util.GradleUtil.findGradleModuleData
-import org.jetbrains.plugins.gradle.util.isResolveTask
 import com.intellij.openapi.module.Module as NativeModule
 
 @Deprecated(
@@ -97,3 +97,5 @@ class GradleSyncNotifierService : ExternalSystemTaskNotificationListenerAdapter(
         }
     }
 }
+
+
