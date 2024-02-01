@@ -6,6 +6,7 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
+import com.jetbrains.packagesearch.plugin.core.utils.isProjectImportingFlow
 import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.bridge.openLinkInBrowser
@@ -52,12 +53,15 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
 
     val toolWindowState = combine(
         project.PackageSearchProjectService.packagesBeingDownloadedFlow,
-        project.isProjectImportingFlow,
+        combine(
+            project.isProjectImportingFlow,
+            project.PackageSearchProjectService.isProjectExecutingSyncStateFlow
+        ) { isProjectImporting, isProjectSyncing -> isProjectImporting || isProjectSyncing },
         project.service<TreeViewModel>()
             .treeStateFlow
             .map { !it.isEmpty() }
             .debounce(250.milliseconds),
-        project.smartModeFlow
+        project.smartModeFlow,
     ) { packagesBeingDownloaded, isProjectSyncing, isTreeReady, isSmartMode ->
         when {
             isTreeReady -> PackageSearchToolWindowState.Ready

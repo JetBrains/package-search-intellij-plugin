@@ -11,10 +11,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.search.androidPackages
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
-import org.jetbrains.packagesearch.api.v3.search.javaApi
-import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.api.v3.search.jvmGradlePackages
-import org.jetbrains.packagesearch.api.v3.search.libraryElements
 
 class GradleModuleProvider : AbstractGradleModuleProvider() {
 
