@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
+import com.intellij.openapi.externalSystem.model.Key
 import com.jetbrains.packagesearch.plugin.core.utils.NioPathSerializer
 import java.nio.file.Path
 import kotlinx.serialization.Serializable
@@ -19,6 +20,11 @@ data class PackageSearchGradleModel(
     @Serializable(with = NioPathSerializer::class) val buildFilePath: Path?,
     @Serializable(with = NioPathSerializer::class) val rootProjectPath: Path,
 ) {
+
+    companion object {
+        val DATA_NODE_KEY: Key<PackageSearchGradleModel> =
+            Key.create(PackageSearchGradleModel::class.java, 100)
+    }
 
     @Serializable
     data class Configuration(

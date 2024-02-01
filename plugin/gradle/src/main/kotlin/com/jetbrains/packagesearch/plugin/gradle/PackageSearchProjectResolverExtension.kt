@@ -23,7 +23,7 @@ class PackageSearchProjectResolverExtension : AbstractProjectResolverExtension()
     override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
         gradleModule.getExtraProject<PackageSearchGradleJavaModel>()
             ?.toPackageSearchModel()
-            ?.also { ideModule.createChild(PackageSearchGradleModelNodeProcessor.ESM_REPORTS_KEY, it) }
+            ?.also { ideModule.createChild(PackageSearchGradleModel.DATA_NODE_KEY, it) }
         super.populateModuleExtraModels(gradleModule, ideModule)
     }
 }

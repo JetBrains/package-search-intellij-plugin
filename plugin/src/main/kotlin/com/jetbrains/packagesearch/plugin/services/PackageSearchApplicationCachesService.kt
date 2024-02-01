@@ -9,13 +9,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
-import com.intellij.openapi.components.service
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
-import com.jetbrains.packagesearch.plugin.core.nitrite.div
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
-import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor
 import com.jetbrains.packagesearch.plugin.utils.ApiPackageCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.ApiRepositoryCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
@@ -31,14 +28,11 @@ import kotlin.io.path.div
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
 import org.dizitart.no2.IndexOptions
 import org.dizitart.no2.IndexType
-import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpoints
 
@@ -88,17 +82,13 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     val isOnlineFlow = apiClient.isOnlineFlow()
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    val apiPackageCache = isOnlineFlow
-        .map {
-            PackageSearchApiPackageCache(
-                apiPackageCache = packagesRepository,
-                searchCache = searchesRepository,
-                repositoryCache = repositoryCache,
-                apiClient = apiClient,
-                isOnline = it
-            )
-        }
-        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
+    val apiPackageCache = PackageSearchApiPackageCache(
+        apiPackageCache = packagesRepository,
+        repositoryCache = repositoryCache,
+        searchCache = searchesRepository,
+        apiClient = apiClient,
+        isOnline = { isOnlineFlow.value }
+    )
 
     private suspend fun createIndexes() {
         searchesRepository.createIndex(
@@ -130,7 +120,6 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
 
     override fun perform(recoveryScope: RecoveryScope): CompletableFuture<AsyncRecoveryResult> =
         coroutineScope.future(Dispatchers.IO) {
-            runCatching { recoveryScope.project.service<PackageSearchGradleModelNodeProcessor.Cache>().clean() }
             clearCaches()
             recoveryScope.project.PackageSearchProjectService.restart()
             AsyncRecoveryResult(recoveryScope, emptyList())

@@ -7,8 +7,8 @@
         <moduleProvider implementation="com.jetbrains.packagesearch.plugin.gradle.GradleModuleProvider"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
-        <externalProjectDataService
-                implementation="com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModelNodeProcessor"/>
+        <externalSystemTaskNotificationListener
+                implementation="com.jetbrains.packagesearch.plugin.gradle.GradleSyncNotifierService"/>
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
         <projectResolve

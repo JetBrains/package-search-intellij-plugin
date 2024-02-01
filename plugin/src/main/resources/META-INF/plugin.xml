@@ -15,6 +15,12 @@ Supports Maven and Gradle projects.
     <depends optional="true" config-file="gradle.xml">com.intellij.gradle</depends>
     <depends>org.jetbrains.idea.reposearch</depends>
 
+    <projectListeners>
+        <listener
+                class="com.jetbrains.packagesearch.plugin.core.utils.ProjectDataImportListenerAdapter"
+                topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
+    </projectListeners>
+
     <extensionPoints>
         <extensionPoint qualifiedName="com.intellij.packagesearch.moduleProvider"
                         interface="com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleProvider"

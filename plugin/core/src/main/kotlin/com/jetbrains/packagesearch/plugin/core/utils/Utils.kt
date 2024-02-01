@@ -5,11 +5,13 @@ package com.jetbrains.packagesearch.plugin.core.utils
 import com.intellij.buildsystem.model.unified.UnifiedDependency
 import com.intellij.buildsystem.model.unified.UnifiedDependencyRepository
 import com.intellij.openapi.application.Application
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.AreaInstance
 import com.intellij.openapi.extensions.ExtensionPointListener
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginDescriptor
+import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.DumbService
@@ -38,6 +40,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
@@ -109,19 +112,19 @@ fun watchExternalFileChanges(path: Path): Flow<Unit> {
 fun <T> Flow<T>.mapUnit(): Flow<Unit> =
     map {}
 
-fun <T : Any> ExtensionPointName<T>.extensionsFlow(
-    areaInstance: AreaInstance? = null,
-) = channelFlow {
-    val listener = ExtensionPointListener<T> { _, _, _ ->
+fun <T : Any> ExtensionPointName<T>.extensionsFlow(areaInstance: AreaInstance? = null) =
+    channelFlow {
+        val listener = ExtensionPointListener<T> { _, _, _ ->
+            trySend(extensionList)
+        }
         trySend(extensionList)
+        if (areaInstance != null) {
+            addExtensionPointListener(areaInstance, listener)
+        } else {
+            addExtensionPointListener(listener)
+        }
+        awaitClose { removeExtensionPointListener(listener) }
     }
-    if (areaInstance != null) {
-        addExtensionPointListener(areaInstance, listener)
-    } else {
-        addExtensionPointListener(listener)
-    }
-    awaitClose { removeExtensionPointListener(listener) }
-}.withInitialValue(extensionList)
 
 fun <T> ExtensionPointListener(onChange: (T, PluginDescriptor, Boolean) -> Unit) =
     object : ExtensionPointListener<T> {
@@ -286,5 +289,23 @@ fun validateMavenPackageType(apiPackage: ApiPackage) {
     }
     require(apiPackage is ApiMavenPackage) {
         "apiPackage must be ApiMavenPackage instead of ${apiPackage::class.qualifiedName}"
+    }
+}
+
+val Project.isProjectImportingFlow: MutableStateFlow<Boolean>
+    get() = service<ProjectDataImportListenerAdapter.State>()
+
+
+class ProjectDataImportListenerAdapter(private val project: Project) : ProjectDataImportListener {
+
+    @Service(Service.Level.PROJECT)
+    class State : MutableStateFlow<Boolean> by MutableStateFlow(false)
+
+    override fun onImportStarted(projectPath: String?) {
+        project.service<State>().value = true
+    }
+
+    override fun onFinalTasksFinished(projectPath: String?) {
+        project.service<State>().value = false
     }
 }
