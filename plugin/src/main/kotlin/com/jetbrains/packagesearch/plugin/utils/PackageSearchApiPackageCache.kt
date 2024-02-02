@@ -51,16 +51,21 @@ class PackageSearchApiPackageCache(
 
     override suspend fun searchPackages(request: SearchPackagesRequest): List<ApiPackage> {
         val sha = SHA256.digest(Json.encodeToString(request).toByteArray()).base64
+        logDebug("${this::class}#searchPackages") { "Searching for packages | searchSha = $sha" }
         val cachedEntry = searchCache.find(NitriteFilters.Object.eq(ApiSearchEntry::searchHash, sha))
             .singleOrNull()
-
         if (cachedEntry != null) {
-            if (cachedEntry.lastUpdate + maxAge > Clock.System.now()) {
+            val isOffline = !isOnline()
+            val isCacheValid = cachedEntry.lastUpdate + maxAge > Clock.System.now()
+            if (isOffline || isCacheValid) {
+                logDebug("${this::class}#searchPackages") {
+                    "Using cached search results because `isOffline = $isOffline || isCacheValid = $isCacheValid` | searchSha = $sha"
+                }
                 return cachedEntry.packages
             }
             searchCache.remove(NitriteFilters.Object.eq(ApiSearchEntry::searchHash, sha))
         }
-
+        logDebug("${this::class}#searchPackages") { "Fetching search results from the server | searchSha = $sha" }
         return apiClient.searchPackages(request)
             .also { searchCache.insert(ApiSearchEntry(it, sha, request)) }
     }
