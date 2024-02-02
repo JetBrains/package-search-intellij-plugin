@@ -13,6 +13,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManag
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleEditor
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
+import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.fus.logGoToSource
 import com.jetbrains.packagesearch.plugin.fus.logHeaderAttributesClick
 import com.jetbrains.packagesearch.plugin.fus.logHeaderVariantsClick
@@ -37,7 +38,6 @@ import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesSe
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.utils.logTODO
 import com.jetbrains.packagesearch.plugin.utils.logWarn
-import com.jetbrains.packagesearch.plugin.utils.searchPackages
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -138,6 +138,9 @@ class PackageListViewModel(private val project: Project) : Disposable {
         val searchQuery: String,
     )
 
+    private val restartSearchChannel = Channel<Unit>()
+    private val restartSearchFlow = restartSearchChannel.consumeAsFlow()
+
     private val searchResultMapFlow: StateFlow<Map<PackageListItem.Header.Id.Remote, Search>> = combine(
         selectedModulesFlow,
         searchQueryStateFlow
@@ -148,8 +151,9 @@ class PackageListViewModel(private val project: Project) : Disposable {
             else -> null
         }
     }
+        .replayOn(restartSearchFlow)
         .mapLatest { data ->
-            when (data) {
+            val map: Map<PackageListItem.Header.Id.Remote, Search> = when (data) {
                 null -> emptyMap()
                 else -> {
                     isLoadingChannel.send(true)
@@ -160,9 +164,10 @@ class PackageListViewModel(private val project: Project) : Disposable {
                     }
                 }
             }
+            map
         }
         .onEach { isLoadingChannel.send(false) }
-        .modifiedBy(headerCollapsedStatesFlow) { current: Map<PackageListItem.Header.Id.Remote, Search>, change ->
+        .modifiedBy(headerCollapsedStatesFlow) { current, change ->
             current.mapValues { (id, value) ->
                 when {
                     change[id] == OPEN && value is Search.Query -> value.execute()
@@ -170,7 +175,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 }
             }
         }
-        .modifiedBy(selectedModulesFlow) { current: Map<PackageListItem.Header.Id.Remote, Search>, change ->
+        .modifiedBy(selectedModulesFlow) { current, change ->
             val changeIdentities = change.map { it.identity }
             if (current.keys.any { it.moduleIdentity !in changeIdentities }) {
                 emptyMap()
@@ -215,23 +220,22 @@ class PackageListViewModel(private val project: Project) : Disposable {
 
     private suspend fun PackageSearchModule.Base.getSearchQuery(
         searchQuery: String,
-    ): Map<PackageListItem.Header.Id.Remote, Search.Results.Base> {
+    ): Map<PackageListItem.Header.Id.Remote, Search.Response.Base> {
         val headerId = PackageListItem.Header.Id.Remote.Base(identity)
-        val results = Search.Results.Base(
-            packages = IntelliJApplication.PackageSearchApplicationCachesService
-                .apiPackageCache
-                .searchPackages(buildSearchParameters {
-                    this.searchQuery = searchQuery
-                    packagesType = compatiblePackageTypes
-                }),
-        )
+        val response = Search.Query.Base(
+            query = buildSearchParameters {
+                this.searchQuery = searchQuery
+                packagesType = compatiblePackageTypes
+            },
+            apis = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
+        ).execute()
         headerCollapsedStatesFlow.update { current ->
             when (headerId) {
                 !in current -> current + (headerId to OPEN)
                 else -> current
             }
         }
-        return mapOf(headerId to results)
+        return mapOf(headerId to response)
     }
 
     private suspend fun PackageSearchModule.WithVariants.getSearchQueries(
@@ -251,19 +255,18 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 val primaryVariantName = variants.first { it.isPrimary }.name
                 val attributes = variants.first().attributes.map { it.value }
                 val additionalVariants = variants.map { it.name } - primaryVariantName
-                val search: Search = when (mainVariantName) {
+                val search = when (mainVariantName) {
                     in variants.map { it.name } -> {
-                        val results = Search.Results.WithVariants(
-                            packages = IntelliJApplication.PackageSearchApplicationCachesService
-                                .apiPackageCache
-                                .searchPackages {
-                                    this.searchQuery = searchQuery
-                                    this.packagesType = packagesType
-                                },
+                        val response = Search.Query.WithVariants(
+                            query = buildSearchParameters {
+                                this.searchQuery = searchQuery
+                                this.packagesType = packagesType
+                            },
+                            apis = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
                             attributes = attributes,
                             primaryVariantName = primaryVariantName,
                             additionalVariants = additionalVariants,
-                        )
+                        ).execute()
                         headerCollapsedStatesFlow.update { current ->
                             when (headerId) {
                                 !in current -> current + (headerId to OPEN)
@@ -271,7 +274,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
                             }
 
                         }
-                        results
+                        response
                     }
 
                     else -> Search.Query.WithVariants(
@@ -327,8 +330,13 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 is PackageListItemEvent.OnPackageAction.Update -> handle(event)
                 is PackageListItemEvent.SetHeaderState -> handle(event)
                 is PackageListItemEvent.UpdateAllPackages -> handle(event)
+                is PackageListItemEvent.OnRetryPackageSearch -> handle(event)
             }
         }
+    }
+
+    private suspend fun handle(event: PackageListItemEvent.OnRetryPackageSearch) {
+        restartSearchChannel.send(Unit)
     }
 
     private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderVariantsClick) {
@@ -353,7 +361,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
         when (event.eventId) {
             is PackageListItem.Package.Remote.Base.Id -> {
                 val headerId = PackageListItem.Header.Id.Remote.Base(event.eventId.moduleIdentity)
-                val search = searchResultMapFlow.value[headerId] as? Search.Results.Base
+                val search = searchResultMapFlow.value[headerId] as? Search.Response.Base.Success
                     ?: return
                 infoPanelViewModel.setPackage(
                     module = event.eventId.getModule() as? PackageSearchModule.Base ?: return,
@@ -367,8 +375,9 @@ class PackageListViewModel(private val project: Project) : Disposable {
                     event.eventId.moduleIdentity,
                     event.eventId.headerId.compatibleVariantNames
                 )
-                val search = searchResultMapFlow.value[headerId] as? Search.Results.WithVariants
-                    ?: return
+                val search =
+                    searchResultMapFlow.value[headerId] as? Search.Response.WithVariants.Success
+                        ?: return
                 infoPanelViewModel.setPackage(
                     module = event.eventId.getModule() as? PackageSearchModule.WithVariants ?: return,
                     apiPackage = search.packages.firstOrNull { it.id == event.eventId.packageId } ?: return,
@@ -467,7 +476,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
         val variant = module.variants[actionType.selectedVariantName]
             ?: return
         val search = searchResultMapFlow
-            .value[actionType.headerId] as? Search.Results.WithVariants
+            .value[actionType.headerId] as? Search.Response.WithVariants.Success
             ?: return
         val apiPackage = search.packages
             .firstOrNull { it.id == actionType.eventId.packageId }
@@ -486,7 +495,8 @@ class PackageListViewModel(private val project: Project) : Disposable {
         val module = actionType.eventId
             .getModule() as? PackageSearchModule.Base
             ?: return
-        val search = searchResultMapFlow.value[actionType.headerId] as? Search.Results ?: return
+        val search =
+            searchResultMapFlow.value[actionType.headerId] as? Search.Response.Base.Success ?: return
         val apiPackage = search.packages
             .firstOrNull { it.id == actionType.eventId.packageId }
             ?: return
