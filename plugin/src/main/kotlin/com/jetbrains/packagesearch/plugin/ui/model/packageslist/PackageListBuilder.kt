@@ -306,17 +306,27 @@ class PackageListBuilder(
         attributes: List<String> = emptyList(),
         additionalContent: PackageListItem.Header.AdditionalContent.VariantsText? = null,
     ) {
+        val headerState = when (headerCollapsedStates[headerId]) {
+            TargetState.OPEN -> PackageListItem.Header.State.OPEN
+            else -> PackageListItem.Header.State.CLOSED
+        }
         addHeader(
             title = PackageSearchBundle.message("packagesearch.ui.toolwindow.tab.packages.searchResults"),
             id = headerId,
-            state = when (headerCollapsedStates[headerId]) {
-                TargetState.OPEN -> PackageListItem.Header.State.OPEN
-                else -> PackageListItem.Header.State.CLOSED
-            },
+            state = headerState,
             attributes = attributes,
             additionalContent = additionalContent,
         )
-        items.add(PackageListItem.SearchError(id = PackageListItem.SearchError.Id(headerId.moduleIdentity, headerId)))
+        if (headerState == PackageListItem.Header.State.OPEN) {
+            items.add(
+                PackageListItem.SearchError(
+                    id = PackageListItem.SearchError.Id(
+                        headerId.moduleIdentity,
+                        headerId
+                    )
+                )
+            )
+        }
     }
 
     private fun addFromSearchQueryWithVariants(
