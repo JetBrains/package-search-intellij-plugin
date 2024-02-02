@@ -21,17 +21,30 @@ fun Set<MppCompilationInfoModel.Compilation>.buildAttributes(): List<PackageSear
         }
     }.toSet()
 
-    return buildAttributesFromRawStrings(rawStrings)
+    return rawStrings.parseAttributesFromRawStrings()
 }
 
-fun buildAttributesFromRawStrings(rawStrings: Set<String>) = buildList {
-    var queue = rawStrings.toList()
+
+internal fun PackageSearchModuleVariant.Attribute.flatAttributesNames(): Set<String> {
+    return when (this) {
+        is PackageSearchModuleVariant.Attribute.StringAttribute -> setOf(value)
+        is PackageSearchModuleVariant.Attribute.NestedAttribute -> children.flatMap { it.flatAttributesNames() }.toSet()
+    }
+}
+
+fun List<PackageSearchModuleVariant.Attribute>.mergeAttributes() =
+    flatMap { it.flatAttributesNames() }
+        .toSet()
+        .parseAttributesFromRawStrings()
+
+fun Set<String>.parseAttributesFromRawStrings() = buildList {
+    var queue = this@parseAttributesFromRawStrings.toList()
     for (attributeTitle in KMP_ATTRIBUTES_GROUPS) {
         val (targets, rest) = queue
             .partition { it.contains(attributeTitle.aggregationKeyword, true) }
 
         if (targets.isEmpty()) continue
-        add(
+        this.add(
             PackageSearchModuleVariant.Attribute.NestedAttribute(
                 attributeTitle.displayName,
                 targets.map { PackageSearchModuleVariant.Attribute.StringAttribute(it) })
