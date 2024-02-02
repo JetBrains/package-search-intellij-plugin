@@ -29,8 +29,8 @@ sealed interface PackageListItemEvent {
             ) : OnHeaderAttributesClick
 
             @Serializable
-            data class SearchHeaderAttributesClick(
-                override val eventId: PackageListItem.Header.Id.Remote,
+            data class SearchHeaderWithVariantsAttributesClick(
+                override val eventId: PackageListItem.Header.Id.Remote.WithVariant,
                 val attributesNames: List<String>,
             ) : OnHeaderAttributesClick
 
