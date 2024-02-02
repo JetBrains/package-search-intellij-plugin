@@ -33,3 +33,4 @@ interface PackageSearchModuleVariant : PackageSearchDependencyManager {
     fun isCompatible(dependency: ApiPackage, version: ApiPackageVersion): Boolean
 
 }
+

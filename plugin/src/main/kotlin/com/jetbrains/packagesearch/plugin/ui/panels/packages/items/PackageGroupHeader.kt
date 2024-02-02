@@ -104,8 +104,8 @@ fun PackageListHeader(
                         .onClick {
                             val event =
                                 when (content.id) {
-                                    is PackageListItem.Header.Id.Declared.Base -> return@onClick
-                                    is PackageListItem.Header.Id.Remote -> PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick.SearchHeaderAttributesClick(
+                                    is PackageListItem.Header.Id.Declared.Base, is PackageListItem.Header.Id.Remote.Base -> return@onClick
+                                    is PackageListItem.Header.Id.Remote.WithVariant -> PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick.SearchHeaderWithVariantsAttributesClick(
                                         eventId = content.id,
                                         attributesNames = content.attributes
                                     )
