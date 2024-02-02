@@ -114,4 +114,9 @@ sealed interface PackageListItemEvent {
         data class GoToSource(override val eventId: PackageListItem.Package.Declared.Id) : OnPackageAction
 
     }
+
+    @Serializable
+    data class OnRetryPackageSearch(
+        override val eventId: PackageListItem.SearchError.Id,
+    ) : PackageListItemEvent
 }
