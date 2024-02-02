@@ -626,19 +626,23 @@ class PackageListViewModel(
                 infoPanelViewModel.setDeclaredHeaderAttributes(event.variantName, attributes = attributes)
             }
 
-            is PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick.SearchHeaderAttributesClick -> {
-                val attributes = module
-                    .variants
-                    .map { it.value.attributes }
-                    .flatten()
-                    .filter { it.value in event.attributesNames }
-                    .distinct()
+            is PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick.SearchHeaderWithVariantsAttributesClick -> {
 
-                val variants = module.variants.values.map { it.name } - module.mainVariantName
+                val variants = event.eventId
+                    .compatibleVariantNames
+                    .mapNotNull { module.variants[it] }
+
+                val defaultVariant = variants.firstOrNull { it.isPrimary }?.name
+                    ?: variants.firstOrNull()?.name
+                    ?: return
+
+                val attributes = variants.firstOrNull()
+                    ?.attributes
+                    ?: return
 
                 infoPanelViewModel.setSearchHeaderAttributes(
-                    defaultVariant = module.mainVariantName,
-                    additionalVariants = variants,
+                    defaultVariant = defaultVariant,
+                    additionalVariants = variants.map { it.name } - defaultVariant,
                     attributes = attributes
                 )
             }
