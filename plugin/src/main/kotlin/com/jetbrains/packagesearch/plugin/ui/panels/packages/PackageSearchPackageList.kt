@@ -104,8 +104,26 @@ fun PackageSearchPackageList(
                         onPopupDismissRequest = { openPopupId = null }
                     )
                 }
+
+                is PackageListItem.SearchError -> item(key = item.id, contentType = item.contentType()) {
+                    SearchErrorItem(
+                        onLinkClick = { onPackageEvent(PackageListItemEvent.OnRetryPackageSearch(item.id)) }
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+fun SearchErrorItem(onLinkClick: () -> Unit) {
+    Column(
+        Modifier.fillMaxSize().padding(20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(message("packagesearch.ui.toolwindow.tab.packages.searchResults.error"))
+        Link(message("packagesearch.ui.toolwindow.tab.packages.searchResults.error.retry"), onClick = onLinkClick)
     }
 }
 
@@ -405,6 +423,7 @@ private fun PackageListItem.contentType() = when (this) {
     is PackageListItem.Header -> "header"
     is PackageListItem.Package.Declared -> "declared.package"
     is PackageListItem.Package.Remote -> "remote.package"
+    is PackageListItem.SearchError -> "search.error"
 }
 
 @Composable
