@@ -278,24 +278,50 @@ class PackageListBuilder(
                     additionalContent = search.buildVariantsText()
                 )
 
-                is Search.Results.Base -> addFromSearchQueryBase(
+                is Search.Response.Base.Success -> addFromSearchQueryBase(
                     headerId = headerId as PackageListItem.Header.Id.Remote.Base,
                     search = search,
                     module = modulesMap[headerId.moduleIdentity] as? PackageSearchModule.Base ?: return@forEach
                 )
 
-                is Search.Results.WithVariants -> addFromSearchQueryWithVariants(
+                is Search.Response.WithVariants.Success -> addFromSearchQueryWithVariants(
                     headerId = headerId as PackageListItem.Header.Id.Remote.WithVariant,
                     search = search,
                     module = modulesMap[headerId.moduleIdentity] as? PackageSearchModule.WithVariants ?: return@forEach
+                )
+
+                is Search.Response.Base.Error -> addSearchResultError(headerId = headerId)
+
+                is Search.Response.WithVariants.Error -> addSearchResultError(
+                    headerId = headerId,
+                    attributes = search.attributes,
+                    additionalContent = search.buildVariantsText()
                 )
             }
         }
     }
 
+    private fun addSearchResultError(
+        headerId: PackageListItem.Header.Id.Remote,
+        attributes: List<String> = emptyList(),
+        additionalContent: PackageListItem.Header.AdditionalContent.VariantsText? = null,
+    ) {
+        addHeader(
+            title = PackageSearchBundle.message("packagesearch.ui.toolwindow.tab.packages.searchResults"),
+            id = headerId,
+            state = when (headerCollapsedStates[headerId]) {
+                TargetState.OPEN -> PackageListItem.Header.State.OPEN
+                else -> PackageListItem.Header.State.CLOSED
+            },
+            attributes = attributes,
+            additionalContent = additionalContent,
+        )
+        items.add(PackageListItem.SearchError(id = PackageListItem.SearchError.Id(headerId.moduleIdentity, headerId)))
+    }
+
     private fun addFromSearchQueryWithVariants(
         headerId: PackageListItem.Header.Id.Remote.WithVariant,
-        search: Search.Results.WithVariants,
+        search: Search.Response.WithVariants.Success,
         module: PackageSearchModule.WithVariants,
     ) {
         val state = when (headerCollapsedStates[headerId]) {
@@ -347,7 +373,7 @@ class PackageListBuilder(
 
     private fun addFromSearchQueryBase(
         headerId: PackageListItem.Header.Id.Remote.Base,
-        search: Search.Results.Base,
+        search: Search.Response.Base.Success,
         module: PackageSearchModule.Base,
     ) {
         val state = when (headerCollapsedStates[headerId]) {
