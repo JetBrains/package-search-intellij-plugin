@@ -1,5 +1,6 @@
 package com.jetbrains.packagesearch.plugin.ui.model.packageslist
 
+import com.jetbrains.packagesearch.plugin.core.utils.suspendSafe
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
@@ -14,44 +15,74 @@ sealed interface Search {
 
     sealed interface Query : Search {
 
-        suspend fun execute(): Results
+        val query: SearchPackagesRequest
+        val apis: PackageSearchApi
+
+        suspend fun execute(): Response
 
         data class Base(
-            val query: SearchPackagesRequest,
-            val apis: PackageSearchApi,
+            override val query: SearchPackagesRequest,
+            override val apis: PackageSearchApi,
         ) : Query {
-            override suspend fun execute(): Results.Base =
-                Results.Base(apis.searchPackages(query))
+            override suspend fun execute(): Response.Base {
+                val searchResult =
+                    kotlin.runCatching { apis.searchPackages(query) }
+                        .suspendSafe()
+                        .map { Response.Base.Success(it) }
+                val error = searchResult.exceptionOrNull()
+                return if (error != null) Response.Base.Error(error) else searchResult.getOrThrow()
+            }
+
         }
 
         data class WithVariants(
-            val query: SearchPackagesRequest,
-            val apis: PackageSearchApi,
+            override val query: SearchPackagesRequest,
+            override val apis: PackageSearchApi,
             override val attributes: List<String>,
             override val primaryVariantName: String,
             override val additionalVariants: List<String>,
         ) : Query, Search.WithVariants {
-            override suspend fun execute(): Results =
-                Results.WithVariants(
-                    packages = apis.searchPackages(query),
-                    attributes = attributes,
-                    primaryVariantName = primaryVariantName,
-                    additionalVariants = additionalVariants
-                )
+            override suspend fun execute(): Response.WithVariants {
+                val searchResult =
+                    kotlin.runCatching { apis.searchPackages(query) }
+                        .suspendSafe()
+                        .map { Response.WithVariants.Success(it, attributes, primaryVariantName, additionalVariants) }
+                val error = searchResult.exceptionOrNull()
+                return when {
+                    error != null ->
+                        Response.WithVariants.Error(error, attributes, primaryVariantName, additionalVariants)
+
+                    else -> searchResult.getOrThrow()
+                }
+            }
         }
 
     }
 
-    sealed interface Results : Search {
-        val packages: List<ApiPackage>
+    sealed interface Response : Search {
 
-        data class Base(override val packages: List<ApiPackage>) : Results
+        sealed interface Base : Response {
 
-        data class WithVariants(
-            override val packages: List<ApiPackage>,
-            override val attributes: List<String>,
-            override val primaryVariantName: String,
-            override val additionalVariants: List<String>,
-        ) : Results, Search.WithVariants
+            data class Success(val packages: List<ApiPackage>) : Base
+            data class Error(val error: Throwable) : Base
+        }
+
+        sealed interface WithVariants : Response, Search.WithVariants {
+
+            data class Success(
+                val packages: List<ApiPackage>,
+                override val attributes: List<String>,
+                override val primaryVariantName: String,
+                override val additionalVariants: List<String>,
+            ) : WithVariants
+
+            data class Error(
+                val error: Throwable,
+                override val attributes: List<String>,
+                override val primaryVariantName: String,
+                override val additionalVariants: List<String>,
+            ) : WithVariants
+        }
+
     }
 }

@@ -36,6 +36,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import java.nio.file.Path
 import kotlin.contracts.contract
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -309,3 +310,5 @@ class ProjectDataImportListenerAdapter(private val project: Project) : ProjectDa
         project.service<State>().value = false
     }
 }
+
+fun <T> Result<T>.suspendSafe() = onFailure { if (it is CancellationException) throw it }

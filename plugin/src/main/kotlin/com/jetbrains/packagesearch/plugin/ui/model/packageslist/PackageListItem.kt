@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 
 sealed interface PackageListItem {
 
-    val title: String
     val id: Id
 
     @Serializable
@@ -15,7 +14,7 @@ sealed interface PackageListItem {
     }
 
     data class Header(
-        override val title: String,
+        val title: String,
         override val id: Id,
         val state: State,
         val attributes: List<String> = emptyList(),
@@ -39,6 +38,7 @@ sealed interface PackageListItem {
             sealed interface Declared : Id {
                 @Serializable
                 data class Base(override val moduleIdentity: PackageSearchModule.Identity) : Declared
+
                 @Serializable
                 data class WithVariant(
                     override val moduleIdentity: PackageSearchModule.Identity,
@@ -49,8 +49,10 @@ sealed interface PackageListItem {
 
             @Serializable
             sealed interface Remote : Id {
+
                 @Serializable
                 data class Base(override val moduleIdentity: PackageSearchModule.Identity) : Remote
+
                 @Serializable
                 data class WithVariant(
                     override val moduleIdentity: PackageSearchModule.Identity,
@@ -62,6 +64,8 @@ sealed interface PackageListItem {
     }
 
     sealed interface Package : PackageListItem {
+
+        val title: String
 
         @Serializable
         sealed interface Id : PackageListItem.Id {
@@ -121,7 +125,7 @@ sealed interface PackageListItem {
                     override val moduleIdentity: PackageSearchModule.Identity,
                     override val packageId: String,
                     val headerId: Header.Id.Remote.Base,
-                    ) : Remote.Id
+                ) : Remote.Id
             }
 
             data class WithVariant(
@@ -143,4 +147,14 @@ sealed interface PackageListItem {
             }
         }
     }
+
+    data class SearchError(override val id: Id) : PackageListItem {
+
+        @Serializable
+        data class Id(
+            override val moduleIdentity: PackageSearchModule.Identity,
+            val parentHeaderId: Header.Id,
+        ) : PackageListItem.Id
+    }
+
 }
