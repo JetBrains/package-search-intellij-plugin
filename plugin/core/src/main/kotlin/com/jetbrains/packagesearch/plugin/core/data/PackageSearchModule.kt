@@ -21,6 +21,7 @@ sealed interface PackageSearchModule : IconProvider, PackageSearchModuleEditor {
 
     interface WithVariants : PackageSearchModule {
 
+        @Serializable
         data class Terminology(val singular: String, val plural: String) {
             fun getForCardinality(count: Int) = if (count > 1) plural else singular
 

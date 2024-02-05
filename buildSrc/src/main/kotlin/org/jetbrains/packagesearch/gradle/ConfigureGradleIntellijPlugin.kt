@@ -15,7 +15,7 @@ fun Project.configureGradleIntellijPlugin(packageSearchExtension: PackageSearchE
 
     plugins.withId("org.jetbrains.intellij") {
         extensions.withType<IntelliJPluginExtension> {
-            version = "LATEST-TRUNK-SNAPSHOT"
+            version = "LATEST-EAP-SNAPSHOT"
             instrumentCode = false
             downloadSources = !isCI
         }

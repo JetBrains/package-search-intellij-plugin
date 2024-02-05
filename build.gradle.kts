@@ -1,6 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 import java.lang.System.getenv
+import org.jetbrains.packagesearch.gradle.getStringOrNull
 import org.jetbrains.packagesearch.gradle.pkgsSpace
 
 plugins {
@@ -25,6 +26,16 @@ allprojects {
         maven("https://repo.gradle.org/gradle/libs-releases")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://packages.jetbrains.team/maven/p/kpm/public")
+        maven("https://www.jetbrains.com/intellij-repository/snapshots")
+        maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
+        maven("https://packages.jetbrains.team/maven/p/ij/intellij-sdk-nightly") {
+            credentials {
+                username = getenv("MAVEN_SPACE_INTELLIJ_USERNAME")
+                    ?: project.extra.getStringOrNull("space.intellij.username")
+                password = getenv("MAVEN_SPACE_INTELLIJ_PASSWORD")
+                    ?: project.extra.getStringOrNull("space.intellij.password")
+            }
+        }
     }
 }
 
