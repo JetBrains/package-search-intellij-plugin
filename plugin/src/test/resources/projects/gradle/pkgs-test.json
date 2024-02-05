@@ -1,0 +1,1357 @@
+{
+  "value": {
+    "pkgs-test": {
+      "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+      "name": "pkgs-test",
+      "identity": {
+        "group": "gradle",
+        "path": ":"
+      },
+      "declaredKnownRepositories": {
+      },
+      "compatiblePackageTypes": [
+        {
+          "type": "maven"
+        },
+        {
+          "type": "gradle"
+        }
+      ],
+      "dependencyMustHaveAScope": true,
+      "declaredDependencies": [
+      ],
+      "availableScopes": [
+        "kotlinKlibCommonizerClasspath"
+      ],
+      "defaultScope": "kotlinKlibCommonizerClasspath"
+    },
+    "jvm-kotlin-project": {
+      "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+      "name": "jvm-kotlin-project",
+      "identity": {
+        "group": "gradle",
+        "path": ":jvm-kotlin-project"
+      },
+      "declaredKnownRepositories": {
+        "maven_central": {
+          "type": "maven",
+          "id": "maven_central",
+          "lastChecked": null,
+          "url": "https://repo.maven.apache.org/maven2/",
+          "alternateUrls": [
+            "https://repo1.maven.org/maven2/",
+            "https://maven-central.storage-download.googleapis.com/maven2"
+          ],
+          "friendlyName": "Maven Central",
+          "userFacingUrl": "https://search.maven.org/"
+        }
+      },
+      "compatiblePackageTypes": [
+        {
+          "type": "maven"
+        },
+        {
+          "type": "gradle",
+          "variants": [
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-api"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            },
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-runtime"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            }
+          ]
+        }
+      ],
+      "dependencyMustHaveAScope": true,
+      "declaredDependencies": [
+        {
+          "id": "maven:org.apache.logging.log4j:log4j-api",
+          "displayName": "Apache Log4j API",
+          "coordinates": "org.apache.logging.log4j:log4j-api",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "2.14.1",
+            "isStable": true,
+            "semanticPart": "2.14.1"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 152,
+            "versionStartIndex": 168
+          },
+          "declaredScope": "implementation"
+        },
+        {
+          "id": "maven:io.ktor:ktor-client-cio",
+          "displayName": "ktor-client-cio",
+          "coordinates": "io.ktor:ktor-client-cio",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "2.3.4",
+            "isStable": true,
+            "semanticPart": "2.3.4"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 216,
+            "versionStartIndex": 232
+          },
+          "declaredScope": "implementation"
+        },
+        {
+          "id": "maven:org.jetbrains.kotlinx:kotlinx-datetime",
+          "displayName": "kotlinx-datetime",
+          "coordinates": "org.jetbrains.kotlinx:kotlinx-datetime",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "0.5.0",
+            "isStable": true,
+            "semanticPart": "0.5.0"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 268,
+            "versionStartIndex": 284
+          },
+          "declaredScope": "implementation"
+        }
+      ],
+      "availableScopes": [
+        "annotationProcessor",
+        "api",
+        "apiDependenciesMetadata",
+        "apiElements-published",
+        "compileOnly",
+        "compileOnlyDependenciesMetadata",
+        "implementation",
+        "implementationDependenciesMetadata",
+        "intransitiveDependenciesMetadata",
+        "kotlinBuildToolsApiClasspath",
+        "kotlinCompilerClasspath",
+        "kotlinCompilerPluginClasspath",
+        "kotlinCompilerPluginClasspathMain",
+        "kotlinCompilerPluginClasspathTest",
+        "kotlinKlibCommonizerClasspath",
+        "kotlinNativeCompilerPluginClasspath",
+        "kotlinScriptDef",
+        "kotlinScriptDefExtensions",
+        "mainSourceElements",
+        "runtimeElements-published",
+        "runtimeOnly",
+        "testAnnotationProcessor",
+        "testApi",
+        "testApiDependenciesMetadata",
+        "testCompileOnly",
+        "testCompileOnlyDependenciesMetadata",
+        "testImplementation",
+        "testImplementationDependenciesMetadata",
+        "testIntransitiveDependenciesMetadata",
+        "testKotlinScriptDef",
+        "testKotlinScriptDefExtensions",
+        "testRuntimeOnly"
+      ],
+      "defaultScope": "implementation"
+    },
+    "kmp-project": {
+      "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.WithVariants",
+      "name": "kmp-project",
+      "identity": {
+        "group": "gradle",
+        "path": ":kmp-project"
+      },
+      "declaredKnownRepositories": {
+      },
+      "compatiblePackageTypes": [
+        {
+          "type": "gradle",
+          "variants": [
+            {
+              "attributes": {
+                "org.jetbrains.kotlin.platform.type": {
+                  "type": "exactMatch",
+                  "value": "native"
+                },
+                "org.jetbrains.kotlin.native.target": {
+                  "type": "exactMatch",
+                  "value": "ios_arm64"
+                },
+                "org.gradle.category": {
+                  "type": "exactMatch",
+                  "value": "library"
+                },
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "kotlin-api"
+                }
+              },
+              "mustBeWithFiles": false
+            },
+            {
+              "attributes": {
+                "org.jetbrains.kotlin.platform.type": {
+                  "type": "exactMatch",
+                  "value": "native"
+                },
+                "org.jetbrains.kotlin.native.target": {
+                  "type": "exactMatch",
+                  "value": "ios_x64"
+                },
+                "org.gradle.category": {
+                  "type": "exactMatch",
+                  "value": "library"
+                },
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "kotlin-api"
+                }
+              },
+              "mustBeWithFiles": false
+            },
+            {
+              "attributes": {
+                "org.gradle.category": {
+                  "type": "exactMatch",
+                  "value": "library"
+                },
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-runtime"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            },
+            {
+              "attributes": {
+                "org.gradle.category": {
+                  "type": "exactMatch",
+                  "value": "library"
+                },
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-api"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            }
+          ]
+        }
+      ],
+      "dependencyMustHaveAScope": true,
+      "variants": {
+        "iosMain": {
+          "name": "iosMain",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "iOS",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_arm64"
+                },
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_x64"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_arm64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_x64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": true,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "commonMain": {
+          "name": "commonMain",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+            {
+              "id": "maven:io.ktor:ktor-server-cio",
+              "displayName": "ktor-server-cio",
+              "coordinates": "io.ktor:ktor-server-cio",
+              "declaredVersion": {
+                "type": "semantic",
+                "versionName": "2.3.4",
+                "isStable": true,
+                "semanticPart": "2.3.4"
+              },
+              "declarationIndexes": {
+                "declarationStartIndex": 155,
+                "versionStartIndex": 171
+              },
+              "declaredScope": "implementation"
+            },
+            {
+              "id": "maven:org.jetbrains.kotlinx:kotlinx-datetime",
+              "displayName": "kotlinx-datetime",
+              "coordinates": "org.jetbrains.kotlinx:kotlinx-datetime",
+              "declaredVersion": {
+                "type": "semantic",
+                "versionName": "0.5.0",
+                "isStable": true,
+                "semanticPart": "0.5.0"
+              },
+              "declarationIndexes": {
+                "declarationStartIndex": 219,
+                "versionStartIndex": 235
+              },
+              "declaredScope": "implementation"
+            },
+            {
+              "id": "maven:org.jetbrains.kotlinx:kotlinx-html",
+              "displayName": "kotlinx.html",
+              "coordinates": "org.jetbrains.kotlinx:kotlinx-html",
+              "declaredVersion": {
+                "type": "semantic",
+                "versionName": "0.10.1",
+                "isStable": true,
+                "semanticPart": "0.10.1"
+              },
+              "declarationIndexes": {
+                "declarationStartIndex": 298,
+                "versionStartIndex": 314
+              },
+              "declaredScope": "implementation"
+            },
+            {
+              "id": "maven:org.danbrough.kotlinx:kotlinx-html",
+              "displayName": "kotlinx.html",
+              "coordinates": "org.danbrough.kotlinx:kotlinx-html",
+              "declaredVersion": {
+                "type": "semantic",
+                "versionName": "0.8.0",
+                "isStable": true,
+                "semanticPart": "0.8.0"
+              },
+              "declarationIndexes": {
+                "declarationStartIndex": 374,
+                "versionStartIndex": 390
+              },
+              "declaredScope": "implementation"
+            },
+            {
+              "id": "maven:org.danbrough.kotlinx:kotlinx-serialization-core",
+              "displayName": "kotlinx-serialization-core",
+              "coordinates": "org.danbrough.kotlinx:kotlinx-serialization-core",
+              "declaredVersion": {
+                "type": "semantic",
+                "versionName": "1.5.0",
+                "isStable": true,
+                "semanticPart": "1.5.0"
+              },
+              "declarationIndexes": {
+                "declarationStartIndex": 449,
+                "versionStartIndex": 465
+              },
+              "declaredScope": "implementation"
+            }
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "iOS",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_arm64"
+                },
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_x64"
+                }
+              ]
+            },
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "JVM",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "jvm"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_arm64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_x64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "java-runtime"
+                    },
+                    "org.gradle.libraryelements": {
+                      "type": "exactMatch",
+                      "value": "jar"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "java-api"
+                    },
+                    "org.gradle.libraryelements": {
+                      "type": "exactMatch",
+                      "value": "jar"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": true,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "iosArm64Main": {
+          "name": "iosArm64Main",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "iOS",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_arm64"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_arm64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": true,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "iosTest": {
+          "name": "iosTest",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "iOS",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_arm64"
+                },
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_x64"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_arm64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_x64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": false,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "commonTest": {
+          "name": "commonTest",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "iOS",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_arm64"
+                },
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_x64"
+                }
+              ]
+            },
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "JVM",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "jvm"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_arm64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_x64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "java-runtime"
+                    },
+                    "org.gradle.libraryelements": {
+                      "type": "exactMatch",
+                      "value": "jar"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "java-api"
+                    },
+                    "org.gradle.libraryelements": {
+                      "type": "exactMatch",
+                      "value": "jar"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": false,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "iosArm64Test": {
+          "name": "iosArm64Test",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "iOS",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_arm64"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_arm64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": false,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "iosX64Main": {
+          "name": "iosX64Main",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "iOS",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_x64"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_x64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": true,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "iosX64Test": {
+          "name": "iosX64Test",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "iOS",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "ios_x64"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.jetbrains.kotlin.platform.type": {
+                      "type": "exactMatch",
+                      "value": "native"
+                    },
+                    "org.jetbrains.kotlin.native.target": {
+                      "type": "exactMatch",
+                      "value": "ios_x64"
+                    },
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "kotlin-api"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": false,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "jvmMain": {
+          "name": "jvmMain",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "JVM",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "jvm"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "java-runtime"
+                    },
+                    "org.gradle.libraryelements": {
+                      "type": "exactMatch",
+                      "value": "jar"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "java-api"
+                    },
+                    "org.gradle.libraryelements": {
+                      "type": "exactMatch",
+                      "value": "jar"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": true,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "jvmTest": {
+          "name": "jvmTest",
+          "variantTerminology": {
+            "singular": "source set",
+            "plural": "source sets"
+          },
+          "declaredDependencies": [
+          ],
+          "attributes": [
+            {
+              "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.NestedAttribute",
+              "value": "JVM",
+              "children": [
+                {
+                  "type": "com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant.Attribute.StringAttribute",
+                  "value": "jvm"
+                }
+              ]
+            }
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "gradle",
+              "variants": [
+                {
+                  "attributes": {
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "java-runtime"
+                    },
+                    "org.gradle.libraryelements": {
+                      "type": "exactMatch",
+                      "value": "jar"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                },
+                {
+                  "attributes": {
+                    "org.gradle.category": {
+                      "type": "exactMatch",
+                      "value": "library"
+                    },
+                    "org.gradle.usage": {
+                      "type": "exactMatch",
+                      "value": "java-api"
+                    },
+                    "org.gradle.libraryelements": {
+                      "type": "exactMatch",
+                      "value": "jar"
+                    }
+                  },
+                  "mustBeWithFiles": false
+                }
+              ]
+            }
+          ],
+          "isPrimary": false,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "implementation",
+            "api",
+            "compileOnly",
+            "runtimeOnly"
+          ],
+          "defaultScope": "implementation"
+        },
+        "dependencies block": {
+          "name": "dependencies block",
+          "variantTerminology": null,
+          "declaredDependencies": [
+          ],
+          "attributes": [
+          ],
+          "compatiblePackageTypes": [
+            {
+              "type": "maven"
+            },
+            {
+              "type": "gradle"
+            }
+          ],
+          "isPrimary": true,
+          "dependencyMustHaveAScope": true,
+          "availableScopes": [
+            "allSourceSetsCompileDependenciesMetadata",
+            "commonMainApi",
+            "commonMainApiDependenciesMetadata",
+            "commonMainCompileOnly",
+            "commonMainCompileOnlyDependenciesMetadata",
+            "commonMainImplementation",
+            "commonMainImplementationDependenciesMetadata",
+            "commonMainIntransitiveDependenciesMetadata",
+            "commonMainResolvableDependenciesMetadata",
+            "commonMainRuntimeOnly",
+            "commonTestApi",
+            "commonTestApiDependenciesMetadata",
+            "commonTestCompileOnly",
+            "commonTestCompileOnlyDependenciesMetadata",
+            "commonTestImplementation",
+            "commonTestImplementationDependenciesMetadata",
+            "commonTestIntransitiveDependenciesMetadata",
+            "commonTestResolvableDependenciesMetadata",
+            "commonTestRuntimeOnly",
+            "compileClasspath",
+            "derp",
+            "iosArm64ApiElements",
+            "iosArm64ApiElements-published",
+            "iosArm64CInterop",
+            "iosArm64CInteropApiElements",
+            "iosArm64CompilationApi",
+            "iosArm64CompilationCompileOnly",
+            "iosArm64CompilationDependenciesMetadata",
+            "iosArm64CompilationImplementation",
+            "iosArm64CompilationRuntimeOnly",
+            "iosArm64CompileKlibraries",
+            "iosArm64MainApi",
+            "iosArm64MainApiDependenciesMetadata",
+            "iosArm64MainCompileOnly",
+            "iosArm64MainCompileOnlyDependenciesMetadata",
+            "iosArm64MainImplementation",
+            "iosArm64MainImplementationDependenciesMetadata",
+            "iosArm64MainIntransitiveDependenciesMetadata",
+            "iosArm64MainResolvableDependenciesMetadata",
+            "iosArm64MainRuntimeOnly",
+            "iosArm64MetadataElements",
+            "iosArm64MetadataElements-published",
+            "iosArm64SourcesElements",
+            "iosArm64SourcesElements-published",
+            "iosArm64TestApi",
+            "iosArm64TestApiDependenciesMetadata",
+            "iosArm64TestCInterop",
+            "iosArm64TestCompilationApi",
+            "iosArm64TestCompilationCompileOnly",
+            "iosArm64TestCompilationDependenciesMetadata",
+            "iosArm64TestCompilationImplementation",
+            "iosArm64TestCompilationRuntimeOnly",
+            "iosArm64TestCompileKlibraries",
+            "iosArm64TestCompileOnly",
+            "iosArm64TestCompileOnlyDependenciesMetadata",
+            "iosArm64TestImplementation",
+            "iosArm64TestImplementationDependenciesMetadata",
+            "iosArm64TestIntransitiveDependenciesMetadata",
+            "iosArm64TestResolvableDependenciesMetadata",
+            "iosArm64TestRuntimeOnly",
+            "iosMainApi",
+            "iosMainApiDependenciesMetadata",
+            "iosMainCompileOnly",
+            "iosMainCompileOnlyDependenciesMetadata",
+            "iosMainImplementation",
+            "iosMainImplementationDependenciesMetadata",
+            "iosMainIntransitiveDependenciesMetadata",
+            "iosMainResolvableDependenciesMetadata",
+            "iosMainRuntimeOnly",
+            "iosTestApi",
+            "iosTestApiDependenciesMetadata",
+            "iosTestCompileOnly",
+            "iosTestCompileOnlyDependenciesMetadata",
+            "iosTestImplementation",
+            "iosTestImplementationDependenciesMetadata",
+            "iosTestIntransitiveDependenciesMetadata",
+            "iosTestResolvableDependenciesMetadata",
+            "iosTestRuntimeOnly",
+            "iosX64ApiElements",
+            "iosX64ApiElements-published",
+            "iosX64CInterop",
+            "iosX64CInteropApiElements",
+            "iosX64CompilationApi",
+            "iosX64CompilationCompileOnly",
+            "iosX64CompilationDependenciesMetadata",
+            "iosX64CompilationImplementation",
+            "iosX64CompilationRuntimeOnly",
+            "iosX64CompileKlibraries",
+            "iosX64MainApi",
+            "iosX64MainApiDependenciesMetadata",
+            "iosX64MainCompileOnly",
+            "iosX64MainCompileOnlyDependenciesMetadata",
+            "iosX64MainImplementation",
+            "iosX64MainImplementationDependenciesMetadata",
+            "iosX64MainIntransitiveDependenciesMetadata",
+            "iosX64MainResolvableDependenciesMetadata",
+            "iosX64MainRuntimeOnly",
+            "iosX64MetadataElements",
+            "iosX64MetadataElements-published",
+            "iosX64SourcesElements",
+            "iosX64SourcesElements-published",
+            "iosX64TestApi",
+            "iosX64TestApiDependenciesMetadata",
+            "iosX64TestCInterop",
+            "iosX64TestCompilationApi",
+            "iosX64TestCompilationCompileOnly",
+            "iosX64TestCompilationDependenciesMetadata",
+            "iosX64TestCompilationImplementation",
+            "iosX64TestCompilationRuntimeOnly",
+            "iosX64TestCompileKlibraries",
+            "iosX64TestCompileOnly",
+            "iosX64TestCompileOnlyDependenciesMetadata",
+            "iosX64TestImplementation",
+            "iosX64TestImplementationDependenciesMetadata",
+            "iosX64TestIntransitiveDependenciesMetadata",
+            "iosX64TestResolvableDependenciesMetadata",
+            "iosX64TestRuntimeOnly",
+            "jvmApiElements",
+            "jvmApiElements-published",
+            "jvmCompilationApi",
+            "jvmCompilationCompileOnly",
+            "jvmCompilationImplementation",
+            "jvmCompilationRuntimeOnly",
+            "jvmCompileClasspath",
+            "jvmMainApi",
+            "jvmMainApiDependenciesMetadata",
+            "jvmMainCompileOnly",
+            "jvmMainCompileOnlyDependenciesMetadata",
+            "jvmMainImplementation",
+            "jvmMainImplementationDependenciesMetadata",
+            "jvmMainIntransitiveDependenciesMetadata",
+            "jvmMainResolvableDependenciesMetadata",
+            "jvmMainRuntimeOnly",
+            "jvmRuntimeClasspath",
+            "jvmRuntimeElements",
+            "jvmRuntimeElements-published",
+            "jvmSourcesElements",
+            "jvmSourcesElements-published",
+            "jvmTestApi",
+            "jvmTestApiDependenciesMetadata",
+            "jvmTestCompilationApi",
+            "jvmTestCompilationCompileOnly",
+            "jvmTestCompilationImplementation",
+            "jvmTestCompilationRuntimeOnly",
+            "jvmTestCompileClasspath",
+            "jvmTestCompileOnly",
+            "jvmTestCompileOnlyDependenciesMetadata",
+            "jvmTestImplementation",
+            "jvmTestImplementationDependenciesMetadata",
+            "jvmTestIntransitiveDependenciesMetadata",
+            "jvmTestResolvableDependenciesMetadata",
+            "jvmTestRuntimeClasspath",
+            "jvmTestRuntimeOnly",
+            "kotlinBuildToolsApiClasspath",
+            "kotlinCompilerClasspath",
+            "kotlinCompilerPluginClasspath",
+            "kotlinCompilerPluginClasspathIosArm64Main",
+            "kotlinCompilerPluginClasspathIosArm64Test",
+            "kotlinCompilerPluginClasspathIosX64Main",
+            "kotlinCompilerPluginClasspathIosX64Test",
+            "kotlinCompilerPluginClasspathJvmMain",
+            "kotlinCompilerPluginClasspathJvmTest",
+            "kotlinCompilerPluginClasspathMetadataCommonMain",
+            "kotlinCompilerPluginClasspathMetadataIosMain",
+            "kotlinCompilerPluginClasspathMetadataMain",
+            "kotlinKlibCommonizerClasspath",
+            "kotlinNativeCompilerPluginClasspath",
+            "kotlinScriptDef",
+            "kotlinScriptDefExtensions",
+            "metadataApiElements",
+            "metadataCommonMainCompilationApi",
+            "metadataCommonMainCompilationCompileOnly",
+            "metadataCommonMainCompilationImplementation",
+            "metadataCommonMainCompilationRuntimeOnly",
+            "metadataCommonMainCompileClasspath",
+            "metadataCompilationApi",
+            "metadataCompilationCompileOnly",
+            "metadataCompilationImplementation",
+            "metadataCompilationRuntimeOnly",
+            "metadataCompileClasspath",
+            "metadataIosMainCompilationApi",
+            "metadataIosMainCompilationCompileOnly",
+            "metadataIosMainCompilationImplementation",
+            "metadataIosMainCompilationRuntimeOnly",
+            "metadataIosMainCompileClasspath",
+            "metadataSourcesElements",
+            "testKotlinScriptDef",
+            "testKotlinScriptDefExtensions"
+          ],
+          "defaultScope": "allSourceSetsCompileDependenciesMetadata"
+        }
+      },
+      "variantTerminology": {
+        "singular": "variant",
+        "plural": "variants"
+      },
+      "mainVariantName": "commonMain"
+    }
+  }
+}
