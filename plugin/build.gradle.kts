@@ -47,6 +47,7 @@ packagesearch {
 
 intellij {
     plugins.add("org.jetbrains.idea.reposearch")
+    plugins.add("com.jetbrains.performancePlugin")
 }
 
 val tooling: Configuration by configurations.creating {
@@ -82,10 +83,15 @@ dependencies {
 
     testImplementation(kotlin("test-junit5"))
     testImplementation(packageSearchCatalog.junit.jupiter.api)
+    testImplementation(packageSearchCatalog.junit.jupiter.params)
+    testImplementation(packageSearchCatalog.ide.starter.junit5)
+    testImplementation(packageSearchCatalog.ide.starter.squashed)
+    testImplementation(packageSearchCatalog.kotlinx.coroutines.test)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
 }
 
 val pkgsPluginId: String by project
+val pkgsPluginTestOutputDir: String by project
 
 tasks {
     val patchIdeSettings by registering {
@@ -123,7 +129,10 @@ tasks {
             ?.suffixIfNot("]]>")
 
     }
-
+    val pluginArtifactName = "packageSearch-${project.version}.zip"
+        .replace("-SNAPSHOT", ".$snapshotMinorVersion")
+    val pluginArtifactDirectory = layout.buildDirectory.dir("distributions")
+    val testDataDirectory = layout.buildDirectory.dir("testData")
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
         from(shadowJar) {
@@ -133,9 +142,24 @@ tasks {
             rename { "gradle-tooling.jar" }
         }
         into("$pkgsPluginId/lib")
-        archiveFileName = "packageSearch-${project.version}.zip"
-            .replace("-SNAPSHOT", ".$snapshotMinorVersion")
-        destinationDirectory = layout.buildDirectory.dir("distributions")
+        archiveFileName = pluginArtifactName
+        destinationDirectory = pluginArtifactDirectory
+    }
+
+    val testDataDirectoryPath = testDataDirectory.map { it.asFile.absolutePath }
+
+    test {
+        environment("PKGS_PLUGIN_ID", pkgsPluginId)
+        environment("PKGS_TEST_DATA_OUTPUT_DIR", testDataDirectoryPath.get())
+        environment("KMP", true)
+        dependsOn(buildShadowPlugin)
+        val pluginArtifactDirectoryPath =
+            pluginArtifactDirectory.map { it.file(pluginArtifactName).asFile.absolutePath }
+        environment("PKGS_PLUGIN_ARTIFACT_FILE", pluginArtifactDirectoryPath.get())
+    }
+
+    runIde {
+        environment("PKGS_TEST_DATA_OUTPUT_DIR", testDataDirectoryPath.get())
     }
 
     register<PublishPluginTask>("publishSnapshotPluginToTBE") {

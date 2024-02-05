@@ -23,10 +23,10 @@ interface PackageSearchModuleVariant : PackageSearchDependencyManager {
 
         val value: String
 
-        @JvmInline
         @Serializable
-        value class StringAttribute(override val value: String) : Attribute
+        data class StringAttribute(override val value: String) : Attribute
 
+        @Serializable
         data class NestedAttribute(override val value: String, val children: List<Attribute>) : Attribute
     }
 
