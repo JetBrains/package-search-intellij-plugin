@@ -6,7 +6,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.listKMPAttributesNames
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.utils.icon
-import com.jetbrains.packagesearch.plugin.gradle.parseAttributesFromRawStrings
+import com.jetbrains.packagesearch.plugin.core.utils.parseAttributesFromRawStrings
 import com.jetbrains.packagesearch.plugin.ui.model.getLatestVersion
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
