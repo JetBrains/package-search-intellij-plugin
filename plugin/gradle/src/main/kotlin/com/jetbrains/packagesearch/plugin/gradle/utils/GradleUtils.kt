@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -103,11 +104,12 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchGradleDeclaredPa
     val remoteInfo = getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
     return declaredDependencies
-        .map { declaredDependency ->
+        .mapNotNull { declaredDependency ->
             PackageSearchGradleDeclaredPackage(
                 id = declaredDependency.packageId,
                 declaredVersion = declaredDependency.version?.let { NormalizedVersion.fromStringOrNull(it) },
-                remoteInfo = remoteInfo[declaredDependency.packageId]?.asMavenApiPackage(),
+                remoteInfo = remoteInfo[declaredDependency.packageId] as? ApiMavenPackage
+                    ?: return@mapNotNull null,
                 icon = remoteInfo[declaredDependency.packageId]?.icon
                     ?: IconProvider.Icons.MAVEN,
                 module = declaredDependency.groupId,
