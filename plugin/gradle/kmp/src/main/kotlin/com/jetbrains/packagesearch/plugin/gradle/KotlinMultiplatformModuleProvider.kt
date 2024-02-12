@@ -12,6 +12,7 @@ import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationIn
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Jvm
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel.Native
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoProvider
+import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
@@ -34,7 +35,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
         module: Module,
         model: PackageSearchGradleModel,
     ) {
-        if (model.isKotlinMultiplatformApplied && !model.isAmperApplied)
+        if (PackageSearch.isKMPEnabled && model.isKotlinMultiplatformApplied && !model.isAmperApplied)
             MppCompilationInfoProvider.sourceSetsMap(project, model.projectDir)
                 .collect { compilationModel ->
                     val variants = module.getKMPVariants(
