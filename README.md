@@ -9,8 +9,8 @@ packages from the following package managers by default:
 
 It also supports Kotlin Multiplatform projects for both for Gradle and Amper.
 
-![Package Search](https://plugins.jetbrains.com/files/12507/screenshot_2db7914e-4a6a-45a1-aa34-ed00b150cf62)
-![Package Search](https://plugins.jetbrains.com/files/12507/screenshot_26124d52-4baf-4e5c-bff3-1ecb81efd83c)
+![Package Search](https://plugins.jetbrains.com/files/12507/screenshot_2cd70867-8304-496a-a023-a052b01e24f6)
+![Package Search](https://plugins.jetbrains.com/files/12507/screenshot_2314f197-0e0a-4b45-bdbe-23d2bf745df2)
 
 # Installation
 
