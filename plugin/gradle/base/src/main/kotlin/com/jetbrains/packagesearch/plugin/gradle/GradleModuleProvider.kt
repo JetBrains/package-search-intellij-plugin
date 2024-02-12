@@ -3,6 +3,7 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.module.Module
+import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
@@ -20,7 +21,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
         module: Module,
         model: PackageSearchGradleModel,
     ) {
-        if (!model.isKotlinMultiplatformApplied) {
+        if (!PackageSearch.isKMPEnabled || !model.isKotlinMultiplatformApplied) {
             val availableKnownRepositories =
                 model.repositories.toSet().let { availableGradleRepositories ->
                     knownRepositories.filterValues {

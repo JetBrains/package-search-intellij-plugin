@@ -6,6 +6,7 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import javax.inject.Inject
+import kotlin.math.max
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
@@ -13,7 +14,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.property
-import org.gradle.kotlin.dsl.the
 
 open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
@@ -22,11 +22,21 @@ open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactor
 
     @get:Input
     val pluginVersion = objects.property<String>()
-        .convention(project.version.toString())
+        .convention(project.provider {
+            val runNumber = System.getenv("RUN_NUMBER")?.toInt() ?: 0
+            val runAttempt = System.getenv("RUN_ATTEMPT")?.toInt() ?: 0
+            val snapshotMinorVersion = max(0, runNumber + runAttempt - 1)
+            val versionString = project.version.toString()
+            versionString.replace("-SNAPSHOT", ".$snapshotMinorVersion")
+        })
 
     @get:Input
     val deleteCachesOnStartup = objects.property<Boolean>()
-        .convention(System.getenv("CI") != "true")
+        .convention(project.provider { System.getenv("CI") != "true" })
+
+    @get:Input
+    val KMPEnabled = objects.property<Boolean>()
+        .convention(project.provider { System.getenv("KMP") == "true" })
 
     @get:Input
     val packageName = objects.property<String>()
@@ -67,6 +77,15 @@ open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactor
                             .getter(
                                 FunSpec.getterBuilder()
                                     .addStatement("return ${deleteCachesOnStartup.get()}")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .addProperty(
+                        PropertySpec.builder("isKMPEnabled", Boolean::class)
+                            .getter(
+                                FunSpec.getterBuilder()
+                                    .addStatement("return ${KMPEnabled.get()}")
                                     .build()
                             )
                             .build()
