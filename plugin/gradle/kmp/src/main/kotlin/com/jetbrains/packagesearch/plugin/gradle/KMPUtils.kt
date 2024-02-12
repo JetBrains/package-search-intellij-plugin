@@ -5,6 +5,7 @@ import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationIn
 import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
+import com.jetbrains.packagesearch.plugin.core.utils.parseAttributesFromRawStrings
 import kotlin.contracts.contract
 
 fun Set<MppCompilationInfoModel.Compilation>.buildAttributes(): List<PackageSearchModuleVariant.Attribute> {
@@ -36,25 +37,6 @@ fun List<PackageSearchModuleVariant.Attribute>.mergeAttributes() =
     flatMap { it.flatAttributesNames() }
         .toSet()
         .parseAttributesFromRawStrings()
-
-fun Set<String>.parseAttributesFromRawStrings() = buildList {
-    var queue = this@parseAttributesFromRawStrings.toList()
-    for (attributeTitle in KMP_ATTRIBUTES_GROUPS) {
-        val (targets, rest) = queue
-            .partition { it.contains(attributeTitle.aggregationKeyword, true) }
-
-        if (targets.isEmpty()) continue
-        this.add(
-            PackageSearchModuleVariant.Attribute.NestedAttribute(
-                attributeTitle.displayName,
-                targets.map { PackageSearchModuleVariant.Attribute.StringAttribute(it) })
-        )
-        queue = rest
-    }
-    addAll(queue.map { PackageSearchModuleVariant.Attribute.StringAttribute(it) })
-
-}
-
 
 operator fun Set<String>.contains(attribute: PackageSearchModuleVariant.Attribute.NestedAttribute): Boolean =
     attribute.flatten().all { it in this }
