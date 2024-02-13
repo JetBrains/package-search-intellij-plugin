@@ -51,10 +51,7 @@ class PackageSearchApplicationCachesService : RecoveryAction, Disposable {
 
     companion object {
         private val cacheFilePath
-            get() = cacheDirectory / "db-${PackageSearch.pluginVersion}.db"
-
-        private val cacheDirectory
-            get() = appSystemDir / "caches" / "packagesearch"
+            get() = appSystemDir / "caches" / "packagesearch" / "db-v${PackageSearch.databaseVersion}.db"
     }
 
     @PKGSInternalAPI

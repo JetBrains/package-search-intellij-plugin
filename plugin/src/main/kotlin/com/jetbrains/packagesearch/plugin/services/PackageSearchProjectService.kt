@@ -128,7 +128,6 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
         .flatMapLatest { moduleProvidersList }
         .retry(5)
         .onEach { logDebug("${this::class.qualifiedName}#modulesStateFlow") { "modules.size = ${it.size}" } }
-        .modifiedBy(restartFlow) { _, _ -> emptyList() }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
 
     val modulesByBuildFile = modulesStateFlow
