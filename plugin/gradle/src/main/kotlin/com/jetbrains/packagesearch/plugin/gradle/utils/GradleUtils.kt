@@ -99,12 +99,11 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchGradleDeclaredPa
     val remoteInfo = getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
     return declaredDependencies
-        .mapNotNull { declaredDependency ->
+        .map { declaredDependency ->
             PackageSearchGradleDeclaredPackage(
                 id = declaredDependency.packageId,
                 declaredVersion = declaredDependency.version?.let { NormalizedVersion.fromStringOrNull(it) },
-                remoteInfo = remoteInfo[declaredDependency.packageId] as? ApiMavenPackage
-                    ?: return@mapNotNull null,
+                remoteInfo = remoteInfo[declaredDependency.packageId] as? ApiMavenPackage,
                 icon = remoteInfo[declaredDependency.packageId]?.icon
                     ?: IconProvider.Icons.MAVEN,
                 module = declaredDependency.groupId,

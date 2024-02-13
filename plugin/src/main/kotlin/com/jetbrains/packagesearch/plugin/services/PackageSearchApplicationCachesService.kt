@@ -46,7 +46,7 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
 
     companion object {
         private val cacheFilePath
-            get() = appSystemDir / "caches" / "packagesearch" / "db-${PackageSearch.pluginVersion}.db"
+            get() = appSystemDir / "caches" / "packagesearch" / "db-v${PackageSearch.databaseVersion}.db"
     }
 
     @PKGSInternalAPI
