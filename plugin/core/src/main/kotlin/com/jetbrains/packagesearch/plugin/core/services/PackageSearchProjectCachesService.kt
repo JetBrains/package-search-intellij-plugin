@@ -15,7 +15,7 @@ import kotlin.io.path.div
 class PackageSearchProjectCachesService(private val project: Project) : Disposable {
 
     private val cacheFilePath
-        get() = cachesDirectory / "db-${PackageSearch.pluginVersion}.db"
+        get() = cachesDirectory / "db-v${PackageSearch.databaseVersion}.db"
 
     private val cachesDirectory
         get() = project.getProjectDataPath("caches") / "packagesearch"
