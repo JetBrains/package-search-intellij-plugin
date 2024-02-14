@@ -10,9 +10,9 @@ import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 
 @Serializable
 data class ApiPackageCacheEntry(
-    val data: ApiPackage?,
-    val packageId: String,
-    val packageIdHash: String,
+    val data: ApiPackage? = null,
+    val packageId: String? = null,
+    val packageIdHash: String? = null,
     @SerialName("_id") val id: Long? = null,
     val lastUpdate: Instant = Clock.System.now(),
 )

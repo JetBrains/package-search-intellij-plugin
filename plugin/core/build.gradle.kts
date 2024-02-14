@@ -52,6 +52,7 @@ tasks {
         pluginId = pkgsPluginId
         outputDir = generatedDir
         packageName = "com.jetbrains.packagesearch.plugin.core"
+        databaseVersion = 1
     }
     sourcesJar {
         dependsOn(generatePluginDataSources)
