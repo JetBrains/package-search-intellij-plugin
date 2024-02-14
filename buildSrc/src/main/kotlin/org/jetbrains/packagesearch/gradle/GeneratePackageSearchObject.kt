@@ -42,6 +42,9 @@ open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactor
     val packageName = objects.property<String>()
 
     @get:Input
+    val databaseVersion = objects.property<Int>()
+
+    @get:Input
     val objectName = objects.property<String>()
         .convention("PackageSearch")
 
@@ -86,6 +89,15 @@ open class GeneratePackageSearchObject @Inject constructor(objects: ObjectFactor
                             .getter(
                                 FunSpec.getterBuilder()
                                     .addStatement("return ${KMPEnabled.get()}")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .addProperty(
+                        PropertySpec.builder("databaseVersion", Int::class)
+                            .getter(
+                                FunSpec.getterBuilder()
+                                    .addStatement("return %L", databaseVersion.get())
                                     .build()
                             )
                             .build()
