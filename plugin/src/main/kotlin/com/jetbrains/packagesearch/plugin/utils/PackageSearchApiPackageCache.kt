@@ -68,15 +68,21 @@ class PackageSearchApiPackageCache(
 
     override suspend fun getKnownRepositories(): List<ApiRepository> {
         val cached = repositoryCache.find().singleOrNull()
-        if (cached != null && (Clock.System.now() < cached.lastUpdate + maxAge || !isOnline())) {
+        val isOnlineStatus = isOnline()
+        if (cached != null && (Clock.System.now() < cached.lastUpdate + maxAge || !isOnlineStatus)) {
             return cached.data
         }
-        return if (isOnline()) apiClient.getKnownRepositories()
-            .also {
-                repositoryCache.removeAll()
-                repositoryCache.insert(ApiRepositoryCacheEntry(it))
-            }
-        else emptyList()
+        return when {
+            isOnlineStatus -> runCatching { apiClient.getKnownRepositories() }
+                .suspendSafe()
+                .onSuccess {
+                    repositoryCache.removeAll()
+                    repositoryCache.insert(ApiRepositoryCacheEntry(it))
+                }
+                .getOrDefault(cached?.data ?: emptyList())
+
+            else -> emptyList()
+        }
     }
 
     private suspend fun getPackages(
