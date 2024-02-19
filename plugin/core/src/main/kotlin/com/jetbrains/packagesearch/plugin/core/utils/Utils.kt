@@ -27,6 +27,8 @@ import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileListener
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.util.application
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.messages.Topic
@@ -44,7 +46,6 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -66,6 +67,40 @@ fun <T : Any, R> MessageBus.flow(
     val connection = simpleConnect()
     connection.subscribe(topic, listener())
     awaitClose { connection.disconnect() }
+}
+
+sealed interface FlowEvent<T> {
+
+    @JvmInline
+    value class Added<T>(val item: T) : FlowEvent<T>
+
+    @JvmInline
+    value class Removed<T>(val item: T) : FlowEvent<T>
+
+    @JvmInline
+    value class Initial<T>(val items: List<T>) : FlowEvent<T>
+}
+
+fun <T : Any, R> MessageBus.bufferFlow(
+    topic: Topic<T>,
+    initialValue: (() -> List<R>)? = null,
+    listener: ProducerScope<FlowEvent<R>>.() -> T,
+) = channelFlow {
+    val buffer = mutableSetOf<R>()
+    flow(topic, listener).onEach { event ->
+        when (event) {
+            is FlowEvent.Added -> buffer.add(event.item)
+            is FlowEvent.Removed -> buffer.remove(event.item)
+            is FlowEvent.Initial -> {
+                buffer.clear()
+                buffer.addAll(event.items)
+            }
+        }
+        send(buffer.toList())
+    }
+        .launchIn(this)
+    initialValue?.invoke()?.let { send(it) }
+    awaitClose()
 }
 
 val filesChangedEventFlow: Flow<List<VFileEvent>>
@@ -173,43 +208,52 @@ fun <T> Flow<T>.replayOn(vararg replayFlows: Flow<*>) = channelFlow {
     merge(*replayFlows).collect { mutex.withLock { last?.let { send(it) } } }
 }
 
-val Project.fileOpenedFlow: Flow<List<VirtualFile>>
-    get() {
-        val flow = flow {
-            val buffer: MutableList<VirtualFile> = FileEditorManager.getInstance(this@fileOpenedFlow).openFiles
-                .toMutableList()
-            emit(buffer.toList())
-            messageBus.flow(FileEditorManagerListener.FILE_EDITOR_MANAGER) {
-                object : FileEditorManagerListener {
-                    override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
-                        trySend(FileEditorEvent.FileOpened(file))
-                    }
+fun Project.toolWindowOpenedFlow(toolWindowId: String): Flow<Boolean> = callbackFlow {
+    val manager = ToolWindowManager.getInstance(this@toolWindowOpenedFlow)
+    val toolWindow = manager.getToolWindow(toolWindowId)
 
-                    override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-                        trySend(FileEditorEvent.FileClosed(file))
-                    }
-                }
-            }.collect {
-                when (it) {
-                    is FileEditorEvent.FileClosed -> buffer.remove(it.file)
-                    is FileEditorEvent.FileOpened -> buffer.add(it.file)
-                }
-                emit(buffer.toList())
-            }
+    // Initial state
+    trySend(toolWindow?.isVisible ?: false)
+
+    val listener = object : ToolWindowManagerListener {
+        override fun stateChanged(toolWindowManager: ToolWindowManager) {
+            trySend(manager.getToolWindow(toolWindowId)?.isVisible ?: false)
         }
-        return flow.withInitialValue(FileEditorManager.getInstance(this@fileOpenedFlow).openFiles.toList())
     }
 
-internal sealed interface FileEditorEvent {
+    // Register the listener
+    val connection = messageBus.connect()
+    connection.subscribe(ToolWindowManagerListener.TOPIC, listener)
 
-    val file: VirtualFile
-
-    @JvmInline
-    value class FileOpened(override val file: VirtualFile) : FileEditorEvent
-
-    @JvmInline
-    value class FileClosed(override val file: VirtualFile) : FileEditorEvent
+    // Cleanup on close
+    awaitClose { connection.disconnect() }
 }
+
+// Usage:
+// val toolWindowFlow = project.toolWindowOpenedFlow("YourToolWindowId")
+// toolWindowFlow.collect { isOpen ->
+//     println("Tool window is open: $isOpen")
+// }
+
+
+val Project.fileOpenedFlow
+    get() = messageBus.bufferFlow(
+        topic = FileEditorManagerListener.FILE_EDITOR_MANAGER,
+        initialValue = { FileEditorManager.getInstance(this).openFiles.toList() }
+    ) {
+        object : FileEditorManagerListener {
+            override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+                trySend(FlowEvent.Added(file))
+            }
+
+            override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+                trySend(FlowEvent.Removed(file))
+            }
+        }
+    }
+
+val Project.project
+    get() = this
 
 val <T : Any> ExtensionPointName<T>.availableExtensionsFlow: FlowWithInitialValue<List<T>>
     get() {

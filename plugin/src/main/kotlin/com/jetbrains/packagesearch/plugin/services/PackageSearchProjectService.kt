@@ -15,9 +15,8 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
-import com.jetbrains.packagesearch.plugin.core.utils.withInitialValue
+import com.jetbrains.packagesearch.plugin.core.utils.toolWindowOpenedFlow
 import com.jetbrains.packagesearch.plugin.fus.logOnlyStableToggle
-import com.jetbrains.packagesearch.plugin.ui.model.packageslist.modifiedBy
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
@@ -38,7 +37,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
@@ -48,12 +47,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retry
-import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 @Service(Level.PROJECT)
@@ -74,7 +69,7 @@ class PackageSearchProjectService(
     val isProjectExecutingSyncStateFlow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
         .map { it.map { it.getSyncStateFlow(project) } }
         .flatMapLatest { combine(it) { it.all { it } } }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+        .stateIn(coroutineScope, SharingStarted.Lazily, false)
 
     private val knownRepositoriesStateFlow = timer(12.hours) {
         IntelliJApplication.PackageSearchApplicationCachesService
@@ -103,7 +98,7 @@ class PackageSearchProjectService(
     val packagesBeingDownloadedFlow = context.getLoadingFLow()
         .distinctUntilChanged()
         .onEach { logDebug("${this::class.qualifiedName}#packagesBeingDownloadedFlow") { "$it" } }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+        .stateIn(coroutineScope, SharingStarted.Lazily, false)
 
     private val moduleProvidersList
         get() = combine(
@@ -131,15 +126,23 @@ class PackageSearchProjectService(
         .flatMapLatest { moduleProvidersList }
         .retry(5)
         .onEach { logDebug("${this::class.qualifiedName}#modulesStateFlow") { "modules.size = ${it.size}" } }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(coroutineScope, SharingStarted.Lazily, emptyList())
 
     val modulesByBuildFile = modulesStateFlow
         .map { it.associateBy { it.buildFilePath }.filterNotNullKeys() }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+        .stateIn(coroutineScope, SharingStarted.Lazily, emptyMap())
 
     val modulesByIdentity = modulesStateFlow
         .map { it.associateBy { it.identity } }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+        .stateIn(coroutineScope, SharingStarted.Lazily, emptyMap())
+
+    private val openedBuildFiles = combine(
+        project.fileOpenedFlow,
+        modulesByBuildFile.map { it.keys }
+    ) { openedFiles, buildFiles ->
+        openedFiles.filter { it.toNioPathOrNull()?.let { it in buildFiles } ?: false }
+    }
+        .shareIn(coroutineScope, SharingStarted.Lazily, 0)
 
     init {
 
@@ -151,8 +154,18 @@ class PackageSearchProjectService(
             }
             .launchIn(coroutineScope)
 
-        IntelliJApplication.PackageSearchApplicationCachesService
-            .isOnlineFlow
+        combine(
+            openedBuildFiles.map { it.isEmpty() },
+            project.toolWindowOpenedFlow("Package Search")
+        ) { noOpenedFiles, toolWindowOpened -> noOpenedFiles || !toolWindowOpened }
+            .flatMapLatest {
+                // if the tool window is not opened and there are no opened build files,
+                // we don't need to do anything, and we turn off the isOnlineFlow
+                when {
+                    it -> IntelliJApplication.PackageSearchApplicationCachesService.isOnlineFlow
+                    else -> emptyFlow()
+                }
+            }
             .filter { it }
             .onEach { restart() }
             .retry {
@@ -161,12 +174,8 @@ class PackageSearchProjectService(
             }
             .launchIn(coroutineScope)
 
-        combine(
-            project.fileOpenedFlow,
-            modulesByBuildFile.map { it.keys }
-        ) { openedFiles, buildFiles ->
-            openedFiles.filter { it.toNioPathOrNull()?.let { it in buildFiles } ?: false }
-        }
+
+        openedBuildFiles
             .filter { it.isNotEmpty() }
             .replayOn(stableOnlyStateFlow)
             .flatMapMerge { it.asFlow() }
