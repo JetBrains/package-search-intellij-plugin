@@ -133,26 +133,12 @@ class PackageSearchApiPackageCache(
                     .suspendSafe()
                     .onFailure { logDebug("${this::class.qualifiedName}#getPackages", it) }
                 if (networkResults.isSuccess) {
-                    val packageEntries = networkResults.getOrThrow()
+                    val cacheEntriesFromNetwork = networkResults.getOrThrow()
                         .values
                         .map { it.asCacheEntry() }
-                    if (packageEntries.isNotEmpty()) {
-                        logDebug(contextName) { "No packages found | missingIds.size = ${missingIds.size}" }
-
-                        // remove the old entries
-                        apiPackageCache.remove(
-                            filter = NitriteFilters.Object.`in`(
-                                path = packageIdSelector,
-                                value = packageEntries.mapNotNull { it.packageId }
-                            )
-                        )
-                        logDebug(contextName) {
-                            "Removing old entries | packageEntries.size = ${packageEntries.size}"
-                        }
-                    }
                     // evaluate packages that are missing from our backend
                     val retrievedPackageIds =
-                        packageEntries.mapNotNull { if (useHashes) it.packageIdHash else it.packageId }
+                        cacheEntriesFromNetwork.mapNotNull { if (useHashes) it.packageIdHash else it.packageId }
                             .toSet()
                     val unknownPackages = missingIds.minus(retrievedPackageIds)
                         .map { id ->
@@ -165,8 +151,22 @@ class PackageSearchApiPackageCache(
                         "New unknown packages | unknownPackages.size = ${unknownPackages.size}"
                     }
                     // insert the new entries
-                    val toInsert = packageEntries + unknownPackages
-                    if (toInsert.isNotEmpty()) apiPackageCache.insert(toInsert)
+                    val toInsert = cacheEntriesFromNetwork + unknownPackages
+                    if (toInsert.isNotEmpty()) {
+                        toInsert.forEach { insert ->
+                            apiPackageCache.update(
+                                filter = NitriteFilters.Object.eq(
+                                    path = packageIdSelector,
+                                    value = when {
+                                        useHashes -> insert.packageIdHash
+                                        else -> insert.packageId
+                                    }
+                                ),
+                                update = insert,
+                                upsert = true
+                            )
+                        }
+                    }
                 }
                 val networkResultsData = networkResults.getOrDefault(emptyMap())
                 logDebug(contextName) {
