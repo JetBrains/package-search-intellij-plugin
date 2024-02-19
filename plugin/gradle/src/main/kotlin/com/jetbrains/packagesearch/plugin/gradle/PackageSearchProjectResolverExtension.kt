@@ -5,6 +5,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel.Configuration
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel.Dependency
 import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleModelBuilder
 import java.nio.file.Paths
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
@@ -15,7 +16,7 @@ class PackageSearchProjectResolverExtension : AbstractProjectResolverExtension()
         setOf(PackageSearchGradleJavaModel::class.java)
 
     override fun getToolingExtensionsClasses() =
-        setOf(com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleModelBuilder::class.java)
+        setOf(PackageSearchGradleModelBuilder::class.java)
 
     private inline fun <reified T> IdeaModule.getExtraProject(): T? =
         resolverCtx.getExtraProject(this@getExtraProject, T::class.java)
