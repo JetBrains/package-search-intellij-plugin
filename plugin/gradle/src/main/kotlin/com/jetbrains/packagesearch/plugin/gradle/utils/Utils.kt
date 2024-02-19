@@ -10,9 +10,7 @@ import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import org.jetbrains.kotlin.psi.psiUtil.parents
-import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
 
 val Module.isGradleSourceSet: Boolean
     get() {
@@ -20,11 +18,11 @@ val Module.isGradleSourceSet: Boolean
         return ExternalSystemApiUtil.getExternalModuleType(this) == GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
     }
 
-val Module.gradleIdentityPathOrNull: String?
-    get() = CachedModuleDataFinder.getInstance(project)
-        .findMainModuleData(this)
-        ?.data
-        ?.gradleIdentityPathOrNull
+//val Module.gradleIdentityPathOrNull: String?
+//    get() = CachedModuleDataFinder.getInstance(project)
+//        .findMainModuleData(this)
+//        ?.data
+//        ?.gradleIdentityPathOrNull
 
 suspend fun Project.awaitExternalSystemInitialization() = suspendCoroutine {
     ExternalProjectsManager.getInstance(this@awaitExternalSystemInitialization)
