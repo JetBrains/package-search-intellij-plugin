@@ -90,7 +90,7 @@ class PackageListViewModel(
         combine(listOf(selectedModuleIdsSharedFlow.map { it.size == 1 }, isOnline)) {
             it.all { it }
         }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), true)
 
     private val selectedModulesFlow = combine(
         selectedModuleIdsSharedFlow,
@@ -213,7 +213,7 @@ class PackageListViewModel(
                 }
             }
             .retry()
-            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private suspend fun PackageSearchModule.Base.getSearchQuery(
         searchQuery: String,
