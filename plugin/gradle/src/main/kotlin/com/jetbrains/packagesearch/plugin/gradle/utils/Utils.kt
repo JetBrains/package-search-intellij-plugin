@@ -10,9 +10,7 @@ import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import org.jetbrains.kotlin.psi.psiUtil.parents
-import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
 
 val Module.isGradleSourceSet: Boolean
     get() {
