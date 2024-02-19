@@ -20,12 +20,6 @@ val Module.isGradleSourceSet: Boolean
         return ExternalSystemApiUtil.getExternalModuleType(this) == GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
     }
 
-val Module.gradleIdentityPathOrNull: String?
-    get() = CachedModuleDataFinder.getInstance(project)
-        .findMainModuleData(this)
-        ?.data
-        ?.gradleIdentityPathOrNull
-
 suspend fun Project.awaitExternalSystemInitialization() = suspendCoroutine {
     ExternalProjectsManager.getInstance(this@awaitExternalSystemInitialization)
         .runWhenInitialized { it.resume(Unit) }
