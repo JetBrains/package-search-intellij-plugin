@@ -8,7 +8,7 @@ import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
@@ -18,7 +18,7 @@ val Module.isGradleSourceSet: Boolean
         return ExternalSystemApiUtil.getExternalModuleType(this) == GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
     }
 
-suspend fun Project.awaitExternalSystemInitialization() = suspendCoroutine {
+suspend fun Project.awaitExternalSystemInitialization() = suspendCancellableCoroutine {
     ExternalProjectsManager.getInstance(this@awaitExternalSystemInitialization)
         .runWhenInitialized { it.resume(Unit) }
 }
