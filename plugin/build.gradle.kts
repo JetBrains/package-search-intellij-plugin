@@ -1,7 +1,12 @@
 @file:Suppress("UnstableApiUsage")
 
+import com.vladsch.flexmark.html.HtmlRenderer
+import com.vladsch.flexmark.parser.Parser
+import java.lang.System.getenv
 import kotlin.math.max
 import org.jetbrains.intellij.tasks.PublishPluginTask
+import org.jetbrains.kotlin.util.prefixIfNot
+import org.jetbrains.kotlin.util.suffixIfNot
 import org.jetbrains.packagesearch.gradle.lafFile
 import org.jetbrains.packagesearch.gradle.logCategoriesFile
 import org.jetbrains.packagesearch.gradle.patchLafFile
@@ -103,14 +108,20 @@ tasks {
         runtimeClasspathFiles = tooling
     }
 
-    val runNumber = System.getenv("RUN_NUMBER")?.toInt() ?: 0
-    val runAttempt = System.getenv("RUN_ATTEMPT")?.toInt() ?: 0
+    val runNumber = getenv("RUN_NUMBER")?.toInt() ?: 0
+    val runAttempt = getenv("RUN_ATTEMPT")?.toInt() ?: 0
     val snapshotMinorVersion = max(0, runNumber + runAttempt - 1)
     val versionString = project.version.toString()
 
     patchPluginXml {
         pluginId = pkgsPluginId
         version = versionString.replace("-SNAPSHOT", ".$snapshotMinorVersion")
+        changeNotes = getenv("CHANGE_NOTES")
+            ?.let { Parser.builder().build().parse(it) }
+            ?.let { HtmlRenderer.builder().build().render(it) }
+            ?.prefixIfNot("<![CDATA[")
+            ?.suffixIfNot("]]>")
+
     }
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
@@ -132,7 +143,7 @@ tasks {
         toolboxEnterprise = true
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
-            ?: System.getenv("TOOLBOX_ENTERPRISE_TOKEN")
+            ?: getenv("TOOLBOX_ENTERPRISE_TOKEN")
         channels = listOf("Stable")
     }
 
@@ -140,7 +151,7 @@ tasks {
         group = "publishing"
         distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
         token = project.properties["marketplaceToken"]?.toString()
-            ?: System.getenv("MARKETPLACE_TOKEN")
+            ?: getenv("MARKETPLACE_TOKEN")
     }
 
 }

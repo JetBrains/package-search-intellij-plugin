@@ -30,4 +30,5 @@ dependencies {
     implementation(packageSearchCatalog.kotlinx.serialization.json)
     implementation("com.squareup:kotlinpoet:1.14.2")
     implementation("io.github.pdvrieze.xmlutil:serialization:0.86.2")
+    implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
 }
