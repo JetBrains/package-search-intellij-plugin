@@ -21,6 +21,7 @@ allprojects {
     }
 
     repositories {
+        google()
         mavenCentral()
         maven("https://repo.gradle.org/gradle/libs-releases")
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
