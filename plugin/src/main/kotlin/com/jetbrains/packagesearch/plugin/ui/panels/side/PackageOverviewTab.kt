@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.fus.FUSGroupIds
-import com.jetbrains.packagesearch.plugin.fus.logDetailsLinkClick
+import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelContent
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent
@@ -34,6 +34,7 @@ import com.jetbrains.packagesearch.plugin.ui.panels.packages.DeclaredPackageActi
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.RemotePackageWithVariantsActionPopup
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.ScopeSelectionDropdown
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.VersionSelectionDropdown
+import com.jetbrains.packagesearch.plugin.utils.logFUSEvent
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.ExternalLink
@@ -100,7 +101,7 @@ internal fun PackageOverviewTab(
             if (content.repositories.isNotEmpty()) {
                 DetailLabel(
                     name = message("packagesearch.ui.toolwindow.packages.details.info.repositories"),
-                    value = content.repositories.map { it.name }.joinToString(", ")
+                    value = content.repositories.joinToString(", ") { it.name }
                 )
             }
             if (content.licenses.isNotEmpty()) {
@@ -130,7 +131,7 @@ internal fun PackageOverviewTab(
                     text = message("packagesearch.ui.toolwindow.link.readme.capitalized"),
                     onClick = {
                         onLinkClick(readmeUrl)
-                        logDetailsLinkClick(FUSGroupIds.DetailsLinkTypes.Readme)
+                        logFUSEvent(PackageSearchFUSEvent.DetailsLinkClick(FUSGroupIds.DetailsLinkTypes.Readme))
                     }
                 )
             }
@@ -269,7 +270,7 @@ private fun ScmLinks(
         ExternalLink(
             text = message("packagesearch.ui.toolwindow.link.github"),
             onClick = {
-                logDetailsLinkClick(FUSGroupIds.DetailsLinkTypes.Scm)
+                logFUSEvent(PackageSearchFUSEvent.DetailsLinkClick(FUSGroupIds.DetailsLinkTypes.Scm))
                 onLinkClick(scm.url)
             },
         )
@@ -316,8 +317,8 @@ private fun PackageLinks(
                 else -> ExternalLink(
                     text = license.name,
                     onClick = {
+                        logFUSEvent(PackageSearchFUSEvent.DetailsLinkClick(FUSGroupIds.DetailsLinkTypes.License))
                         onLinkClick(license.url)
-                        logDetailsLinkClick(FUSGroupIds.DetailsLinkTypes.License)
                     },
                 )
             }
