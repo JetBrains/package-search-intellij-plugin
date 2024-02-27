@@ -73,7 +73,7 @@ fun LabelInfo(
         fontFamily = fontFamily,
         letterSpacing = letterSpacing,
         textDecoration = textDecoration,
-        textAlign = textAlign,
+        textAlign = textAlign ?: TextAlign.Start,
         lineHeight = lineHeight,
         overflow = overflow,
         softWrap = softWrap,

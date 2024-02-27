@@ -2,7 +2,7 @@
 assertk = "0.26.1"
 caffeine = "3.1.6"
 commonsCodec = "1.16.0"
-composeDesktop = "1.5.11"
+composeDesktop = "1.6.0-dev1440"
 coroutines = "1.7.3"
 detekt = "1.23.3"
 dokka = "1.9.10"
@@ -20,9 +20,7 @@ ktor = "2.3.5"
 logback = "1.4.11"
 nitrite = "3.4.4"
 packagesearchApiModels = "3.0.0-SNAPSHOT"
-jewel-bridge-233 = "0.13.2-ij-233"
-jewel-bridge-232 = "0.13.2-ij-232"
-jewel = "0.13.2"
+jewel = "0.15.0"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
@@ -38,8 +36,9 @@ ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", ve
 jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
 jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
 jewel-standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
-jewel-bridge-ij232 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge-232" }
-jewel-bridge-ij233 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge", version.ref = "jewel-bridge-233" }
+jewel-bridge-ij232 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-232", version.ref = "jewel" }
+jewel-bridge-ij233 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-233", version.ref = "jewel" }
+jewel-bridge-ij241 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-241", version.ref = "jewel" }
 compose-desktop-components-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "composeDesktop" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
