@@ -6,6 +6,7 @@ import com.intellij.openapi.module.Module
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredKnownRepositories
 import kotlinx.coroutines.flow.FlowCollector
@@ -37,7 +38,8 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                 name = model.projectName,
                 identity = PackageSearchModule.Identity(
                     group = "gradle",
-                    path = model.projectIdentityPath
+                    path = model.projectIdentityPath,
+                    projectDir = model.projectDir.toDirectory(),
                 ),
                 buildFilePath = model.buildFilePath,
                 declaredKnownRepositories = module.getDeclaredKnownRepositories(),
