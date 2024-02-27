@@ -98,7 +98,7 @@ class PackageListViewModel(
     ) { selectedModules, modulesByIdentity ->
         modulesByIdentity.filterKeys { it in selectedModules }.values.toList()
     }
-        .shareIn(viewModelScope, SharingStarted.Lazily)
+        .shareIn(viewModelScope, SharingStarted.Lazily, 1)
 
     private val searchQueryMutableStateFlow = MutableStateFlow("")
     val searchQueryStateFlow = searchQueryMutableStateFlow.asStateFlow()
