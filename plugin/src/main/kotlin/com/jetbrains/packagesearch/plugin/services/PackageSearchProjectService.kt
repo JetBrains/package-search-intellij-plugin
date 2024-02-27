@@ -17,11 +17,13 @@ import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesS
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.core.utils.toolWindowOpenedFlow
-import com.jetbrains.packagesearch.plugin.fus.logOnlyStableToggle
+import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchFUSService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
 import com.jetbrains.packagesearch.plugin.utils.logDebug
+import com.jetbrains.packagesearch.plugin.utils.logFUSEvent
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import com.jetbrains.packagesearch.plugin.utils.nativeModulesFlow
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
@@ -150,11 +152,7 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
     init {
 
         stableOnlyStateFlow
-            .onEach { logOnlyStableToggle(it) }
-            .retry {
-                logWarn("${this::class.simpleName}#stableOnlyStateFlow", throwable = it)
-                true
-            }
+            .onEach { logFUSEvent(PackageSearchFUSEvent.OnlyStableToggle(it)) }
             .launchIn(coroutineScope)
 
         combine(

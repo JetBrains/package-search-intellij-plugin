@@ -123,6 +123,7 @@ tasks {
             ?.suffixIfNot("]]>")
 
     }
+
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
         from(shadowJar) {
