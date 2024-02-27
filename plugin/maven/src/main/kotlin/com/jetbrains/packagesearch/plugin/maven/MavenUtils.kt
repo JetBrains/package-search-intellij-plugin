@@ -21,10 +21,12 @@ import com.jetbrains.packagesearch.plugin.core.utils.flow
 import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
+import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.Path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -100,13 +102,15 @@ suspend fun Module.toPackageSearch(
     mavenProject: MavenProject,
 ): PackageSearchMavenModule {
     val declaredDependencies = getDeclaredDependencies()
+    val pomPath = Path(mavenProject.file.path)
     return PackageSearchMavenModule(
         name = mavenProject.name ?: name,
         identity = PackageSearchModule.Identity(
             group = "maven",
-            path = buildMavenParentHierarchy(mavenProject.file.asRegularFile())
+            path = buildMavenParentHierarchy(mavenProject.file.asRegularFile()),
+            projectDir = pomPath.parent.toDirectory(),
         ),
-        buildFilePath = Paths.get(mavenProject.file.path),
+        buildFilePath = pomPath,
         declaredKnownRepositories = getDeclaredKnownRepositories(),
         declaredDependencies = declaredDependencies,
         availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.declaredScope }).distinct(),
@@ -155,7 +159,7 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredBaseMave
         .mapNotNull { (packageId, declaredDependency) ->
             PackageSearchDeclaredBaseMavenPackage(
                 id = packageId,
-                declaredVersion = declaredDependency.version?.let { NormalizedVersion.fromStringOrNull(it ) },
+                declaredVersion = declaredDependency.version?.let { NormalizedVersion.fromStringOrNull(it) },
                 remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
                 groupId = declaredDependency.groupId,
                 artifactId = declaredDependency.artifactId,

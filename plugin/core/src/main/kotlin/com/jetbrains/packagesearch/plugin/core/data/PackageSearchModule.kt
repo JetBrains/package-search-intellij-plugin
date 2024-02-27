@@ -2,6 +2,7 @@
 
 package com.jetbrains.packagesearch.plugin.core.data
 
+import com.jetbrains.packagesearch.plugin.core.utils.DirectoryPath
 import java.nio.file.Path
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiRepository
@@ -42,5 +43,9 @@ sealed interface PackageSearchModule : IconProvider, PackageSearchModuleEditor {
     }
 
     @Serializable
-    data class Identity(val group: String, val path: String)
+    data class Identity(
+        val group: String,
+        val path: String,
+        val projectDir: DirectoryPath,
+    )
 }
