@@ -17,6 +17,7 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.utils.icon
+import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import kotlinx.coroutines.async
@@ -48,7 +49,8 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                         name = model.projectName,
                         identity = PackageSearchModule.Identity(
                             group = "gradle",
-                            path = model.projectIdentityPath
+                            path = model.projectIdentityPath,
+                            projectDir = model.projectDir.toDirectory(),
                         ),
                         buildFilePath = model.buildFilePath,
                         declaredKnownRepositories = knownRepositories - DependencyModifierService
@@ -137,11 +139,12 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                         gradlePackages {
                             kotlinMultiplatform {
                                 compilationTargets.forEach { compilationTarget ->
-                                    when  {
+                                    when {
                                         compilationTarget is Js -> when (compilationTarget.compiler) {
                                             Js.Compiler.IR -> jsIr()
                                             Js.Compiler.LEGACY -> jsLegacy()
                                         }
+
                                         compilationTarget is Native -> native(compilationTarget.target)
                                         compilationTarget == MppCompilationInfoModel.Wasm -> wasm()
                                     }
