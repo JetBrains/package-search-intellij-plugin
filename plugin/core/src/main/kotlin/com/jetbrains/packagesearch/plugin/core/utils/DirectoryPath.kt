@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.core.utils
 
 import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.isDirectory
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -15,6 +16,10 @@ class DirectoryPath(path: Path) : Path by path {
     init {
         require(path.isDirectory()) { "Path $path is not a directory" }
     }
+
+    override fun toString() = absolutePathString()
+    override fun equals(other: Any?) = absolutePathString() == (other as? DirectoryPath)?.absolutePathString()
+    override fun hashCode() = absolutePathString().hashCode()
 
     companion object : KSerializer<DirectoryPath> {
         override val descriptor: SerialDescriptor
