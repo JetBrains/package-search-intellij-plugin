@@ -14,6 +14,8 @@ import com.intellij.openapi.externalSystem.service.internal.ExternalSystemProces
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.refreshAndFindVirtualFile
+import com.intellij.openapi.vfs.toNioPathOrNull
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
@@ -21,8 +23,8 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import com.jetbrains.packagesearch.plugin.core.utils.icon
+import com.jetbrains.packagesearch.plugin.core.utils.isSameFileAsSafe
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
-import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
@@ -30,14 +32,10 @@ import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel
 import com.jetbrains.packagesearch.plugin.gradle.packageId
 import java.nio.file.Path
 import java.nio.file.Paths
-import korlibs.crypto.SHA256
+import korlibs.crypto.sha512
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.readBytes
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -61,10 +59,8 @@ val globalGradlePropertiesPath
 val knownGradleAncillaryFilesFiles
     get() = listOf("gradle.properties", "local.properties", "gradle/libs.versions.toml")
 
-fun getModuleChangesFlow(
-    model: PackageSearchGradleModel,
-): Flow<Unit> {
-    val allFiles = buildSet {
+fun getModuleChangesFlow(model: PackageSearchGradleModel): Flow<Unit> {
+    val knownFiles = buildSet {
         if (model.buildFilePath != null) {
             add(model.buildFilePath)
         }
@@ -79,24 +75,22 @@ fun getModuleChangesFlow(
     }
 
     val buildFileChanges = filesChangedEventFlow
-        .flatMapConcat { it.map { it.path }.asFlow() }
-        .map { Paths.get(it) }
-        .filter { filePath -> allFiles.any { filePath == it } }
+        .map { it.mapNotNull { it.file?.toNioPathOrNull() } }
+        .filter { changes -> changes.any { change -> knownFiles.any { it.isSameFileAsSafe(change) } } }
         .mapUnit()
 
     return merge(
         watchExternalFileChanges(globalGradlePropertiesPath),
         buildFileChanges,
-        IntelliJApplication.registryFlow("packagesearch.sonatype.api.client").mapUnit(),
     )
 }
 
 context(PackageSearchModuleBuilderContext)
-suspend fun Module.getDeclaredKnownRepositories(): Map<String, ApiRepository> {
+suspend fun Module.getDeclaredKnownRepositories(repositories: List<String>): Map<String, ApiRepository> {
     val declaredDependencies = readAction {
         DependencyModifierService.getInstance(project).declaredRepositories(this)
     }.mapNotNull { it.id }
-    return knownRepositories.filterKeys { it in declaredDependencies }
+    return knownRepositories.filterKeys { it in declaredDependencies } + knownRepositories.filterValues { it.url in repositories }
 }
 
 @Serializable
@@ -109,14 +103,9 @@ data class GradleDependencyModelCacheEntry(
 
 context(PackageSearchModuleBuilderContext)
 suspend fun retrieveGradleDependencyModel(nativeModule: Module, buildFile: Path): List<GradleDependencyModel> {
-    if (!buildFile.isRegularFile()) {
-        return emptyList()
-    }
+    val vf = buildFile.refreshAndFindVirtualFile() ?: return emptyList()
 
-    val buildFileSha = SHA256.create()
-        .update(buildFile.readBytes())
-        .digest()
-        .hex
+    val buildFileSha = vf.contentsToByteArray().sha512().hex
 
     val cache = project.service<GradleCacheService>()
         .dependencyRepository

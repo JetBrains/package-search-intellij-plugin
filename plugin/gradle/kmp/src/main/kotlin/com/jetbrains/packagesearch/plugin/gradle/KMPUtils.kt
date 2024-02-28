@@ -7,6 +7,7 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.refreshAndFindVirtualFile
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependency
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
@@ -26,6 +27,7 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import java.nio.file.Path
 import korlibs.crypto.SHA256
+import korlibs.crypto.sha512
 import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.isRegularFile
@@ -253,12 +255,9 @@ class GradleKMPCacheService(project: Project) : Disposable {
 
 context(PackageSearchModuleBuilderContext)
 private suspend fun Module.getDependenciesBySourceSet(buildFilePath: Path): Map<String, List<GradleDependencyModel>> {
-    if (!buildFilePath.isRegularFile()) return emptyMap()
+    val vf = buildFilePath.refreshAndFindVirtualFile() ?: return emptyMap()
 
-    val buildFileHash = SHA256()
-        .update(buildFilePath.toFile().readBytes())
-        .digest()
-        .hex
+    val buildFileHash = vf.contentsToByteArray().sha512().hex
 
     val entry = project.service<GradleKMPCacheService>()
         .kmpDependencyRepository
