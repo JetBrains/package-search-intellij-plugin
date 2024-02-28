@@ -39,8 +39,6 @@ class WindowedModuleBuilderContext(
     private val knownRepositoriesGetter: () -> Map<String, ApiRepository>,
     private val packagesCache: PackageSearchApi,
     override val coroutineScope: CoroutineScope,
-    override val projectCaches: CoroutineNitrite,
-    override val applicationCaches: CoroutineNitrite,
 ) : PackageSearchModuleBuilderContext {
 
     override val knownRepositories: Map<String, ApiRepository>
