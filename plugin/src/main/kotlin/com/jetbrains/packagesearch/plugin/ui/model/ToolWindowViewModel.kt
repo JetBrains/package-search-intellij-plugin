@@ -78,10 +78,11 @@ class ToolWindowViewModel(project: Project) : Disposable {
             isProjectSyncing -> PackageSearchToolWindowState.Loading(
                 message = easterEggMessage ?: message("packagesearch.toolwindow.loading.syncing")
             )
-
-            packagesBeingDownloaded -> PackageSearchToolWindowState.Loading(
-                message = easterEggMessage ?: message("packagesearch.toolwindow.loading.downloading")
-            )
+// Commented to mitigate PKGS-1389 "dowloading packages" UI does not reflect if packages are really being downloaded or not
+// https://youtrack.jetbrains.com/issue/PKGS-1389
+//            packagesBeingDownloaded -> PackageSearchToolWindowState.Loading(
+//                message = easterEggMessage ?: message("packagesearch.toolwindow.loading.downloading")
+//            )
 
             else -> PackageSearchToolWindowState.NoModules
         }
