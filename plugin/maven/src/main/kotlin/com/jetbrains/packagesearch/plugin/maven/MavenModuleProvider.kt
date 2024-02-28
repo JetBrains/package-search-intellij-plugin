@@ -4,12 +4,12 @@ package com.jetbrains.packagesearch.plugin.maven
 
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.toNioPathOrNull
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleProvider
 import com.jetbrains.packagesearch.plugin.core.utils.isSourceSet
 import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
-import java.nio.file.Paths
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -26,8 +26,11 @@ class MavenModuleProvider : PackageSearchModuleProvider {
         else -> project.smartModeFlow.take(1).flatMapLatest {
             when (val mavenProject = project.findMavenProjectFor(nativeModule)) {
                 null -> emptyFlow()
-                else -> getModuleChangesFlow(Paths.get(mavenProject.file.path))
-                    .map { nativeModule.toPackageSearch(mavenProject) }
+                else -> when (val mavenProjectPath = mavenProject.file.toNioPathOrNull()) {
+                    null -> emptyFlow()
+                    else -> getModuleChangesFlow(mavenProjectPath)
+                        .map { nativeModule.toPackageSearch(mavenProject) }
+                }
             }
         }
     }

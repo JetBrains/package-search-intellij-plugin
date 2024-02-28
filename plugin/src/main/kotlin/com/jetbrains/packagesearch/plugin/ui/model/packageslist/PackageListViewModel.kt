@@ -27,6 +27,7 @@ import com.jetbrains.packagesearch.plugin.utils.logFUSEvent
 import com.jetbrains.packagesearch.plugin.utils.logTODO
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -97,6 +98,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
     init {
         searchQueryStateFlow
             .filter { it.isNotEmpty() }
+            .debounce(1.seconds)
             .onEach { logFUSEvent(PackageSearchFUSEvent.SearchRequest(it)) }
             .launchIn(viewModelScope)
 
