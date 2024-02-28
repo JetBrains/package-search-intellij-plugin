@@ -23,10 +23,7 @@ interface PackageSearchApiPackagesContext {
 }
 
 interface PackageSearchModuleBuilderContext :
-    ProjectContext, PackageSearchKnownRepositoriesContext, PackageSearchApiPackagesContext {
-        val projectCaches: CoroutineNitrite
-        val applicationCaches: CoroutineNitrite
-    }
+    ProjectContext, PackageSearchKnownRepositoriesContext, PackageSearchApiPackagesContext
 
 interface ProjectContext {
     val project: Project
