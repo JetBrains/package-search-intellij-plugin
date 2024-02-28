@@ -11,9 +11,12 @@ import com.intellij.openapi.extensions.AreaInstance
 import com.intellij.openapi.extensions.ExtensionPointListener
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginDescriptor
+import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -354,5 +357,8 @@ class ProjectDataImportListenerAdapter(private val project: Project) : ProjectDa
         project.service<State>().value = false
     }
 }
+
+val Module.isSourceSet
+    get() = ExternalSystemApiUtil.getExternalModuleType(this) == "sourceSet"
 
 fun <T> Result<T>.suspendSafe() = onFailure { if (it is CancellationException) throw it }
