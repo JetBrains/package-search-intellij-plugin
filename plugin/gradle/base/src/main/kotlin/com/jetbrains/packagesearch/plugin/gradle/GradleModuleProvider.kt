@@ -33,7 +33,9 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
             val configurationNames = model.configurations
                 .filter { it.canBeDeclared }
                 .map { it.name }
-            val declaredDependencies = module.getDeclaredDependencies()
+            val declaredDependencies = model.buildFilePath
+                ?.let { module.getDeclaredDependencies(it) }
+                ?: emptyList()
             val packageSearchGradleModule = PackageSearchGradleModule(
                 name = model.projectName,
                 identity = PackageSearchModule.Identity(

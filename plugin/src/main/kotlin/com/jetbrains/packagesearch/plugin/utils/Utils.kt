@@ -10,6 +10,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.util.Function
+import com.intellij.util.flow.throttle
 import com.jetbrains.packagesearch.plugin.core.utils.FlowWithInitialValue
 import com.jetbrains.packagesearch.plugin.core.utils.flow
 import com.jetbrains.packagesearch.plugin.core.utils.withInitialValue
@@ -117,5 +118,19 @@ internal fun <T> timer(interval: Duration, generate: suspend () -> T) = flow {
     while (true) {
         emit(generate())
         delay(interval)
+    }
+}
+
+fun <T> Flow<T>.throttle(timeMs: Duration) =
+    throttle(timeMs.inWholeMilliseconds)
+
+fun <T> Flow<T>.drop(count: Int, function: (T) -> Boolean) = flow {
+    var current = 0
+    collect {
+        if (current < count && function(it)) {
+            current++
+        } else {
+            emit(it)
+        }
     }
 }

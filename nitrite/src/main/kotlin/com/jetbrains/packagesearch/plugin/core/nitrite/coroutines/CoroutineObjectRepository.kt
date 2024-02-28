@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.core.nitrite.coroutines
 import com.jetbrains.packagesearch.plugin.core.nitrite.DocumentPathBuilder
 import com.jetbrains.packagesearch.plugin.core.nitrite.asKotlin
 import com.jetbrains.packagesearch.plugin.core.nitrite.serialization.NitriteDocumentFormat
+import java.io.Closeable
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlinx.coroutines.CoroutineDispatcher
@@ -35,7 +36,7 @@ class CoroutineObjectRepository<T : Any> @InternalAPI constructor(
     val type: KType,
     private val documentFormat: NitriteDocumentFormat,
     override val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-) : CoroutineWrapper() {
+) : CoroutineWrapper(), Closeable by synchronous {
 
     data class Change<T>(val changeType: ChangeType, val changedItems: Flow<T>)
     data class Item<T>(val changeTimestamp: Instant, val changeType: ChangeType, val item: T)

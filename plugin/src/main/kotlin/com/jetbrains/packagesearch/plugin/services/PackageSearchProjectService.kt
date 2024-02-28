@@ -13,28 +13,28 @@ import com.intellij.psi.PsiManager
 import com.jetbrains.packagesearch.plugin.PackageSearchModuleBaseTransformerUtils
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
-import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.core.utils.toolWindowOpenedFlow
 import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchFUSService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
+import com.jetbrains.packagesearch.plugin.utils.drop
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
 import com.jetbrains.packagesearch.plugin.utils.logDebug
 import com.jetbrains.packagesearch.plugin.utils.logFUSEvent
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import com.jetbrains.packagesearch.plugin.utils.nativeModulesFlow
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
+import com.jetbrains.packagesearch.plugin.utils.throttle
 import com.jetbrains.packagesearch.plugin.utils.timer
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -96,8 +95,6 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
         knownRepositoriesGetter = { knownRepositories },
         packagesCache = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
         coroutineScope = coroutineScope,
-        projectCaches = project.PackageSearchProjectCachesService.cache,
-        applicationCaches = IntelliJApplication.PackageSearchApplicationCachesService.cache,
     )
 
     val packagesBeingDownloadedFlow = context.getLoadingFLow()
@@ -123,10 +120,7 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
             .debounce(1.seconds)
             .distinctUntilChanged()
 
-    private val restartFlow = restartChannel.consumeAsFlow()
-        .shareIn(coroutineScope, SharingStarted.Eagerly, 0)
-
-    val modulesStateFlow = restartFlow
+    val modulesStateFlow = restartChannel.consumeAsFlow()
         .onStart { emit(Unit) }
         .flatMapLatest { moduleProvidersList }
         .retry(5)
@@ -167,7 +161,9 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
                     else -> emptyFlow()
                 }
             }
+            .distinctUntilChanged()
             .filter { it }
+            .throttle(30.minutes)
             .onEach { restart() }
             .retry {
                 logWarn("${this::class.simpleName}#isOnlineFlow", throwable = it)
@@ -197,17 +193,6 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
 
     override fun dispose() {
         coroutineScope.cancel()
-    }
-}
-
-private fun <T> Flow<T>.drop(count: Int, function: (T) -> Boolean) = flow {
-    var current = 0
-    collect {
-        if (current < count && function(it)) {
-            current++
-        } else {
-            emit(it)
-        }
     }
 }
 
