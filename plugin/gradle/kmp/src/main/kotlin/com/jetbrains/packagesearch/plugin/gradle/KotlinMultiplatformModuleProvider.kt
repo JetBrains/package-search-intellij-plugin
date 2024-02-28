@@ -20,6 +20,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
+import java.nio.file.Path
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.FlowCollector
@@ -41,6 +42,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                 .collect { compilationModel ->
                     val variants = module.getKMPVariants(
                         compilationModel = compilationModel,
+                        buildFilePath = model.buildFilePath,
                         availableScopes = model.configurations
                             .filter { it.canBeDeclared }
                             .map { it.name }
@@ -66,101 +68,6 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                     emit(pkgsModule)
                 }
 
-    }
-
-    context(PackageSearchModuleBuilderContext)
-    suspend fun Module.getKMPVariants(
-        compilationModel: Map<String, Set<MppCompilationInfoModel.Compilation>>,
-        availableScopes: List<String>,
-    ): List<PackageSearchKotlinMultiplatformVariant> = coroutineScope {
-        val dependenciesBlockVariant = async {
-            val declaredDependencies = getDeclaredDependencies()
-            PackageSearchKotlinMultiplatformVariant.DependenciesBlock(
-                declaredDependencies = declaredDependencies.asKmpVariantDependencies(),
-                compatiblePackageTypes = buildPackageTypes {
-                    mavenPackages()
-                    gradlePackages {
-                        isRootPublication = true
-                    }
-                },
-                availableScopes = availableScopes,
-                defaultScope = "implementation".takeIf { it in availableScopes }
-                    ?: declaredDependencies.map { it.configuration }
-                        .groupBy { it }
-                        .mapValues { it.value.count() }
-                        .entries
-                        .maxByOrNull { it.value }
-                        ?.key
-                    ?: availableScopes.first()
-            )
-        }
-
-        val rawDeclaredSourceSetDependencies = MppDependencyModifier
-            .dependenciesBySourceSet(this@getKMPVariants)
-            ?.filterNotNullValues()
-            ?.mapValues { readAction { it.value.artifacts().map { it.toGradleDependencyModel() } }.distinct() }
-            ?: emptyMap()
-
-        val packageIds = rawDeclaredSourceSetDependencies
-            .values
-            .asSequence()
-            .flatten()
-            .distinct()
-            .map { it.packageId }
-
-        val dependencyInfo = getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
-
-        val declaredSourceSetDependencies =
-            rawDeclaredSourceSetDependencies
-                .mapValues { (sourceSetName, dependencies) ->
-                    dependencies.map { artifactModel ->
-                        PackageSearchKotlinMultiplatformDeclaredDependency.Maven(
-                            id = artifactModel.packageId,
-                            declaredVersion = artifactModel.version?.let { NormalizedVersion.fromStringOrNull(it) },
-                            remoteInfo = dependencyInfo[artifactModel.packageId] as? ApiMavenPackage,
-                            declarationIndexes = artifactModel.indexes,
-                            groupId = artifactModel.groupId,
-                            artifactId = artifactModel.artifactId,
-                            variantName = sourceSetName,
-                            configuration = artifactModel.configuration,
-                            icon = dependencyInfo[artifactModel.packageId]?.icon
-                                ?: Icons.GRADLE
-                        )
-                    }
-                }
-        val sourceSetVariants = compilationModel
-            .mapKeys { it.key }
-            .map { (sourceSetName, compilationTargets) ->
-                PackageSearchKotlinMultiplatformVariant.SourceSet(
-                    name = sourceSetName,
-                    declaredDependencies = declaredSourceSetDependencies[sourceSetName] ?: emptyList(),
-                    attributes = compilationTargets.buildAttributes(),
-                    compatiblePackageTypes = buildPackageTypes {
-                        gradlePackages {
-                            kotlinMultiplatform {
-                                compilationTargets.forEach { compilationTarget ->
-                                    when {
-                                        compilationTarget is Js -> when (compilationTarget.compiler) {
-                                            Js.Compiler.IR -> jsIr()
-                                            Js.Compiler.LEGACY -> jsLegacy()
-                                        }
-
-                                        compilationTarget is Native -> native(compilationTarget.target)
-                                        compilationTarget == MppCompilationInfoModel.Wasm -> wasm()
-                                    }
-                                }
-                                when {
-                                    Android in compilationTargets -> android()
-                                    Jvm in compilationTargets -> jvm()
-                                }
-                            }
-                        }
-                    },
-                    compilerTargets = compilationTargets
-                )
-            }
-
-        sourceSetVariants + dependenciesBlockVariant.await()
     }
 
 }
