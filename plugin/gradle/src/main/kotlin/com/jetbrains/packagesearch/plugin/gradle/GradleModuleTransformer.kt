@@ -18,11 +18,11 @@ import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.awaitExternalSystemInitialization
 import com.jetbrains.packagesearch.plugin.gradle.utils.getModuleChangesFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.initializeProjectFlow
-import com.jetbrains.packagesearch.plugin.gradle.utils.isGradleSourceSet
+import com.jetbrains.packagesearch.plugin.gradle.utils.isGradle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -50,7 +50,7 @@ abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
         nativeModule: NativeModule,
     ): Flow<PackageSearchModule?> =
         merge(project.smartModeFlow, project.isProjectImportingFlow, project.initializeProjectFlow)
-            .filterNot { nativeModule.isGradleSourceSet }
+            .filter { nativeModule.isGradle }
             .mapNotNull {
                 findGradleModuleData(nativeModule)
                     ?.let { ExternalSystemApiUtil.find(it, PackageSearchGradleModel.DATA_NODE_KEY) }
