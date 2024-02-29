@@ -117,10 +117,16 @@ class PackageSearchProjectService(
             .debounce(1.seconds)
             .distinctUntilChanged()
 
-    val modulesStateFlow = restartChannel.consumeAsFlow()
+    private val restartFlow = restartChannel.consumeAsFlow()
+        .shareIn(coroutineScope, SharingStarted.Lazily, 0)
+
+    val modulesStateFlow = restartFlow
         .onStart { emit(Unit) }
         .flatMapLatest { moduleProvidersList }
-        .retry(5)
+        .retry(5) {
+            logWarn("${this::class.simpleName}#modulesStateFlow", throwable = it)
+            true
+        }
         .onEach { logDebug("${this::class.qualifiedName}#modulesStateFlow") { "modules.size = ${it.size}" } }
         .stateIn(coroutineScope, SharingStarted.Lazily, emptyList())
 

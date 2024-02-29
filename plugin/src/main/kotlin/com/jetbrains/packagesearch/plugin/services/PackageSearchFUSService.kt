@@ -7,17 +7,21 @@ import com.jetbrains.packagesearch.plugin.fus.log
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.flow.shareIn
 
 @Service(Level.APP)
 class PackageSearchFUSService(coroutineScope: CoroutineScope) {
-    private val eventsChannel: Channel<PackageSearchFUSEvent> = Channel(capacity = Channel.UNLIMITED)
+    private val fusEventsChannel: Channel<PackageSearchFUSEvent> = Channel()
+    private val fusEventsFlow = fusEventsChannel.consumeAsFlow()
+        .shareIn(coroutineScope, SharingStarted.Lazily)
 
     init {
-        eventsChannel.consumeAsFlow()
+        fusEventsFlow
             .onEach { it.log() }
             .retry {
                 logWarn("${this::class.qualifiedName}#eventReportingJob", it) { "Failed to log FUS" }
@@ -27,6 +31,6 @@ class PackageSearchFUSService(coroutineScope: CoroutineScope) {
     }
 
     fun logEvent(event: PackageSearchFUSEvent) {
-        eventsChannel.trySend(event)
+        fusEventsChannel.trySend(event)
     }
 }
