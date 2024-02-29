@@ -44,7 +44,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                     projectDir = model.projectDir.toDirectory(),
                 ),
                 buildFilePath = model.buildFilePath,
-                declaredKnownRepositories = module.getDeclaredKnownRepositories(),
+                declaredKnownRepositories = module.getDeclaredKnownRepositories(model.repositories),
                 declaredDependencies = declaredDependencies,
                 availableKnownRepositories = availableKnownRepositories,
                 packageSearchModel = model,
