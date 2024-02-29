@@ -20,7 +20,7 @@ jobs:
           cache: gradle
       - uses: gradle/gradle-build-action@v2
       - name: Run :publishShadowPlugin task
-        run: ./gradlew :plugin:publishShadowPlugin publishAllPublicationsToSpaceRepository
+        run: ./gradlew :plugin:publishSnapshotPluginToTBE publishAllPublicationsToSpaceRepository
         env:
           TOOLBOX_ENTERPRISE_TOKEN: ${{ secrets.TOOLBOX_ENTERPRISE_TOKEN }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
