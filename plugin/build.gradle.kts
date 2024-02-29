@@ -145,7 +145,7 @@ tasks {
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
             ?: getenv("TOOLBOX_ENTERPRISE_TOKEN")
-        channels = listOf("Stable")
+        channels = listOf("Snapshots")
     }
 
     register<PublishPluginTask>("publishShadowPluginToMarketplace") {
