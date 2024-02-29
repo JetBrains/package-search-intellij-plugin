@@ -138,17 +138,27 @@ tasks {
         destinationDirectory = layout.buildDirectory.dir("distributions")
     }
 
-    register<PublishPluginTask>("publishShadowPlugin") {
+    register<PublishPluginTask>("publishSnapshotPluginToTBE") {
         group = "publishing"
         distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
         toolboxEnterprise = true
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
             ?: getenv("TOOLBOX_ENTERPRISE_TOKEN")
-        channels = listOf("Snapshots")
+        channels = listOf("Snapshot")
     }
 
-    register<PublishPluginTask>("publishShadowPluginToMarketplace") {
+    register<PublishPluginTask>("publishReleasePluginToTBE") {
+        group = "publishing"
+        distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
+        toolboxEnterprise = true
+        host = "https://tbe.labs.jb.gg/"
+        token = project.properties["toolboxEnterpriseToken"]?.toString()
+            ?: getenv("TOOLBOX_ENTERPRISE_TOKEN")
+        channels = listOf("Release")
+    }
+
+    register<PublishPluginTask>("publishPluginToMarketplace") {
         group = "publishing"
         distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
         token = project.properties["marketplaceToken"]?.toString()
