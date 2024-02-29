@@ -24,6 +24,7 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryManager
 import com.intellij.openapi.util.registry.RegistryValue
 import com.intellij.openapi.util.registry.RegistryValueListener
+import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -39,20 +40,25 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.contracts.contract
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.coroutines.resume
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
@@ -109,13 +115,15 @@ fun <T : Any, R> MessageBus.bufferFlow(
 val filesChangedEventFlow: Flow<List<VFileEvent>>
     get() = callbackFlow {
         val disposable = Disposer.newDisposable()
-        VirtualFileManager.getInstance().addAsyncFileListener(
-            {
-                trySend(it.toList())
-                null
-            },
-            disposable
-        )
+        val fileListener: (events: List<VFileEvent>) -> AsyncFileListener.ChangeApplier = {
+            val changeApplier = object : AsyncFileListener.ChangeApplier {
+                override fun afterVfsChange() {
+                    trySend(it.toList())
+                }
+            }
+            changeApplier
+        }
+        VirtualFileManager.getInstance().addAsyncFileListener(fileListener, disposable)
         awaitClose { Disposer.dispose(disposable) }
     }
 
@@ -362,3 +370,6 @@ val Module.isSourceSet
     get() = ExternalSystemApiUtil.getExternalModuleType(this) == "sourceSet"
 
 fun <T> Result<T>.suspendSafe() = onFailure { if (it is CancellationException) throw it }
+
+fun Path.isSameFileAsSafe(other: Path): Boolean = kotlin.runCatching { Files.isSameFile(this, other) }
+    .getOrDefault(false)
