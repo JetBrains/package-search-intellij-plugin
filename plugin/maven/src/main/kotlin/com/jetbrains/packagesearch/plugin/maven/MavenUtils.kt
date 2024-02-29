@@ -7,6 +7,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.psi.xml.XmlText
 import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
@@ -19,6 +20,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import com.jetbrains.packagesearch.plugin.core.utils.flow
 import com.jetbrains.packagesearch.plugin.core.utils.icon
+import com.jetbrains.packagesearch.plugin.core.utils.isSameFileAsSafe
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
 import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
@@ -27,6 +29,7 @@ import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.Path
+import kotlin.io.path.isSameFileAs
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -74,11 +77,9 @@ fun getModuleChangesFlow(pomPath: Path): Flow<Unit> = merge(
     watchExternalFileChanges(mavenSettingsFilePath),
     project.mavenImportFlow,
     filesChangedEventFlow
-        .flatMapLatest { it.map { it.path }.asFlow() }
-        .map { Paths.get(it) }
-        .filter { it == pomPath }
+        .map { it.mapNotNull { it.file?.toNioPathOrNull() } }
+        .filter { it.any { it.isSameFileAsSafe(pomPath) } }
         .mapUnit(),
-    IntelliJApplication.registryFlow("packagesearch.sonatype.api.client").mapUnit()
 )
 
 val xml = XML {
