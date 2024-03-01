@@ -4,6 +4,7 @@ import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import com.jetbrains.packagesearch.plugin.core.nitrite.coroutines.CoroutineObjectRepository
 import com.jetbrains.packagesearch.plugin.core.nitrite.insert
 import com.jetbrains.packagesearch.plugin.core.utils.suspendSafe
+import io.ktor.client.request.HttpRequestBuilder
 import korlibs.crypto.SHA256
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -32,19 +33,28 @@ class PackageSearchApiPackageCache(
 
     private val cachesMutex = Mutex()
 
-    override suspend fun getPackageInfoByIds(ids: Set<String>) =
+    override suspend fun getPackageInfoByIds(
+        ids: Set<String>,
+        requestBuilder: (HttpRequestBuilder.() -> Unit)?,
+    ): Map<String, ApiPackage> =
         getPackages(
             ids = ids,
             useHashes = false
         )
 
-    override suspend fun getPackageInfoByIdHashes(ids: Set<String>): Map<String, ApiPackage> =
+    override suspend fun getPackageInfoByIdHashes(
+        ids: Set<String>,
+        requestBuilder: (HttpRequestBuilder.() -> Unit)?,
+    ): Map<String, ApiPackage> =
         getPackages(
             ids = ids,
             useHashes = true
         )
 
-    override suspend fun searchPackages(request: SearchPackagesRequest): List<ApiPackage> {
+    override suspend fun searchPackages(
+        request: SearchPackagesRequest,
+        requestBuilder: (HttpRequestBuilder.() -> Unit)?,
+    ): List<ApiPackage> {
         val sha = SHA256.digest(Json.encodeToString(request).toByteArray()).base64
         val contextName = "${Random.nextInt()} | ${this::class}#searchPackages"
         logDebug(contextName) { "Searching for packages | searchSha = $sha" }
@@ -66,7 +76,7 @@ class PackageSearchApiPackageCache(
             .also { searchCache.insert(ApiSearchEntry(it, sha, request)) }
     }
 
-    override suspend fun getKnownRepositories(): List<ApiRepository> {
+    override suspend fun getKnownRepositories(requestBuilder: (HttpRequestBuilder.() -> Unit)?): List<ApiRepository> {
         val cached = repositoryCache.find().singleOrNull()
         val isOnlineStatus = isOnline()
         if (cached != null && (Clock.System.now() < cached.lastUpdate + maxAge || !isOnlineStatus)) {
@@ -129,7 +139,7 @@ class PackageSearchApiPackageCache(
 
             else -> {
                 // retrieve the packages from the network
-                val networkResults = runCatching { apiCall(missingIds) }
+                val networkResults = runCatching { apiCall(missingIds, null) }
                     .suspendSafe()
                     .onFailure { logDebug("${this::class.qualifiedName}#getPackages", it) }
                 if (networkResults.isSuccess) {
