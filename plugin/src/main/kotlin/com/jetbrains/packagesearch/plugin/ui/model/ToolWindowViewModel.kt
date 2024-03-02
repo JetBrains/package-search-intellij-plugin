@@ -82,7 +82,7 @@ class ToolWindowViewModel(project: Project, private val viewModelScope: Coroutin
             else -> PackageSearchToolWindowState.NoModules
         }
     }
-        .retry()
+        .retry(5)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
