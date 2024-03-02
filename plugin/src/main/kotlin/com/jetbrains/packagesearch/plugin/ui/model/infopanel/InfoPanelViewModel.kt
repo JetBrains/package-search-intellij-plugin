@@ -76,7 +76,7 @@ class InfoPanelViewModel(private val project: Project) : Disposable {
             }
         }
     }
-        .retry()
+        .retry(5)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val activeTabTitleMutableStateFlow: MutableStateFlow<String?> = MutableStateFlow(null)

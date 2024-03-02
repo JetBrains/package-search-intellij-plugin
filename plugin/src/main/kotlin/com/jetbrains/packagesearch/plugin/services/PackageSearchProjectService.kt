@@ -81,7 +81,7 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
             .getKnownRepositories()
             .associateBy { it.id }
     }
-        .retry {
+        .retry(5) {
             logWarn("${this::class.simpleName}#knownRepositoriesStateFlow", throwable = it)
             true
         }
@@ -171,7 +171,7 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
             .filter { it }
             .throttle(30.minutes)
             .onEach { restart() }
-            .retry {
+            .retry(5) {
                 logWarn("${this::class.simpleName}#isOnlineFlow", throwable = it)
                 true
             }
@@ -190,7 +190,7 @@ class PackageSearchProjectService(override val project: Project) : PackageSearch
                         ?.let { DaemonCodeAnalyzer.getInstance(project).restart(it) }
                 }
             }
-            .retry {
+            .retry(5) {
                 logWarn("${this::class.simpleName}#fileOpenedFlow", throwable = it)
                 true
             }
