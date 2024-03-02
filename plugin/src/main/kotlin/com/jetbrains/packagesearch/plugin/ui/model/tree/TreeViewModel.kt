@@ -33,7 +33,7 @@ internal class TreeViewModel(
     ) { modules, stableOnly ->
         modules.asTree(stableOnly)
     }
-        .retry()
+        .retry(5)
         .onEach { logDebug("${this::class.qualifiedName}#treeStateFlow") { it.print() } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyTree())
 
