@@ -15,25 +15,22 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.extensions.ProjectContext
-import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.asMavenApiPackage
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import com.jetbrains.packagesearch.plugin.core.utils.flow
 import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.isSameFileAsSafe
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
-import com.jetbrains.packagesearch.plugin.core.utils.registryFlow
+import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
 import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.Path
-import kotlin.io.path.isSameFileAs
+import kotlin.io.path.name
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import nl.adaptivity.xmlutil.serialization.XML
@@ -80,6 +77,7 @@ context(ProjectContext)
 fun getModuleChangesFlow(pomPath: Path): Flow<Unit> = merge(
     watchExternalFileChanges(mavenSettingsFilePath),
     project.mavenImportFlow,
+    project.smartModeFlow.mapUnit(),
     filesChangedEventFlow
         .map { it.mapNotNull { it.file?.toNioPathOrNull() } }
         .filter { it.any { it.isSameFileAsSafe(pomPath) } }
@@ -97,7 +95,7 @@ private fun buildMavenParentHierarchy(pomFile: File): String {
     val parentFile = pom.parent?.relativePath
         ?.let { pomFile.parentFile.resolve(it) }
         ?: return ":"
-    val projectName = pom.name ?: pom.artifactId ?: pomFile.parentFile.name
+    val projectName = pom.artifactId ?: pomFile.parentFile.name
     val parentHierarchy = buildMavenParentHierarchy(parentFile)
     return parentHierarchy.suffixIfNot(":") + projectName
 }
@@ -109,10 +107,10 @@ suspend fun Module.toPackageSearch(
     val declaredDependencies = getDeclaredDependencies()
     val pomPath = Path(mavenProject.file.path)
     return PackageSearchMavenModule(
-        name = mavenProject.name ?: name,
+        name = mavenProject.mavenId.artifactId ?: mavenProject.name ?: pomPath.parent.name,
         identity = PackageSearchModule.Identity(
             group = "maven",
-            path = buildMavenParentHierarchy(mavenProject.file.asRegularFile()),
+            path = ":",
             projectDir = pomPath.parent.toDirectory(),
         ),
         buildFilePath = pomPath,
