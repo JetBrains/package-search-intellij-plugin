@@ -78,7 +78,7 @@ class PackageSearchProjectService(
             .getKnownRepositories()
             .associateBy { it.id }
     }
-        .retry {
+        .retry(5) {
             logWarn("${this::class.simpleName}#knownRepositoriesStateFlow", throwable = it)
             true
         }
@@ -168,7 +168,7 @@ class PackageSearchProjectService(
             .filter { it }
             .throttle(30.minutes)
             .onEach { restart() }
-            .retry {
+            .retry(5) {
                 logWarn("${this::class.simpleName}#isOnlineFlow", throwable = it)
                 true
             }
@@ -187,7 +187,7 @@ class PackageSearchProjectService(
                         ?.let { DaemonCodeAnalyzer.getInstance(project).restart(it) }
                 }
             }
-            .retry {
+            .retry(5) {
                 logWarn("${this::class.simpleName}#fileOpenedFlow", throwable = it)
                 true
             }
