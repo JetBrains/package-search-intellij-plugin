@@ -173,7 +173,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
                 current
             }
         }
-        .retry()
+        .retry(5)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     val selectableLazyListState = SelectableLazyListState(LazyListState())
@@ -205,7 +205,7 @@ class PackageListViewModel(private val project: Project) : Disposable {
                     }
                 }
             }
-            .retry()
+            .retry(5)
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private suspend fun PackageSearchModule.Base.getSearchQuery(

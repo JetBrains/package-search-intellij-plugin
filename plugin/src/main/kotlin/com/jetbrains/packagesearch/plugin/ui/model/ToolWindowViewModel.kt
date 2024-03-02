@@ -87,7 +87,7 @@ class ToolWindowViewModel(project: Project) : Disposable {
             else -> PackageSearchToolWindowState.NoModules
         }
     }
-        .retry()
+        .retry(5)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,

@@ -23,7 +23,7 @@ class PackageSearchFUSService(coroutineScope: CoroutineScope) {
     init {
         fusEventsFlow
             .onEach { it.log() }
-            .retry {
+            .retry(5) {
                 logWarn("${this::class.qualifiedName}#eventReportingJob", it) { "Failed to log FUS" }
                 true
             }
