@@ -1,4 +1,4 @@
-GET https://api.dev.package-search.services.jetbrains.com/search-packages
+POST https://api.dev.package-search.services.jetbrains.com/search-packages
 Content-Type: application/json
 
 {

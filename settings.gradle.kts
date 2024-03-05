@@ -21,6 +21,8 @@ include(
     ":nitrite",
     ":plugin",
     ":plugin:core",
+    ":plugin:scala",
+    ":plugin:scala:modifier",
     ":plugin:gradle",
     ":plugin:gradle:base",
     ":plugin:gradle:kmp",
