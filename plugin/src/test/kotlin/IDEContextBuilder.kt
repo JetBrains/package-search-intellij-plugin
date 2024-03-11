@@ -27,9 +27,10 @@ internal fun buildIdeContext(projectPath: Path): IDETestContext {
 
     val sdk = buildJavaSdkObject(javaHome, javaVersion)
 
+
     return Starter.newContext(
         CurrentTestMethod.hyphenateWithClass(),
-        testCase.project.useEAP(),
+        testCase.project.useRelease("2023.2.6"),
     )
         .setSharedIndexesDownload(true)
         .addProjectToTrustedLocations()
