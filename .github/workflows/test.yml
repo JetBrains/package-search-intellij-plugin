@@ -2,7 +2,7 @@ name: Run E2E tests
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ releases/241 ]
 
 jobs:
   gradle-e2e-tests:

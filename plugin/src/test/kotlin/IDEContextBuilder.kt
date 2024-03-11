@@ -27,6 +27,7 @@ internal fun buildIdeContext(projectPath: Path): IDETestContext {
 
     val sdk = buildJavaSdkObject(javaHome, javaVersion)
 
+
     return Starter.newContext(
         CurrentTestMethod.hyphenateWithClass(),
         testCase.project.useEAP(),
