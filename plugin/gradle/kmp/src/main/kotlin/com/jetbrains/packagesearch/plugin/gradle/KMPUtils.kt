@@ -17,8 +17,6 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
-import com.jetbrains.packagesearch.plugin.core.nitrite.insert
-import com.jetbrains.packagesearch.plugin.core.utils.NioPathSerializer
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.parseAttributesFromRawStrings
@@ -26,11 +24,9 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.GradleDependencyModelCach
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import java.nio.file.Path
-import korlibs.crypto.SHA256
 import korlibs.crypto.sha512
 import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.isRegularFile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.singleOrNull
@@ -190,7 +186,7 @@ suspend fun Module.getKMPVariants(
                 dependencies.map { artifactModel ->
                     PackageSearchKotlinMultiplatformDeclaredDependency.Maven(
                         id = artifactModel.packageId,
-                        declaredVersion = artifactModel.version?.let { NormalizedVersion.fromStringOrNull(it) },
+                        declaredVersion = artifactModel.version?.let { NormalizedVersion.from(it) },
                         remoteInfo = dependencyInfo[artifactModel.packageId] as? ApiMavenPackage,
                         declarationIndexes = artifactModel.indexes,
                         groupId = artifactModel.groupId,
