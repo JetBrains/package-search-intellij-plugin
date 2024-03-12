@@ -7,7 +7,7 @@ import com.intellij.openapi.ui.playback.commands.AbstractCommand
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.concurrency.Promise
 
-abstract class CoroutineAbstractCommand(text: String, line: Int) : AbstractCommand(text, line) {
+internal abstract class CoroutineAbstractCommand(text: String, line: Int) : AbstractCommand(text, line) {
 
     @Service(Service.Level.PROJECT)
     private class TestCoroutineScopeService(val coroutineScope: CoroutineScope)
