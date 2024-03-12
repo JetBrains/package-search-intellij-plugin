@@ -1,6 +1,5 @@
-import com.jetbrains.packagesearch.plugin.tests.PKGS_TEST_DATA_OUTPUT_DIR
-import com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule
-import com.jetbrains.packagesearch.plugin.tests.TestResult
+package com.jetbrains.packagesearch.plugin.tests.projectservice
+
 import kotlin.io.path.inputStream
 import kotlin.io.path.isRegularFile
 import kotlin.test.assertNotNull
@@ -24,30 +23,26 @@ internal fun TestScope.validateResult(projectName: String, expectedResultPath: S
     }
 
     val result = Json
-        .decodeFromStream<TestResult<Map<String, SerializablePackageSearchModule>>>(
-            outputResultFile.inputStream()
-        )
+        .decodeFromStream<TestResult<Map<String, SerializablePackageSearchModule>>>(outputResultFile.inputStream())
 
-    assertNull(
-        result.error,
-        "Test failed with error: ${result.error?.message}"
-    )
+    assertNull(result.error, "Test failed with error: \n${result.error}")
 
     val expected = Json
         .decodeFromStream<TestResult<Map<String, SerializablePackageSearchModule>>>(
             getResourceAbsolutePath(expectedResultPath)
                 ?.toFile()
                 ?.inputStream()
-                ?: error("assertion data not found for project $projectName")
+                ?: error("Assertion data not found for project $projectName")
         )
 
     assertNotNull(
         expected.value,
-        "deserialization of expected result failed or is null for project $projectName"
+        "Deserialization of expected result failed or is null for project $projectName"
     )
+
     assertNotNull(
         result.value,
-        "deserialization of test result failed or is null for project $projectName"
+        "Deserialization of test result failed or is null for project $projectName"
     )
 
 
