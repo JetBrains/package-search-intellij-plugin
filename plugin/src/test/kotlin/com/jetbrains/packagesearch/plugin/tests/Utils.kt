@@ -2,8 +2,10 @@ package com.jetbrains.packagesearch.plugin.tests
 
 import com.intellij.ide.starter.ide.IDETestContext
 import com.intellij.ide.starter.ide.IdeProductProvider
+import com.intellij.ide.starter.junit5.hyphenateWithClass
 import com.intellij.ide.starter.project.LocalProjectInfo
 import com.intellij.ide.starter.project.TestCaseTemplate
+import com.intellij.ide.starter.runner.CurrentTestMethod
 import com.intellij.ide.starter.runner.Starter
 import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.tools.ide.performanceTesting.commands.CommandChain
@@ -106,6 +108,44 @@ internal fun patchGradleVersion(gradleVersion: String, projectDir: Path) {
     )
 }
 
+data class JavaLocation(val home: Path, val majorVersion: String)
+
+internal fun fetchJavaLocation(): JavaLocation {
+    val javaVersion: String? = System.getenv("JAVA_VERSION")
+    val javaHome: String? = System.getenv("JAVA_HOME")
+
+    return when {
+        // JAVA_VERSION and JAVA_HOME are set
+        javaVersion != null && javaHome != null -> JavaLocation(
+            home = javaHome.toNioPathOrNull() ?: error("JAVA_HOME is not a valid path"),
+            majorVersion = javaVersion
+        )
+        // JAVA_VERSION is set
+        javaHome != null -> fetchJavaLocation(javaHome.toNioPathOrNull() ?: error("JAVA_HOME is not a valid path"))
+
+        // JAVA_HOME is set, fallback to the JDK running this process
+        else -> fetchJavaLocation(
+            System.getProperty("java.home")?.toNioPathOrNull() ?: error("java.home is not set?????")
+        )
+    }
+}
+
+private fun fetchJavaLocation(javaHome: Path): JavaLocation {
+    val javaVersionFile = javaHome.resolve("release")
+        ?: error("JAVA_HOME is not a valid path")
+    val javaVersionLine = javaVersionFile.readLines()
+        .firstOrNull { it.startsWith("JAVA_VERSION") }
+        ?: error("JAVA_VERSION is not found in $javaVersionFile")
+    val version = javaVersionLine.split("=")
+        .getOrNull(1)
+        ?.removePrefix("\"")
+        ?.removeSuffix("\"")
+        ?.substringBefore(".")
+        ?: error("JAVA_VERSION is not found in $javaVersionFile")
+    return JavaLocation(javaHome, version)
+}
+
+
 /**
  * Builds the IDE context for testing.
  * Set up the SKD as env var specifies
@@ -118,13 +158,11 @@ internal fun buildIdeContext(projectPath: Path): IDETestContext {
     val testCase = object : TestCaseTemplate(IdeProductProvider.IC) {
         val project = withProject(LocalProjectInfo(projectPath))
     }
-    val javaVersion = System.getenv("JAVA_VERSION") ?: error("JAVA_VERSION is not set")
-    val javaHome = System.getenv("JAVA_HOME") ?: error("JAVA_HOME is not set")
 
-    val sdk = buildJavaSdkObject(javaHome, javaVersion)
+    val sdk = fetchJavaLocation().toSdkObject()
 
     return Starter.newContext(
-        "test",
+        CurrentTestMethod.hyphenateWithClass(),
         testCase.project.useEAP(),
     )
         .setSharedIndexesDownload(true)
@@ -140,11 +178,8 @@ internal fun buildIdeContext(projectPath: Path): IDETestContext {
         }
 }
 
-private fun buildJavaSdkObject(javaHome: String, javaVersion: String): SdkObject {
-    val javaSdkPath = javaHome.toNioPathOrNull() ?: error("JAVA_HOME is not a valid path")
-    return SdkObject(
-        sdkName = "temurin-$javaVersion",
-        sdkType = "JavaSDK",
-        sdkPath = javaSdkPath
-    )
-}
+private fun JavaLocation.toSdkObject() = SdkObject(
+    sdkName = "temurin-$majorVersion",
+    sdkType = "JavaSDK",
+    sdkPath = home
+)
