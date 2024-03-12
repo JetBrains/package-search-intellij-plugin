@@ -42,8 +42,6 @@ import org.jetbrains.idea.maven.project.MavenProjectsManager
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
-import org.jetbrains.packagesearch.api.v3.search.javaApi
-import org.jetbrains.packagesearch.api.v3.search.javaRuntime
 import org.jetbrains.packagesearch.api.v3.search.jvmMavenPackages
 import org.jetbrains.packagesearch.maven.POM_XML_NAMESPACE
 import org.jetbrains.packagesearch.maven.ProjectObjectModel
@@ -158,7 +156,7 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredBaseMave
         .mapNotNull { (packageId, declaredDependency) ->
             PackageSearchDeclaredBaseMavenPackage(
                 id = packageId,
-                declaredVersion = declaredDependency.version?.let { NormalizedVersion.fromStringOrNull(it) },
+                declaredVersion = declaredDependency.version?.let { NormalizedVersion.from(it) },
                 remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
                 groupId = declaredDependency.groupId,
                 artifactId = declaredDependency.artifactId,
