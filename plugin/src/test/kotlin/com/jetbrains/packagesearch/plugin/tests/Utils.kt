@@ -2,10 +2,8 @@ package com.jetbrains.packagesearch.plugin.tests
 
 import com.intellij.ide.starter.ide.IDETestContext
 import com.intellij.ide.starter.ide.IdeProductProvider
-import com.intellij.ide.starter.junit5.hyphenateWithClass
 import com.intellij.ide.starter.project.LocalProjectInfo
 import com.intellij.ide.starter.project.TestCaseTemplate
-import com.intellij.ide.starter.runner.CurrentTestMethod
 import com.intellij.ide.starter.runner.Starter
 import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.tools.ide.performanceTesting.commands.CommandChain
@@ -126,7 +124,7 @@ internal fun buildIdeContext(projectPath: Path): IDETestContext {
     val sdk = buildJavaSdkObject(javaHome, javaVersion)
 
     return Starter.newContext(
-        CurrentTestMethod.hyphenateWithClass(),
+        "test",
         testCase.project.useEAP(),
     )
         .setSharedIndexesDownload(true)

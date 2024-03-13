@@ -1,5 +1,9 @@
 package com.jetbrains.packagesearch.plugin.tests.projectservice
 
+import com.jetbrains.packagesearch.plugin.tests.PKGS_TEST_DATA_OUTPUT_DIR
+import com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule
+import com.jetbrains.packagesearch.plugin.tests.TestResult
+import com.jetbrains.packagesearch.plugin.tests.getResourceAbsolutePath
 import kotlin.io.path.inputStream
 import kotlin.io.path.isRegularFile
 import kotlin.test.assertNotNull
