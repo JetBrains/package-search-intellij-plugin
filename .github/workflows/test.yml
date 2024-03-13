@@ -13,6 +13,8 @@ jobs:
         gradle-version: [ '5.6.4', '6.9.2', '7.6.4', '8.6' ]
     name: Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    outputs:
+      result: ${{ steps.final_step.outputs.result }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,13 +26,12 @@ jobs:
           java-version: 11
           distribution: 'temurin'
       - name: Run tests
-        continue-on-error: true
         env:
           KMP: true
           GRADLE_VERSION: ${{ matrix.gradle-version }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           JAVA_VERSION: ${{matrix.jdk-version}}
-        run: ./gradlew :plugin:test --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.GradleProjectTest"
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.GradleProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
@@ -55,12 +56,11 @@ jobs:
           java-version: 11
           distribution: 'temurin'
       - name: Run Gradle tests
-        continue-on-error: true
         env:
           KMP: true
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           JAVA_VERSION: ${{matrix.jdk-version}}
-        run: ./gradlew :plugin:test --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.MavenProjectTest"
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.MavenProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4

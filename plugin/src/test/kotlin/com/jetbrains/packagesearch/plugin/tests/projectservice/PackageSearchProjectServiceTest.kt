@@ -27,7 +27,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 @ExtendWith(JUnit5StarterAssistant::class)
-abstract class PackageSearchProjectServiceTest : JUnit5StarterAssistant() {
+abstract class PackageSearchProjectServiceTest {
 
     abstract val resourcePath: String
 
