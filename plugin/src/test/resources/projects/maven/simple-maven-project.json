@@ -7,8 +7,8 @@
                 "group": "maven",
                 "path": ":"
             },
-            "declaredKnownRepositories": {
-            },
+            "declaredRepositories": [
+            ],
             "compatiblePackageTypes": [
                 {
                     "type": "maven"
@@ -42,7 +42,7 @@
             "declaredDependencies": [
                 {
                     "id": "maven:org.junit.jupiter:junit-jupiter-engine",
-                    "displayName": "JUnit Jupiter Engine",
+                    "displayName": "junit-jupiter-engine",
                     "coordinates": "org.junit.jupiter:junit-jupiter-engine",
                     "declaredVersion": {
                         "type": "semantic",
@@ -74,8 +74,8 @@
                 "group": "maven",
                 "path": ":"
             },
-            "declaredKnownRepositories": {
-            },
+            "declaredRepositories": [
+            ],
             "compatiblePackageTypes": [
                 {
                     "type": "maven"
