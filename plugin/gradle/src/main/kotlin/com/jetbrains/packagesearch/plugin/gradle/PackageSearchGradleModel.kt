@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 data class PackageSearchGradleModel(
     @Serializable(with = NioPathSerializer::class) val projectDir: Path,
     val configurations: List<Configuration>,
-    val repositories: List<String>,
+    val declaredRepositories: List<DeclaredRepository>,
     val isJavaApplied: Boolean,
     val isAmperApplied: Boolean,
     val isKotlinAndroidApplied: Boolean,
@@ -25,6 +25,12 @@ data class PackageSearchGradleModel(
         val DATA_NODE_KEY: Key<PackageSearchGradleModel> =
             Key.create(PackageSearchGradleModel::class.java, 100)
     }
+
+    @Serializable
+    data class DeclaredRepository(
+        val url: String,
+        val name: String?,
+    )
 
     @Serializable
     data class Configuration(

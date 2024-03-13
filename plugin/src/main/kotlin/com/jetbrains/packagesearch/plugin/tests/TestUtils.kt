@@ -3,6 +3,7 @@ package com.jetbrains.packagesearch.plugin.tests
 import com.intellij.openapi.application.appSystemDir
 import com.intellij.openapi.util.io.toNioPathOrNull
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import kotlin.coroutines.CoroutineContext
@@ -37,7 +38,7 @@ fun PackageSearchModule.toSerializable() = when (this) {
     is PackageSearchModule.Base -> SerializablePackageSearchModule.Base(
         name = name,
         identity = identity.toSerializable(),
-        declaredKnownRepositories = declaredKnownRepositories,
+        declaredRepositories = declaredRepositories.map { it.toSerializable() },
         compatiblePackageTypes = compatiblePackageTypes,
         dependencyMustHaveAScope = dependencyMustHaveAScope,
         declaredDependencies = declaredDependencies.map { it.toSerializable() },
@@ -48,7 +49,7 @@ fun PackageSearchModule.toSerializable() = when (this) {
     is PackageSearchModule.WithVariants -> SerializablePackageSearchModule.WithVariants(
         name = name,
         identity = identity.toSerializable(),
-        declaredKnownRepositories = declaredKnownRepositories,
+        declaredRepositories = declaredRepositories.map { it.toSerializable() },
         compatiblePackageTypes = compatiblePackageTypes,
         dependencyMustHaveAScope = dependencyMustHaveAScope,
         variants = variants.mapValues { it.value.toSerializable() },
@@ -56,6 +57,9 @@ fun PackageSearchModule.toSerializable() = when (this) {
         mainVariantName = mainVariantName,
     )
 }
+
+fun PackageSearchDeclaredRepository.toSerializable() =
+    SerializablePackageSearchDeclaredRepository(name, url)
 
 private fun PackageSearchModuleVariant.toSerializable() =
     SerializablePackageSearchModuleVariant(

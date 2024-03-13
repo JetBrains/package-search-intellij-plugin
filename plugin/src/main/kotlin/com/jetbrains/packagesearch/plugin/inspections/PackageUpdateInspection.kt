@@ -106,14 +106,15 @@ class PackageUpdateInspection : PackageSearchInspection() {
         file: PsiFile,
         module: PackageSearchModule,
     ) {
-        val packagesByManager = buildMap<PackageSearchDependencyManager, List<PackageSearchDeclaredPackage>> {
-            when (module) {
-                is PackageSearchModule.Base -> put(module, module.declaredDependencies)
-                is PackageSearchModule.WithVariants -> module.variants.values.forEach {
-                    put(it, it.declaredDependencies)
+        val packagesByManager =
+            buildMap<PackageSearchDependencyManager, List<PackageSearchDeclaredPackage>> {
+                when (module) {
+                    is PackageSearchModule.Base -> put(module, module.declaredDependencies)
+                    is PackageSearchModule.WithVariants -> module.variants.values.forEach {
+                        put(it, it.declaredDependencies)
+                    }
                 }
             }
-        }
         val packagesByManagerFiltered = packagesByManager.mapValues { (_, declaredDependencies) ->
             declaredDependencies.filterNot { declared ->
                 excludeList.asSequence()
@@ -165,8 +166,11 @@ class PackageUpdateInspection : PackageSearchInspection() {
                                     newVersion = targetVersion.normalized.versionName,
                                     newScope = dependency.declaredScope
                                 )
-                                if (targetVersion.repositoryIds.none { it in module.declaredKnownRepositories }) {
-                                    module.addRepository(knownRepositories.getValue(targetVersion.repositoryIds.first()))
+                                if (project.PackageSearchProjectService.installRepositoryIfNeeded.value) {
+                                    targetVersion.repositoryIds
+                                        .firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
+                                        ?.takeIf { it.url !in module.declaredRepositories.map { it.url } }
+                                        ?.let { module.addRepository(it) }
                                 }
                             }
                         }

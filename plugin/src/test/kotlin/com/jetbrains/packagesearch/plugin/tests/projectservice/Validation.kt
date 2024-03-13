@@ -102,14 +102,14 @@ internal fun validateModule(
         }
     }
 
-    expected.declaredKnownRepositories.let {
-        assert(it.keys.all { it in result.declaredKnownRepositories.keys }) {
+    expected.declaredRepositories.let {
+        assert(it.keys.all { it in result.declaredRepositories.keys }) {
             buildString {
                 appendLine("declaredKnownRepositories keys differ from expected dump")
                 appendLine(printableJson)
             }
         }
-        assert(it.values.all { it in result.declaredKnownRepositories.values }) {
+        assert(it.values.all { it in result.declaredRepositories.values }) {
             buildString {
                 appendLine("declaredKnownRepositories values differ from expected dump")
                 appendLine(printableJson)

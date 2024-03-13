@@ -8,6 +8,7 @@ import com.intellij.openapi.module.Module
 import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.utils.toUnifiedDependency
 import com.jetbrains.packagesearch.plugin.core.utils.toUnifiedRepository
@@ -28,8 +29,8 @@ data class PackageSearchMavenModule(
     override val name: String,
     override val identity: PackageSearchModule.Identity,
     override val buildFilePath: Path?,
-    override val declaredKnownRepositories: Map<String, ApiRepository>,
-    override val declaredDependencies: List<PackageSearchDeclaredBaseMavenPackage>,
+    override val declaredRepositories: List<PackageSearchDeclaredMavenRepository>,
+    override val declaredDependencies: List<PackageSearchDeclaredMavenPackage>,
     override val defaultScope: String? = null,
     override val availableScopes: List<String>,
     override val compatiblePackageTypes: List<PackagesType>,
@@ -104,7 +105,7 @@ data class PackageSearchMavenModule(
     }
 
     context(EditModuleContext)
-    override fun removeRepository(repository: ApiRepository) {
+    override fun removeRepository(repository: PackageSearchDeclaredRepository) {
         validateRepositoryType(repository)
         modificator.deleteRepository(
             module = nativeModule,

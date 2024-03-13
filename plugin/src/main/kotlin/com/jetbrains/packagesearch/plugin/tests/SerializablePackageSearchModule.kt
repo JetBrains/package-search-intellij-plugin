@@ -1,8 +1,8 @@
 package com.jetbrains.packagesearch.plugin.tests
 
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import kotlinx.serialization.Serializable
-import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
 @Serializable
@@ -10,7 +10,7 @@ sealed interface SerializablePackageSearchModule {
 
     val name: String
     val identity: SerializableIdentity
-    val declaredKnownRepositories: Map<String, ApiRepository>
+    val declaredRepositories: List<SerializablePackageSearchDeclaredRepository>
 
     val compatiblePackageTypes: List<PackagesType>
     val dependencyMustHaveAScope: Boolean
@@ -19,7 +19,7 @@ sealed interface SerializablePackageSearchModule {
     data class Base(
         override val name: String,
         override val identity: SerializableIdentity,
-        override val declaredKnownRepositories: Map<String, ApiRepository>,
+        override val declaredRepositories: List<SerializablePackageSearchDeclaredRepository>,
         override val compatiblePackageTypes: List<PackagesType>,
         override val dependencyMustHaveAScope: Boolean,
         val declaredDependencies: List<SerializablePackageSearchDeclaredPackage>,
@@ -31,7 +31,7 @@ sealed interface SerializablePackageSearchModule {
     data class WithVariants(
         override val name: String,
         override val identity: SerializableIdentity,
-        override val declaredKnownRepositories: Map<String, ApiRepository>,
+        override val declaredRepositories: List<SerializablePackageSearchDeclaredRepository>,
         override val compatiblePackageTypes: List<PackagesType>,
         override val dependencyMustHaveAScope: Boolean,
         val variants: Map<String, SerializablePackageSearchModuleVariant>,

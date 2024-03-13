@@ -1,5 +1,7 @@
 package com.jetbrains.packagesearch.plugin.gradle.tooling;
 
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel.DeclaredRepository;
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModelImpl.DeclaredRepositoryImpl;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
@@ -58,13 +60,18 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
             );
         }
 
-        List<String> repositories =
+        List<DeclaredRepository> repositories =
                 new ArrayList<>(project.getRepositories().size());
 
         for (ArtifactRepository repository : project.getRepositories()) {
             if (repository instanceof MavenArtifactRepository) {
                 MavenArtifactRepository mavenRepository = (MavenArtifactRepository) repository;
-                repositories.add(mavenRepository.getUrl().toString());
+                repositories.add(
+                        new DeclaredRepositoryImpl(
+                                mavenRepository.getUrl().toString(),
+                                mavenRepository.getName()
+                        )
+                );
             }
         }
 
