@@ -30,15 +30,6 @@ include(
     ":kmp-modifier",
 )
 
-includeBuild("package-search-api-models") {
-    dependencySubstitution {
-        substitute(module("org.jetbrains.packagesearch:packagesearch-api-models")).using(project(":"))
-        substitute(module("org.jetbrains.packagesearch:packagesearch-http-models")).using(project(":http"))
-        substitute(module("org.jetbrains.packagesearch:packagesearch-api-client")).using(project(":http:client"))
-        substitute(module("org.jetbrains.packagesearch:packagesearch-build-systems-models")).using(project(":build-systems"))
-    }
-}
-
 val isCi
     get() = System.getenv("CI") == "true"
 
