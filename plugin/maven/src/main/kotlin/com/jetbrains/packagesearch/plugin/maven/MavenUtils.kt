@@ -162,7 +162,7 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredBaseMave
         .mapNotNull { (packageId, declaredDependency) ->
             PackageSearchDeclaredBaseMavenPackage(
                 id = packageId,
-                declaredVersion = declaredDependency.version?.let { NormalizedVersion.fromStringOrNull(it) },
+                declaredVersion = declaredDependency.version?.let { NormalizedVersion.from(it) },
                 remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
                 groupId = declaredDependency.groupId,
                 artifactId = declaredDependency.artifactId,
