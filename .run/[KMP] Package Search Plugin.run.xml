@@ -5,6 +5,7 @@
       <option name="env">
         <map>
           <entry key="KMP" value="true"/>
+          <entry key="GITHUB_REF" value="refs/tags/241.0.8"/>
         </map>
       </option>
       <option name="executionName" />
