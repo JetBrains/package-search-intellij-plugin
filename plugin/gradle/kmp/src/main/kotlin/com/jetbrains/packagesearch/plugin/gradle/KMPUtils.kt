@@ -190,7 +190,7 @@ suspend fun Module.getKMPVariants(
                 dependencies.map { artifactModel ->
                     PackageSearchKotlinMultiplatformDeclaredDependency.Maven(
                         id = artifactModel.packageId,
-                        declaredVersion = artifactModel.version?.let { NormalizedVersion.fromStringOrNull(it) },
+                        declaredVersion = artifactModel.version?.let { NormalizedVersion.from(it) },
                         remoteInfo = dependencyInfo[artifactModel.packageId] as? ApiMavenPackage,
                         declarationIndexes = artifactModel.indexes,
                         groupId = artifactModel.groupId,
