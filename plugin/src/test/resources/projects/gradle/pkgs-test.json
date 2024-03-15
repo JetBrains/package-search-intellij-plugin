@@ -129,9 +129,14 @@
                 "annotationProcessor",
                 "api",
                 "apiDependenciesMetadata",
+                "apiElements",
                 "apiElements-published",
+                "archives",
+                "compile",
+                "compileClasspath",
                 "compileOnly",
                 "compileOnlyDependenciesMetadata",
+                "default",
                 "implementation",
                 "implementationDependenciesMetadata",
                 "intransitiveDependenciesMetadata",
@@ -144,12 +149,16 @@
                 "kotlinNativeCompilerPluginClasspath",
                 "kotlinScriptDef",
                 "kotlinScriptDefExtensions",
-                "mainSourceElements",
+                "runtime",
+                "runtimeClasspath",
+                "runtimeElements",
                 "runtimeElements-published",
                 "runtimeOnly",
                 "testAnnotationProcessor",
                 "testApi",
                 "testApiDependenciesMetadata",
+                "testCompile",
+                "testCompileClasspath",
                 "testCompileOnly",
                 "testCompileOnlyDependenciesMetadata",
                 "testImplementation",
@@ -157,6 +166,8 @@
                 "testIntransitiveDependenciesMetadata",
                 "testKotlinScriptDef",
                 "testKotlinScriptDefExtensions",
+                "testRuntime",
+                "testRuntimeClasspath",
                 "testRuntimeOnly"
             ],
             "defaultScope": "implementation"
@@ -406,22 +417,6 @@
                             "declarationIndexes": {
                                 "declarationStartIndex": 374,
                                 "versionStartIndex": 390
-                            },
-                            "declaredScope": "implementation"
-                        },
-                        {
-                            "id": "maven:org.danbrough.kotlinx:kotlinx-serialization-core",
-                            "displayName": "kotlinx-serialization-core",
-                            "coordinates": "org.danbrough.kotlinx:kotlinx-serialization-core",
-                            "declaredVersion": {
-                                "type": "semantic",
-                                "versionName": "1.5.0",
-                                "isStable": true,
-                                "semanticPart": "1.5.0"
-                            },
-                            "declarationIndexes": {
-                                "declarationStartIndex": 449,
-                                "versionStartIndex": 465
                             },
                             "declaredScope": "implementation"
                         }
@@ -1148,6 +1143,7 @@
                     "dependencyMustHaveAScope": true,
                     "availableScopes": [
                         "allSourceSetsCompileDependenciesMetadata",
+                        "archives",
                         "commonMainApi",
                         "commonMainApiDependenciesMetadata",
                         "commonMainCompileOnly",
@@ -1167,6 +1163,7 @@
                         "commonTestResolvableDependenciesMetadata",
                         "commonTestRuntimeOnly",
                         "compileClasspath",
+                        "default",
                         "derp",
                         "iosArm64ApiElements",
                         "iosArm64ApiElements-published",
