@@ -72,7 +72,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         gradle-version: [ '6.9.2', '7.6.4', '8.6' ]
-    name: Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
+    name: KMP-Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     outputs:
       result: ${{ steps.final_step.outputs.result }}

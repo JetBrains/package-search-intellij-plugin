@@ -2,7 +2,9 @@ package com.jetbrains.packagesearch.plugin.tests.projectservice
 
 import com.jetbrains.packagesearch.plugin.tests.patchGradleVersion
 import java.nio.file.Path
+import org.junit.jupiter.api.TestInstance
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KMPGradleProjectTest : PackageSearchProjectServiceTest() {
 
     override val resourcePath = "/projects/kmp"
