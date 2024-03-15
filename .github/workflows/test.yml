@@ -108,7 +108,7 @@ jobs:
           echo "Gradle job result: ${{ needs.gradle.result }}"
           echo "KMP-Gradle job result: ${{ needs.kmp.result }}"
           echo "Maven job result: ${{ needs.maven.result }}"
-          if [ ${{ needs.gradle.result }} == 'failure' ] || [ ${{ needs.kmp.result }} == 'failure' ] || [ ${{ needs.maven.result }} == 'failure' ]; then
+          if [ ${{ needs.gradle.result }} == 'failure' ] || [ ${{ needs.maven.result }} == 'failure' ] || [ ${{ needs.kmp.result }} == 'failure' ]; then
             echo "At least one matrix job failed."
             exit 1
           else
