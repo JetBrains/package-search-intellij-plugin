@@ -58,7 +58,7 @@ abstract class PackageSearchProjectServiceTest {
 
     @ParameterizedTest
     @MethodSource("getProjects")
-    fun `verify PKGS Modules`(projectName: String) = runTest(timeout = 30.minutes) {
+    fun `verify PKGS Modules`(projectName: String) = runTest(timeout = 45.minutes) {
         val projectZip = getResourceAbsolutePath("$resourcePath/$projectName.zip")
             ?: error("Project file not found: $projectName.zip")
         projectZip.extractInto(outputDir = PKGS_TEST_DATA_OUTPUT_DIR)

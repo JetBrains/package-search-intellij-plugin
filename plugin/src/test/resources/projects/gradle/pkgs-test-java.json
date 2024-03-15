@@ -1,0 +1,314 @@
+{
+  "value": {
+    "pkgs-test-java": {
+      "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+      "name": "pkgs-test-java",
+      "identity": {
+        "group": "gradle",
+        "path": ":"
+      },
+      "declaredRepositories": [
+        {
+          "name": "MavenRepo",
+          "url": "https://repo.maven.apache.org/maven2/"
+        }
+      ],
+      "compatiblePackageTypes": [
+        {
+          "type": "maven"
+        },
+        {
+          "type": "gradle",
+          "variants": [
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-api"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            },
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-runtime"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            }
+          ]
+        }
+      ],
+      "dependencyMustHaveAScope": true,
+      "declaredDependencies": [
+        {
+          "id": "maven:com.google.photos.library:google-photos-library-client",
+          "displayName": "Google Photos Library API CLient Library for Java",
+          "coordinates": "com.google.photos.library:google-photos-library-client",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "1.7.3",
+            "isStable": true,
+            "semanticPart": "1.7.3"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 132,
+            "versionStartIndex": 148
+          },
+          "declaredScope": "implementation"
+        },
+        {
+          "id": "maven:org.junit:junit-bom",
+          "displayName": "JUnit 5 (Bill of Materials)",
+          "coordinates": "org.junit:junit-bom",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "5.10.0",
+            "isStable": true,
+            "semanticPart": "5.10.0"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 243,
+            "versionStartIndex": 244
+          },
+          "declaredScope": "testImplementation"
+        },
+        {
+          "id": "maven:org.junit.jupiter:junit-jupiter",
+          "displayName": "JUnit Jupiter (Aggregator)",
+          "coordinates": "org.junit.jupiter:junit-jupiter",
+          "declaredVersion": null,
+          "declarationIndexes": {
+            "declarationStartIndex": 278,
+            "versionStartIndex": 298
+          },
+          "declaredScope": "testImplementation"
+        }
+      ],
+      "availableScopes": [
+        "annotationProcessor",
+        "compileOnly",
+        "implementation",
+        "runtimeOnly",
+        "testAnnotationProcessor",
+        "testCompileOnly",
+        "testImplementation",
+        "testRuntimeOnly"
+      ],
+      "defaultScope": "implementation"
+    },
+    "sub-module-1": {
+      "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+      "name": "sub-module-1",
+      "identity": {
+        "group": "gradle",
+        "path": ":sub-module-1"
+      },
+      "declaredRepositories": [
+        {
+          "name": "MavenRepo",
+          "url": "https://repo.maven.apache.org/maven2/"
+        }
+      ],
+      "compatiblePackageTypes": [
+        {
+          "type": "maven"
+        },
+        {
+          "type": "gradle",
+          "variants": [
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-api"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            },
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-runtime"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            }
+          ]
+        }
+      ],
+      "dependencyMustHaveAScope": true,
+      "declaredDependencies": [
+        {
+          "id": "maven:io.fluidsonic.pdf:fluid-pdf",
+          "displayName": "fluid-pdf",
+          "coordinates": "io.fluidsonic.pdf:fluid-pdf",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "0.19.0",
+            "isStable": true,
+            "semanticPart": "0.19.0"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 107,
+            "versionStartIndex": 123
+          },
+          "declaredScope": "implementation"
+        },
+        {
+          "id": "maven:org.junit:junit-bom",
+          "displayName": "JUnit 5 (Bill of Materials)",
+          "coordinates": "org.junit:junit-bom",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "5.10.0",
+            "isStable": true,
+            "semanticPart": "5.10.0"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 192,
+            "versionStartIndex": 193
+          },
+          "declaredScope": "testImplementation"
+        },
+        {
+          "id": "maven:org.junit.jupiter:junit-jupiter",
+          "displayName": "JUnit Jupiter (Aggregator)",
+          "coordinates": "org.junit.jupiter:junit-jupiter",
+          "declaredVersion": null,
+          "declarationIndexes": {
+            "declarationStartIndex": 227,
+            "versionStartIndex": 247
+          },
+          "declaredScope": "testImplementation"
+        }
+      ],
+      "availableScopes": [
+        "annotationProcessor",
+        "compileOnly",
+        "implementation",
+        "runtimeOnly",
+        "testAnnotationProcessor",
+        "testCompileOnly",
+        "testImplementation",
+        "testRuntimeOnly"
+      ],
+      "defaultScope": "implementation"
+    },
+    "sub-module-2": {
+      "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+      "name": "sub-module-2",
+      "identity": {
+        "group": "gradle",
+        "path": ":sub-module-2"
+      },
+      "declaredRepositories": [
+        {
+          "name": "MavenRepo",
+          "url": "https://repo.maven.apache.org/maven2/"
+        }
+      ],
+      "compatiblePackageTypes": [
+        {
+          "type": "maven"
+        },
+        {
+          "type": "gradle",
+          "variants": [
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-api"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            },
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-runtime"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            }
+          ]
+        }
+      ],
+      "dependencyMustHaveAScope": true,
+      "declaredDependencies": [
+        {
+          "id": "maven:aws.sdk.kotlin:aws-http",
+          "displayName": "aws-http",
+          "coordinates": "aws.sdk.kotlin:aws-http",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "1.0.78",
+            "isStable": true,
+            "semanticPart": "1.0.78"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 132,
+            "versionStartIndex": 148
+          },
+          "declaredScope": "implementation"
+        },
+        {
+          "id": "maven:com.netflix.servo:servo-apache",
+          "displayName": "servo-apache",
+          "coordinates": "com.netflix.servo:servo-apache",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "0.13.2",
+            "isStable": true,
+            "semanticPart": "0.13.2"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 185,
+            "versionStartIndex": 201
+          },
+          "declaredScope": "implementation"
+        }
+      ],
+      "availableScopes": [
+        "annotationProcessor",
+        "compileOnly",
+        "implementation",
+        "runtimeOnly",
+        "testAnnotationProcessor",
+        "testCompileOnly",
+        "testImplementation",
+        "testRuntimeOnly"
+      ],
+      "defaultScope": "implementation"
+    }
+  }
+}
