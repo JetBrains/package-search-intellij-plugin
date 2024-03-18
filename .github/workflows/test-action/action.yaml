@@ -20,6 +20,9 @@ inputs:
     description: 'Gradle task to run - without the `./gradlew` prefix'
     required: true
     default: 'test'
+  gradle-enterprise-key:
+    description: 'Gradle Enterprise key'
+    required: false
 outputs:
   test-result-path:
     value: ${{ steps.set-output.outputs.test-result-path }}
@@ -37,7 +40,7 @@ runs:
       env:
         KMP: 'true'
         GRADLE_VERSION: ${{ inputs.gradle-options }}
-        GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+        GRADLE_ENTERPRISE_KEY: ${{ inputs.gradle-enterprise-key }}
         JAVA_VERSION: ${{inputs.java-sdk-version}}
       run: |
         ./gradlew ${{ inputs.gradle-task }} ${{ inputs.gradle-options }}

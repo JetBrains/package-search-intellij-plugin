@@ -21,6 +21,7 @@ jobs:
           submodules: true
       - uses: ./.github/workflows/test-action
         with:
+          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           required-os: ${{ matrix.os }}
           gradle-version: ${{ matrix.gradle-version }}
           gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.GradleProjectTest"'
@@ -38,6 +39,7 @@ jobs:
           submodules: true
       - uses: ./.github/workflows/test-action
         with:
+          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           required-os: ${{ matrix.os }}
           gradle-version: ${{ matrix.gradle-version }}
           gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.MavenProjectTest"'
@@ -58,6 +60,7 @@ jobs:
           submodules: true
       - uses: ./.github/workflows/test-action
         with:
+          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           required-os: ${{ matrix.os }}
           gradle-version: ${{ matrix.gradle-version }}
           gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.KMPGradleProjectTest"'
