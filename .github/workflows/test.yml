@@ -19,7 +19,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: ./.github/workflows/test-action
+      - name: Run Gradle tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
+        uses: ./.github/workflows/test-action
         with:
           gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           required-os: ${{ matrix.os }}
@@ -37,7 +38,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: ./.github/workflows/test-action
+      - name: Run Maven tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
+        uses: ./.github/workflows/test-action
         with:
           gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           required-os: ${{ matrix.os }}
@@ -58,7 +60,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: ./.github/workflows/test-action
+      - name: Run KMP tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
+        uses: ./.github/workflows/test-action
         with:
           gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           required-os: ${{ matrix.os }}
