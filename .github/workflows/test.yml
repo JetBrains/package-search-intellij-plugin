@@ -99,18 +99,3 @@ jobs:
         with:
           name: testResult-kmp-${{ matrix.os }}-${{ matrix.gradle-version }}
           path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
-  evaluate-results:
-    needs: [ gradle, maven ]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check results
-        run: |
-          echo "Gradle job result: ${{ needs.gradle.result }}"
-          echo "KMP-Gradle job result: ${{ needs.kmp.result }}"
-          echo "Maven job result: ${{ needs.maven.result }}"
-          if [ ${{ needs.gradle.result }} == 'failure' ] || [ ${{ needs.maven.result }} == 'failure' ] || [ ${{ needs.kmp.result }} == 'failure' ]; then
-            echo "At least one matrix job failed."
-            exit 1
-          else
-            echo "All matrix jobs succeeded."
-          fi
