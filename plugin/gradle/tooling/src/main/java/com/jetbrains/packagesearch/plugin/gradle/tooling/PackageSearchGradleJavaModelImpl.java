@@ -7,7 +7,7 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
     private final String projectDir;
     private final List<Configuration> configurations;
 
-    private final List<String> repositories;
+    private final List<DeclaredRepository> repositories;
     private final String projectIdentityPath;
     boolean isJavaApplied;
     private boolean isAmperApplied;
@@ -24,7 +24,7 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
             String rootProjectName,
             String projectIdentityPath,
             List<Configuration> configurations,
-            List<String> repositories,
+            List<DeclaredRepository> repositories,
             boolean isJavaApplied,
             boolean isAmperApplied,
             boolean isKotlinMultiplatformApplied,
@@ -67,7 +67,7 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
     }
 
     @Override
-    public List<String> getRepositoryUrls() {
+    public List<DeclaredRepository> getDeclaredRepositories() {
         return repositories;
     }
 
@@ -103,6 +103,27 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
     @Override
     public String getRootProjectName() {
         return rootProjectName;
+    }
+
+    static public class DeclaredRepositoryImpl implements DeclaredRepository {
+
+        private final String url;
+        private final String name;
+
+        public DeclaredRepositoryImpl(String url, String name) {
+            this.url = url;
+            this.name = name;
+        }
+
+        @Override
+        public String getUrl() {
+            return url;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
     }
 
     static public class DependencyImpl implements Dependency {

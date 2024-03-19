@@ -43,7 +43,12 @@ internal fun PackageSearchGradleJavaModel.toPackageSearchModel() =
                 canBeConsumed = it.isCanBeConsumed
             )
         },
-        repositories = repositoryUrls,
+        declaredRepositories = declaredRepositories.map {
+            PackageSearchGradleModel.DeclaredRepository(
+                url = it.url,
+                name = it.name
+            )
+        },
         isJavaApplied = isJavaApplied,
         isAmperApplied = isAmperApplied,
         isKotlinAndroidApplied = isKotlinAndroidApplied,

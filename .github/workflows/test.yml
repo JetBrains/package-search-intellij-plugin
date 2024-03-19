@@ -1,0 +1,69 @@
+name: Run tests
+
+on:
+  pull_request:
+    branches: [ releases/233 ]
+jobs:
+  gradle:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        gradle-version: [ '5.6.4', '6.9.2', '7.6.4', '8.6' ]
+    name: Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    outputs:
+      result: ${{ steps.final_step.outputs.result }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Run Gradle tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
+        uses: ./.github/workflows/test-action
+        with:
+          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          required-os: ${{ matrix.os }}
+          gradle-version: ${{ matrix.gradle-version }}
+          gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.GradleProjectTest"'
+  maven:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    name: Maven on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Run Maven tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
+        uses: ./.github/workflows/test-action
+        with:
+          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          required-os: ${{ matrix.os }}
+          gradle-version: ${{ matrix.gradle-version }}
+          gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.MavenProjectTest"'
+  kmp:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        gradle-version: [ '6.9.2', '7.6.4', '8.6' ]
+    name: KMP-Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    outputs:
+      result: ${{ steps.final_step.outputs.result }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Run KMP tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
+        uses: ./.github/workflows/test-action
+        with:
+          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          required-os: ${{ matrix.os }}
+          gradle-version: ${{ matrix.gradle-version }}
+          gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.KMPGradleProjectTest"'

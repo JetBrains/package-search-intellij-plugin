@@ -8,10 +8,12 @@ import com.intellij.openapi.module.Module
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.utils.toUnifiedRepository
 import com.jetbrains.packagesearch.plugin.core.utils.validateRepositoryType
+import com.jetbrains.packagesearch.plugin.gradle.utils.toUnifiedRepository
+import com.jetbrains.packagesearch.plugin.gradle.utils.validateRepositoryType
 import java.nio.file.Path
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -24,11 +26,11 @@ data class PackageSearchKotlinMultiplatformModule(
     override val name: String,
     override val identity: PackageSearchModule.Identity,
     override val buildFilePath: Path?,
-    override val declaredKnownRepositories: Map<String, ApiRepository>,
+    override val declaredRepositories: List<PackageSearchGradleDeclaredRepository>,
     override val variants: Map<String, PackageSearchKotlinMultiplatformVariant>,
     val packageSearchModel: PackageSearchGradleModel,
     val availableKnownRepositories: Map<String, ApiRepository>,
-    val nativeModule: Module
+    val nativeModule: Module,
 ) : PackageSearchModule.WithVariants {
 
     companion object {
@@ -73,7 +75,7 @@ data class PackageSearchKotlinMultiplatformModule(
     }
 
     context(EditModuleContext)
-    override fun removeRepository(repository: ApiRepository) {
+    override fun removeRepository(repository: PackageSearchDeclaredRepository) {
         validateContextType()
         validateRepositoryType(repository)
         kmpData.modifier.deleteRepository(
