@@ -2,7 +2,7 @@ name: Run tests
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ releases/241 ]
 jobs:
   gradle:
     strategy:
