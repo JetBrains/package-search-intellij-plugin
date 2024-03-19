@@ -1,0 +1,122 @@
+{
+    "value": {
+        "simple-maven-project": {
+            "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+            "name": "simple-maven-project",
+            "identity": {
+                "group": "maven",
+                "path": ":"
+            },
+            "declaredRepositories": [
+            ],
+            "compatiblePackageTypes": [
+                {
+                    "type": "maven"
+                },
+                {
+                    "type": "gradle",
+                    "variants": [
+                        {
+                            "attributes": {
+                                "org.gradle.usage": {
+                                    "type": "exactMatch",
+                                    "value": "java-api"
+                                }
+                            },
+                            "mustBeWithFiles": true
+                        },
+                        {
+                            "attributes": {
+                                "org.gradle.usage": {
+                                    "type": "exactMatch",
+                                    "value": "java-runtime"
+                                }
+                            },
+                            "mustBeWithFiles": true
+                        }
+                    ],
+                    "mustBeRootPublication": false
+                }
+            ],
+            "dependencyMustHaveAScope": false,
+            "declaredDependencies": [
+                {
+                    "id": "maven:org.junit.jupiter:junit-jupiter-engine",
+                    "displayName": "junit-jupiter-engine",
+                    "coordinates": "org.junit.jupiter:junit-jupiter-engine",
+                    "declaredVersion": {
+                        "type": "semantic",
+                        "versionName": "5.8.0",
+                        "isStable": true,
+                        "semanticPart": "5.8.0"
+                    },
+                    "declarationIndexes": {
+                        "declarationStartIndex": 784,
+                        "versionStartIndex": 925
+                    },
+                    "declaredScope": "test"
+                }
+            ],
+            "availableScopes": [
+                "compile",
+                "provided",
+                "runtime",
+                "test",
+                "system",
+                "import"
+            ],
+            "defaultScope": null
+        },
+        "module-maven-project": {
+            "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+            "name": "module-maven-project",
+            "identity": {
+                "group": "maven",
+                "path": ":"
+            },
+            "declaredRepositories": [
+            ],
+            "compatiblePackageTypes": [
+                {
+                    "type": "maven"
+                },
+                {
+                    "type": "gradle",
+                    "variants": [
+                        {
+                            "attributes": {
+                                "org.gradle.usage": {
+                                    "type": "exactMatch",
+                                    "value": "java-api"
+                                }
+                            },
+                            "mustBeWithFiles": true
+                        },
+                        {
+                            "attributes": {
+                                "org.gradle.usage": {
+                                    "type": "exactMatch",
+                                    "value": "java-runtime"
+                                }
+                            },
+                            "mustBeWithFiles": true
+                        }
+                    ],
+                    "mustBeRootPublication": false
+                }
+            ],
+            "dependencyMustHaveAScope": false,
+            "declaredDependencies": [
+            ],
+            "availableScopes": [
+                "compile",
+                "provided",
+                "runtime",
+                "test",
+                "system",
+                "import"
+            ],
+            "defaultScope": null
+        }
+    }
+}

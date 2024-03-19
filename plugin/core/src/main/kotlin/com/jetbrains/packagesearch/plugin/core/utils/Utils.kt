@@ -39,6 +39,7 @@ import com.intellij.util.messages.Topic
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import java.nio.file.Files
 import java.nio.file.Path
@@ -318,7 +319,7 @@ fun PackageSearchDeclaredMavenPackage.toUnifiedDependency() =
     UnifiedDependency(groupId, artifactId, declaredVersion?.versionName, declaredScope)
 
 fun ApiMavenRepository.toUnifiedRepository() =
-    UnifiedDependencyRepository(null, null, url)
+    UnifiedDependencyRepository(id, friendlyName, url)
 
 fun validateRepositoryType(repository: ApiRepository) {
     contract {

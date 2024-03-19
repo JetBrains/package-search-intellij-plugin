@@ -2,6 +2,7 @@
 
 package com.jetbrains.packagesearch.plugin.maven
 
+import com.intellij.buildsystem.model.unified.UnifiedDependencyRepository
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
@@ -11,6 +12,7 @@ import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.psi.xml.XmlText
 import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationIndexes
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
@@ -27,6 +29,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.contracts.contract
 import kotlin.io.path.Path
 import kotlin.io.path.name
 import kotlinx.coroutines.flow.Flow
@@ -39,8 +42,8 @@ import org.jetbrains.idea.maven.dsl.MavenDependencyModificator
 import org.jetbrains.idea.maven.project.MavenImportListener
 import org.jetbrains.idea.maven.project.MavenProject
 import org.jetbrains.idea.maven.project.MavenProjectsManager
+import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.jvmMavenPackages
 import org.jetbrains.packagesearch.maven.POM_XML_NAMESPACE
@@ -114,7 +117,7 @@ suspend fun Module.toPackageSearch(
             projectDir = pomPath.parent.toDirectory(),
         ),
         buildFilePath = pomPath,
-        declaredKnownRepositories = getDeclaredKnownRepositories(),
+        declaredRepositories = getDeclaredRepositories(),
         declaredDependencies = declaredDependencies,
         availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.declaredScope }).distinct(),
         compatiblePackageTypes = buildPackageTypes {
@@ -125,7 +128,19 @@ suspend fun Module.toPackageSearch(
 }
 
 context(PackageSearchModuleBuilderContext)
-suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredBaseMavenPackage> {
+private suspend fun Module.getDeclaredRepositories() =
+    readAction { DependencyModifierService.getInstance(project).declaredRepositories(this) }
+        .mapNotNull { unifiedRepository ->
+            PackageSearchDeclaredMavenRepository(
+                url = unifiedRepository.url ?: return@mapNotNull null,
+                remoteInfo = knownRepositories.values.firstOrNull { it.url == unifiedRepository.url } as? ApiMavenRepository,
+                name = unifiedRepository.name,
+                id = unifiedRepository.id ?: return@mapNotNull null,
+            )
+        }
+
+context(PackageSearchModuleBuilderContext)
+suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredMavenPackage> {
     val declaredDependencies = readAction {
         MavenProjectsManager.getInstance(project)
             .findProject(this@getDeclaredDependencies)
@@ -160,7 +175,7 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredBaseMave
     return declaredDependencies
         .associateBy { it.packageId }
         .mapNotNull { (packageId, declaredDependency) ->
-            PackageSearchDeclaredBaseMavenPackage(
+            PackageSearchDeclaredMavenPackage(
                 id = packageId,
                 declaredVersion = declaredDependency.version?.let { NormalizedVersion.from(it) },
                 remoteInfo = remoteInfo[packageId]?.asMavenApiPackage(),
@@ -171,16 +186,6 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredBaseMave
                 icon = remoteInfo[packageId]?.icon ?: IconProvider.Icons.MAVEN
             )
         }
-}
-
-context(PackageSearchModuleBuilderContext)
-suspend fun Module.getDeclaredKnownRepositories(): Map<String, ApiRepository> {
-    val declaredDependencies = readAction {
-        DependencyModifierService.getInstance(project)
-            .declaredRepositories(this)
-    }
-        .mapNotNull { it.id }
-    return knownRepositories.filterKeys { it in declaredDependencies }
 }
 
 context(EditModuleContext)
@@ -194,3 +199,15 @@ fun validateContextType(): MavenDependencyModificator {
 context(EditModuleContext)
 val modificator
     get() = validateContextType()
+
+fun validateRepositoryType(repository: PackageSearchDeclaredRepository) {
+    contract {
+        returns() implies (repository is PackageSearchDeclaredMavenRepository)
+    }
+    require(repository is PackageSearchDeclaredMavenRepository) {
+        "repository must be ApiMavenRepository instead of ${repository::class.qualifiedName}"
+    }
+}
+
+fun PackageSearchDeclaredMavenRepository.toUnifiedRepository() =
+    UnifiedDependencyRepository(id, name, url)

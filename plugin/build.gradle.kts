@@ -47,6 +47,7 @@ packagesearch {
 
 intellij {
     plugins.add("org.jetbrains.idea.reposearch")
+    plugins.add("com.jetbrains.performancePlugin")
 }
 
 val tooling: Configuration by configurations.creating {
@@ -82,6 +83,10 @@ dependencies {
 
     testImplementation(kotlin("test-junit5"))
     testImplementation(packageSearchCatalog.junit.jupiter.api)
+    testImplementation(packageSearchCatalog.junit.jupiter.params)
+    testImplementation(packageSearchCatalog.ide.starter.junit5)
+    testImplementation(packageSearchCatalog.ide.starter.squashed)
+    testImplementation(packageSearchCatalog.kotlinx.coroutines.test)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
 }
 
@@ -136,6 +141,25 @@ tasks {
         archiveFileName = "packageSearch-${project.version}.zip"
             .replace("-SNAPSHOT", ".$snapshotMinorVersion")
         destinationDirectory = layout.buildDirectory.dir("distributions")
+    }
+
+    val testDataDirectoryPath = layout.buildDirectory
+        .dir("testData")
+        .map { it.asFile.absolutePath }
+
+    test {
+        dependsOn(buildShadowPlugin)
+        environment("PKGS_PLUGIN_ID", pkgsPluginId)
+        environment("PKGS_TEST_DATA_OUTPUT_DIR", testDataDirectoryPath.get())
+        environment("KMP", true)
+        val pluginArtifactDirectoryPath = buildShadowPlugin.get()
+            .archiveFile.get()
+            .asFile.absolutePath
+        environment("PKGS_PLUGIN_ARTIFACT_FILE", pluginArtifactDirectoryPath)
+    }
+
+    runIde {
+        environment("PKGS_TEST_DATA_OUTPUT_DIR", testDataDirectoryPath.get())
     }
 
     register<PublishPluginTask>("publishSnapshotPluginToTBE") {
