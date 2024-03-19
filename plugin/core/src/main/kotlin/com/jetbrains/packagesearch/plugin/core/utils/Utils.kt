@@ -11,7 +11,6 @@ import com.intellij.openapi.extensions.AreaInstance
 import com.intellij.openapi.extensions.ExtensionPointListener
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.PluginDescriptor
-import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -44,21 +43,17 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.contracts.contract
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.resume
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
@@ -318,7 +313,7 @@ fun PackageSearchDeclaredMavenPackage.toUnifiedDependency() =
     UnifiedDependency(groupId, artifactId, declaredVersion?.versionName, declaredScope)
 
 fun ApiMavenRepository.toUnifiedRepository() =
-    UnifiedDependencyRepository(null, null, url)
+    UnifiedDependencyRepository(id, friendlyName, url)
 
 fun validateRepositoryType(repository: ApiRepository) {
     contract {

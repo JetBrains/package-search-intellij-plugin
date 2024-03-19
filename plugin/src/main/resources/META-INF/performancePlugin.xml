@@ -1,0 +1,7 @@
+<idea-plugin implementation-detail="true">
+    <extensions defaultExtensionNs="com.jetbrains">
+        <performancePlugin.commandProvider
+                implementation="com.jetbrains.packagesearch.plugin.tests.PKGSCommandProvider"/>
+    </extensions>
+    <depends>com.jetbrains.performancePlugin</depends>
+</idea-plugin>

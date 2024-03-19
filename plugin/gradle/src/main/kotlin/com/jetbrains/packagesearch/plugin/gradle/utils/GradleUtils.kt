@@ -3,7 +3,7 @@
 package com.jetbrains.packagesearch.plugin.gradle.utils
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.intellij.externalSystem.DependencyModifierService
+import com.intellij.buildsystem.model.unified.UnifiedDependencyRepository
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
@@ -17,6 +17,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.refreshAndFindVirtualFile
 import com.intellij.openapi.vfs.toNioPathOrNull
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
@@ -28,11 +29,13 @@ import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
+import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredRepository
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel
 import com.jetbrains.packagesearch.plugin.gradle.packageId
 import java.nio.file.Path
 import java.nio.file.Paths
 import korlibs.crypto.sha512
+import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -43,8 +46,8 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
+import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 val gradleHomePathString: String
@@ -83,14 +86,6 @@ fun getModuleChangesFlow(model: PackageSearchGradleModel): Flow<Unit> {
         watchExternalFileChanges(globalGradlePropertiesPath),
         buildFileChanges,
     )
-}
-
-context(PackageSearchModuleBuilderContext)
-suspend fun Module.getDeclaredKnownRepositories(repositories: List<String>): Map<String, ApiRepository> {
-    val declaredDependencies = readAction {
-        DependencyModifierService.getInstance(project).declaredRepositories(this)
-    }.mapNotNull { it.id }
-    return knownRepositories.filterKeys { it in declaredDependencies } + knownRepositories.filterValues { it.url in repositories }
 }
 
 @Serializable
@@ -184,6 +179,29 @@ internal val Project.initializeProjectFlow
         awaitExternalSystemInitialization()
         emit(Unit)
     }
+
+context(PackageSearchModuleBuilderContext)
+fun List<PackageSearchGradleModel.DeclaredRepository>.toGradle() =
+    map {
+        PackageSearchGradleDeclaredRepository(
+            url = it.url,
+            remoteInfo = knownRepositories.values
+                .firstOrNull { remote -> remote.url == it.url } as? ApiMavenRepository,
+            name = it.name,
+        )
+    }
+
+fun validateRepositoryType(repository: PackageSearchDeclaredRepository) {
+    contract {
+        returns() implies (repository is PackageSearchGradleDeclaredRepository)
+    }
+    require(repository is PackageSearchGradleDeclaredRepository) {
+        "Repository ${repository.url} must be PackageSearchGradleDeclaredRepository"
+    }
+}
+
+fun PackageSearchGradleDeclaredRepository.toUnifiedRepository() =
+    UnifiedDependencyRepository(null, name, url)
 
 internal fun isResolveTask(id: ExternalSystemTaskId): Boolean {
     if (id.type == ExternalSystemTaskType.RESOLVE_PROJECT) {
