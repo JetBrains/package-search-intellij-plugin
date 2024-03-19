@@ -152,10 +152,10 @@ tasks {
         environment("PKGS_PLUGIN_ID", pkgsPluginId)
         environment("PKGS_TEST_DATA_OUTPUT_DIR", testDataDirectoryPath.get())
         environment("KMP", true)
-        val pluginArtifactDirectoryPath = buildShadowPlugin
-            .flatMap { it.archiveFile }
-            .map { it.asFile.absolutePath }
-        environment("PKGS_PLUGIN_ARTIFACT_FILE", pluginArtifactDirectoryPath.get())
+        val pluginArtifactDirectoryPath = buildShadowPlugin.get()
+            .archiveFile.get()
+            .asFile.absolutePath
+        environment("PKGS_PLUGIN_ARTIFACT_FILE", pluginArtifactDirectoryPath)
     }
 
     runIde {
