@@ -4,6 +4,7 @@ out/
 *.iml
 .gradle/
 .gitsubmoduleinit
+allure-results/
 
 !.idea/codeStyles/*
 !.idea/dictionaries/*

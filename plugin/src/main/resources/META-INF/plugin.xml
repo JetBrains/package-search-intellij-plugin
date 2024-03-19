@@ -13,7 +13,7 @@ Supports Maven and Gradle projects.
 
     <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
     <depends optional="true" config-file="gradle.xml">com.intellij.gradle</depends>
-    <depends>org.jetbrains.idea.reposearch</depends>
+    <depends optional="true" config-file="performancePlugin.xml">com.jetbrains.performancePlugin</depends>
 
     <projectListeners>
         <listener
@@ -53,5 +53,6 @@ Supports Maven and Gradle projects.
                 hasStaticDescription="true"
                 level="WEAK WARNING"
                 language=""/>
+
     </extensions>
 </idea-plugin>

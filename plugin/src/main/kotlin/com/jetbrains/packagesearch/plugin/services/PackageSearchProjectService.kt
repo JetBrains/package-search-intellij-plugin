@@ -66,6 +66,7 @@ class PackageSearchProjectService(
 
     // Todo SAVE
     internal val stableOnlyStateFlow = MutableStateFlow(true)
+    internal val installRepositoryIfNeeded = MutableStateFlow(true)
 
     val isProjectExecutingSyncStateFlow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
         .map { it.map { it.getSyncStateFlow(project) } }
