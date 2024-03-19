@@ -4,8 +4,15 @@ import com.jetbrains.packagesearch.plugin.core.extensions.DependencyDeclarationI
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage.GradleVersion.ApiVariant
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
+
+interface PackageSearchDeclaredRepository {
+    val url: String
+    val name: String?
+    val remoteInfo: ApiRepository?
+}
 
 interface PackageSearchDeclaredPackage : IconProvider {
 

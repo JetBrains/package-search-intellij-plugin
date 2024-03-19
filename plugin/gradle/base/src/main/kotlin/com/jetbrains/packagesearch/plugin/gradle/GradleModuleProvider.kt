@@ -8,7 +8,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
-import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredKnownRepositories
+import com.jetbrains.packagesearch.plugin.gradle.utils.toGradle
 import kotlinx.coroutines.flow.FlowCollector
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.search.androidPackages
@@ -24,7 +24,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
     ) {
         if (!PackageSearch.isKMPEnabled || !model.isKotlinMultiplatformApplied) {
             val availableKnownRepositories =
-                model.repositories.toSet().let { availableGradleRepositories ->
+                model.declaredRepositories.toSet().let { availableGradleRepositories ->
                     knownRepositories.filterValues {
                         it is ApiMavenRepository && it.alternateUrls.intersect(availableGradleRepositories).isNotEmpty()
                     }
@@ -44,7 +44,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                     projectDir = model.projectDir.toDirectory(),
                 ),
                 buildFilePath = model.buildFilePath,
-                declaredKnownRepositories = module.getDeclaredKnownRepositories(model.repositories),
+                declaredRepositories = model.declaredRepositories.toGradle(),
                 declaredDependencies = declaredDependencies,
                 availableKnownRepositories = availableKnownRepositories,
                 packageSearchModel = model,

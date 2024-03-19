@@ -28,5 +28,5 @@ interface PackageSearchModuleEditor {
     suspend fun editModule(action: context(EditModuleContext) () -> Unit)
 
     context(EditModuleContext) fun addRepository(repository: ApiRepository)
-    context(EditModuleContext)  fun removeRepository(repository: ApiRepository)
+    context(EditModuleContext)  fun removeRepository(repository: PackageSearchDeclaredRepository)
 }

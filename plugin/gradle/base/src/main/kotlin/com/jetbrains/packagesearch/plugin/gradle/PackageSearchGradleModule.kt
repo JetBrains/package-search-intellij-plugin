@@ -9,12 +9,15 @@ import com.intellij.openapi.module.Module
 import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider.Icons
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.utils.toUnifiedDependency
 import com.jetbrains.packagesearch.plugin.core.utils.toUnifiedRepository
 import com.jetbrains.packagesearch.plugin.core.utils.validateMavenDeclaredPackageType
 import com.jetbrains.packagesearch.plugin.core.utils.validateMavenPackageType
 import com.jetbrains.packagesearch.plugin.core.utils.validateRepositoryType
+import com.jetbrains.packagesearch.plugin.gradle.utils.toUnifiedRepository
+import com.jetbrains.packagesearch.plugin.gradle.utils.validateRepositoryType
 import java.nio.file.Path
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -28,7 +31,7 @@ data class PackageSearchGradleModule(
     override val name: String,
     override val identity: PackageSearchModule.Identity,
     override val buildFilePath: Path?,
-    override val declaredKnownRepositories: Map<String, ApiRepository>,
+    override val declaredRepositories: List<PackageSearchGradleDeclaredRepository>,
     override val declaredDependencies: List<PackageSearchGradleDeclaredPackage>,
     override val defaultScope: String?,
     override val availableScopes: List<String>,
@@ -112,7 +115,7 @@ data class PackageSearchGradleModule(
     }
 
     context(EditModuleContext)
-    override fun removeRepository(repository: ApiRepository) {
+    override fun removeRepository(repository: PackageSearchDeclaredRepository) {
         validateRepositoryType(repository)
         modifier.deleteRepository(
             module = nativeModule,

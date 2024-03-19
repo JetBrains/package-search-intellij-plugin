@@ -8,6 +8,8 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.jetbrains.packagesearch.plugin.core.data.EditModuleContext
+import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManager
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleEditor
@@ -53,6 +55,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.ApiPackageVersion
 import org.jetbrains.packagesearch.api.v3.search.buildSearchParameters
 
 @Service(Level.PROJECT)
@@ -402,21 +405,26 @@ class PackageListViewModel(
             actionType.eventId.getDependencyManagers() ?: return
         val newVersion = when {
             project.PackageSearchProjectService.stableOnlyStateFlow.value ->
-                dependency.remoteInfo?.versions?.latestStable?.normalized?.versionName
-                    ?: dependency.remoteInfo?.versions?.latest?.normalized?.versionName
+                dependency.remoteInfo?.versions?.latestStable
+                    ?: dependency.remoteInfo?.versions?.latest
 
-            else -> dependency.remoteInfo?.versions?.latest?.normalized?.versionName
+            else -> dependency.remoteInfo?.versions?.latest
         } ?: return
         logFUSEvent(
             event = PackageSearchFUSEvent.PackageVersionChanged(
                 packageIdentifier = dependency.id,
                 packageFromVersion = dependency.declaredVersion?.versionName,
-                packageTargetVersion = newVersion,
+                packageTargetVersion = newVersion.normalized.versionName,
                 targetModule = module
             )
         )
         editor.editModule {
-            manager.updateDependency(dependency, newVersion, dependency.declaredScope)
+            editor.addRepositoryIfNeeded(newVersion, module.declaredRepositories)
+            manager.updateDependency(
+                declaredPackage = dependency,
+                newVersion = newVersion.normalized.versionName,
+                newScope = dependency.declaredScope
+            )
         }
     }
 
@@ -484,6 +492,7 @@ class PackageListViewModel(
             manager = variant,
             updater = module,
             apiPackage = apiPackage,
+            installedRepositories = module.declaredRepositories,
             scope = variant.defaultScope
         )
     }
@@ -503,6 +512,7 @@ class PackageListViewModel(
             manager = module,
             updater = module,
             apiPackage = apiPackage,
+            installedRepositories = module.declaredRepositories,
             scope = module.defaultScope
         )
     }
@@ -510,20 +520,39 @@ class PackageListViewModel(
     private suspend fun installDependency(
         manager: PackageSearchDependencyManager,
         updater: PackageSearchModuleEditor,
+        installedRepositories: List<PackageSearchDeclaredRepository>,
         apiPackage: ApiPackage,
         scope: String?,
     ) = updater.editModule {
+
+        val selectedVersion = when {
+            project.PackageSearchProjectService.stableOnlyStateFlow.value ->
+                apiPackage.versions.latestStable ?: apiPackage.versions.latest
+
+            else -> apiPackage.versions.latest
+        }
+        updater.addRepositoryIfNeeded(selectedVersion, installedRepositories)
         manager.addDependency(
             apiPackage = apiPackage,
-            selectedVersion = when {
-                project.PackageSearchProjectService.stableOnlyStateFlow.value ->
-                    apiPackage.versions.latestStable?.normalized?.versionName
-                        ?: apiPackage.versions.latest.normalized.versionName
-
-                else -> apiPackage.versions.latest.normalized.versionName
-            },
+            selectedVersion = selectedVersion.normalized.versionName,
             selectedScope = scope
         )
+    }
+
+    context(EditModuleContext)
+    private fun PackageSearchModuleEditor.addRepositoryIfNeeded(
+        selectedVersion: ApiPackageVersion,
+        installedRepositories: List<PackageSearchDeclaredRepository>,
+    ) {
+        if (project.PackageSearchProjectService.installRepositoryIfNeeded.value) {
+            val apiRepository =
+                selectedVersion.repositoryIds
+                    .firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
+
+            if (apiRepository != null && apiRepository.url !in installedRepositories.map { it.url }) {
+                addRepository(apiRepository)
+            }
+        }
     }
 
     private suspend fun handle(actionType: PackageListItemEvent.OnPackageAction.GoToSource) {
@@ -599,6 +628,14 @@ class PackageListViewModel(
                                 targetModule = module
                             )
                         )
+                        if (project.PackageSearchProjectService.installRepositoryIfNeeded.value) {
+                            dependency.remoteInfo?.versions?.all
+                                ?.firstOrNull { it.normalizedVersion.versionName == event.version }
+                                ?.repositoryIds
+                                ?.firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
+                                ?.takeIf { it.url !in module.declaredRepositories.map { it.url } }
+                                ?.let { editor.addRepository(it) }
+                        }
                         manager.updateDependency(
                             declaredPackage = dependency,
                             newVersion = event.version,
@@ -703,8 +740,26 @@ class PackageListViewModel(
                 packagesLoadingMutableStateFlow.update { it + listIds }
                 runCatching {
                     module.editModule {
-                        packagesToUpdate.forEach {
-                            module.updateDependency(it, it.getLatestVersion(onlyStable)?.versionName, it.declaredScope)
+                        val repositoriesToAdd = packagesToUpdate
+                            .mapNotNull {
+                                val version = when {
+                                    onlyStable -> it.remoteInfo?.versions?.latestStable
+                                        ?: it.remoteInfo?.versions?.latest
+
+                                    else -> it.remoteInfo?.versions?.latest
+                                }
+                                module.updateDependency(
+                                    declaredPackage = it,
+                                    newVersion = version?.normalized?.versionName ?: it.declaredVersion?.versionName,
+                                    newScope = it.declaredScope
+                                )
+                                version?.repositoryIds
+                                    ?.firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
+                                    ?.takeIf { it.url !in module.declaredRepositories.map { it.url } }
+                            }
+                            .toSet()
+                        if (repositoriesToAdd.isNotEmpty() && project.PackageSearchProjectService.installRepositoryIfNeeded.value) {
+                            repositoriesToAdd.forEach { module.addRepository(it) }
                         }
                     }
                 }
