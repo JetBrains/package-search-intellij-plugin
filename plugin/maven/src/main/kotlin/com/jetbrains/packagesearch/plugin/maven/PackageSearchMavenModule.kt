@@ -98,10 +98,12 @@ data class PackageSearchMavenModule(
     context(EditModuleContext)
     override fun addRepository(repository: ApiRepository) {
         validateRepositoryType(repository)
-        modificator.addRepository(
-            module = nativeModule,
-            repository = repository.toUnifiedRepository()
-        )
+        if (repository.url !in CommonRepositories.entries.flatMap { it.urls }) {
+            modificator.addRepository(
+                module = nativeModule,
+                repository = repository.toUnifiedRepository()
+            )
+        }
     }
 
     context(EditModuleContext)

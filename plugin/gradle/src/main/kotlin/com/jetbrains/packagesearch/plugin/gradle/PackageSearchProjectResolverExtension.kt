@@ -45,8 +45,8 @@ internal fun PackageSearchGradleJavaModel.toPackageSearchModel() =
         },
         declaredRepositories = declaredRepositories.map {
             PackageSearchGradleModel.DeclaredRepository(
-                it.url,
-                it.name
+                url = it.url,
+                name = it.name
             )
         },
         isJavaApplied = isJavaApplied,

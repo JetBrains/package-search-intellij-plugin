@@ -91,7 +91,6 @@ dependencies {
 }
 
 val pkgsPluginId: String by project
-val pkgsPluginTestOutputDir: String by project
 
 tasks {
     val patchIdeSettings by registering {
@@ -129,10 +128,7 @@ tasks {
             ?.suffixIfNot("]]>")
 
     }
-    val pluginArtifactName = "packageSearch-${project.version}.zip"
-        .replace("-SNAPSHOT", ".$snapshotMinorVersion")
-    val pluginArtifactDirectory = layout.buildDirectory.dir("distributions")
-    val testDataDirectory = layout.buildDirectory.dir("testData")
+
     val buildShadowPlugin by registering(Zip::class) {
         group = "intellij"
         from(shadowJar) {
@@ -142,19 +138,23 @@ tasks {
             rename { "gradle-tooling.jar" }
         }
         into("$pkgsPluginId/lib")
-        archiveFileName = pluginArtifactName
-        destinationDirectory = pluginArtifactDirectory
+        archiveFileName = "packageSearch-${project.version}.zip"
+            .replace("-SNAPSHOT", ".$snapshotMinorVersion")
+        destinationDirectory = layout.buildDirectory.dir("distributions")
     }
 
-    val testDataDirectoryPath = testDataDirectory.map { it.asFile.absolutePath }
+    val testDataDirectoryPath = layout.buildDirectory
+        .dir("testData")
+        .map { it.asFile.absolutePath }
 
     test {
+        dependsOn(buildShadowPlugin)
         environment("PKGS_PLUGIN_ID", pkgsPluginId)
         environment("PKGS_TEST_DATA_OUTPUT_DIR", testDataDirectoryPath.get())
         environment("KMP", true)
-        dependsOn(buildShadowPlugin)
-        val pluginArtifactDirectoryPath =
-            pluginArtifactDirectory.map { it.file(pluginArtifactName).asFile.absolutePath }
+        val pluginArtifactDirectoryPath = buildShadowPlugin
+            .flatMap { it.archiveFile }
+            .map { it.asFile.absolutePath }
         environment("PKGS_PLUGIN_ARTIFACT_FILE", pluginArtifactDirectoryPath.get())
     }
 
