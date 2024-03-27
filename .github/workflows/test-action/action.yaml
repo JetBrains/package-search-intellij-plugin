@@ -43,7 +43,7 @@ runs:
         GRADLE_ENTERPRISE_KEY: ${{ inputs.gradle-enterprise-key }}
         JAVA_VERSION: ${{inputs.java-sdk-version}}
       run: |
-        ./gradlew ${{ inputs.gradle-task }} ${{ inputs.gradle-options }}
+        ./gradlew ${{ inputs.gradle-test-command }}
       shell: bash
     - name: Upload test result
       if: always()
