@@ -25,25 +25,25 @@ fun PackageSearchPackagePanel(
     onLinkClick: (String) -> Unit,
     onPackageEvent: (PackageListItemEvent) -> Unit,
 ) {
-    val toolWindowsViewModel = viewModel<ToolWindowViewModel>()
+    val toolWindowsViewModel: ToolWindowViewModel = viewModel()
 
     val splitPaneState by remember { toolWindowsViewModel.firstSplitPaneState }
     val innerSplitPaneState by remember { toolWindowsViewModel.secondSplitPaneState }
     val splitterColor by remember(JewelTheme.isDark) { mutableStateOf(JBColor.border().toComposeColor()) }
 
     HorizontalSplitPane(Modifier.fillMaxSize(), splitPaneState) {
-        first(PackageSearchMetrics.Splitpane.minWidth) {
+        first(PackageSearchMetrics.Splitpanes.minWidth) {
             PackageSearchModulesTree(Modifier, onSelectionModulesSelectionChanged)
         }
         packageSearchSplitter(splitterColor)
         second {
             if (isInfoPanelOpen) {
                 HorizontalSplitPane(Modifier.fillMaxSize(), innerSplitPaneState) {
-                    first(PackageSearchMetrics.Splitpane.minWidth) {
+                    first(PackageSearchMetrics.Splitpanes.minWidth) {
                         PackageSearchCentralPanel(onLinkClick = onLinkClick)
                     }
                     packageSearchSplitter(splitterColor)
-                    second(PackageSearchMetrics.Splitpane.minWidth) {
+                    second(PackageSearchMetrics.Splitpanes.minWidth) {
                         PackageSearchInfoPanel(onLinkClick = onLinkClick, onPackageEvent = onPackageEvent)
                     }
                 }
