@@ -42,6 +42,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDependencyManag
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchKnownRepositoriesContext
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.Nls
 import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
@@ -130,7 +131,7 @@ class PackageUpdateInspection : PackageSearchInspection() {
                         ?: return@inner
 
                 val targetVersion = when {
-                    project.PackageSearchProjectService.stableOnlyStateFlow.value ->
+                    project.PackageSearchSettingsService.stableOnlyFlow.value ->
                         dependency.remoteInfo?.versions?.latestStable
 
                     else -> dependency.remoteInfo?.versions?.latest
@@ -166,7 +167,7 @@ class PackageUpdateInspection : PackageSearchInspection() {
                                     newVersion = targetVersion.normalized.versionName,
                                     newScope = dependency.declaredScope
                                 )
-                                if (project.PackageSearchProjectService.installRepositoryIfNeeded.value) {
+                                if (project.PackageSearchSettingsService.installRepositoryIfNeededFlow.value) {
                                     targetVersion.repositoryIds
                                         .firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
                                         ?.takeIf { it.url !in module.declaredRepositories.map { it.url } }

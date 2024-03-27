@@ -11,6 +11,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItem
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListViewModel
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +43,7 @@ class InfoPanelViewModel(
 
     val tabs: StateFlow<List<InfoPanelContent>> = combine(
         setDataEventChannel.consumeAsFlow(),
-        project.PackageSearchProjectService.stableOnlyStateFlow,
+        project.PackageSearchSettingsService.stableOnlyFlow,
         packageLoadingState
     ) { event, onlyStable, packageLoadingState ->
         when (event) {
