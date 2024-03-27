@@ -27,18 +27,18 @@ fun PackageSearchPackagePanel(
     val innerSplitPaneState by remember { toolWindowsViewModel.secondSplitPaneState }
 
     HorizontalSplitPane(Modifier.fillMaxSize(), splitPaneState) {
-        first(PackageSearchMetrics.Splitpane.minWidth) {
+        first(PackageSearchMetrics.Splitpanes.minWidth) {
             PackageSearchModulesTree(Modifier, onSelectionModulesSelectionChanged)
         }
         packageSearchSplitter()
         second {
             if (isInfoPanelOpen) {
                 HorizontalSplitPane(Modifier.fillMaxSize(), innerSplitPaneState) {
-                    first(PackageSearchMetrics.Splitpane.minWidth) {
+                    first(PackageSearchMetrics.Splitpanes.minWidth) {
                         PackageSearchCentralPanel(onLinkClick = onLinkClick)
                     }
                     packageSearchSplitter()
-                    second(PackageSearchMetrics.Splitpane.minWidth) {
+                    second(PackageSearchMetrics.Splitpanes.minWidth) {
                         PackageSearchInfoPanel(onLinkClick = onLinkClick, onPackageEvent = onPackageEvent)
                     }
                 }
