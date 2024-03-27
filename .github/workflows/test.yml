@@ -36,7 +36,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: testResult-${{ matrix.os }}-${{ matrix.gradle-version }}
+          name: testResult-gradle-${{ matrix.os }}-${{ matrix.gradle-version }}
           path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
   maven:
     strategy:
@@ -65,7 +65,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: testResult-${{ matrix.os }}-${{ matrix.gradle-version }}
+          name: testResult-maven-${{ matrix.os }}-${{ matrix.gradle-version }}
           path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
   kmp:
     strategy:
@@ -98,5 +98,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: testResult-${{ matrix.os }}-${{ matrix.gradle-version }}
+          name: testResult-kmp-${{ matrix.os }}-${{ matrix.gradle-version }}
           path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
