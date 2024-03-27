@@ -15,13 +15,12 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.core.utils.toolWindowOpenedFlow
-import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.drop
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
 import com.jetbrains.packagesearch.plugin.utils.logDebug
-import com.jetbrains.packagesearch.plugin.utils.logFUSEvent
 import com.jetbrains.packagesearch.plugin.utils.logWarn
 import com.jetbrains.packagesearch.plugin.utils.nativeModulesFlow
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
@@ -32,7 +31,6 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
@@ -63,10 +61,6 @@ class PackageSearchProjectService(
     fun restart() {
         restartChannel.trySend(Unit)
     }
-
-    // Todo SAVE
-    internal val stableOnlyStateFlow = MutableStateFlow(true)
-    internal val installRepositoryIfNeeded = MutableStateFlow(true)
 
     val isProjectExecutingSyncStateFlow = PackageSearchModuleBaseTransformerUtils.extensionsFlow
         .map { it.map { it.getSyncStateFlow(project) } }
@@ -149,10 +143,6 @@ class PackageSearchProjectService(
 
     init {
 
-        stableOnlyStateFlow
-            .onEach { logFUSEvent(PackageSearchFUSEvent.OnlyStableToggle(it)) }
-            .launchIn(coroutineScope)
-
         combine(
             openedBuildFiles.map { it.isEmpty() },
             project.toolWindowOpenedFlow("Package Search")
@@ -178,7 +168,7 @@ class PackageSearchProjectService(
 
         openedBuildFiles
             .filter { it.isNotEmpty() }
-            .replayOn(stableOnlyStateFlow)
+            .replayOn(project.PackageSearchSettingsService.stableOnlyFlow)
             .flatMapMerge { it.asFlow() }
             .debounce(1.seconds)
             .onEach {

@@ -8,6 +8,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
 import com.jetbrains.packagesearch.plugin.utils.logDebug
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,7 +30,7 @@ internal class TreeViewModel(
 
     val treeStateFlow: StateFlow<Tree<TreeItemModel>> = combine(
         project.PackageSearchProjectService.modulesStateFlow,
-        project.PackageSearchProjectService.stableOnlyStateFlow
+        project.PackageSearchSettingsService.stableOnlyFlow
     ) { modules, stableOnly ->
         modules.asTree(stableOnly)
     }
