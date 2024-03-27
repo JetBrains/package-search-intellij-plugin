@@ -3,6 +3,7 @@ name: Run tests
 on:
   pull_request:
     branches: [ master ]
+
 jobs:
   gradle:
     strategy:
@@ -15,17 +16,28 @@ jobs:
     outputs:
       result: ${{ steps.final_step.outputs.result }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Run Gradle tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
-        uses: ./.github/workflows/test-action
+      - uses: gradle/gradle-build-action@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
         with:
-          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          required-os: ${{ matrix.os }}
-          gradle-version: ${{ matrix.gradle-version }}
-          gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.GradleProjectTest"'
+          java-version: 11
+          distribution: 'temurin'
+      - name: Run tests
+        env:
+          KMP: true
+          GRADLE_VERSION: ${{ matrix.gradle-version }}
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          JAVA_VERSION: ${{matrix.jdk-version}}
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.GradleProjectTest"
+      - name: Upload test result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testResult-${{ matrix.os }}-${{ matrix.gradle-version }}
+          path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
   maven:
     strategy:
       fail-fast: false
@@ -34,36 +46,57 @@ jobs:
     name: Maven on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Run Maven tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
-        uses: ./.github/workflows/test-action
+      - uses: gradle/gradle-build-action@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
         with:
-          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          required-os: ${{ matrix.os }}
-          gradle-version: ${{ matrix.gradle-version }}
-          gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.MavenProjectTest"'
+          java-version: 11
+          distribution: 'temurin'
+      - name: Run Gradle tests
+        env:
+          KMP: true
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          JAVA_VERSION: ${{matrix.jdk-version}}
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.MavenProjectTest"
+      - name: Upload test result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testResult-${{ matrix.os }}-${{ matrix.gradle-version }}
+          path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
   kmp:
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
         gradle-version: [ '6.9.2', '7.6.4', '8.6' ]
-    name: KMP-Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
+    name: Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     outputs:
       result: ${{ steps.final_step.outputs.result }}
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Run KMP tests ${{ matrix.gradle-version }} on ${{ matrix.os }}
-        uses: ./.github/workflows/test-action
+      - uses: gradle/gradle-build-action@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
         with:
-          gradle-enterprise-key: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          required-os: ${{ matrix.os }}
-          gradle-version: ${{ matrix.gradle-version }}
-          gradle-test-command: ':plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.KMPGradleProjectTest"'
+          java-version: 11
+          distribution: 'temurin'
+      - name: Run tests
+        env:
+          KMP: true
+          GRADLE_VERSION: ${{ matrix.gradle-version }}
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          JAVA_VERSION: ${{matrix.jdk-version}}
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.KMPProjectTest"
+      - name: Upload test result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testResult-${{ matrix.os }}-${{ matrix.gradle-version }}
+          path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
