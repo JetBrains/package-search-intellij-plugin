@@ -73,7 +73,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         gradle-version: [ '6.9.2', '7.6.4', '8.6' ]
-    name: Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
+    name: KMP ${{ matrix.gradle-version }}
     runs-on: ${{ matrix.os }}
     outputs:
       result: ${{ steps.final_step.outputs.result }}
@@ -93,7 +93,7 @@ jobs:
           GRADLE_VERSION: ${{ matrix.gradle-version }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           JAVA_VERSION: ${{matrix.jdk-version}}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.KMPProjectTest"
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.KMPGradleProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
