@@ -16,7 +16,6 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleEditor
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
-import com.jetbrains.packagesearch.plugin.ui.model.ToolWindowViewModel
 import com.jetbrains.packagesearch.plugin.ui.model.getLatestVersion
 import com.jetbrains.packagesearch.plugin.ui.model.hasUpdates
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelViewModel
@@ -24,6 +23,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemE
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.SetHeaderState.TargetState.OPEN
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
 import com.jetbrains.packagesearch.plugin.utils.logFUSEvent
 import com.jetbrains.packagesearch.plugin.utils.logTODO
 import com.jetbrains.packagesearch.plugin.utils.logWarn
@@ -69,7 +69,7 @@ class PackageListViewModel(
             .isOnlineFlow
 
     val isCompactFlow
-        get() = project.service<ToolWindowViewModel>().isInfoPanelOpen
+        get() = project.PackageSearchSettingsService.isInfoPanelOpenFlow
 
     private val selectedModuleIdsChannel =
         Channel<Set<PackageSearchModule.Identity>>()
@@ -186,7 +186,7 @@ class PackageListViewModel(
             packagesLoadingStateFlow = packagesLoadingMutableStateFlow,
             headerLoadingStatesFlow = headerLoadingStatesFlow,
             searchQueryFlow = searchQueryStateFlow,
-            stableOnlyFlow = project.PackageSearchProjectService.stableOnlyStateFlow,
+            stableOnlyFlow = project.PackageSearchSettingsService.stableOnlyFlow,
             isOnlineSearchEnabledFlow = isOnlineSearchEnabledFlow,
         )
             .map { change ->
@@ -335,7 +335,7 @@ class PackageListViewModel(
     }
 
     private suspend fun handle(event: PackageListItemEvent.InfoPanelEvent.OnPackageDoubleClick) {
-        project.service<ToolWindowViewModel>().isInfoPanelOpen.emit(true)
+        project.PackageSearchSettingsService.isInfoPanelOpenFlow.value = true
         logFUSEvent(PackageSearchFUSEvent.InfoPanelOpened)
     }
 
@@ -404,7 +404,7 @@ class PackageListViewModel(
         val (module, editor, manager, dependency) =
             actionType.eventId.getDependencyManagers() ?: return
         val newVersion = when {
-            project.PackageSearchProjectService.stableOnlyStateFlow.value ->
+            project.PackageSearchSettingsService.stableOnlyFlow.value ->
                 dependency.remoteInfo?.versions?.latestStable
                     ?: dependency.remoteInfo?.versions?.latest
 
@@ -526,7 +526,7 @@ class PackageListViewModel(
     ) = updater.editModule {
 
         val selectedVersion = when {
-            project.PackageSearchProjectService.stableOnlyStateFlow.value ->
+            project.PackageSearchSettingsService.stableOnlyFlow.value ->
                 apiPackage.versions.latestStable ?: apiPackage.versions.latest
 
             else -> apiPackage.versions.latest
@@ -544,7 +544,7 @@ class PackageListViewModel(
         selectedVersion: ApiPackageVersion,
         installedRepositories: List<PackageSearchDeclaredRepository>,
     ) {
-        if (project.PackageSearchProjectService.installRepositoryIfNeeded.value) {
+        if (project.PackageSearchSettingsService.installRepositoryIfNeededFlow.value) {
             val apiRepository =
                 selectedVersion.repositoryIds
                     .firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
@@ -628,7 +628,7 @@ class PackageListViewModel(
                                 targetModule = module
                             )
                         )
-                        if (project.PackageSearchProjectService.installRepositoryIfNeeded.value) {
+                        if (project.PackageSearchSettingsService.installRepositoryIfNeededFlow.value) {
                             dependency.remoteInfo?.versions?.all
                                 ?.firstOrNull { it.normalizedVersion.versionName == event.version }
                                 ?.repositoryIds
@@ -695,11 +695,7 @@ class PackageListViewModel(
         }
 
 
-        project.service<ToolWindowViewModel>().isInfoPanelOpen.let { openStateFlow ->
-            if (!openStateFlow.value) {
-                openStateFlow.emit(true)
-            }
-        }
+        project.PackageSearchSettingsService.isInfoPanelOpenFlow.value = true
 
     }
 
@@ -728,7 +724,7 @@ class PackageListViewModel(
     private suspend fun handle(event: PackageListItemEvent.UpdateAllPackages) {
         headerLoadingStatesFlow.update { it + event.eventId }
         logFUSEvent(PackageSearchFUSEvent.UpgradeAll)
-        val onlyStable = project.PackageSearchProjectService.stableOnlyStateFlow.value
+        val onlyStable = project.PackageSearchSettingsService.stableOnlyFlow.value
         when (val module = event.eventId.getModule()) {
             is PackageSearchModule.Base -> {
                 val packagesToUpdate = module.declaredDependencies
@@ -758,7 +754,7 @@ class PackageListViewModel(
                                     ?.takeIf { it.url !in module.declaredRepositories.map { it.url } }
                             }
                             .toSet()
-                        if (repositoriesToAdd.isNotEmpty() && project.PackageSearchProjectService.installRepositoryIfNeeded.value) {
+                        if (repositoriesToAdd.isNotEmpty() && project.PackageSearchSettingsService.installRepositoryIfNeededFlow.value) {
                             repositoriesToAdd.forEach { module.addRepository(it) }
                         }
                     }

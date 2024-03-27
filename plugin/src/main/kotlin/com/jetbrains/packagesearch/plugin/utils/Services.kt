@@ -8,6 +8,7 @@ import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
 import com.jetbrains.packagesearch.plugin.services.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.services.PackageSearchFUSService
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
+import com.jetbrains.packagesearch.plugin.services.PackageSearchSettingsService
 
 
 val Application.PackageSearchApplicationCachesService
@@ -15,6 +16,9 @@ val Application.PackageSearchApplicationCachesService
 
 val Project.PackageSearchProjectService
     get() = service<PackageSearchProjectService>()
+
+val Project.PackageSearchSettingsService
+    get() = service<PackageSearchSettingsService>()
 
 val Application.PackageSearchFUSService
     get() = service<PackageSearchFUSService>()

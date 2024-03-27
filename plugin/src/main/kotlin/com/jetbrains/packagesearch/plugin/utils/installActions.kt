@@ -7,58 +7,39 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.util.asSafely
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
-import com.jetbrains.packagesearch.plugin.ui.model.ToolWindowViewModel
+import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
+import javax.swing.Icon
 
 internal fun ToolWindow.installActions(project: Project) {
-    val toggleInstallRepository = object : ToggleAction(
-        PackageSearchBundle.message("packagesearch.configuration.automatically.add.repositories.tip"),
-        PackageSearchBundle.message("packagesearch.configuration.automatically.add.repositories"),
-        AllIcons.Actions.PreviewDetails,
-    ), DumbAware {
-        override fun isSelected(e: AnActionEvent) =
-            project.PackageSearchProjectService.installRepositoryIfNeeded.value
+    val toggleInstallRepository = ToggleAction(
+        actionText = PackageSearchBundle.message("packagesearch.configuration.automatically.add.repositories.tip"),
+        actionDescription = PackageSearchBundle.message("packagesearch.configuration.automatically.add.repositories"),
+        isSelected = { project.PackageSearchSettingsService.installRepositoryIfNeededFlow.value },
+        setSelected = { project.PackageSearchSettingsService.installRepositoryIfNeededFlow.value = it }
+    )
 
-        override fun setSelected(e: AnActionEvent, state: Boolean) {
-            project.PackageSearchProjectService.installRepositoryIfNeeded.value = state
+    val toggleOnlyStableAction = ToggleAction(
+        actionText = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable"),
+        actionDescription = PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable.description"),
+        isSelected = { project.PackageSearchSettingsService.stableOnlyFlow.value },
+        setSelected = {
+            logFUSEvent(PackageSearchFUSEvent.OnlyStableToggle(it))
+            project.PackageSearchSettingsService.stableOnlyFlow.value = it
         }
+    )
 
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
-    }
-    val toggleOnlyStableAction = object : ToggleAction(
-        PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable"),
-        PackageSearchBundle.message("packagesearch.ui.toolwindow.packages.filter.onlyStable.description"),
-        AllIcons.Actions.PreviewDetails,
-    ), DumbAware {
-        override fun isSelected(e: AnActionEvent) =
-            project.PackageSearchProjectService.stableOnlyStateFlow.value
-
-        override fun setSelected(e: AnActionEvent, state: Boolean) {
-            project.PackageSearchProjectService.stableOnlyStateFlow.value = state
-        }
-
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
-    }
-    val toggleInfoboxAction = object : ToggleAction(
-        PackageSearchBundle.message("packagesearch.actions.showDetails.text"),
-        PackageSearchBundle.message("packagesearch.actions.showDetails.description"),
-        AllIcons.Actions.PreviewDetails,
-    ), DumbAware {
-        override fun isSelected(e: AnActionEvent) =
-            project.service<ToolWindowViewModel>().isInfoPanelOpen.value
-
-        override fun setSelected(e: AnActionEvent, state: Boolean) {
-            project.service<ToolWindowViewModel>().isInfoPanelOpen.value = state
-        }
-
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
-    }
+    val toggleInfoboxAction = ToggleAction(
+        actionText = PackageSearchBundle.message("packagesearch.actions.showDetails.text"),
+        actionDescription = PackageSearchBundle.message("packagesearch.actions.showDetails.description"),
+        isSelected = { project.PackageSearchSettingsService.isInfoPanelOpenFlow.value },
+        setSelected = { project.PackageSearchSettingsService.isInfoPanelOpenFlow.value = it }
+    )
 
     asSafely<ToolWindowEx>()
         ?.setAdditionalGearActions(
@@ -70,4 +51,16 @@ internal fun ToolWindow.installActions(project: Project) {
         )
 
     asSafely<ToolWindowEx>()?.setTitleActions(listOf(toggleInfoboxAction))
+}
+
+private fun ToggleAction(
+    actionText: String,
+    actionDescription: String,
+    icon: Icon = AllIcons.Actions.PreviewDetails,
+    isSelected: () -> Boolean,
+    setSelected: (Boolean) -> Unit,
+) = object : ToggleAction(actionText, actionDescription, icon), DumbAware {
+    override fun isSelected(e: AnActionEvent) = isSelected()
+    override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
