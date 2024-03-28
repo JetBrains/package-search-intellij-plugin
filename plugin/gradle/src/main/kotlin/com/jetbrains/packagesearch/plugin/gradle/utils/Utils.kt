@@ -33,7 +33,8 @@ private fun ArtifactDependencyModel.getDependencyDeclarationIndexes(): Dependenc
             ?.textOffset
             ?: psiElement!!.textOffset,
         versionStartIndex = version().psiElement?.textOffset
-            ?: psiElement?.children?.firstOrNull()?.textOffset,
+            ?: psiElement?.children?.firstOrNull()?.textOffset
+            ?: psiElement?.textOffset,
     )
 
 fun ArtifactDependencyModel.toGradleDependencyModel() =
