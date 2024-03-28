@@ -6,8 +6,10 @@ import com.jetbrains.packagesearch.plugin.tests.TestResult
 import com.jetbrains.packagesearch.plugin.tests.getResourceAbsolutePath
 import kotlin.io.path.inputStream
 import kotlin.io.path.isRegularFile
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.test.TestScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -50,13 +52,13 @@ internal fun TestScope.validateResult(projectName: String, expectedResultPath: S
     )
 
 
-    assert(expected.value?.keys?.any { it in (result.value?.keys ?: emptySet()) } ?: false) {
+    assertTrue(expected.value?.keys?.all { it in (result.value?.keys ?: emptySet()) } ?: false,
         buildString {
             appendLine("expected MODULE keys differ from result keys")
             appendLine("expected: ${expected.value?.keys}")
             appendLine("result: ${result.value?.keys}")
         }
-    }
+    )
 
     expected.value?.forEach { (key, value) ->
         assertNotNull(
@@ -88,34 +90,32 @@ internal fun validateModule(
     }
 
     expected.compatiblePackageTypes.let {
-        assert(it.size == result.compatiblePackageTypes.size) {
+        assertEquals(it.size, result.compatiblePackageTypes.size,
             buildString {
                 appendLine("compatible packageType size differ from expected dump")
                 appendLine(printableJson)
-            }
-        }
-        assert(it.all { it in result.compatiblePackageTypes }) {
+            })
+        assertTrue(it.all { it in result.compatiblePackageTypes },
             buildString {
                 appendLine("compatible packageType differ from expected dump")
                 appendLine(printableJson)
             }
-        }
+        )
     }
 
     expected.declaredRepositories.let {
-        assert(it.all { it in result.declaredRepositories }) {
+        assertTrue(it.all { it in result.declaredRepositories },
             buildString {
                 appendLine("declaredKnownRepositories differ from expected dump")
                 appendLine(printableJson)
             }
-        }
+        )
     }
 
-    assert(expected.identity == result.identity) {
+    assertEquals(expected.identity, result.identity,
         buildString {
             appendLine("identity differ from expected dump")
             appendLine(printableJson)
-        }
-    }
+        })
 
 }
