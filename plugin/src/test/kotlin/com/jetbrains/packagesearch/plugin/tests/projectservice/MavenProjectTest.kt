@@ -3,8 +3,8 @@ package com.jetbrains.packagesearch.plugin.tests.projectservice
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class MavenProjectTest : PackageSearchProjectServiceTest() {
+class VersionCatalogTest : PackageSearchProjectServiceTest() {
 
-    override val resourcePath = "/projects/maven/"
+    override val resourcePath = "/projects/catalog/"
 
 }
