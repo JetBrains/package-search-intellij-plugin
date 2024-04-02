@@ -126,7 +126,7 @@ jobs:
           GRADLE_VERSION: ${{ matrix.gradle-version }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           JAVA_VERSION: ${{matrix.jdk-version}}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.VersionCatalogTest"
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.CatalogProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
