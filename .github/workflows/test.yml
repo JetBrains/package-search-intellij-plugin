@@ -73,7 +73,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         gradle-version: [ '6.9.2', '7.6.4', '8.6' ]
-    name: KMP ${{ matrix.gradle-version }}
+    name: KMP - Gradle ${{ matrix.gradle-version }}
     runs-on: ${{ matrix.os }}
     outputs:
       result: ${{ steps.final_step.outputs.result }}
@@ -98,7 +98,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: testResult-kmp-${{ matrix.os }}-${{ matrix.gradle-version }}
+          name: testResult-kmp-gradle-${{ matrix.os }}-${{ matrix.gradle-version }}
           path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
   version-catalog:
     continue-on-error: true
