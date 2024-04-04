@@ -163,7 +163,7 @@ internal fun buildIdeContext(projectPath: Path): IDETestContext {
 
     return Starter.newContext(
         CurrentTestMethod.hyphenateWithClass(),
-        testCase.project.useRelease("233.3.6"),
+        testCase.project.useRelease("233.3.5"),
     )
         .setSharedIndexesDownload(true)
         .addProjectToTrustedLocations()
