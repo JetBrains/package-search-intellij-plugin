@@ -1,0 +1,100 @@
+{
+  "value": {
+    "gradle-catalog-groovy": {
+      "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+      "name": "gradle-catalog-groovy",
+      "identity": {
+        "group": "gradle",
+        "path": ":"
+      },
+      "declaredRepositories": [
+        {
+          "name": "MavenRepo",
+          "url": "https://repo.maven.apache.org/maven2/"
+        }
+      ],
+      "compatiblePackageTypes": [
+        {
+          "type": "maven"
+        },
+        {
+          "type": "gradle",
+          "variants": [
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-api"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            },
+            {
+              "attributes": {
+                "org.gradle.usage": {
+                  "type": "exactMatch",
+                  "value": "java-runtime"
+                },
+                "org.gradle.libraryelements": {
+                  "type": "exactMatch",
+                  "value": "jar"
+                }
+              },
+              "mustBeWithFiles": false
+            }
+          ]
+        }
+      ],
+      "dependencyMustHaveAScope": true,
+      "declaredDependencies": [
+        {
+          "id": "maven:org.codehaus.groovy:groovy-json",
+          "displayName": "Apache Groovy",
+          "coordinates": "org.codehaus.groovy:groovy-json",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "3.0.5",
+            "isStable": true,
+            "semanticPart": "3.0.5"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 230,
+            "versionStartIndex": 115
+          },
+          "declaredScope": "implementation"
+        },
+        {
+          "id": "maven:org.codehaus.groovy:groovy-nio",
+          "displayName": "Apache Groovy",
+          "coordinates": "org.codehaus.groovy:groovy-nio",
+          "declaredVersion": {
+            "type": "semantic",
+            "versionName": "3.0.5",
+            "isStable": true,
+            "semanticPart": "3.0.5"
+          },
+          "declarationIndexes": {
+            "declarationStartIndex": 245,
+            "versionStartIndex": 198
+          },
+          "declaredScope": "implementation"
+        }
+      ],
+      "availableScopes": [
+        "annotationProcessor",
+        "compileOnly",
+        "implementation",
+        "runtimeOnly",
+        "testAnnotationProcessor",
+        "testCompileOnly",
+        "testImplementation",
+        "testRuntimeOnly"
+      ],
+      "defaultScope": "implementation"
+    }
+  }
+}
