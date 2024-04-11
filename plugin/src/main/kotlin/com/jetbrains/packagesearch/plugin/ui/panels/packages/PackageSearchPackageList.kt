@@ -46,6 +46,21 @@ import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemE
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Install
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Remove
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.PackageListHeader
+import java.net.Socket
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyItemScope
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
@@ -110,6 +125,10 @@ fun PackageSearchPackageList(
                         onLinkClick = { onPackageEvent(PackageListItemEvent.OnRetryPackageSearch(item.id)) }
                     )
                 }
+
+                is PackageListItem.NoPackagesFound -> item(key = item.id, contentType = item.contentType()) {
+                    NoPackagesFoundItem()
+                }
             }
         }
     }
@@ -124,6 +143,17 @@ fun SearchErrorItem(onLinkClick: () -> Unit) {
     ) {
         Text(message("packagesearch.ui.toolwindow.tab.packages.searchResults.error"))
         Link(message("packagesearch.ui.toolwindow.tab.packages.searchResults.error.retry"), onClick = onLinkClick)
+    }
+}
+
+@Composable
+fun NoPackagesFoundItem() {
+    Column(
+        Modifier.fillMaxSize().padding(20.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(message("packagesearch.ui.toolwindow.tab.packages.searchResults.noPackages"))
     }
 }
 
@@ -158,7 +188,7 @@ internal fun SelectableLazyItemScope.PackageListItem(
                 onDoubleClick = { onPackageListItemEvent(OnPackageDoubleClick(content.id)) },
                 onClick = {
                     //this event should be handled when you click on a selected package to refresh side panel content
-                    if (isSelected ) onPackageListItemEvent(
+                    if (isSelected) onPackageListItemEvent(
                         PackageListItemEvent.InfoPanelEvent.OnSelectedPackageClick(content.id)
                     )
                 }
@@ -344,7 +374,7 @@ internal fun RemotePackageWithVariantsActionPopup(
         }
         if (!isInstalledInPrimaryVariant) {
             passiveItem {
-                Divider(Orientation.Horizontal,modifier = Modifier.padding(vertical = 4.dp))
+                Divider(Orientation.Horizontal, modifier = Modifier.padding(vertical = 4.dp))
             }
             selectableItem(
                 selected = false,
@@ -356,7 +386,7 @@ internal fun RemotePackageWithVariantsActionPopup(
 
         if (additionalVariants.isNotEmpty()) {
             passiveItem {
-                Divider(Orientation.Horizontal,modifier = Modifier.padding(vertical = 4.dp))
+                Divider(Orientation.Horizontal, modifier = Modifier.padding(vertical = 4.dp))
             }
             additionalVariants.forEach {
                 selectableItem(
@@ -400,7 +430,7 @@ internal fun DeclaredPackageActionPopup(
                 }
             }
             passiveItem {
-                Divider(Orientation.Horizontal,modifier = Modifier.padding(vertical = 4.dp))
+                Divider(Orientation.Horizontal, modifier = Modifier.padding(vertical = 4.dp))
             }
             selectableItem(
                 selected = false,
@@ -424,6 +454,7 @@ private fun PackageListItem.contentType() = when (this) {
     is PackageListItem.Package.Declared -> "declared.package"
     is PackageListItem.Package.Remote -> "remote.package"
     is PackageListItem.SearchError -> "search.error"
+    is PackageListItem.NoPackagesFound -> "no.packages.found"
 }
 
 @Composable

@@ -157,4 +157,13 @@ sealed interface PackageListItem {
         ) : PackageListItem.Id
     }
 
+    data class NoPackagesFound(override val id: Id) : PackageListItem {
+
+        @Serializable
+        data class Id(
+            override val moduleIdentity: PackageSearchModule.Identity,
+            val parentHeaderId: Header.Id,
+        ) : PackageListItem.Id
+    }
+
 }
