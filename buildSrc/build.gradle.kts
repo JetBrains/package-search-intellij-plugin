@@ -28,6 +28,7 @@ dependencies {
     implementation(packageSearchCatalog.kotlinter.gradle.plugin)
     implementation(packageSearchCatalog.shadow.gradle.plugin)
     implementation(packageSearchCatalog.kotlinx.serialization.json)
+    implementation(packageSearchCatalog.kotlinx.serialization.protobuf)
     implementation("com.squareup:kotlinpoet:1.14.2")
     implementation("io.github.pdvrieze.xmlutil:serialization:0.86.2")
     implementation("com.vladsch.flexmark:flexmark-all:0.64.8")

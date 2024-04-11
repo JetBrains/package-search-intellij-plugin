@@ -25,6 +25,7 @@ include(
     ":plugin:gradle:base",
     ":plugin:gradle:kmp",
     ":plugin:gradle:tooling",
+    ":plugin:gradle:dependencies-report",
     ":plugin:maven",
     ":kmp-modifier",
 )

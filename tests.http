@@ -4,21 +4,11 @@ Content-Type: application/json
 {
   "packagesType": [
     {
-      "type": "maven"
-    },
-    {
       "type": "gradle",
       "variants": [
         {
           "attributes": {
-            "org.gradle.usage": {
-              "type": "exactMatch",
-              "value": "java-runtime"
-            },
-            "org.gradle.libraryelements": {
-              "type": "exactMatch",
-              "value": "jar"
-            }
+            // ...
           },
           "mustBeWithFiles": false
         }
@@ -26,5 +16,5 @@ Content-Type: application/json
       "mustBeRootPublication": true
     }
   ],
-  "searchQuery": "kotlinx-datetime"
+  "searchQuery": "compose"
 }

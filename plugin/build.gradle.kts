@@ -7,6 +7,7 @@ import kotlin.math.max
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.kotlin.util.prefixIfNot
 import org.jetbrains.kotlin.util.suffixIfNot
+import org.jetbrains.packagesearch.gradle.json.JsonDependencyReportTask
 import org.jetbrains.packagesearch.gradle.lafFile
 import org.jetbrains.packagesearch.gradle.logCategoriesFile
 import org.jetbrains.packagesearch.gradle.patchLafFile
@@ -187,6 +188,10 @@ tasks {
         distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
         token = project.properties["marketplaceToken"]?.toString()
             ?: getenv("MARKETPLACE_TOKEN")
+    }
+
+    register<JsonDependencyReportTask>("generateJsonDependencyReport") {
+        inputConfigurations = listOf(configurations.dokkaGfmMultiModulePlugin.get())
     }
 
 }

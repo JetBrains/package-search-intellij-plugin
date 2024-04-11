@@ -9,21 +9,20 @@ import kotlinx.serialization.Serializable
  *    implementation("io.ktor:ktor-server-cio:2.0.0")
  * // ▲               ▲                       ▲
  * // |               ∟ coordinatesStartIndex |
- * // ∟ wholeDeclarationStartIndex            ∟ versionStartIndex
+ * // ∟ declarationStartIndex                 ∟ versionStartIndex
  * //
  * ```
  * Example for Maven:
  * ```
  *      <dependency>
- * //    ▲ wholeDeclarationStartIndex
+ * //    ▲ declarationStartIndex
  *          <groupId>io.ktor</groupId>
- * //                ▲ coordinatesStartIndex
  *          <artifactId>ktor-server-cio</artifactId>
  *          <version>2.0.0</version>
  * //                ▲ versionStartIndex
  *      </dependency>
  * ```
- * @param declarationStartIndex index of the first character where the whole declarations starts.
+ * @param declarationStartIndex index of the first character where the whole declarations start.
  *
  */
 @Serializable
