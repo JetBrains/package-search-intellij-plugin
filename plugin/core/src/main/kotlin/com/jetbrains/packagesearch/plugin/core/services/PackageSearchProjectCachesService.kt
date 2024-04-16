@@ -4,10 +4,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.getProjectDataPath
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
+import com.jetbrains.packagesearch.plugin.core.utils.packageSearchProjectDataPath
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.div
 
@@ -15,21 +15,12 @@ import kotlin.io.path.div
 class PackageSearchProjectCachesService(private val project: Project) : Disposable {
 
     private val cacheFilePath
-        get() = cachesDirectory / "db-v${PackageSearch.databaseVersion}.db"
-
-    private val cachesDirectory
-        get() = project.getProjectDataPath("caches") / "packagesearch"
+        get() = project.packageSearchProjectDataPath / "caches-v${PackageSearch.databaseVersion}.db"
 
     @PKGSInternalAPI
-    val cache = buildDefaultNitrate(
-        path = cacheFilePath
-            .apply { parent.toFile().mkdirs() }
-            .absolutePathString()
-    )
+    val cache = buildDefaultNitrate(cacheFilePath.absolutePathString())
 
-    override fun dispose() {
-        cache.close()
-    }
+    override fun dispose() = cache.close()
 
     inline fun <reified T : Any> getRepository(key: String) =
         cache.getRepository<T>(key)

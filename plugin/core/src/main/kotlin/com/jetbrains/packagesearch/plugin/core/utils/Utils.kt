@@ -18,6 +18,7 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.getProjectDataPath
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryManager
@@ -43,6 +44,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.contracts.contract
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.io.path.createDirectories
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -368,3 +370,6 @@ fun <T> Result<T>.suspendSafe() = onFailure { if (it is CancellationException) t
 
 fun Path.isSameFileAsSafe(other: Path): Boolean = kotlin.runCatching { Files.isSameFile(this, other) }
     .getOrDefault(false)
+
+val Project.packageSearchProjectDataPath
+    get() = getProjectDataPath("packagesearch").createDirectories()

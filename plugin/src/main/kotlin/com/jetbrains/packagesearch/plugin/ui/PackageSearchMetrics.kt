@@ -19,12 +19,12 @@ object PackageSearchMetrics {
                     metrics.trackPadding.calculateEndPadding(LocalLayoutDirection.current)
         }
 
-    object Splitpane {
+    object Splitpanes {
 
         val minWidth: Dp = 300.dp
-        const val firstSplitterPositionPercentage = .20f
+        const val firstSplitPositionPercentage = .20f
 
-        const val secondSplittePositionPercentage = .80f
+        const val secondSplitPositionPercentage = .80f
     }
 
     object Popups {
