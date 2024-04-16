@@ -93,19 +93,19 @@ class PackageListBuilder(
             dependenciesToShow
                 .filter { it.matchesSearchQuery() }
                 .forEach { dependency ->
-                addDeclaredPackage(
-                    title = dependency.displayName,
-                    subtitle = dependency.coordinates,
-                    id = PackageListItem.Package.Declared.Id.Base(base.identity, dependency.id),
-                    icon = dependency.icon,
-                    latestVersion = dependency.getLatestVersion(onlyStable)?.versionName,
-                    selectedScope = dependency.declaredScope,
-                    availableScopes = base.availableScopes,
-                    declaredVersion = dependency.declaredVersion?.versionName,
-                    availableVersions = dependency.getAvailableVersionStrings(),
-                    allowMissingScope = !base.dependencyMustHaveAScope,
-                )
-            }
+                    addDeclaredPackage(
+                        title = dependency.displayName,
+                        subtitle = dependency.coordinates,
+                        id = PackageListItem.Package.Declared.Id.Base(base.identity, dependency.id),
+                        icon = dependency.icon,
+                        latestVersion = dependency.getLatestVersion(onlyStable)?.versionName,
+                        selectedScope = dependency.declaredScope,
+                        availableScopes = base.availableScopes,
+                        declaredVersion = dependency.declaredVersion?.versionName,
+                        availableVersions = dependency.getAvailableVersionStrings(),
+                        allowMissingScope = !base.dependencyMustHaveAScope,
+                    )
+                }
         }
     }
 
@@ -193,23 +193,23 @@ class PackageListBuilder(
                     variant.declaredDependencies
                         .filter { it.matchesSearchQuery() }
                         .forEach { dependency ->
-                        addDeclaredPackage(
-                            title = dependency.displayName,
-                            subtitle = dependency.coordinates,
-                            id = PackageListItem.Package.Declared.Id.WithVariant(
-                                moduleIdentity = module.identity,
-                                packageId = dependency.id,
-                                variantName = variant.name,
-                            ),
-                            icon = dependency.icon,
-                            latestVersion = dependency.getLatestVersion(onlyStable)?.versionName,
-                            selectedScope = dependency.declaredScope,
-                            availableScopes = variant.availableScopes,
-                            declaredVersion = dependency.declaredVersion?.versionName,
-                            availableVersions = dependency.getAvailableVersionStrings(),
-                            allowMissingScope = !module.dependencyMustHaveAScope,
-                        )
-                    }
+                            addDeclaredPackage(
+                                title = dependency.displayName,
+                                subtitle = dependency.coordinates,
+                                id = PackageListItem.Package.Declared.Id.WithVariant(
+                                    moduleIdentity = module.identity,
+                                    packageId = dependency.id,
+                                    variantName = variant.name,
+                                ),
+                                icon = dependency.icon,
+                                latestVersion = dependency.getLatestVersion(onlyStable)?.versionName,
+                                selectedScope = dependency.declaredScope,
+                                availableScopes = variant.availableScopes,
+                                declaredVersion = dependency.declaredVersion?.versionName,
+                                availableVersions = dependency.getAvailableVersionStrings(),
+                                allowMissingScope = !module.dependencyMustHaveAScope,
+                            )
+                        }
                 }
             }
     }
@@ -235,23 +235,23 @@ class PackageListBuilder(
             dependenciesToShow
                 .filter { it.second.matchesSearchQuery() }
                 .forEach { (variant, dependency) ->
-                addDeclaredPackage(
-                    title = dependency.displayName,
-                    subtitle = variant.name,
-                    id = PackageListItem.Package.Declared.Id.WithVariant(
-                        module.identity,
-                        dependency.id,
-                        variant.name,
-                    ),
-                    icon = dependency.icon,
-                    latestVersion = dependency.getLatestVersion(onlyStable)?.versionName,
-                    selectedScope = dependency.declaredScope,
-                    availableScopes = variant.availableScopes,
-                    declaredVersion = dependency.declaredVersion?.versionName,
-                    availableVersions = dependency.getAvailableVersionStrings(),
-                    allowMissingScope = !module.dependencyMustHaveAScope,
-                )
-            }
+                    addDeclaredPackage(
+                        title = dependency.displayName,
+                        subtitle = variant.name,
+                        id = PackageListItem.Package.Declared.Id.WithVariant(
+                            module.identity,
+                            dependency.id,
+                            variant.name,
+                        ),
+                        icon = dependency.icon,
+                        latestVersion = dependency.getLatestVersion(onlyStable)?.versionName,
+                        selectedScope = dependency.declaredScope,
+                        availableScopes = variant.availableScopes,
+                        declaredVersion = dependency.declaredVersion?.versionName,
+                        availableVersions = dependency.getAvailableVersionStrings(),
+                        allowMissingScope = !module.dependencyMustHaveAScope,
+                    )
+                }
         }
     }
 
@@ -278,17 +278,31 @@ class PackageListBuilder(
                     additionalContent = search.buildVariantsText()
                 )
 
-                is Search.Response.Base.Success -> addFromSearchQueryBase(
-                    headerId = headerId as PackageListItem.Header.Id.Remote.Base,
-                    search = search,
-                    module = modulesMap[headerId.moduleIdentity] as? PackageSearchModule.Base ?: return@forEach
-                )
+                is Search.Response.Base.Success -> when {
+                    search.packages.isNotEmpty() -> addFromSearchQueryBase(
+                        headerId = headerId as PackageListItem.Header.Id.Remote.Base,
+                        search = search,
+                        module = modulesMap[headerId.moduleIdentity] as? PackageSearchModule.Base ?: return@forEach
+                    )
 
-                is Search.Response.WithVariants.Success -> addFromSearchQueryWithVariants(
-                    headerId = headerId as PackageListItem.Header.Id.Remote.WithVariant,
-                    search = search,
-                    module = modulesMap[headerId.moduleIdentity] as? PackageSearchModule.WithVariants ?: return@forEach
-                )
+                    else -> addSearchResultNoPackages(headerId = headerId)
+                }
+
+                is Search.Response.WithVariants.Success -> when {
+                    search.packages.isNotEmpty() -> addFromSearchQueryWithVariants(
+                        headerId = headerId as PackageListItem.Header.Id.Remote.WithVariant,
+                        search = search,
+                        module = modulesMap[headerId.moduleIdentity] as? PackageSearchModule.WithVariants
+                            ?: return@forEach
+                    )
+
+                    else -> addSearchResultNoPackages(
+                        headerId = headerId,
+                        additionalContent = search.buildVariantsText(),
+                        attributes = search.attributes
+                    )
+                }
+
 
                 is Search.Response.Base.Error -> addSearchResultError(headerId = headerId)
 
@@ -299,6 +313,32 @@ class PackageListBuilder(
                 )
             }
         }
+    }
+
+    private fun addSearchResultNoPackages(
+        headerId: PackageListItem.Header.Id.Remote,
+        attributes: List<String> = emptyList(),
+        additionalContent: PackageListItem.Header.AdditionalContent.VariantsText? = null,
+    ) {
+        val headerState = when (headerCollapsedStates[headerId]) {
+            TargetState.OPEN -> PackageListItem.Header.State.OPEN
+            else -> PackageListItem.Header.State.CLOSED
+        }
+        addHeader(
+            title = PackageSearchBundle.message("packagesearch.ui.toolwindow.tab.packages.searchResults"),
+            id = headerId,
+            state = headerState,
+            attributes = attributes,
+            additionalContent = additionalContent,
+        )
+        items.add(
+            PackageListItem.NoPackagesFound(
+                id = PackageListItem.NoPackagesFound.Id(
+                    moduleIdentity = headerId.moduleIdentity,
+                    parentHeaderId = headerId
+                )
+            )
+        )
     }
 
     private fun addSearchResultError(
