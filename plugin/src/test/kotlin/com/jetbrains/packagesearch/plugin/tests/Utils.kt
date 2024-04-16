@@ -145,6 +145,7 @@ private fun fetchJavaLocation(javaHome: Path): JavaLocation {
     return JavaLocation(javaHome, version)
 }
 
+object DefaultTestCaseTemplate : TestCaseTemplate(IdeProductProvider.IC)
 
 /**
  * Builds the IDE context for testing.
@@ -155,15 +156,12 @@ private fun fetchJavaLocation(javaHome: Path): JavaLocation {
  * @return The IDETestContext object.
  */
 internal fun buildIdeContext(projectPath: Path): IDETestContext {
-    val testCase = object : TestCaseTemplate(IdeProductProvider.IC) {
-        val project = withProject(LocalProjectInfo(projectPath))
-    }
 
     val sdk = fetchJavaLocation().toSdkObject()
 
     return Starter.newContext(
         CurrentTestMethod.hyphenateWithClass(),
-        testCase.project.useEAP(),
+        DefaultTestCaseTemplate.withProject(LocalProjectInfo(projectPath)).useEAP(),
     )
         .setSharedIndexesDownload(true)
         .addProjectToTrustedLocations()
