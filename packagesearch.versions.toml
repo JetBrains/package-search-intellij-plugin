@@ -21,7 +21,7 @@ logback = "1.4.11"
 nitrite = "3.4.4"
 packagesearchApiModels = "3.0.0"
 jewel = "0.15.0"
-ideStarter = "LATEST-EAP-SNAPSHOT"
+ideStarter = "233-SNAPSHOT"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
