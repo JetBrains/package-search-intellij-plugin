@@ -31,8 +31,9 @@ import org.junit.jupiter.params.provider.MethodSource
 @ExtendWith(JUnit5StarterAssistant::class)
 abstract class PackageSearchProjectServiceTest {
 
-    private lateinit var testInfo: TestFailedLineManager.TestInfo
-    private lateinit var context: TestContainerImpl
+
+
+    abstract fun getContext(): TestContainerImpl
 
     abstract val resourcePath: String
 
@@ -73,7 +74,7 @@ abstract class PackageSearchProjectServiceTest {
         editProject(projectDir)
 
         //IDE context setup
-        val testContext = buildIdeContext(projectDir, context)
+        val testContext = buildIdeContext(projectDir, getContext())
 
         val dumpPkgsDataChain = CommandChain()
             .waitForSmartMode()
