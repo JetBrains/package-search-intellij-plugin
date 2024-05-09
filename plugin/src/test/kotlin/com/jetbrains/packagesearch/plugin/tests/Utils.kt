@@ -161,7 +161,7 @@ internal fun buildIdeContext(projectPath: Path, context: TestContainerImpl): IDE
 
     val sdk = fetchJavaLocation().toSdkObject()
 
-    return context.initializeTestContext(testName = projectPath.nameWithoutExtension, testCase.project)
+    return context.initializeTestContext(testName = projectPath.nameWithoutExtension, testCase.project.useRelease("2023.3.6"))
         .setSharedIndexesDownload(true)
         .addProjectToTrustedLocations()
         .disableFusSendingOnIdeClose()
