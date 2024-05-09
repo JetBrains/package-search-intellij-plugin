@@ -29,14 +29,6 @@ allprojects {
         maven("https://packages.jetbrains.team/maven/p/kpm/public")
         maven("https://www.jetbrains.com/intellij-repository/snapshots")
         maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
-        maven("https://packages.jetbrains.team/maven/p/ij/intellij-sdk-nightly") {
-            credentials {
-                username = getenv("MAVEN_SPACE_INTELLIJ_USERNAME")
-                    ?: project.extra.getStringOrNull("space.intellij.username")
-                password = getenv("MAVEN_SPACE_INTELLIJ_PASSWORD")
-                    ?: project.extra.getStringOrNull("space.intellij.password")
-            }
-        }
     }
 }
 

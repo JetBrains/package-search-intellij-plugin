@@ -1,6 +1,8 @@
 package com.jetbrains.packagesearch.plugin.tests.projectservice
 
 import com.intellij.ide.starter.junit5.JUnit5StarterAssistant
+import com.intellij.ide.starter.runner.TestContainerImpl
+import com.intellij.testIntegration.TestFailedLineManager
 import com.intellij.tools.ide.performanceTesting.commands.CommandChain
 import com.intellij.tools.ide.performanceTesting.commands.exitApp
 import com.intellij.tools.ide.performanceTesting.commands.waitForSmartMode
@@ -28,6 +30,10 @@ import org.junit.jupiter.params.provider.MethodSource
 
 @ExtendWith(JUnit5StarterAssistant::class)
 abstract class PackageSearchProjectServiceTest {
+
+
+
+    abstract fun getContext(): TestContainerImpl
 
     abstract val resourcePath: String
 
@@ -68,7 +74,7 @@ abstract class PackageSearchProjectServiceTest {
         editProject(projectDir)
 
         //IDE context setup
-        val testContext = buildIdeContext(projectDir)
+        val testContext = buildIdeContext(projectDir, getContext())
 
         val dumpPkgsDataChain = CommandChain()
             .waitForSmartMode()

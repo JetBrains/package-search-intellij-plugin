@@ -2,11 +2,9 @@ package com.jetbrains.packagesearch.plugin.tests
 
 import com.intellij.ide.starter.ide.IDETestContext
 import com.intellij.ide.starter.ide.IdeProductProvider
-import com.intellij.ide.starter.junit5.hyphenateWithClass
 import com.intellij.ide.starter.project.LocalProjectInfo
 import com.intellij.ide.starter.project.TestCaseTemplate
-import com.intellij.ide.starter.runner.CurrentTestMethod
-import com.intellij.ide.starter.runner.Starter
+import com.intellij.ide.starter.runner.TestContainerImpl
 import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.tools.ide.performanceTesting.commands.CommandChain
 import com.intellij.tools.ide.performanceTesting.commands.SdkObject
@@ -18,6 +16,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.copyTo
 import kotlin.io.path.createDirectories
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.outputStream
 import kotlin.io.path.readLines
 import kotlin.io.path.toPath
@@ -154,17 +153,14 @@ private fun fetchJavaLocation(javaHome: Path): JavaLocation {
  * @param projectPath The path to the project.
  * @return The IDETestContext object.
  */
-internal fun buildIdeContext(projectPath: Path): IDETestContext {
+internal fun buildIdeContext(projectPath: Path, context: TestContainerImpl): IDETestContext {
     val testCase = object : TestCaseTemplate(IdeProductProvider.IC) {
         val project = withProject(LocalProjectInfo(projectPath))
     }
 
     val sdk = fetchJavaLocation().toSdkObject()
 
-    return Starter.newContext(
-        CurrentTestMethod.hyphenateWithClass(),
-        testCase.project.useRelease("233.3.5"),
-    )
+    return context.initializeTestContext(testName = projectPath.nameWithoutExtension, testCase.project.useRelease("2023.3.6"))
         .setSharedIndexesDownload(true)
         .addProjectToTrustedLocations()
         .disableFusSendingOnIdeClose()
