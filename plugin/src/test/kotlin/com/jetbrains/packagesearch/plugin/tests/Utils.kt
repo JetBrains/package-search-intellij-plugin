@@ -6,7 +6,6 @@ import com.intellij.ide.starter.project.LocalProjectInfo
 import com.intellij.ide.starter.project.TestCaseTemplate
 import com.intellij.ide.starter.runner.TestContainerImpl
 import com.intellij.openapi.util.io.toNioPathOrNull
-import com.intellij.testIntegration.TestFailedLineManager
 import com.intellij.tools.ide.performanceTesting.commands.CommandChain
 import com.intellij.tools.ide.performanceTesting.commands.SdkObject
 import com.jetbrains.packagesearch.plugin.tests.dumps.DumpPackageSearchModules
