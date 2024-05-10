@@ -1,6 +1,5 @@
 @file:Suppress("UnstableApiUsage")
 
-import kotlin.math.max
 import org.jetbrains.packagesearch.gradle.GeneratePackageSearchObject
 
 
@@ -21,14 +20,17 @@ packagesearch {
 }
 
 dependencies {
-    api(projects.nitrite)
-    sourceElements(projects.nitrite)
-    api(packageSearchCatalog.packagesearch.api.client)
-    api(packageSearchCatalog.nitrite) {
+    api(packageSearchCatalog.potassium.nitrite) {
+        exclude(group = "com.fasterxml.jackson")
         exclude(group = "com.fasterxml.jackson.core")
+        exclude(group = "com.fasterxml.jackson.datatype")
         exclude(group = "com.squareup.okhttp3")
         exclude(group = "org.slf4j")
     }
+    api(packageSearchCatalog.nitrite.mvstore.adapter) {
+        exclude(group = "org.slf4j")
+    }
+    api(packageSearchCatalog.packagesearch.api.client)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.api)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
     testImplementation(packageSearchCatalog.kotlinx.coroutines.test)
@@ -52,7 +54,7 @@ tasks {
         pluginId = pkgsPluginId
         outputDir = generatedDir
         packageName = "com.jetbrains.packagesearch.plugin.core"
-        databaseVersion = 2
+        databaseVersion = 3
     }
     sourcesJar {
         dependsOn(generatePluginDataSources)

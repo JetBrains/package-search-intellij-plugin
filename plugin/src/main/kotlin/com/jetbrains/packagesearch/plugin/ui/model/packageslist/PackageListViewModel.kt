@@ -22,11 +22,10 @@ import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelViewModel
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.SetHeaderState.TargetState
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.SetHeaderState.TargetState.OPEN
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
 import com.jetbrains.packagesearch.plugin.utils.logFUSEvent
-import com.jetbrains.packagesearch.plugin.utils.logTODO
-import com.jetbrains.packagesearch.plugin.utils.logWarn
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -330,7 +329,7 @@ class PackageListViewModel(
     }
 
     private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderVariantsClick) {
-        logTODO()
+        PackageSearchLogger.logTODO()
         logFUSEvent(PackageSearchFUSEvent.InfoPanelOpened)
     }
 
@@ -650,13 +649,13 @@ class PackageListViewModel(
                                 targetModule = module
                             )
                         )
-                        logTODO()
+                        PackageSearchLogger.logTODO()
                     }
                 }
             }
         }
             .onFailure {
-                logWarn("Failed to set scope for package:\n${json.encodeToString(event)}", it)
+                PackageSearchLogger.logWarn("Failed to set scope for package:\n${json.encodeToString(event)}", it)
             }
     }
 
@@ -760,7 +759,7 @@ class PackageListViewModel(
                     }
                 }
                     .onFailure {
-                        logWarn("Failed to update packages:\n${json.encodeToString(event)}", it)
+                        PackageSearchLogger.logWarn("Failed to update packages:\n${json.encodeToString(event)}", it)
                     }
             }
 
@@ -794,7 +793,7 @@ class PackageListViewModel(
                     }
                 }
                     .onFailure {
-                        logWarn("Failed to update packages:\n${json.encodeToString(event)}", it)
+                        PackageSearchLogger.logWarn("Failed to update packages:\n${json.encodeToString(event)}", it)
                     }
             }
 

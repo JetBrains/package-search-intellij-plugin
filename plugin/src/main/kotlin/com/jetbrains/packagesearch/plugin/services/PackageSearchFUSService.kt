@@ -4,7 +4,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.Service.Level
 import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
 import com.jetbrains.packagesearch.plugin.fus.log
-import com.jetbrains.packagesearch.plugin.utils.logWarn
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +24,10 @@ class PackageSearchFUSService(coroutineScope: CoroutineScope) {
         fusEventsFlow
             .onEach { it.log() }
             .retry(5) {
-                logWarn("${this::class.qualifiedName}#eventReportingJob", it) { "Failed to log FUS" }
+                PackageSearchLogger.logWarn(
+                    contextName = "${this::class.qualifiedName}#eventReportingJob",
+                    throwable = it
+                ) { "Failed to log FUS" }
                 true
             }
             .launchIn(coroutineScope)

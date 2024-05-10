@@ -55,6 +55,7 @@ internal fun PackageSearchGradleJavaModel.toPackageSearchModel() =
         isKotlinMultiplatformApplied = isKotlinMultiplatformApplied,
         rootProjectName = rootProjectName,
         buildFilePath = buildFilePath?.let { Paths.get(it) },
-        rootProjectPath = Paths.get(rootProjectPath)
+        rootProjectPath = Paths.get(rootProjectPath),
+        gradleVersion = gradleVersion
     )
 
