@@ -1,30 +1,31 @@
-GET https://api.dev.package-search.services.jetbrains.com/search-packages
+POST https://api.dev.package-search.services.jetbrains.com/refresh-packages-info
 Content-Type: application/json
+JB-Plugin-Version: 241.0.9
+#JB-IDE-Version: test
 
 {
-  "packagesType": [
+  "packages": [
     {
-      "type": "maven"
+      "packageIdHash": "726e58b2eca1ac6c63b6e923c67630aaa59a23a37969efd3059982adae27e90b",
+      "latestKnownVersion": null
     },
     {
-      "type": "gradle",
-      "variants": [
-        {
-          "attributes": {
-            "org.gradle.usage": {
-              "type": "exactMatch",
-              "value": "java-runtime"
-            },
-            "org.gradle.libraryelements": {
-              "type": "exactMatch",
-              "value": "jar"
-            }
-          },
-          "mustBeWithFiles": false
-        }
-      ],
-      "mustBeRootPublication": true
+      "packageIdHash": "67f3a6fb77bc58f1fa43027fbe89e2804e1f38bfbc3bca52e051dd7a0fb0a078",
+      "latestKnownVersion": null
     }
-  ],
-  "searchQuery": "kotlinx-datetime"
+  ]
+}
+
+###
+POST https://api.dev.package-search.services.jetbrains.com/package-info-by-ids
+Content-Type: application/json
+JB-Plugin-Version: 241.0.9
+
+
+{
+  "ids": [
+    "maven:io.ktor:ktor-client-core",
+    "maven:ch.qos.logback:logback-classic",
+    "maven:com.fasterxml.jackson.core:jackson-databind"
+  ]
 }

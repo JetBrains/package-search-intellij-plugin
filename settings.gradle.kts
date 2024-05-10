@@ -18,9 +18,9 @@ dependencyResolutionManagement {
 }
 
 include(
-    ":nitrite",
     ":plugin",
     ":plugin:core",
+    ":plugin:utils",
     ":plugin:gradle",
     ":plugin:gradle:base",
     ":plugin:gradle:kmp",
@@ -28,6 +28,14 @@ include(
     ":plugin:maven",
     ":kmp-modifier",
 )
+
+includeBuild("nitrite-java") {
+    dependencySubstitution {
+        substitute(module("org.dizitart:nitrite-java")).using(project(":nitrite"))
+        substitute(module("org.dizitart:potassium-nitrite")).using(project(":potassium-nitrite"))
+        substitute(module("org.dizitart:nitrite-mvstore-adapter")).using(project(":nitrite-mvstore-adapter"))
+    }
+}
 
 val isCi
     get() = System.getenv("CI") == "true"
@@ -39,7 +47,8 @@ gradleEnterprise {
             ?: extra.properties["gradleEnterpriseAccessKey"]?.toString()
         publishAlwaysIf(isCi)
         buildScanPublished {
-            file("build-scan-url.txt").writeText(buildScanUri.toString())
+            if (isCi)
+                file("build-scan-url.txt").writeText(buildScanUri.toString())
         }
     }
 }

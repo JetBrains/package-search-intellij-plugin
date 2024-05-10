@@ -1,5 +1,7 @@
 package com.jetbrains.packagesearch.plugin.gradle.tooling;
 
+import org.gradle.util.GradleVersion;
+
 import java.util.List;
 
 public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJavaModel {
@@ -9,10 +11,11 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
 
     private final List<DeclaredRepository> repositories;
     private final String projectIdentityPath;
-    boolean isJavaApplied;
-    private boolean isAmperApplied;
-    boolean isKotlinMultiplatformApplied;
-    boolean isKotlinAndroidApplied;
+    private final String gradleVersion;
+    private final boolean isJavaApplied;
+    private final boolean isAmperApplied;
+    private final boolean isKotlinMultiplatformApplied;
+    private final boolean isKotlinAndroidApplied;
     private final String projectName;
     private final String rootProjectName;
     private final String buildFilePath;
@@ -30,7 +33,8 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
             boolean isKotlinMultiplatformApplied,
             boolean isKotlinAndroidApplied,
             String buildFilePath,
-            String rootProjectPath
+            String rootProjectPath,
+            String gradleVersion
     ) {
         this.projectDir = projectDir;
         this.configurations = configurations;
@@ -44,6 +48,12 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         this.buildFilePath = buildFilePath;
         this.rootProjectPath = rootProjectPath;
         this.isAmperApplied = isAmperApplied;
+        this.gradleVersion = gradleVersion;
+    }
+
+    @Override
+    public String getGradleVersion() {
+        return gradleVersion;
     }
 
     @Override
