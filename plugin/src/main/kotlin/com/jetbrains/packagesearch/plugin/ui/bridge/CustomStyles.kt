@@ -4,15 +4,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
-import org.jetbrains.jewel.foundation.GlobalColors
-import org.jetbrains.jewel.foundation.LocalGlobalColors
-import org.jetbrains.jewel.foundation.OutlineColors
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.foundation.theme.LocalContentColor
 import org.jetbrains.jewel.ui.component.styling.LazyTreeMetrics
@@ -61,26 +56,6 @@ internal fun PackageSearchTabStyle(): TabStyle {
         icons = current.icons,
         contentAlpha = current.contentAlpha
     )
-}
-
-@Composable
-fun PackageSearchGlobalColors(): GlobalColors {
-    val colors = LocalGlobalColors.current
-
-    return remember(colors) {
-        GlobalColors(
-            borders = colors.borders,
-            outlines = OutlineColors(
-                focused = Color.Transparent,
-                focusedWarning = colors.outlines.focusedWarning,
-                focusedError = colors.outlines.focusedError,
-                warning = colors.outlines.warning,
-                error = colors.outlines.error,
-            ),
-            infoContent = colors.infoContent,
-            paneBackground = colors.paneBackground,
-        )
-    }
 }
 
 @Composable
