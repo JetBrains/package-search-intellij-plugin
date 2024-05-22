@@ -9,7 +9,6 @@ import com.intellij.openapi.util.io.toNioPathOrNull
 import com.intellij.tools.ide.performanceTesting.commands.CommandChain
 import com.intellij.tools.ide.performanceTesting.commands.SdkObject
 import com.jetbrains.packagesearch.plugin.tests.dumps.DumpPackageSearchModules
-import com.jetbrains.packagesearch.plugin.utils.logWarn
 import java.nio.file.Path
 import java.util.zip.ZipFile
 import kotlin.io.path.Path
@@ -84,18 +83,15 @@ internal fun <T : CommandChain> T.dumpPKGSTestData(): T {
 internal fun patchGradleVersion(gradleVersion: String, projectDir: Path) {
     val gradleProperties = projectDir.resolve("gradle/wrapper/gradle-wrapper.properties")
     if (!gradleProperties.isRegularFile()) error("unable to find gradle wrapper properties file")
-    logWarn("patching project's gradle version to $gradleVersion")
+    println("patching project's gradle version to $gradleVersion")
     gradleProperties.writeLines(
         gradleProperties.readLines()
             .map { line ->
                 when {
-                    line.startsWith("distributionUrl=") -> {
+                    line.startsWith("distributionUrl=") ->
                         "distributionUrl=https\\://services.gradle.org/distributions/gradle-$gradleVersion-bin.zip"
-                    }
 
-                    else -> {
-                        line
-                    }
+                    else -> line
                 }
             }
     )
@@ -143,7 +139,6 @@ private fun fetchJavaLocation(javaHome: Path): JavaLocation {
         ?: error("JAVA_VERSION is not found in $javaVersionFile")
     return JavaLocation(javaHome, version)
 }
-
 
 /**
  * Builds the IDE context for testing.

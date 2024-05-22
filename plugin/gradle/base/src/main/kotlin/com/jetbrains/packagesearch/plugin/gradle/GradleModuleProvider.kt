@@ -40,7 +40,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                 name = model.projectName,
                 identity = PackageSearchModule.Identity(
                     group = "gradle",
-                    path = model.projectIdentityPath,
+                    path = model.projectIdentityPath.fixBuildSrc(model),
                     projectDir = model.projectDir.toDirectory(),
                 ),
                 buildFilePath = model.buildFilePath,
@@ -67,4 +67,9 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
     }
 
 
+}
+
+private fun String.fixBuildSrc(model: PackageSearchGradleModel) = when {
+    model.projectName == "buildSrc" && this == ":" -> ":buildSrc"
+    else -> this
 }

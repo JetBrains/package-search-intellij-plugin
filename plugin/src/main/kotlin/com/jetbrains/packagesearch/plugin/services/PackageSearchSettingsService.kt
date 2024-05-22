@@ -5,7 +5,7 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.utils.packageSearchProjectDataPath
 import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
-import com.jetbrains.packagesearch.plugin.utils.logDebug
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import kotlin.io.path.div
 import kotlin.io.path.inputStream
 import kotlin.io.path.readText
@@ -25,7 +25,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 
 @Service(Level.PROJECT)
-class PackageSearchSettingsService(private val project: Project, private val coroutineScope: CoroutineScope) {
+class PackageSearchSettingsService(private val project: Project, coroutineScope: CoroutineScope) {
 
     private val settingsFile
         get() = project.packageSearchProjectDataPath / "settings.json"
@@ -38,9 +38,9 @@ class PackageSearchSettingsService(private val project: Project, private val cor
 
     private fun loadSettings() =
         kotlin.runCatching { json.decodeFromStream<Settings>(settingsFile.inputStream()) }
-            .onSuccess { logDebug { "Settings loaded: \n${settingsFile.readText()}" } }
+            .onSuccess { PackageSearchLogger.logDebug { "Settings loaded: \n${settingsFile.readText()}" } }
             .map { it.asSafe() }
-            .onFailure { logDebug("Failed to load settings", it) }
+            .onFailure { PackageSearchLogger.logDebug(throwable = it, message = "Failed to load settings") }
             .getOrElse { Settings() }
 
     private suspend fun Settings.save() =
@@ -88,7 +88,7 @@ class PackageSearchSettingsService(private val project: Project, private val cor
 
 @Serializable
 private data class Settings(
-    val onlyStable: Boolean = false,
+    val onlyStable: Boolean = true,
     val installRepositoryIfNeeded: Boolean = true,
     val isInfoPanelOpen: Boolean = false,
     val firstSplitPanePosition: Float = PackageSearchMetrics.Splitpanes.firstSplitPositionPercentage,

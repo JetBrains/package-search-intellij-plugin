@@ -4,7 +4,6 @@ package com.jetbrains.packagesearch.plugin.core.utils
 
 import com.intellij.buildsystem.model.unified.UnifiedDependency
 import com.intellij.buildsystem.model.unified.UnifiedDependencyRepository
-import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.AreaInstance
@@ -20,10 +19,6 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.getProjectDataPath
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.util.registry.RegistryManager
-import com.intellij.openapi.util.registry.RegistryValue
-import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -43,7 +38,6 @@ import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCach
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.contracts.contract
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.path.createDirectories
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
@@ -183,15 +177,6 @@ fun <T> ExtensionPointListener(onChange: (T, PluginDescriptor, Boolean) -> Unit)
 
 val IntelliJApplication
     get() = application
-
-fun Application.registryFlow(key: String, defaultValue: Boolean = false) =
-    messageBus.flow(RegistryManager.TOPIC) {
-        object : RegistryValueListener {
-            override fun afterValueChanged(value: RegistryValue) {
-                if (value.key == key) trySend(Registry.`is`(key, defaultValue))
-            }
-        }
-    }.withInitialValue(Registry.`is`(key, defaultValue))
 
 val Project.PackageSearchProjectCachesService
     get() = service<PackageSearchProjectCachesService>()
@@ -365,8 +350,6 @@ class ProjectDataImportListenerAdapter(private val project: Project) : ProjectDa
 
 val Module.isSourceSet
     get() = ExternalSystemApiUtil.getExternalModuleType(this) == "sourceSet"
-
-fun <T> Result<T>.suspendSafe() = onFailure { if (it is CancellationException) throw it }
 
 fun Path.isSameFileAsSafe(other: Path): Boolean = kotlin.runCatching { Files.isSameFile(this, other) }
     .getOrDefault(false)

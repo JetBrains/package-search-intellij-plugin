@@ -19,7 +19,6 @@ import com.intellij.openapi.vfs.toNioPathOrNull
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
@@ -37,14 +36,17 @@ import java.nio.file.Paths
 import korlibs.crypto.sha512
 import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.dizitart.kno2.filters.eq
+import org.dizitart.no2.collection.UpdateOptions
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -90,7 +92,7 @@ fun getModuleChangesFlow(model: PackageSearchGradleModel): Flow<Unit> {
 
 @Serializable
 data class GradleDependencyModelCacheEntry(
-    @SerialName("_id") val id: Long? = null,
+    @SerialName("_id") val id: String? = null,
     val buildFile: String,
     val buildFileSha: String,
     val dependencies: List<GradleDependencyModel>,
@@ -102,14 +104,12 @@ suspend fun retrieveGradleDependencyModel(nativeModule: Module, buildFile: Path)
 
     val buildFileSha = vf.contentsToByteArray().sha512().hex
 
-    val cache = project.service<GradleCacheService>()
-        .dependencyRepository
-        .find(
-            filter = NitriteFilters.Object.eq(
-                path = GradleDependencyModelCacheEntry::buildFile,
-                value = buildFile.absolutePathString()
-            )
-        ).singleOrNull()
+    val cache = withContext(Dispatchers.IO) {
+        project.service<GradleCacheService>()
+            .dependencyRepository
+            .find(GradleDependencyModelCacheEntry::buildFile eq buildFile.absolutePathString())
+            .singleOrNull()
+    }
 
     if (cache?.buildFileSha == buildFileSha) return cache.dependencies
 
@@ -124,16 +124,13 @@ suspend fun retrieveGradleDependencyModel(nativeModule: Module, buildFile: Path)
     project.service<GradleCacheService>()
         .dependencyRepository
         .update(
-            filter = NitriteFilters.Object.eq(
-                path = GradleDependencyModelCacheEntry::buildFile,
-                value = buildFile.absolutePathString()
-            ),
-            update = GradleDependencyModelCacheEntry(
+            /* filter = */ GradleDependencyModelCacheEntry::buildFile eq buildFile.absolutePathString(),
+            /* update = */ GradleDependencyModelCacheEntry(
                 buildFile = buildFile.absolutePathString(),
                 buildFileSha = buildFileSha,
                 dependencies = dependencies
             ),
-            upsert = true
+            /* updateOptions = */ UpdateOptions.updateOptions(true)
         )
 
     return dependencies

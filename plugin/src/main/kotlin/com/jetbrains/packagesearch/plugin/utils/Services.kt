@@ -23,5 +23,8 @@ val Project.PackageSearchSettingsService
 val Application.PackageSearchFUSService
     get() = service<PackageSearchFUSService>()
 
+val PackageSearchLogger: PluginLogger
+    get() = IntelliJApplication.service<IntelliJLogger>()
+
 internal fun logFUSEvent(event: PackageSearchFUSEvent) =
     IntelliJApplication.PackageSearchFUSService.logEvent(event)

@@ -87,7 +87,9 @@ fun PackageSearchDeclaredPackage.toSerializable() =
 fun Throwable.toSerializable(): SerializableThrowable = SerializableThrowable(
     typeName = this::class.qualifiedName,
     message = message ?: "",
-    stackTrace = stackTraceToString().lines(),
+    stackTrace = stackTraceToString()
+        .lines()
+        .map { it.replace("\tat ", "  ") },
     cause = cause?.toSerializable(),
 )
 
