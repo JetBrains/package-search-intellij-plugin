@@ -17,6 +17,12 @@ import org.jetbrains.packagesearch.gradle.registryTextFile
 import org.jetbrains.packagesearch.gradle.settingsFile
 
 
+repositories {
+    maven {
+        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
+        name = "Ktor EAP"
+    }
+}
 plugins {
     id(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.idea.gradle.plugin)
@@ -72,21 +78,25 @@ dependencies {
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
     implementation(projects.plugin.maven)
+    implementation(projects.plugin.utils)
 
     sourceElements(projects.plugin.core)
     sourceElements(projects.plugin.gradle)
     sourceElements(projects.plugin.gradle.base)
     sourceElements(projects.plugin.gradle.kmp)
     sourceElements(projects.plugin.maven)
+    sourceElements(projects.plugin.utils)
 
     tooling(projects.plugin.gradle.tooling)
 
     testImplementation(kotlin("test-junit5"))
+    testImplementation(packageSearchCatalog.ktor.client.mock)
     testImplementation(packageSearchCatalog.junit.jupiter.api)
     testImplementation(packageSearchCatalog.junit.jupiter.params)
     testImplementation(packageSearchCatalog.ide.starter.junit5)
     testImplementation(packageSearchCatalog.ide.starter.squashed)
     testImplementation(packageSearchCatalog.kotlinx.coroutines.test)
+    testImplementation(packageSearchCatalog.assertk)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
 }
 
@@ -156,6 +166,13 @@ tasks {
             .archiveFile.get()
             .asFile.absolutePath
         environment("PKGS_PLUGIN_ARTIFACT_FILE", pluginArtifactDirectoryPath)
+        val cacheDir = layout.buildDirectory.dir("tests/cache")
+        environment("CACHES", cacheDir.map { it.asFile.absolutePath }.get())
+        doFirst {
+            val cacheDirectory = cacheDir.get().asFile
+            cacheDirectory.deleteRecursively()
+            cacheDirectory.mkdirs()
+        }
     }
 
     runIde {

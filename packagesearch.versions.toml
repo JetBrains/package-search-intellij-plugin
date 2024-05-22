@@ -8,8 +8,10 @@ detekt = "1.23.3"
 dokka = "1.9.10"
 foojay = "0.5.0"
 gradlePublishPlugin = "1.1.0"
-idea = "2023.1.2"
+ideStarter = "241.13688"
+idea = "2024.1"
 ideaGradlePlugin = "1.16.1"
+jewel = "0.15.0"
 junit = "5.10.0"
 junit4 = "4.13.2"
 kotlin = "1.9.20"
@@ -18,35 +20,38 @@ kotlinxDatetime = "0.4.1"
 kotlinxSerialization = "1.6.0"
 ktor = "2.3.5"
 logback = "1.4.11"
-nitrite = "3.4.4"
-packagesearchApiModels = "3.0.0"
-jewel = "0.15.0"
-ideStarter = "241.13688"
+nitrite = "4.2.2"
+packagesearchApiModels = "3.1.0"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
+compose-desktop-components-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "composeDesktop" }
+compose-desktop-jvm-linux-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-arm64", version.ref = "composeDesktop" }
+compose-desktop-jvm-linux-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-x64", version.ref = "composeDesktop" }
+compose-desktop-jvm-macos-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-arm64", version.ref = "composeDesktop" }
+compose-desktop-jvm-macos-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-x64", version.ref = "composeDesktop" }
+compose-desktop-jvm-windows-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-windows-x64", version.ref = "composeDesktop" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 foojay-resolver-gradle-plugin = { module = "org.gradle.toolchains:foojay-resolver", version.ref = "foojay" }
 gradle-intellij-platform-plugin = { module = "org.jetbrains.intellij.plugins:gradle-intellij-plugin", version.ref = "ideaGradlePlugin" }
+ide-starter-junit5 = { module = "com.jetbrains.intellij.tools:ide-starter-junit5", version.ref = "ideStarter" }
+ide-starter-squashed = { module = "com.jetbrains.intellij.tools:ide-starter-squashed", version.ref = "ideStarter" }
 ij-platform-core-ui = { module = "com.jetbrains.intellij.platform:core-ui", version.ref = "idea" }
 ij-platform-ide-core = { module = "com.jetbrains.intellij.platform:ide-core", version.ref = "idea" }
 ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", version.ref = "idea" }
-jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
-jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
-jewel-standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
 jewel-bridge-ij232 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-232", version.ref = "jewel" }
 jewel-bridge-ij233 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-233", version.ref = "jewel" }
 jewel-bridge-ij241 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-241", version.ref = "jewel" }
-compose-desktop-components-splitpane = { module = "org.jetbrains.compose.components:components-splitpane", version.ref = "composeDesktop" }
+jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
+jewel-standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
+jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
 junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
-ide-starter-junit5 = { module = "com.jetbrains.intellij.tools:ide-starter-junit5", version.ref = "ideStarter" }
-ide-starter-squashed = { module = "com.jetbrains.intellij.tools:ide-starter-squashed", version.ref = "ideStarter" }
 junit4-base = { module = "junit:junit", version.ref = "junit4" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
@@ -55,10 +60,11 @@ kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "kotlinxSerialization" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
+ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-serialization-kotlinx-protobuf = { module = "io.ktor:ktor-serialization-kotlinx-protobuf", version.ref = "ktor" }
 ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
@@ -68,15 +74,12 @@ ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negoti
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 nitrite = { module = "org.dizitart:nitrite", version.ref = "nitrite" }
+nitrite-mvstore-adapter = { module = "org.dizitart:nitrite-mvstore-adapter", version.ref = "nitrite" }
 packagesearch-api-client = { module = "org.jetbrains.packagesearch:packagesearch-api-client", version.ref = "packagesearchApiModels" }
 packagesearch-api-models = { module = "org.jetbrains.packagesearch:packagesearch-api-models", version.ref = "packagesearchApiModels" }
 packagesearch-build-systems-models = { module = "org.jetbrains.packagesearch:packagesearch-build-systems-models", version.ref = "packagesearchApiModels" }
 packagesearch-http-models = { module = "org.jetbrains.packagesearch:packagesearch-http-models", version.ref = "packagesearchApiModels" }
-compose-desktop-jvm-linux-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-x64", version.ref = "composeDesktop" }
-compose-desktop-jvm-linux-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-linux-arm64", version.ref = "composeDesktop" }
-compose-desktop-jvm-windows-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-windows-x64", version.ref = "composeDesktop" }
-compose-desktop-jvm-macos-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-x64", version.ref = "composeDesktop" }
-compose-desktop-jvm-macos-arm64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-macos-arm64", version.ref = "composeDesktop" }
+potassium-nitrite = { module = "org.dizitart:potassium-nitrite", version.ref = "nitrite" }
 
 
 # Plugin libraries for build-logic's convention plugins to use to resolve the types/tasks coming from these plugins

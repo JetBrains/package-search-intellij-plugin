@@ -3,6 +3,7 @@ name: Run tests
 on:
   pull_request:
     branches: [ releases/241 ]
+
 jobs:
   gradle:
     strategy:
@@ -12,6 +13,9 @@ jobs:
         gradle-version: [ '5.6.4', '6.9.2', '7.6.4', '8.6' ]
     name: Gradle ${{ matrix.gradle-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      MAVEN_SPACE_PASSWORD: ${{ secrets.MAVEN_SPACE_PASSWORD }}
+      MAVEN_SPACE_USERNAME: ${{ secrets.MAVEN_SPACE_USERNAME }}
     outputs:
       result: ${{ steps.final_step.outputs.result }}
     steps:
@@ -30,7 +34,7 @@ jobs:
           GRADLE_VERSION: ${{ matrix.gradle-version }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           JAVA_VERSION: ${{matrix.jdk-version}}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.GradleProjectTest"
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.GradleProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
@@ -44,6 +48,9 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     name: Maven on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      MAVEN_SPACE_PASSWORD: ${{ secrets.MAVEN_SPACE_PASSWORD }}
+      MAVEN_SPACE_USERNAME: ${{ secrets.MAVEN_SPACE_USERNAME }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,7 +66,7 @@ jobs:
           KMP: true
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           JAVA_VERSION: ${{matrix.jdk-version}}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.MavenProjectTest"
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.MavenProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
@@ -74,6 +81,9 @@ jobs:
         gradle-version: [ '6.9.2', '7.6.4', '8.6' ]
     name: KMP ${{ matrix.gradle-version }}
     runs-on: ${{ matrix.os }}
+    env:
+      MAVEN_SPACE_PASSWORD: ${{ secrets.MAVEN_SPACE_PASSWORD }}
+      MAVEN_SPACE_USERNAME: ${{ secrets.MAVEN_SPACE_USERNAME }}
     outputs:
       result: ${{ steps.final_step.outputs.result }}
     steps:
@@ -92,10 +102,67 @@ jobs:
           GRADLE_VERSION: ${{ matrix.gradle-version }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           JAVA_VERSION: ${{matrix.jdk-version}}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.projectservice.KMPGradleProjectTest"
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.KMPGradleProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: testResult-kmp-${{ matrix.os }}-${{ matrix.gradle-version }}
+          name: testResult-kmp-gradle-${{ matrix.os }}-${{ matrix.gradle-version }}
           path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
+  version-catalog:
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        gradle-version: [ '7.6.4', '8.6' ]
+    name: Version Catalog ${{ matrix.gradle-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      MAVEN_SPACE_PASSWORD: ${{ secrets.MAVEN_SPACE_PASSWORD }}
+      MAVEN_SPACE_USERNAME: ${{ secrets.MAVEN_SPACE_USERNAME }}
+    outputs:
+      result: ${{ steps.final_step.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: gradle/gradle-build-action@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'temurin'
+      - name: Run tests
+        env:
+          KMP: true
+          GRADLE_VERSION: ${{ matrix.gradle-version }}
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          JAVA_VERSION: ${{matrix.jdk-version}}
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.CatalogProjectTest"
+      - name: Upload test result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testResult-version-catalog-${{ matrix.os }}-${{ matrix.gradle-version }}
+          path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    env:
+      MAVEN_SPACE_PASSWORD: ${{ secrets.MAVEN_SPACE_PASSWORD }}
+      MAVEN_SPACE_USERNAME: ${{ secrets.MAVEN_SPACE_USERNAME }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: gradle/gradle-build-action@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'temurin'
+      - name: Run tests
+        env:
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+        run: ./gradlew :plugin:utils:test

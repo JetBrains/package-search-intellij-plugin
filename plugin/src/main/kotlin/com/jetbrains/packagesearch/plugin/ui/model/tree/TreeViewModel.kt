@@ -7,9 +7,9 @@ import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
-import com.jetbrains.packagesearch.plugin.utils.logDebug
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +35,7 @@ internal class TreeViewModel(
         modules.asTree(stableOnly)
     }
         .retry(5)
-        .onEach { logDebug("${this::class.qualifiedName}#treeStateFlow") { it.print() } }
+        .onEach { PackageSearchLogger.logDebug("${this::class.qualifiedName}#treeStateFlow") { it.print() } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyTree())
 
     private fun Tree<TreeItemModel>.print(): String {

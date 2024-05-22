@@ -1,8 +1,8 @@
 package com.jetbrains.packagesearch.plugin.ui.model.packageslist
 
-import com.jetbrains.packagesearch.plugin.core.utils.suspendSafe
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
+import com.jetbrains.packagesearch.plugin.utils.suspendSafe
 import org.jetbrains.packagesearch.api.v3.ApiPackage
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchApi
 import org.jetbrains.packagesearch.api.v3.http.SearchPackagesRequest
 
 sealed interface Search {
@@ -16,13 +16,13 @@ sealed interface Search {
     sealed interface Query : Search {
 
         val query: SearchPackagesRequest
-        val apis: PackageSearchApi
+        val apis: PackageSearchApiPackageCache
 
         suspend fun execute(): Response
 
         data class Base(
             override val query: SearchPackagesRequest,
-            override val apis: PackageSearchApi,
+            override val apis: PackageSearchApiPackageCache,
         ) : Query {
             override suspend fun execute(): Response.Base {
                 val searchResult =
@@ -37,7 +37,7 @@ sealed interface Search {
 
         data class WithVariants(
             override val query: SearchPackagesRequest,
-            override val apis: PackageSearchApi,
+            override val apis: PackageSearchApiPackageCache,
             override val attributes: List<String>,
             override val primaryVariantName: String,
             override val additionalVariants: List<String>,

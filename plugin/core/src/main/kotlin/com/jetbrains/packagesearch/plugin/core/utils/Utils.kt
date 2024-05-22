@@ -366,8 +366,6 @@ class ProjectDataImportListenerAdapter(private val project: Project) : ProjectDa
 val Module.isSourceSet
     get() = ExternalSystemApiUtil.getExternalModuleType(this) == "sourceSet"
 
-fun <T> Result<T>.suspendSafe() = onFailure { if (it is CancellationException) throw it }
-
 fun Path.isSameFileAsSafe(other: Path): Boolean = kotlin.runCatching { Files.isSameFile(this, other) }
     .getOrDefault(false)
 
