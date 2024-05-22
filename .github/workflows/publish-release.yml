@@ -23,8 +23,10 @@ jobs:
         env:
           MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          MAVEN_SPACE_PASSWORD: ${{ secrets.MAVEN_SPACE_PASSWORD }}
-          MAVEN_SPACE_USERNAME: ${{ secrets.MAVEN_SPACE_USERNAME }}
+          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
+          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
+          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
+          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
           CHANGE_NOTES: ${{ github.event.release.body }}
       - name: Run :publishStablePluginToTBE task
         run: ./gradlew :plugin:publishReleasePluginToTBE
