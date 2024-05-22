@@ -69,12 +69,8 @@ fun <T> Flow<T?>.startWithNull() = onStart { emit(null) }
 
 @Suppress("FunctionName")
 fun KtorDebugLogger() = object : Logger {
-    override fun log(message: String) = logDebug(message)
+    override fun log(message: String) = PackageSearchLogger.logDebug(message = message)
 }
-
-@Composable
-fun <T> FlowWithInitialValue<T>.collectAsState() =
-    collectAsState(initialValue)
 
 suspend fun PackageSearchApiPackageCache.searchPackages(builder: SearchParametersBuilder.() -> Unit) =
     searchPackages(buildSearchParameters(builder))

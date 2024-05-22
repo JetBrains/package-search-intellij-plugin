@@ -69,7 +69,6 @@ class ToolWindowViewModel(private val project: Project, private val viewModelSco
             .takeIf { Random.nextInt(0, 20) >= 19 }
 
     val toolWindowState = combine(
-        project.PackageSearchProjectService.packagesBeingDownloadedFlow,
         combine(
             project.isProjectImportingFlow,
             project.PackageSearchProjectService.isProjectExecutingSyncStateFlow
@@ -79,7 +78,7 @@ class ToolWindowViewModel(private val project: Project, private val viewModelSco
             .map { !it.isEmpty() }
             .debounce(250.milliseconds),
         project.smartModeFlow,
-    ) { _, isProjectSyncing, isTreeReady, isSmartMode ->
+    ) { isProjectSyncing, isTreeReady, isSmartMode ->
         when {
             isTreeReady -> PackageSearchToolWindowState.Ready
 
@@ -90,11 +89,6 @@ class ToolWindowViewModel(private val project: Project, private val viewModelSco
             isProjectSyncing -> PackageSearchToolWindowState.Loading(
                 message = easterEggMessage ?: message("packagesearch.toolwindow.loading.syncing")
             )
-//            Commented to mitigate PKGS-1389 "dowloading packages" UI does not reflect if packages
-//            are really being downloaded or not | https://youtrack.jetbrains.com/issue/PKGS-1389
-//            packagesBeingDownloaded -> PackageSearchToolWindowState.Loading(
-//                message = easterEggMessage ?: message("packagesearch.toolwindow.loading.downloading")
-//            )
 
             else -> PackageSearchToolWindowState.NoModules
         }

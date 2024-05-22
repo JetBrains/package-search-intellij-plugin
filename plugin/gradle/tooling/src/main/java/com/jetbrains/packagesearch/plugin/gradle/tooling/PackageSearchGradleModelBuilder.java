@@ -96,7 +96,8 @@ public class PackageSearchGradleModelBuilder extends AbstractModelBuilderService
                 project.getPluginManager().hasPlugin("org.jetbrains.kotlin.multiplatform"),
                 project.getPluginManager().hasPlugin("org.jetbrains.kotlin.android"),
                 buildFilePath,
-                project.getRootProject().getProjectDir().getAbsolutePath()
+                project.getRootProject().getProjectDir().getAbsolutePath(),
+                currentGradleVersion.getVersion()
         );
     }
 

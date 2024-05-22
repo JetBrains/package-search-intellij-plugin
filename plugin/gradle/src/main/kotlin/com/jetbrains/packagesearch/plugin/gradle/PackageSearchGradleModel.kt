@@ -19,6 +19,7 @@ data class PackageSearchGradleModel(
     val rootProjectName: String,
     @Serializable(with = NioPathSerializer::class) val buildFilePath: Path?,
     @Serializable(with = NioPathSerializer::class) val rootProjectPath: Path,
+    val gradleVersion: String,
 ) {
 
     companion object {

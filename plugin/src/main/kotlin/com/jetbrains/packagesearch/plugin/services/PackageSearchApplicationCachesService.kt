@@ -13,14 +13,14 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.components.service
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
-import com.jetbrains.packagesearch.plugin.core.nitrite.buildDefaultNitrate
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.PKGSInternalAPI
 import com.jetbrains.packagesearch.plugin.utils.ApiPackageCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.ApiRepositoryCacheEntry
-import com.jetbrains.packagesearch.plugin.utils.ApiSearchEntry
+import com.jetbrains.packagesearch.plugin.utils.ApiSearchCacheEntry
 import com.jetbrains.packagesearch.plugin.utils.KtorDebugLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiPackageCache
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import io.ktor.client.engine.java.Java
 import io.ktor.client.plugins.DefaultRequest
@@ -29,6 +29,7 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.headers
 import java.util.concurrent.CompletableFuture
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.createParentDirectories
 import kotlin.io.path.div
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,8 +37,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.future.future
 import kotlinx.coroutines.launch
-import org.dizitart.no2.IndexOptions
-import org.dizitart.no2.IndexType
+import kotlinx.coroutines.withContext
+import org.dizitart.kno2.getRepository
+import org.dizitart.kno2.loadModule
+import org.dizitart.kno2.nitrite
+import org.dizitart.kno2.serialization.KotlinXSerializationMapper
+import org.dizitart.no2.index.IndexOptions
+import org.dizitart.no2.index.IndexType
+import org.dizitart.no2.mvstore.MVStoreModule
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpoints
 
@@ -50,31 +57,35 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
     }
 
     @PKGSInternalAPI
-    val cache = buildDefaultNitrate(
-        path = appSystemDir
-            .resolve(cacheFilePath)
-            .apply { parent.toFile().mkdirs() }
-            .absolutePathString()
-    )
+    val cache = nitrite {
+        validateRepositories = false
+        loadModule(KotlinXSerializationMapper)
+        loadModule(
+            MVStoreModule.withConfig()
+                .filePath(
+                    cacheFilePath
+                        .createParentDirectories()
+                        .absolutePathString()
+                )
+                .build()
+        )
+    }
 
     override fun dispose() {
         cache.close()
     }
 
-    private inline fun <reified T : Any> getRepository(key: String) =
-        cache.getRepository<T>(key)
-
     private val packagesRepository
-        get() = getRepository<ApiPackageCacheEntry>("packages")
+        get() = cache.getRepository<ApiPackageCacheEntry>("packages")
 
     private val searchesRepository
-        get() = getRepository<ApiSearchEntry>("searches")
+        get() = cache.getRepository<ApiSearchCacheEntry>("searches")
 
     private val repositoryCache
-        get() = getRepository<ApiRepositoryCacheEntry>("repositories")
+        get() = cache.getRepository<ApiRepositoryCacheEntry>("repositories")
 
     private val apiClient = PackageSearchApiClient(
-        endpoints = PackageSearchEndpoints.DEFAULT,
+        endpoints = PackageSearchEndpoints.PROD,
         httpClient = PackageSearchApiClient.defaultHttpClient(Java) {
             install(Logging) {
                 level = LogLevel.ALL
@@ -98,21 +109,22 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
         repositoryCache = repositoryCache,
         searchCache = searchesRepository,
         apiClient = apiClient,
+        logger = PackageSearchLogger,
         isOnline = { isOnlineFlow.value }
     )
 
-    private suspend fun createIndexes() {
+    private suspend fun createIndexes() = withContext(Dispatchers.IO) {
         searchesRepository.createIndex(
-            indexOptions = IndexOptions.indexOptions(IndexType.Unique),
-            path = ApiSearchEntry::searchHash
+            IndexOptions.indexOptions(IndexType.UNIQUE),
+            ApiSearchCacheEntry::searchHash.name
         )
         packagesRepository.createIndex(
-            indexOptions = IndexOptions.indexOptions(IndexType.Unique),
-            path = ApiPackageCacheEntry::packageId
+            IndexOptions.indexOptions(IndexType.UNIQUE),
+            ApiPackageCacheEntry::packageId.name
         )
         packagesRepository.createIndex(
-            indexOptions = IndexOptions.indexOptions(IndexType.Unique),
-            path = ApiPackageCacheEntry::packageIdHash
+            IndexOptions.indexOptions(IndexType.UNIQUE),
+            ApiPackageCacheEntry::packageIdHash.name
         )
     }
 
@@ -136,10 +148,11 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
             AsyncRecoveryResult(recoveryScope, emptyList())
         }
 
-    private suspend fun clearCaches() {
-        searchesRepository.removeAll()
-        packagesRepository.removeAll()
-        repositoryCache.removeAll()
+    private suspend fun clearCaches() = withContext(Dispatchers.IO) {
+        searchesRepository.clear()
+        packagesRepository.clear()
+        repositoryCache.clear()
     }
 }
+
 

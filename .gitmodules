@@ -1,0 +1,3 @@
+[submodule "nitrite-java"]
+	path = nitrite-java
+	url = https://github.com/lamba92/nitrite-java.git
