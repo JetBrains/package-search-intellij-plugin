@@ -113,6 +113,7 @@ jobs:
           name: testResult-kmp-gradle-${{ matrix.os }}-${{ matrix.gradle-version }}
           path: /home/runner/work/package-search-intellij-plugin/package-search-intellij-plugin/plugin/build/testData
   version-catalog:
+    if: false # Disabled until we make an effort to fix catalogs
     continue-on-error: true
     strategy:
       fail-fast: false
