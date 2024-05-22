@@ -16,9 +16,6 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.nitrite.NitriteFilters
-import com.jetbrains.packagesearch.plugin.core.nitrite.insert
-import com.jetbrains.packagesearch.plugin.core.utils.NioPathSerializer
 import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.parseAttributesFromRawStrings
@@ -26,16 +23,17 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.GradleDependencyModelCach
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import java.nio.file.Path
-import korlibs.crypto.SHA256
 import korlibs.crypto.sha512
 import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.isRegularFile
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.dizitart.kno2.filters.eq
+import org.dizitart.no2.collection.UpdateOptions
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
@@ -65,11 +63,6 @@ internal fun PackageSearchModuleVariant.Attribute.flatAttributesNames(): Set<Str
         is PackageSearchModuleVariant.Attribute.NestedAttribute -> children.flatMap { it.flatAttributesNames() }.toSet()
     }
 }
-
-fun List<PackageSearchModuleVariant.Attribute>.mergeAttributes() =
-    flatMap { it.flatAttributesNames() }
-        .toSet()
-        .parseAttributesFromRawStrings()
 
 operator fun Set<String>.contains(attribute: PackageSearchModuleVariant.Attribute.NestedAttribute): Boolean =
     attribute.flatten().all { it in this }
@@ -108,12 +101,6 @@ fun List<PackageSearchGradleDeclaredPackage>.asKmpVariantDependencies() =
 
 val Map<String, PackageSearchKotlinMultiplatformVariant>.commonMain: PackageSearchKotlinMultiplatformVariant.SourceSet
     get() = get("commonMain") as PackageSearchKotlinMultiplatformVariant.SourceSet
-
-val Map<String, PackageSearchKotlinMultiplatformVariant>.dependenciesBlock: PackageSearchKotlinMultiplatformVariant.DependenciesBlock
-    get() = getValue(PackageSearchKotlinMultiplatformVariant.DependenciesBlock.NAME) as PackageSearchKotlinMultiplatformVariant.DependenciesBlock
-
-val Map<String, PackageSearchKotlinMultiplatformVariant>.cocoapods: PackageSearchKotlinMultiplatformVariant.Cocoapods?
-    get() = get(PackageSearchKotlinMultiplatformVariant.Cocoapods.NAME) as PackageSearchKotlinMultiplatformVariant.Cocoapods?
 
 internal fun validateKMPDeclaredPackageType(declaredPackage: PackageSearchDeclaredPackage) {
     contract {
@@ -259,14 +246,12 @@ private suspend fun Module.getDependenciesBySourceSet(buildFilePath: Path): Map<
 
     val buildFileHash = vf.contentsToByteArray().sha512().hex
 
-    val entry = project.service<GradleKMPCacheService>()
-        .kmpDependencyRepository
-        .find(
-            filter = NitriteFilters.Object.eq(
-                path = GradleDependencyModelCacheEntry::buildFile,
-                value = buildFilePath.absolutePathString()
-            )
-        ).singleOrNull()
+    val entry = withContext(Dispatchers.IO) {
+        project.service<GradleKMPCacheService>()
+            .kmpDependencyRepository
+            .find(GradleDependencyModelCacheEntry::buildFile eq buildFilePath.absolutePathString())
+            .singleOrNull()
+    }
 
     if (entry?.buildFileSha == buildFileHash) return entry.dependencies
 
@@ -279,16 +264,13 @@ private suspend fun Module.getDependenciesBySourceSet(buildFilePath: Path): Map<
     project.service<GradleKMPCacheService>()
         .kmpDependencyRepository
         .update(
-            filter = NitriteFilters.Object.eq(
-                path = GradleDependencyModelCacheEntry::buildFile,
-                value = buildFilePath.absolutePathString()
-            ),
-            update = GradleKMPDependencyModelCacheEntry(
+            /* filter = */ GradleDependencyModelCacheEntry::buildFile eq buildFilePath.absolutePathString(),
+            /* update = */ GradleKMPDependencyModelCacheEntry(
                 buildFile = buildFilePath.absolutePathString(),
                 buildFileSha = buildFileHash,
                 dependencies = filteredDependenciesBySourceSet
             ),
-            upsert = true
+            /* updateOptions = */ UpdateOptions.updateOptions(true)
         )
 
     return filteredDependenciesBySourceSet

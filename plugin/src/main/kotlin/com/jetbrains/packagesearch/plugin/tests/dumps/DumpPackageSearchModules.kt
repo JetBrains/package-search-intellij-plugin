@@ -16,6 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.timeout
@@ -45,11 +46,12 @@ internal class DumpPackageSearchModules(text: String, line: Int) : CoroutineAbst
             .modulesStateFlow
             .timeout(10.minutes)
             .debounce(20.seconds)
+            .filter { it.isNotEmpty() }
             .map { it.associate { it.name to it.toSerializable() } }
             .map { TestResult(value = it) }
             .catch { emit(TestResult(error = it.toSerializable())) }
             .map { json.encodeToString(it) }
-            .map(Dispatchers.IO) { PKGS_TEST_DATA_OUTPUT_DIR.resolve("modules.json").writeText(it) }
+            .map(Dispatchers.IO) { PKGS_TEST_DATA_OUTPUT_DIR.resolve(DUMP_FILE_NAME).writeText(it) }
             .first()
     }
 

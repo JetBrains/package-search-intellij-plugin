@@ -26,7 +26,7 @@ import com.intellij.internal.statistic.service.fus.collectors.CounterUsagesColle
 import com.intellij.openapi.diagnostic.RuntimeExceptionWithAttachments
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
-import com.jetbrains.packagesearch.plugin.utils.logError
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import org.jetbrains.idea.reposearch.statistics.TopPackageIdValidationRule
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 
@@ -320,12 +320,14 @@ private fun <T : BaseEventId> runSafelyIfEnabled(event: T, action: T.() -> Unit)
         try {
             event.action()
         } catch (e: RuntimeException) {
-            logError(
+            val throwable = RuntimeExceptionWithAttachments(
+                /* message = */ "Non-critical error while logging analytics event. " +
+                        "This doesn't impact plugin functionality.",
+                /* cause = */ e
+            )
+            PackageSearchLogger.logError(
                 message = PackageSearchBundle.message("packagesearch.logging.error", event.eventId),
-                throwable = RuntimeExceptionWithAttachments(
-                    "Non-critical error while logging analytics event. This doesn't impact plugin functionality.",
-                    e
-                )
+                throwable = throwable
             )
         }
     }

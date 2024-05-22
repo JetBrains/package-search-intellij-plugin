@@ -16,12 +16,11 @@ import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.core.utils.toolWindowOpenedFlow
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.utils.drop
 import com.jetbrains.packagesearch.plugin.utils.filterNotNullKeys
-import com.jetbrains.packagesearch.plugin.utils.logDebug
-import com.jetbrains.packagesearch.plugin.utils.logWarn
 import com.jetbrains.packagesearch.plugin.utils.nativeModulesFlow
 import com.jetbrains.packagesearch.plugin.utils.startWithNull
 import com.jetbrains.packagesearch.plugin.utils.throttle
@@ -74,7 +73,10 @@ class PackageSearchProjectService(
             .associateBy { it.id }
     }
         .retry(5) {
-            logWarn("${this::class.simpleName}#knownRepositoriesStateFlow", throwable = it)
+            PackageSearchLogger.logDebug(
+                contextName = "${this::class.simpleName}#knownRepositoriesStateFlow",
+                throwable = it
+            )
             true
         }
         .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
@@ -88,11 +90,6 @@ class PackageSearchProjectService(
         packagesCache = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
         coroutineScope = coroutineScope,
     )
-
-    val packagesBeingDownloadedFlow = context.getLoadingFLow()
-        .distinctUntilChanged()
-        .onEach { logDebug("${this::class.qualifiedName}#packagesBeingDownloadedFlow") { "$it" } }
-        .stateIn(coroutineScope, SharingStarted.Lazily, false)
 
     private val moduleProvidersList
         get() = combine(
@@ -119,10 +116,10 @@ class PackageSearchProjectService(
         .onStart { emit(Unit) }
         .flatMapLatest { moduleProvidersList }
         .retry(5) {
-            logWarn("${this::class.simpleName}#modulesStateFlow", throwable = it)
+            PackageSearchLogger.logWarn("${this::class.simpleName}#modulesStateFlow", throwable = it)
             true
         }
-        .onEach { logDebug("${this::class.qualifiedName}#modulesStateFlow") { "modules.size = ${it.size}" } }
+        .onEach { PackageSearchLogger.logDebug("${this::class.qualifiedName}#modulesStateFlow") { "modules.size = ${it.size}" } }
         .stateIn(coroutineScope, SharingStarted.Lazily, emptyList())
 
     val modulesByBuildFile = modulesStateFlow
@@ -160,7 +157,7 @@ class PackageSearchProjectService(
             .throttle(30.minutes)
             .onEach { restart() }
             .retry(5) {
-                logWarn("${this::class.simpleName}#isOnlineFlow", throwable = it)
+                PackageSearchLogger.logWarn("${this::class.simpleName}#isOnlineFlow", throwable = it)
                 true
             }
             .launchIn(coroutineScope)
@@ -179,7 +176,7 @@ class PackageSearchProjectService(
                 }
             }
             .retry(5) {
-                logWarn("${this::class.simpleName}#fileOpenedFlow", throwable = it)
+                PackageSearchLogger.logWarn("${this::class.simpleName}#fileOpenedFlow", throwable = it)
                 true
             }
             .launchIn(coroutineScope)
