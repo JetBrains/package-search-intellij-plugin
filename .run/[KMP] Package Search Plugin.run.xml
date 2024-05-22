@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="[KMP] Package Search Plugin" type="GradleRunConfiguration" factoryName="Gradle">
-    <log_file alias="idea.log" path="$PROJECT_DIR$/plugin/build/idea-sandbox/system/log/idea.log" />
+    <log_file alias="idea.log" path="$PROJECT_DIR$/plugin/build/idea-sandbox/system/log/idea.log"/>
     <ExternalSystemSettings>
       <option name="env">
         <map>
-          <entry key="GITHUB_REF" value="refs/tags/241.0.8" />
+          <entry key="GITHUB_REF" value="refs/tags/241.0.10" />
           <entry key="KMP" value="true" />
         </map>
       </option>

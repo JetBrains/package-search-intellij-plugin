@@ -119,11 +119,11 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
             ApiSearchCacheEntry::searchHash.name
         )
         packagesRepository.createIndex(
-            IndexOptions.indexOptions(IndexType.UNIQUE),
+            IndexOptions.indexOptions(IndexType.NON_UNIQUE),
             ApiPackageCacheEntry::packageId.name
         )
         packagesRepository.createIndex(
-            IndexOptions.indexOptions(IndexType.UNIQUE),
+            IndexOptions.indexOptions(IndexType.NON_UNIQUE),
             ApiPackageCacheEntry::packageIdHash.name
         )
     }
