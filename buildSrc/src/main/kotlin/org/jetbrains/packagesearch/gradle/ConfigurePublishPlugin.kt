@@ -191,9 +191,9 @@ fun RepositoryHandler.pkgsSpace(project: Project) {
         name = "Space"
         setUrl("https://packages.jetbrains.team/maven/p/kpm/public")
         credentials {
-            username = System.getenv("SPACE_PACKAGE_SEARCH_TOKEN")
+            username = System.getenv("SPACE_PACKAGE_SEARCH_USERNAME")
                 ?: project.extra.getStringOrNull("space.username")
-            password = System.getenv("SPACE_PACKAGE_SEARCH_USERNAME")
+            password = System.getenv("SPACE_PACKAGE_SEARCH_TOKEN")
                 ?: project.extra.getStringOrNull("space.password")
         }
     }
