@@ -31,9 +31,9 @@ allprojects {
         maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
         maven("https://packages.jetbrains.team/maven/p/ij/intellij-sdk-nightly") {
             credentials {
-                username = getenv("MAVEN_SPACE_USERNAME")
+                username = getenv("SPACE_INTELLIJ_NIGHTLIES_USERNAME")
                     ?: project.extra.getStringOrNull("space.intellij.username")
-                password = getenv("MAVEN_SPACE_PASSWORD")
+                password = getenv("SPACE_INTELLIJ_NIGHTLIES_TOKEN")
                     ?: project.extra.getStringOrNull("space.intellij.password")
             }
         }
