@@ -2,7 +2,7 @@
 
 plugins {
     `kotlin-dsl`
-    kotlin("plugin.serialization") version "1.9.20"
+    kotlin("plugin.serialization") version packageSearchCatalog.versions.kotlin.get()
 }
 
 group = "org.jetbrains.packagesearch"
