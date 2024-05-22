@@ -16,7 +16,7 @@ jewel = "0.19.0"
 junit = "5.10.2"
 junit4 = "4.13.2"
 kotlin = "1.9.20"
-kotlin-poet = "1.15.2"
+kotlinPoet = "1.15.2"
 kotlinterGradlePlugin = "3.12.0"
 kotlinxDatetime = "0.5.0"
 kotlinxSerialization = "1.6.3"
@@ -83,7 +83,7 @@ packagesearch-api-client = { module = "org.jetbrains.packagesearch:packagesearch
 packagesearch-api-models = { module = "org.jetbrains.packagesearch:packagesearch-api-models", version.ref = "packagesearchApiModels" }
 packagesearch-build-systems-models = { module = "org.jetbrains.packagesearch:packagesearch-build-systems-models", version.ref = "packagesearchApiModels" }
 packagesearch-http-models = { module = "org.jetbrains.packagesearch:packagesearch-http-models", version.ref = "packagesearchApiModels" }
-poet-kotlin = { module = "com.squareup:kotlinpoet", version.ref = "kotlin-poet" }
+poet-kotlin = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }
 potassium-nitrite = { module = "org.dizitart:potassium-nitrite", version.ref = "nitrite" }
 xmlutils-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutilsSerialization" }
 
