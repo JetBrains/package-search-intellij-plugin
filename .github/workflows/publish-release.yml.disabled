@@ -3,7 +3,7 @@ name: Publish to Marketplace
 on:
   release:
     types: [ published ]
-    branches: [ releases/241 ]
+    branches: [ master ]
 
 jobs:
   publish:
