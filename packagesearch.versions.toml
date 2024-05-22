@@ -1,27 +1,30 @@
 [versions]
-assertk = "0.26.1"
+assertk = "0.28.1"
 caffeine = "3.1.6"
 commonsCodec = "1.16.0"
 composeDesktop = "1.6.0-dev1440"
-coroutines = "1.7.3"
-detekt = "1.23.3"
-dokka = "1.9.10"
+coroutines = "1.8.0"
+detekt = "1.23.6"
+dokka = "1.9.20"
+flexmark = "0.64.8"
 foojay = "0.5.0"
 gradlePublishPlugin = "1.1.0"
 ideStarter = "241.13688"
 idea = "2024.1"
 ideaGradlePlugin = "1.16.1"
-jewel = "0.15.0"
-junit = "5.10.0"
+jewel = "0.19.0"
+junit = "5.10.2"
 junit4 = "4.13.2"
 kotlin = "1.9.20"
+kotlin-poet = "1.15.2"
 kotlinterGradlePlugin = "3.12.0"
-kotlinxDatetime = "0.4.1"
-kotlinxSerialization = "1.6.0"
+kotlinxDatetime = "0.5.0"
+kotlinxSerialization = "1.6.3"
 ktor = "2.3.5"
 logback = "1.4.11"
 nitrite = "4.2.2"
 packagesearchApiModels = "3.1.0"
+xmlutilsSerialization = "0.86.2"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk-jvm", version.ref = "assertk" }
@@ -35,6 +38,7 @@ compose-desktop-jvm-macos-x64 = { module = "org.jetbrains.compose.desktop:deskto
 compose-desktop-jvm-windows-x64 = { module = "org.jetbrains.compose.desktop:desktop-jvm-windows-x64", version.ref = "composeDesktop" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+flexmark = { module = "com.vladsch.flexmark:flexmark-all", version.ref = "flexmark" }
 foojay-resolver-gradle-plugin = { module = "org.gradle.toolchains:foojay-resolver", version.ref = "foojay" }
 gradle-intellij-platform-plugin = { module = "org.jetbrains.intellij.plugins:gradle-intellij-plugin", version.ref = "ideaGradlePlugin" }
 ide-starter-junit5 = { module = "com.jetbrains.intellij.tools:ide-starter-junit5", version.ref = "ideStarter" }
@@ -79,7 +83,9 @@ packagesearch-api-client = { module = "org.jetbrains.packagesearch:packagesearch
 packagesearch-api-models = { module = "org.jetbrains.packagesearch:packagesearch-api-models", version.ref = "packagesearchApiModels" }
 packagesearch-build-systems-models = { module = "org.jetbrains.packagesearch:packagesearch-build-systems-models", version.ref = "packagesearchApiModels" }
 packagesearch-http-models = { module = "org.jetbrains.packagesearch:packagesearch-http-models", version.ref = "packagesearchApiModels" }
+poet-kotlin = { module = "com.squareup:kotlinpoet", version.ref = "kotlin-poet" }
 potassium-nitrite = { module = "org.dizitart:potassium-nitrite", version.ref = "nitrite" }
+xmlutils-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutilsSerialization" }
 
 
 # Plugin libraries for build-logic's convention plugins to use to resolve the types/tasks coming from these plugins

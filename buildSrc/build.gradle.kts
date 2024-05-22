@@ -2,7 +2,7 @@
 
 plugins {
     `kotlin-dsl`
-    kotlin("plugin.serialization") version packageSearchCatalog.versions.kotlin.get()
+    kotlin("plugin.serialization") version "1.9.20"
 }
 
 group = "org.jetbrains.packagesearch"
@@ -28,7 +28,7 @@ dependencies {
     implementation(packageSearchCatalog.kotlinter.gradle.plugin)
     implementation(packageSearchCatalog.shadow.gradle.plugin)
     implementation(packageSearchCatalog.kotlinx.serialization.json)
-    implementation("com.squareup:kotlinpoet:1.14.2")
-    implementation("io.github.pdvrieze.xmlutil:serialization:0.86.2")
-    implementation("com.vladsch.flexmark:flexmark-all:0.64.8")
+    implementation(packageSearchCatalog.poet.kotlin)
+    implementation(packageSearchCatalog.xmlutils.serialization)
+    implementation(packageSearchCatalog.flexmark)
 }
