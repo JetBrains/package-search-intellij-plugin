@@ -8,6 +8,17 @@ jobs:
   publish:
     name: Publish Package Search Snapshot to TBE
     runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      TOOLBOX_ENTERPRISE_TOKEN: ${{ secrets.TOOLBOX_ENTERPRISE_TOKEN }}
+      GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+      SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
+      SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
+      SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
+      SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
+      RUN_NUMBER: ${{ github.run_number }}
+      RUN_ATTEMPT: ${{ github.run_attempt }}
+      KMP: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,15 +30,7 @@ jobs:
           distribution: 'zulu'
           cache: gradle
       - uses: gradle/gradle-build-action@v2
-      - name: Run :publishShadowPlugin task
-        run: ./gradlew :plugin:publishSnapshotPluginToTBE publishAllPublicationsToSpaceRepository
-        env:
-          TOOLBOX_ENTERPRISE_TOKEN: ${{ secrets.TOOLBOX_ENTERPRISE_TOKEN }}
-          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
-          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
-          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
-          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-          RUN_NUMBER: ${{ github.run_number }}
-          RUN_ATTEMPT: ${{ github.run_attempt }}
-          KMP: true
+      - name: Publish libraries
+        run: ./gradlew publishAllPublicationsToSpaceRepository
+      - name: Publish plugin snapshot to TBE
+        run: ./gradlew :plugin:publishSnapshotPluginToTBE
