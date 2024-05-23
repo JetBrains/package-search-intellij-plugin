@@ -107,6 +107,27 @@
       ],
       "defaultScope": "implementation"
     },
+    "non_existent_module": {
+      "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
+      "name": "non_existent_module",
+      "identity": {
+        "group": "gradle",
+        "path": ":non_existent_module"
+      },
+      "declaredRepositories": [],
+      "compatiblePackageTypes": [
+        {
+          "type": "maven"
+        },
+        {
+          "type": "gradle"
+        }
+      ],
+      "dependencyMustHaveAScope": true,
+      "declaredDependencies": [],
+      "availableScopes": [],
+      "defaultScope": null
+    },
     "sub-module-1": {
       "type": "com.jetbrains.packagesearch.plugin.tests.SerializablePackageSearchModule.Base",
       "name": "sub-module-1",
