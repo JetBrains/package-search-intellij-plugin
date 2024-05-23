@@ -4,7 +4,6 @@
     <ExternalSystemSettings>
       <option name="env">
         <map>
-          <entry key="GITHUB_REF" value="refs/tags/241.0.10" />
           <entry key="KMP" value="true" />
         </map>
       </option>
