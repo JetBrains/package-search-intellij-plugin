@@ -64,26 +64,6 @@ internal fun PackageSearchTabStyle(): TabStyle {
 }
 
 @Composable
-fun PackageSearchGlobalColors(): GlobalColors {
-    val colors = LocalGlobalColors.current
-
-    return remember(colors) {
-        GlobalColors(
-            borders = colors.borders,
-            outlines = OutlineColors(
-                focused = Color.Transparent,
-                focusedWarning = colors.outlines.focusedWarning,
-                focusedError = colors.outlines.focusedError,
-                warning = colors.outlines.warning,
-                error = colors.outlines.error,
-            ),
-            infoContent = colors.infoContent,
-            paneBackground = colors.paneBackground,
-        )
-    }
-}
-
-@Composable
 internal fun PackageSearchTreeStyle(): LazyTreeStyle {
     val currentStyle = LocalLazyTreeStyle.current
     val paddings = currentStyle.metrics.elementPadding
