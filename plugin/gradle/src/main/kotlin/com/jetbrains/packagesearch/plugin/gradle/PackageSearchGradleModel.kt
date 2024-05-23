@@ -1,13 +1,12 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.externalSystem.model.Key
-import com.jetbrains.packagesearch.plugin.core.utils.NioPathSerializer
-import java.nio.file.Path
+import com.jetbrains.packagesearch.plugin.core.utils.SerializablePath
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class PackageSearchGradleModel(
-    @Serializable(with = NioPathSerializer::class) val projectDir: Path,
+    val projectDir: SerializablePath,
     val configurations: List<Configuration>,
     val declaredRepositories: List<DeclaredRepository>,
     val isJavaApplied: Boolean,
@@ -17,8 +16,8 @@ data class PackageSearchGradleModel(
     val projectIdentityPath: String,
     val projectName: String,
     val rootProjectName: String,
-    @Serializable(with = NioPathSerializer::class) val buildFilePath: Path?,
-    @Serializable(with = NioPathSerializer::class) val rootProjectPath: Path,
+    val buildFilePath: SerializablePath?,
+    val rootProjectPath: SerializablePath,
     val gradleVersion: String,
 ) {
 

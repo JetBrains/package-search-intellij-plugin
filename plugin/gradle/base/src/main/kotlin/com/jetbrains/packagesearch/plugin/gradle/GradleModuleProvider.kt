@@ -6,7 +6,6 @@ import com.intellij.openapi.module.Module
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradle
 import kotlinx.coroutines.flow.FlowCollector
@@ -14,7 +13,6 @@ import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.search.androidPackages
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.jvmGradlePackages
-import org.jetbrains.packagesearch.packageversionutils.normalization.NormalizedVersion
 
 class GradleModuleProvider : AbstractGradleModuleProvider() {
 
@@ -42,7 +40,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                 identity = PackageSearchModule.Identity(
                     group = "gradle",
                     path = model.projectIdentityPath.fixBuildSrc(model),
-                    projectDir = model.projectDir.toDirectory(),
+                    projectDir = model.projectDir,
                 ),
                 buildFilePath = model.buildFilePath,
                 declaredRepositories = model.declaredRepositories.toGradle(),

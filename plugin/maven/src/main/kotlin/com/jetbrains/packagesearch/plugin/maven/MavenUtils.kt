@@ -24,7 +24,6 @@ import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.isSameFileAsSafe
 import com.jetbrains.packagesearch.plugin.core.utils.mapUnit
 import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
-import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
 import java.nio.file.Path
@@ -114,7 +113,7 @@ suspend fun Module.toPackageSearch(
         identity = PackageSearchModule.Identity(
             group = "maven",
             path = ":",
-            projectDir = pomPath.parent.toDirectory(),
+            projectDir = pomPath.parent,
         ),
         buildFilePath = pomPath,
         declaredRepositories = getDeclaredRepositories(),
