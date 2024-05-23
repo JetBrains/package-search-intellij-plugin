@@ -56,7 +56,7 @@ fun LearnMoreLink(onLinkClick: (String) -> Unit) {
             resource = "icons/intui/question.svg",
             modifier = Modifier.size(16.dp).padding(end = 4.dp),
             contentDescription = null,
-            tint = JewelTheme.globalColors.infoContent,
+            tint = JewelTheme.globalColors.text.info,
             iconClass = IconProvider::class.java
         )
         Link(
