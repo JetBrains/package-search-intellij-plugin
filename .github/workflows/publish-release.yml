@@ -10,6 +10,7 @@ jobs:
     name: Publish Package Search to Marketplace
     runs-on: ubuntu-latest
     env:
+      TOOLBOX_ENTERPRISE_TOKEN: ${{ secrets.TOOLBOX_ENTERPRISE_TOKEN }}
       MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
       GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
       SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
