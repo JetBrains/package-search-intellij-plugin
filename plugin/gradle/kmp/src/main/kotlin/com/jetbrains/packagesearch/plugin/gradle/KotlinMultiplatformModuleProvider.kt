@@ -7,7 +7,6 @@ import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationIn
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.utils.toDirectory
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradle
 import kotlinx.coroutines.flow.FlowCollector
 
@@ -33,7 +32,7 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                         identity = PackageSearchModule.Identity(
                             group = "gradle",
                             path = model.projectIdentityPath,
-                            projectDir = model.projectDir.toDirectory(),
+                            projectDir = model.projectDir,
                         ),
                         buildFilePath = model.buildFilePath,
                         declaredRepositories = model.declaredRepositories.toGradle(),
