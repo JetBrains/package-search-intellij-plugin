@@ -24,6 +24,7 @@ import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import io.ktor.client.engine.java.Java
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.UserAgent
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.headers
@@ -97,6 +98,9 @@ class PackageSearchApplicationCachesService(private val coroutineScope: Coroutin
                     append("JB-Plugin-Version", PackageSearch.pluginVersion)
                     append("JB-IDE-Version", IntelliJApplication.service<ApplicationInfo>().strictVersion)
                 }
+            }
+            install(UserAgent) {
+                agent = IntelliJApplication.service<ApplicationInfo>().fullApplicationName
             }
         }
     )
