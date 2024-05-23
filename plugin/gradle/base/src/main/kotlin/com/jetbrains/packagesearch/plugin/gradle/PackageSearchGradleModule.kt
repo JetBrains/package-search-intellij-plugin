@@ -20,6 +20,10 @@ import com.jetbrains.packagesearch.plugin.core.utils.validateRepositoryType
 import com.jetbrains.packagesearch.plugin.gradle.utils.toUnifiedRepository
 import com.jetbrains.packagesearch.plugin.gradle.utils.validateRepositoryType
 import java.nio.file.Path
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.extension
+import kotlin.io.path.writeText
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -86,6 +90,22 @@ data class PackageSearchGradleModule(
         selectedScope: String?,
     ) {
         validateMavenPackageType(apiPackage)
+
+        if (buildFilePath == null || !buildFilePath.exists()) {
+            val isKotlin = buildFilePath?.extension?.equals("kts", ignoreCase = true) == true
+            buildFilePath?.createParentDirectories()
+                ?.writeText(buildString {
+                    appendLine("dependencies {")
+                    if (isKotlin) {
+                        appendLine("    $selectedScope(\"${apiPackage.groupId}:${apiPackage.artifactId}:${selectedVersion}\")")
+                    } else {
+                        appendLine("    $selectedScope '${apiPackage.groupId}:${apiPackage.artifactId}:${selectedVersion}'")
+                    }
+                    appendLine("}")
+                })
+            return
+        }
+
         modifier.addDependency(
             module = nativeModule,
             descriptor = UnifiedDependency(
