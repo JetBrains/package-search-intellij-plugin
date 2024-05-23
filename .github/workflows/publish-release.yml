@@ -33,6 +33,8 @@ jobs:
       - name: Publish libraries
         run: ./gradlew publishAllPublicationsToSpaceRepository
       - name: Publish release plugin to TBE
+        env:
+          KMP: true
         run: ./gradlew :plugin:publishReleasePluginToTBE
       - name: Publish plugin to Marketplace
         run: ./gradlew :plugin:publishPluginToMarketplace
