@@ -10,6 +10,7 @@ jobs:
     name: Publish Package Search to Marketplace
     runs-on: ubuntu-latest
     env:
+      TOOLBOX_ENTERPRISE_TOKEN: ${{ secrets.TOOLBOX_ENTERPRISE_TOKEN }}
       MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
       GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
       SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
@@ -19,7 +20,6 @@ jobs:
       RUN_NUMBER: ${{ github.run_number }}
       RUN_ATTEMPT: ${{ github.run_attempt }}
       CHANGE_NOTES: ${{ github.event.release.body }}
-      KMP: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,6 +33,8 @@ jobs:
       - name: Publish libraries
         run: ./gradlew publishAllPublicationsToSpaceRepository
       - name: Publish release plugin to TBE
+        env:
+          KMP: true
         run: ./gradlew :plugin:publishReleasePluginToTBE
       - name: Publish plugin to Marketplace
         run: ./gradlew :plugin:publishPluginToMarketplace

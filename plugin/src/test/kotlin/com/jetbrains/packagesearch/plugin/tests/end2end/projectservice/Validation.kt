@@ -51,14 +51,16 @@ internal fun TestScope.validateResult(projectName: String, expectedResultPath: S
         "Deserialization of test result failed or is null for project $projectName"
     )
 
+    val expectedKeys = expected.value?.keys ?: emptySet()
+    val resultKeys = result.value?.keys ?: emptySet()
 
-    assertTrue(expected.value?.keys?.all { it in (result.value?.keys ?: emptySet()) } ?: false,
+    assert(expectedKeys == resultKeys) {
         buildString {
             appendLine("expected MODULE keys differ from result keys")
             appendLine("expected: ${expected.value?.keys}")
             appendLine("result: ${result.value?.keys}")
         }
-    )
+    }
 
     expected.value?.forEach { (key, value) ->
         assertNotNull(
