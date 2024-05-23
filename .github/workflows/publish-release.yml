@@ -3,11 +3,24 @@ name: Publish to Marketplace
 on:
   release:
     types: [ published ]
+    branches: [ releases/233 ]
 
 jobs:
   publish:
     name: Publish Package Search to Marketplace
     runs-on: ubuntu-latest
+    env:
+      TOOLBOX_ENTERPRISE_TOKEN: ${{ secrets.TOOLBOX_ENTERPRISE_TOKEN }}
+      MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
+      GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+      SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
+      SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
+      SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
+      SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
+      RUN_NUMBER: ${{ github.run_number }}
+      RUN_ATTEMPT: ${{ github.run_attempt }}
+      CHANGE_NOTES: ${{ github.event.release.body }}
+      KMP: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,19 +30,10 @@ jobs:
         with:
           java-version: '17'
           distribution: 'zulu'
-      - uses: gradle/gradle-build-action@v2
-      - name: Run :publishShadowPluginToMarketplace task
-        run: ./gradlew publishAllPublicationsToSpaceRepository :plugin:publishPluginToMarketplace
-        env:
-          MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
-          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          MAVEN_SPACE_PASSWORD: ${{ secrets.MAVEN_SPACE_PASSWORD }}
-          MAVEN_SPACE_USERNAME: ${{ secrets.MAVEN_SPACE_USERNAME }}
-          CHANGE_NOTES: ${{ github.event.release.body }}
-      - name: Run :publishStablePluginToTBE task
+      - uses: gradle/gradle-build-action@v3
+      - name: Publish libraries
+        run: ./gradlew publishAllPublicationsToSpaceRepository
+      - name: Publish release plugin to TBE
         run: ./gradlew :plugin:publishReleasePluginToTBE
-        env:
-          KMP: true
-          TOOLBOX_ENTERPRISE_TOKEN: ${{ secrets.TOOLBOX_ENTERPRISE_TOKEN }}
-          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          CHANGE_NOTES: ${{ github.event.release.body }}
+      - name: Publish plugin to Marketplace
+        run: ./gradlew :plugin:publishPluginToMarketplace
