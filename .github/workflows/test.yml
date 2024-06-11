@@ -2,7 +2,7 @@ name: Run tests
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ master, releases/242 , fabrizio.scarponi/242 ]
 
 jobs:
   gradle:
@@ -25,7 +25,24 @@ jobs:
         with:
           java-version: 11
           distribution: 'temurin'
-      - name: Run tests
+      - name: Run GRADLE tests
+        continue-on-error: true
+        id: simple-build
+        env:
+          KMP: true
+          GRADLE_VERSION: ${{ matrix.gradle-version }}
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          JAVA_VERSION: ${{matrix.jdk-version}}
+          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
+          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
+          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
+          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.GradleProjectTest"
+      - name: Patch IDE config files
+        if: steps.simple-build.outcome == 'failure'
+        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
+      - name: Run GRADLE tests PATCHED
+        if: steps.simple-build.outcome == 'failure'
         env:
           KMP: true
           GRADLE_VERSION: ${{ matrix.gradle-version }}
@@ -59,7 +76,23 @@ jobs:
         with:
           java-version: 11
           distribution: 'temurin'
-      - name: Run Gradle tests
+      - name: Run MAVEN tests
+        id: simple-build
+        continue-on-error: true
+        env:
+          KMP: true
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          JAVA_VERSION: ${{matrix.jdk-version}}
+          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
+          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
+          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
+          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.MavenProjectTest"
+      - name: Patch IDE config files
+        if: steps.simple-build.outcome == 'failure'
+        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
+      - name: Run MAVEN tests Patched
+        if: steps.simple-build.outcome == 'failure'
         env:
           KMP: true
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
@@ -95,7 +128,24 @@ jobs:
         with:
           java-version: 11
           distribution: 'temurin'
-      - name: Run tests
+      - name: Run KMP tests
+        id: simple-build
+        continue-on-error: true
+        env:
+          KMP: true
+          GRADLE_VERSION: ${{ matrix.gradle-version }}
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          JAVA_VERSION: ${{matrix.jdk-version}}
+          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
+          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
+          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
+          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.KMPGradleProjectTest"
+      - name: Patch IDE config files
+        if: steps.simple-build.outcome == 'failure'
+        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
+      - name: Run KMP tests
+        if: steps.simple-build.outcome == 'failure'
         env:
           KMP: true
           GRADLE_VERSION: ${{ matrix.gradle-version }}
@@ -134,7 +184,24 @@ jobs:
         with:
           java-version: 11
           distribution: 'temurin'
-      - name: Run tests
+      - name: Run VERSION CATALOG tests
+        continue-on-error: true
+        id: simple-build
+        env:
+          KMP: true
+          GRADLE_VERSION: ${{ matrix.gradle-version }}
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          JAVA_VERSION: ${{matrix.jdk-version}}
+          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
+          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
+          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
+          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
+        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.CatalogProjectTest"
+      - name: Patch IDE config files
+        if: steps.simple-build.outcome == 'failure'
+        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
+      - name: Run VERSION CATALOG tests PATCHED
+        if: steps.simple-build.outcome == 'failure'
         env:
           KMP: true
           GRADLE_VERSION: ${{ matrix.gradle-version }}
@@ -164,7 +231,21 @@ jobs:
         with:
           java-version: 11
           distribution: 'temurin'
-      - name: Run tests
+      - name: Run UNIT tests
+        id: simple-build
+        continue-on-error: true
+        env:
+          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
+          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
+          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
+          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
+          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
+        run: ./gradlew :plugin:utils:test
+      - name: Patch IDE config files
+        if: steps.simple-build.outcome == 'failure'
+        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
+      - name: Run UNIT tests
+        if: steps.simple-build.outcome == 'failure'
         env:
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}

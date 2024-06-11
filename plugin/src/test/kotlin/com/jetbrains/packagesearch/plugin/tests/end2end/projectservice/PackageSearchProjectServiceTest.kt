@@ -1,6 +1,5 @@
 package com.jetbrains.packagesearch.plugin.tests.end2end.projectservice
 
-import com.intellij.ide.starter.junit5.JUnit5StarterAssistant
 import com.intellij.tools.ide.performanceTesting.commands.CommandChain
 import com.intellij.tools.ide.performanceTesting.commands.exitApp
 import com.intellij.tools.ide.performanceTesting.commands.waitForSmartMode
@@ -26,7 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
-@ExtendWith(JUnit5StarterAssistant::class)
 abstract class PackageSearchProjectServiceTest {
 
     abstract val resourcePath: String
@@ -75,10 +73,10 @@ abstract class PackageSearchProjectServiceTest {
             .dumpPKGSTestData()
             .exitApp()
 
-        testContext.runIdeInBackground(
+        testContext.runIDE(
             commands = dumpPkgsDataChain,
             launchName = DumpPackageSearchModules.DUMP_NAME
-        ).await()
+        )
 
         //result validation
         validateResult(projectName, "$resourcePath/$projectName.json")
