@@ -2,7 +2,7 @@ name: Run tests
 
 on:
   pull_request:
-    branches: [ master, releases/242 , fabrizio.scarponi/242 ]
+    branches: [ master ]
 
 jobs:
   gradle:
