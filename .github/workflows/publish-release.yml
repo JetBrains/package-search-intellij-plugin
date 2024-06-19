@@ -31,6 +31,14 @@ jobs:
           distribution: 'zulu'
       - uses: gradle/gradle-build-action@v3
       - name: Publish libraries
+        id: simple-build-publish
+        continue-on-error: true
+        run: ./gradlew publishAllPublicationsToSpaceRepository
+      - name: Patch IDE config files
+        if: steps.simple-build-publish.outcome == 'failure'
+        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
+      - name: Publish libraries
+        if: steps.simple-build-publish.outcome == 'failure'
         run: ./gradlew publishAllPublicationsToSpaceRepository
       - name: Publish release plugin to TBE
         env:
