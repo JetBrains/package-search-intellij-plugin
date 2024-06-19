@@ -15,7 +15,7 @@ import org.gradle.api.component.SoftwareComponentFactory
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent
+import org.gradle.api.plugins.internal. DefaultAdhocSoftwareComponent
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
