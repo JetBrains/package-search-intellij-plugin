@@ -135,7 +135,7 @@ tasks {
             ?.let { Parser.builder().build().parse(it) }
             ?.let { HtmlRenderer.builder().build().render(it) }
             ?.prefixIfNot("<![CDATA[")
-            ?.suffixIfNot("]]>")
+//            ?.suffixIfNot("]]>")
 
     }
 
