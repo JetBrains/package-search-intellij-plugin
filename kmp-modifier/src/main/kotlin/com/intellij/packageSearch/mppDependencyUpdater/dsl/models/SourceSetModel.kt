@@ -3,7 +3,7 @@ package com.intellij.packageSearch.mppDependencyUpdater.dsl.models
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder
-import com.android.tools.idea.gradle.dsl.model.dependencies.DeclarativeDependenciesModelImpl
+import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.intellij.psi.PsiElement
 import com.intellij.packageSearch.mppDependencyUpdater.dsl.elements.SourceSetDependenciesElement
@@ -20,7 +20,7 @@ class SourceSetModel(
 
   fun dependencies(): DependenciesModel? = dslElement.dependencies()?.let {
     when (it) {
-      is SourceSetDependenciesElement -> DeclarativeDependenciesModelImpl(it)
+      is SourceSetDependenciesElement -> ScriptDependenciesModelImpl(it)
       else -> error("unexpected dependencies element: $it, unable to cast as DependenciesModel")
     }
   }
@@ -28,6 +28,6 @@ class SourceSetModel(
   fun addDependenciesBlock(): DependenciesModel {
     val depsElement = SourceSetDependenciesElement(dslElement, GradleNameElement.create("dependencies"))
     dslElement.setNewElement(depsElement)
-    return DeclarativeDependenciesModelImpl(depsElement)
+    return ScriptDependenciesModelImpl(depsElement)
   }
 }

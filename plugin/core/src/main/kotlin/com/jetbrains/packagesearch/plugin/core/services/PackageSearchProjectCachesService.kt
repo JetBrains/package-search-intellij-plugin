@@ -1,3 +1,5 @@
+@file:OptIn(PKGSInternalAPI::class)
+
 package com.jetbrains.packagesearch.plugin.core.services
 
 import com.intellij.openapi.Disposable

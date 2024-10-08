@@ -49,20 +49,18 @@ class InfoPanelViewModel(
         when (event) {
             is InfoPanelContentEvent.Package -> {
                 val isLoading = event.packageListId in packageLoadingState
-                with(project.PackageSearchProjectService) {
-                    when (event) {
-                        is InfoPanelContentEvent.Package.Declared.Base ->
-                            event.asPanelContent(onlyStable, isLoading)
+                when (event) {
+                    is InfoPanelContentEvent.Package.Declared.Base ->
+                        event.asPanelContent(project.PackageSearchProjectService, onlyStable, isLoading)
 
-                        is InfoPanelContentEvent.Package.Declared.WithVariant ->
-                            event.asPanelContent(onlyStable, isLoading)
+                    is InfoPanelContentEvent.Package.Declared.WithVariant ->
+                        event.asPanelContent(project.PackageSearchProjectService, onlyStable, isLoading)
 
-                        is InfoPanelContentEvent.Package.Remote.Base ->
-                            event.asPanelContent(onlyStable,isLoading)
+                    is InfoPanelContentEvent.Package.Remote.Base ->
+                        event.asPanelContent(project.PackageSearchProjectService, onlyStable, isLoading)
 
-                        is InfoPanelContentEvent.Package.Remote.WithVariants ->
-                            event.asPanelContent(onlyStable,isLoading)
-                    }
+                    is InfoPanelContentEvent.Package.Remote.WithVariants ->
+                        event.asPanelContent(project.PackageSearchProjectService, onlyStable, isLoading)
                 }
             }
 
@@ -90,7 +88,7 @@ class InfoPanelViewModel(
             tabs.map { it.map { it.tabTitleData } },
             activeTabTitleMutableStateFlow
         ) { tabTitles, activeTabTitle ->
-            if (activeTabTitle !in tabTitles.map{it.tabTitle}) tabTitles.firstOrNull()?.tabTitle else activeTabTitle
+            if (activeTabTitle !in tabTitles.map { it.tabTitle }) tabTitles.firstOrNull()?.tabTitle else activeTabTitle
         }
             .mapNotNull { it }
             .onEach { activeTabTitleMutableStateFlow.emit(it) }

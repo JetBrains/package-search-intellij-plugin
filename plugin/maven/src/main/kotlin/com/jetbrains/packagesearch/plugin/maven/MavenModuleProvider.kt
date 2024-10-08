@@ -20,16 +20,18 @@ import com.intellij.openapi.module.Module as NativeModule
 
 class MavenModuleProvider : PackageSearchModuleProvider {
 
-    context(PackageSearchModuleBuilderContext)
-    override fun provideModule(nativeModule: NativeModule): Flow<PackageSearchModule?> = when {
+    override fun provideModule(
+        context: PackageSearchModuleBuilderContext,
+        nativeModule: NativeModule,
+    ): Flow<PackageSearchModule?> = when {
         nativeModule.isSourceSet -> emptyFlow()
-        else -> project.smartModeFlow.take(1).flatMapLatest {
-            when (val mavenProject = project.findMavenProjectFor(nativeModule)) {
+        else -> context.project.smartModeFlow.take(1).flatMapLatest {
+            when (val mavenProject = context.project.findMavenProjectFor(nativeModule)) {
                 null -> emptyFlow()
                 else -> when (val mavenProjectPath = mavenProject.file.toNioPathOrNull()) {
                     null -> emptyFlow()
-                    else -> getModuleChangesFlow(mavenProjectPath)
-                        .map { nativeModule.toPackageSearch(mavenProject) }
+                    else -> getModuleChangesFlow(context, mavenProjectPath)
+                        .map { nativeModule.toPackageSearch(context, mavenProject) }
                 }
             }
         }

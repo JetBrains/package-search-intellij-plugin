@@ -9,14 +9,12 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredReposit
 import kotlin.contracts.contract
 
 
-context(EditModuleContext)
-internal fun validateContextType(): DependencyModifierService {
+internal fun EditModuleContext.validateContextType(): DependencyModifierService {
     require(data is DependencyModifierService) {
         "Context must be EditMavenModuleContext"
     }
     return data as DependencyModifierService
 }
 
-context(EditModuleContext)
-val modifier
+val EditModuleContext.modifier
     get() = validateContextType()

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalContracts::class)
+
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.Disposable
@@ -24,6 +26,7 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import java.nio.file.Path
 import korlibs.crypto.sha512
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.Dispatchers
@@ -122,15 +125,13 @@ internal fun validateKMPDeclaredPackageType(declaredPackage: PackageSearchDeclar
     }
 }
 
-context(EditModuleContext)
-internal fun validateContextType(): EditKMPModuleContextData {
+internal fun EditModuleContext.validate(): EditKMPModuleContextData {
     require(data is EditKMPModuleContextData) { "Context is not a KMP context" }
     return data as EditKMPModuleContextData
 }
 
-context(EditModuleContext)
-val kmpData
-    get() = validateContextType()
+val EditModuleContext.kmpData
+    get() = validate()
 
 fun PackageSearchKotlinMultiplatformDeclaredDependency.Maven.toMPPDependency() =
     MppDependency.Maven(
@@ -141,8 +142,8 @@ fun PackageSearchKotlinMultiplatformDeclaredDependency.Maven.toMPPDependency() =
     )
 
 
-context(PackageSearchModuleBuilderContext)
 suspend fun Module.getKMPVariants(
+    context: PackageSearchModuleBuilderContext,
     compilationModel: Map<String, Set<MppCompilationInfoModel.Compilation>>,
     buildFilePath: Path?,
     availableScopes: List<String>,
@@ -150,7 +151,7 @@ suspend fun Module.getKMPVariants(
     if (buildFilePath == null) return@coroutineScope emptyList()
 
     val dependenciesBlockVariant = async {
-        val declaredDependencies = getDeclaredDependencies(buildFilePath)
+        val declaredDependencies = getDeclaredDependencies(context, buildFilePath)
         PackageSearchKotlinMultiplatformVariant.DependenciesBlock(
             declaredDependencies = declaredDependencies.asKmpVariantDependencies(),
             compatiblePackageTypes = buildPackageTypes {
@@ -180,7 +181,7 @@ suspend fun Module.getKMPVariants(
         .distinct()
         .map { it.packageId }
 
-    val dependencyInfo = getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
+    val dependencyInfo = context.getPackageInfoByIdHashes(packageIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
     val declaredSourceSetDependencies =
         rawDeclaredSourceSetDependencies
@@ -251,8 +252,9 @@ class GradleKMPCacheService(project: Project) : Disposable {
     override fun dispose() = kmpDependencyRepository.close()
 }
 
-context(PackageSearchModuleBuilderContext)
-private suspend fun Module.getDependenciesBySourceSet(buildFilePath: Path): Map<String, List<GradleDependencyModel>> {
+private suspend fun Module.getDependenciesBySourceSet(
+    buildFilePath: Path
+): Map<String, List<GradleDependencyModel>> {
     val vf = buildFilePath.refreshAndFindVirtualFile() ?: return emptyMap()
 
     val buildFileHash = vf.contentsToByteArray().sha512().hex

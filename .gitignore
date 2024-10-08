@@ -8,3 +8,4 @@ allure-results/
 
 !.idea/codeStyles/*
 !.idea/dictionaries/*
+.intellijPlatform/

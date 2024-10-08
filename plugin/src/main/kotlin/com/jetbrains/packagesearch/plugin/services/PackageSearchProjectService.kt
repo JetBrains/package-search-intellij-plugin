@@ -99,7 +99,7 @@ class PackageSearchProjectService(
             transformerExtensions.flatMap { transformer ->
                 nativeModules.map { module ->
                     with(context) {
-                        transformer.provideModule(module).startWithNull()
+                        transformer.provideModule(context, module).startWithNull()
                     }
                 }
             }

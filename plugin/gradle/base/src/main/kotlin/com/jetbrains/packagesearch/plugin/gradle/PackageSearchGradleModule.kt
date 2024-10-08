@@ -63,8 +63,8 @@ data class PackageSearchGradleModule(
         }
     }
 
-    context(EditModuleContext)
     override fun updateDependency(
+        context: EditModuleContext,
         declaredPackage: PackageSearchDeclaredPackage,
         newVersion: String?,
         newScope: String?,
@@ -76,15 +76,15 @@ data class PackageSearchGradleModule(
                 .copy(version = newVersion ?: oldDescriptor.coordinates.version),
             scope = newScope ?: oldDescriptor.scope,
         )
-        modifier.updateDependency(
+        context.modifier.updateDependency(
             module = nativeModule,
             oldDescriptor = oldDescriptor,
             newDescriptor = newDescriptor,
         )
     }
 
-    context(EditModuleContext)
     override fun addDependency(
+        context: EditModuleContext,
         apiPackage: ApiPackage,
         selectedVersion: String,
         selectedScope: String?,
@@ -106,7 +106,7 @@ data class PackageSearchGradleModule(
             return
         }
 
-        modifier.addDependency(
+        context.modifier.addDependency(
             module = nativeModule,
             descriptor = UnifiedDependency(
                 groupId = apiPackage.groupId,
@@ -117,28 +117,34 @@ data class PackageSearchGradleModule(
         )
     }
 
-    context(EditModuleContext)
-    override fun removeDependency(declaredPackage: PackageSearchDeclaredPackage) {
+    override fun removeDependency(
+        context: EditModuleContext,
+        declaredPackage: PackageSearchDeclaredPackage,
+    ) {
         validateMavenDeclaredPackageType(declaredPackage)
-        modifier.removeDependency(
+        context.modifier.removeDependency(
             module = nativeModule,
             descriptor = declaredPackage.toUnifiedDependency(),
         )
     }
 
-    context(EditModuleContext)
-    override fun addRepository(repository: ApiRepository) {
+    override fun addRepository(
+        context: EditModuleContext,
+        repository: ApiRepository
+    ) {
         validateRepositoryType(repository)
-        modifier.addRepository(
+        context.modifier.addRepository(
             module = nativeModule,
             repository = repository.toUnifiedRepository(),
         )
     }
 
-    context(EditModuleContext)
-    override fun removeRepository(repository: PackageSearchDeclaredRepository) {
+    override fun removeRepository(
+        context: EditModuleContext,
+        repository: PackageSearchDeclaredRepository,
+    ) {
         validateRepositoryType(repository)
-        modifier.deleteRepository(
+        context.modifier.deleteRepository(
             module = nativeModule,
             repository = repository.toUnifiedRepository(),
         )

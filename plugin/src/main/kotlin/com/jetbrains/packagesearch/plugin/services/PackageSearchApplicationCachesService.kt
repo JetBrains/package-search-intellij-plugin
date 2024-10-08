@@ -1,4 +1,5 @@
 @file:Suppress("UnstableApiUsage")
+@file:OptIn(PKGSInternalAPI::class)
 
 package com.jetbrains.packagesearch.plugin.services
 

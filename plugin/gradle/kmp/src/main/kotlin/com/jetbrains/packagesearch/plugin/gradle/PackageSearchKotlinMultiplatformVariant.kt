@@ -71,8 +71,8 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             }
         }
 
-        context(EditModuleContext)
         override fun updateDependency(
+            context: EditModuleContext,
             declaredPackage: PackageSearchDeclaredPackage,
             newVersion: String?,
             newScope: String?,
@@ -87,7 +87,7 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
                         version = newVersion ?: declaredPackage.declaredVersion.toString(),
                         configuration = newScope ?: declaredPackage.configuration,
                     )
-                    kmpData.update(
+                    context.kmpData.update(
                         sourceSet = name,
                         oldDescriptor = oldDescriptor,
                         newDescriptor = newDescriptor,
@@ -97,13 +97,13 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             }
         }
 
-        context(EditModuleContext)
         override fun addDependency(
+            context: EditModuleContext,
             apiPackage: ApiPackage,
             selectedVersion: String,
             selectedScope: String?,
         ) {
-            validateContextType()
+            context.validate()
             when (apiPackage) {
                 is ApiMavenPackage -> {
                     val newDescriptor = MppDependency.Maven(
@@ -112,7 +112,7 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
                         version = selectedVersion,
                         configuration = selectedScope ?: defaultScope
                     )
-                    kmpData.install(
+                    context.kmpData.install(
                         sourceSet = name,
                         descriptor = newDescriptor
                     )
@@ -120,16 +120,15 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             }
         }
 
-        context(EditModuleContext)
-        override fun removeDependency(declaredPackage: PackageSearchDeclaredPackage) {
-            validateContextType()
+        override fun removeDependency(context: EditModuleContext, declaredPackage: PackageSearchDeclaredPackage) {
+            context.validate()
             validateKMPDeclaredPackageType(declaredPackage)
             when (declaredPackage) {
                 is PackageSearchKotlinMultiplatformDeclaredDependency.Cocoapods -> TODO()
                 is Npm -> TODO()
                 is Maven -> {
                     val oldDescriptor = declaredPackage.toMPPDependency()
-                    kmpData.remove(
+                    context.kmpData.remove(
                         sourceSet = name,
                         descriptor = oldDescriptor
                     )
@@ -167,13 +166,13 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             else -> false
         }
 
-        context(EditModuleContext)
         override fun updateDependency(
+            context: EditModuleContext,
             declaredPackage: PackageSearchDeclaredPackage,
             newVersion: String?,
             newScope: String?,
         ) {
-            validateContextType()
+            context.validate()
             validateMavenDeclaredPackageType(declaredPackage)
             val oldDescriptor = declaredPackage.toUnifiedDependency()
             val newDescriptor = oldDescriptor.copy(
@@ -182,23 +181,23 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
                 ),
                 scope = newScope ?: declaredPackage.declaredScope ?: defaultScope,
             )
-            kmpData.modifier.updateDependency(
-                module = kmpData.nativeModule,
+            context.kmpData.modifier.updateDependency(
+                module = context.kmpData.nativeModule,
                 oldDescriptor = oldDescriptor,
                 newDescriptor = newDescriptor
             )
         }
 
-        context(EditModuleContext)
         override fun addDependency(
+            context: EditModuleContext,
             apiPackage: ApiPackage,
             selectedVersion: String,
             selectedScope: String?,
         ) {
-            validateContextType()
+            context.validate()
             validateMavenPackageType(apiPackage)
-            kmpData.modifier.addDependency(
-                module = kmpData.nativeModule,
+            context.kmpData.modifier.addDependency(
+                module = context.kmpData.nativeModule,
                 descriptor = UnifiedDependency(
                     groupId = apiPackage.groupId,
                     artifactId = apiPackage.artifactId,
@@ -208,12 +207,12 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             )
         }
 
-        context(EditModuleContext)
-        override fun removeDependency(declaredPackage: PackageSearchDeclaredPackage) {
-            validateContextType()
+
+        override fun removeDependency(context: EditModuleContext, declaredPackage: PackageSearchDeclaredPackage) {
+            context.validate()
             validateMavenDeclaredPackageType(declaredPackage)
-            kmpData.modifier.removeDependency(
-                module = kmpData.nativeModule,
+            context.kmpData.modifier.removeDependency(
+                module = context.kmpData.nativeModule,
                 descriptor = declaredPackage.toUnifiedDependency()
             )
         }
@@ -251,8 +250,9 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             is ApiMavenPackage -> false
         }
 
-        context(EditModuleContext)
+
         override fun updateDependency(
+            context: EditModuleContext,
             declaredPackage: PackageSearchDeclaredPackage,
             newVersion: String?,
             newScope: String?,
@@ -260,8 +260,8 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             TODO("Not yet implemented")
         }
 
-        context(EditModuleContext)
         override fun addDependency(
+            context: EditModuleContext,
             apiPackage: ApiPackage,
             selectedVersion: String,
             selectedScope: String?,
@@ -269,8 +269,10 @@ sealed interface PackageSearchKotlinMultiplatformVariant : PackageSearchModuleVa
             TODO("Not yet implemented")
         }
 
-        context(EditModuleContext)
-        override fun removeDependency(declaredPackage: PackageSearchDeclaredPackage) {
+        override fun removeDependency(
+            context: EditModuleContext,
+            declaredPackage: PackageSearchDeclaredPackage,
+        ) {
             TODO("Not yet implemented")
         }
     }

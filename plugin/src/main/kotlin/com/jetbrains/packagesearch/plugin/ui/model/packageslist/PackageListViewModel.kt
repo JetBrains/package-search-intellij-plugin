@@ -418,8 +418,9 @@ class PackageListViewModel(
             )
         )
         editor.editModule {
-            editor.addRepositoryIfNeeded(newVersion, module.declaredRepositories)
+            editor.addRepositoryIfNeeded(this, newVersion, module.declaredRepositories)
             manager.updateDependency(
+                context = this,
                 declaredPackage = dependency,
                 newVersion = newVersion.normalized.versionName,
                 newScope = dependency.declaredScope
@@ -443,7 +444,7 @@ class PackageListViewModel(
                             targetModule = module
                         )
                     )
-                    module.removeDependency(declaredPackage)
+                    module.removeDependency(this, declaredPackage)
                 }
 
                 is PackageSearchModule.WithVariants -> {
@@ -462,7 +463,7 @@ class PackageListViewModel(
                             targetModule = module
                         )
                     )
-                    variant.removeDependency(declaredPackage)
+                    variant.removeDependency(this, declaredPackage)
                 }
             }
         }
@@ -530,16 +531,17 @@ class PackageListViewModel(
 
             else -> apiPackage.versions.latest
         }
-        updater.addRepositoryIfNeeded(selectedVersion, installedRepositories)
+        updater.addRepositoryIfNeeded(this, selectedVersion, installedRepositories)
         manager.addDependency(
+            context = this,
             apiPackage = apiPackage,
             selectedVersion = selectedVersion.normalized.versionName,
             selectedScope = scope
         )
     }
 
-    context(EditModuleContext)
     private fun PackageSearchModuleEditor.addRepositoryIfNeeded(
+        context: EditModuleContext,
         selectedVersion: ApiPackageVersion,
         installedRepositories: List<PackageSearchDeclaredRepository>,
     ) {
@@ -549,7 +551,7 @@ class PackageListViewModel(
                     .firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
 
             if (apiRepository != null && apiRepository.url !in installedRepositories.map { it.url }) {
-                addRepository(apiRepository)
+                addRepository(context, apiRepository)
             }
         }
     }
@@ -612,6 +614,7 @@ class PackageListViewModel(
                             )
                         )
                         manager.updateDependency(
+                            context = this,
                             declaredPackage = dependency,
                             newVersion = dependency.declaredVersion?.versionName,
                             newScope = event.scope
@@ -633,9 +636,10 @@ class PackageListViewModel(
                                 ?.repositoryIds
                                 ?.firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
                                 ?.takeIf { it.url !in module.declaredRepositories.map { it.url } }
-                                ?.let { editor.addRepository(it) }
+                                ?.let { editor.addRepository(this, it) }
                         }
                         manager.updateDependency(
+                            context = this,
                             declaredPackage = dependency,
                             newVersion = event.version,
                             newScope = dependency.declaredScope
@@ -711,7 +715,7 @@ class PackageListViewModel(
         val newVariant = module.variants[event.selectedVariantName]
             ?: return
         module.editModule {
-            variant.removeDependency(declaredPackage)
+            variant.removeDependency(this, declaredPackage)
 //            newVariant.addDependency(
 //                apiPackage = declaredPackage,
 //                selectedVersion = declaredPackage.declaredVersion?.versionName,
@@ -744,6 +748,7 @@ class PackageListViewModel(
                                     else -> it.remoteInfo?.versions?.latest
                                 }
                                 module.updateDependency(
+                                    context = this,
                                     declaredPackage = it,
                                     newVersion = version?.normalized?.versionName ?: it.declaredVersion?.versionName,
                                     newScope = it.declaredScope
@@ -754,7 +759,7 @@ class PackageListViewModel(
                             }
                             .toSet()
                         if (repositoriesToAdd.isNotEmpty() && project.PackageSearchSettingsService.installRepositoryIfNeededFlow.value) {
-                            repositoriesToAdd.forEach { module.addRepository(it) }
+                            repositoriesToAdd.forEach { module.addRepository(this, it) }
                         }
                     }
                 }
@@ -785,6 +790,7 @@ class PackageListViewModel(
                         packagesToUpdate
                             .forEach { (variant, declaredPackage) ->
                                 variant.updateDependency(
+                                    context = this,
                                     declaredPackage = declaredPackage,
                                     newVersion = declaredPackage.getLatestVersion(onlyStable)?.versionName,
                                     newScope = declaredPackage.declaredScope

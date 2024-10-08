@@ -1,9 +1,9 @@
 @file:Suppress("UnstableApiUsage")
 
 plugins {
-    id(packageSearchCatalog.plugins.kotlin.jvm)
-    id(packageSearchCatalog.plugins.idea.gradle.plugin)
-    id(packageSearchCatalog.plugins.dokka)
+    alias(packageSearchCatalog.plugins.kotlin.jvm)
+    alias(packageSearchCatalog.plugins.idea.gradle.plugin)
+    alias(packageSearchCatalog.plugins.dokka)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     `build-config`
     `maven-publish`

@@ -61,18 +61,17 @@ abstract class PackageSearchInspection : LocalInspectionTool() {
 
         val problemsHolder = ProblemsHolder(manager, file, isOnTheFly)
 
-        with(file.project.PackageSearchProjectService) {
-            problemsHolder.checkFile(
-                file = file,
-                module = module
-            )
-        }
+        problemsHolder.checkFile(
+            context = file.project.PackageSearchProjectService,
+            file = file,
+            module = module
+        )
 
         return problemsHolder.resultsArray
     }
 
-    context(PackageSearchKnownRepositoriesContext)
     abstract fun ProblemsHolder.checkFile(
+        context: PackageSearchKnownRepositoriesContext,
         file: PsiFile,
         module: PackageSearchModule,
     )
@@ -102,8 +101,8 @@ class PackageUpdateInspection : PackageSearchInspection() {
         )
     }
 
-    context(PackageSearchKnownRepositoriesContext)
     override fun ProblemsHolder.checkFile(
+        context: PackageSearchKnownRepositoriesContext,
         file: PsiFile,
         module: PackageSearchModule,
     ) {
@@ -160,9 +159,10 @@ class PackageUpdateInspection : PackageSearchInspection() {
                         ),
                         priority = HIGH
                     ) {
-                        coroutineScope.launch {
+                        context.coroutineScope.launch {
                             module.editModule {
                                 manager.updateDependency(
+                                    context = this,
                                     declaredPackage = dependency,
                                     newVersion = targetVersion.normalized.versionName,
                                     newScope = dependency.declaredScope
@@ -171,7 +171,7 @@ class PackageUpdateInspection : PackageSearchInspection() {
                                     targetVersion.repositoryIds
                                         .firstNotNullOfOrNull { project.PackageSearchProjectService.knownRepositories[it] }
                                         ?.takeIf { it.url !in module.declaredRepositories.map { it.url } }
-                                        ?.let { module.addRepository(it) }
+                                        ?.let { module.addRepository(this, it) }
                                 }
                             }
                         }

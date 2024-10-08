@@ -1,5 +1,6 @@
 package com.intellij.packageSearch.mppDependencyUpdater.dsl.elements
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -28,7 +29,6 @@ class CreatingDslElement(
     "dependencies" to SourceSetDependenciesElement.DEPENDENCIES as PropertiesElementDescription<GradlePropertiesDslElement>,
   ).let { ImmutableMap.copyOf(it) }
 
-  override fun getChildPropertiesElementsDescriptionMap(): ImmutableMap<String, PropertiesElementDescription<GradlePropertiesDslElement>> {
-    return CHILD_PROPERTIES_ELEMENTS_MAP
-  }
+  override fun getChildPropertiesElementsDescriptionMap(kind: GradleDslNameConverter.Kind?) =
+    CHILD_PROPERTIES_ELEMENTS_MAP
 }

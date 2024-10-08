@@ -65,20 +65,18 @@ data class PackageSearchKotlinMultiplatformModule(
             ?.let { MppDependencyModifier.updateDependencies(nativeModule, it) }
     }
 
-    context(EditModuleContext)
-    override fun addRepository(repository: ApiRepository) {
+    override fun addRepository(context: EditModuleContext, repository: ApiRepository) {
         validateRepositoryType(repository)
-        kmpData.modifier.addRepository(
+        context.kmpData.modifier.addRepository(
             module = nativeModule,
             repository = repository.toUnifiedRepository()
         )
     }
 
-    context(EditModuleContext)
-    override fun removeRepository(repository: PackageSearchDeclaredRepository) {
-        validateContextType()
+    override fun removeRepository(context: EditModuleContext, repository: PackageSearchDeclaredRepository) {
+        context.validate()
         validateRepositoryType(repository)
-        kmpData.modifier.deleteRepository(
+        context.kmpData.modifier.deleteRepository(
             module = nativeModule,
             repository = repository.toUnifiedRepository()
         )

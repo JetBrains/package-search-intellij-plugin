@@ -2,22 +2,21 @@
 
 plugins {
     java
-    id(packageSearchCatalog.plugins.idea.gradle.plugin)
-    `build-config`
+    id(packageSearchCatalog.plugins.idea.gradle.plugin.base)
     `maven-publish`
 }
 
-packagesearch {
-    publication {
-        isEnabled = true
-        publishShadow = false
-        artifactId = "packagesearch-plugin-gradle-tooling"
-    }
-    java {
+java {
+    toolchain {
         languageVersion = JavaLanguageVersion.of(8)
     }
+    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_8
 }
 
-intellij {
-    plugins.add("org.jetbrains.plugins.gradle")
+dependencies {
+    intellijPlatform {
+        intellijIdeaCommunity(INTELLIJ_VERSION)
+        bundledPlugin("org.jetbrains.plugins.gradle")
+    }
 }

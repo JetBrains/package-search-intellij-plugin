@@ -1,4 +1,5 @@
 @file:Suppress("UnstableApiUsage")
+@file:OptIn(ExperimentalContracts::class)
 
 package com.jetbrains.packagesearch.plugin.gradle.utils
 
@@ -29,6 +30,7 @@ import com.jetbrains.packagesearch.plugin.gradle.packageId
 import java.nio.file.Path
 import java.nio.file.Paths
 import korlibs.crypto.sha512
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.io.path.absolutePathString
 import kotlinx.coroutines.Dispatchers
@@ -93,8 +95,7 @@ data class GradleDependencyModelCacheEntry(
     val dependencies: List<GradleDependencyModel>,
 )
 
-context(PackageSearchModuleBuilderContext)
-suspend fun retrieveGradleDependencyModel(nativeModule: Module, buildFile: Path): List<GradleDependencyModel> {
+suspend fun PackageSearchModuleBuilderContext.retrieveGradleDependencyModel(nativeModule: Module, buildFile: Path): List<GradleDependencyModel> {
     val vf = buildFile.refreshAndFindVirtualFile() ?: return emptyList()
 
     val buildFileSha = vf.contentsToByteArray().sha512().hex
@@ -139,16 +140,18 @@ class GradleCacheService(project: Project) : Disposable {
     override fun dispose() = dependencyRepository.close()
 }
 
-context(PackageSearchModuleBuilderContext)
-suspend fun Module.getDeclaredDependencies(buildFile: Path): List<PackageSearchGradleDeclaredPackage> {
-    val declaredDependencies = retrieveGradleDependencyModel(this, buildFile)
+suspend fun Module.getDeclaredDependencies(
+    context: PackageSearchModuleBuilderContext,
+    buildFile: Path
+): List<PackageSearchGradleDeclaredPackage> {
+    val declaredDependencies = context.retrieveGradleDependencyModel(this, buildFile)
 
     val distinctIds = declaredDependencies
         .asSequence()
         .map { it.packageId }
         .distinct()
 
-    val remoteInfo = getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
+    val remoteInfo = context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
     return declaredDependencies
         .map { declaredDependency ->
@@ -172,12 +175,11 @@ internal val Project.initializeProjectFlow
         emit(Unit)
     }
 
-context(PackageSearchModuleBuilderContext)
-fun List<PackageSearchGradleModel.DeclaredRepository>.toGradle() =
+fun List<PackageSearchGradleModel.DeclaredRepository>.toGradle(context: PackageSearchModuleBuilderContext) =
     map {
         PackageSearchGradleDeclaredRepository(
             url = it.url,
-            remoteInfo = knownRepositories.values
+            remoteInfo = context.knownRepositories.values
                 .firstOrNull { remote -> remote.url == it.url } as? ApiMavenRepository,
             name = it.name,
         )

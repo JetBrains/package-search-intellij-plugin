@@ -10,21 +10,22 @@ import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradle
 import kotlinx.coroutines.flow.FlowCollector
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpointPaths.knownRepositories
 import org.jetbrains.packagesearch.api.v3.search.androidPackages
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.jvmGradlePackages
 
 class GradleModuleProvider : AbstractGradleModuleProvider() {
 
-    context(PackageSearchModuleBuilderContext)
     override suspend fun FlowCollector<PackageSearchModule?>.transform(
+        context: PackageSearchModuleBuilderContext,
         module: Module,
         model: PackageSearchGradleModel,
     ) {
         if (!PackageSearch.isKMPEnabled || !model.isKotlinMultiplatformApplied) {
             val availableKnownRepositories =
                 model.declaredRepositories.toSet().let { availableGradleRepositories ->
-                    knownRepositories.filterValues {
+                    context.knownRepositories.filterValues {
                         it is ApiMavenRepository && it.alternateUrls.intersect(availableGradleRepositories).isNotEmpty()
                     }
                 }
@@ -33,7 +34,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                 .filter { it.canBeDeclared }
                 .map { it.name }
             val declaredDependencies = model.buildFilePath
-                ?.let { module.getDeclaredDependencies(it) }
+                ?.let { module.getDeclaredDependencies(context, it) }
                 ?: emptyList()
             val packageSearchGradleModule = PackageSearchGradleModule(
                 name = model.projectName,
@@ -43,7 +44,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                     projectDir = model.projectDir,
                 ),
                 buildFilePath = model.buildFilePath,
-                declaredRepositories = model.declaredRepositories.toGradle(),
+                declaredRepositories = model.declaredRepositories.toGradle(context),
                 declaredDependencies = declaredDependencies,
                 availableKnownRepositories = availableKnownRepositories,
                 packageSearchModel = model,

@@ -12,10 +12,11 @@ gradlePublishPlugin = "1.1.0"
 ideStarter = "LATEST-EAP-SNAPSHOT"
 idea = "2024.2"
 ideaGradlePlugin = "1.17.3"
+newIdeaGradlePlugin = "2.1.0"
 jewel = "0.19.6"
 junit = "5.10.2"
 junit4 = "4.13.2"
-kotlin = "1.9.24"
+kotlin = "2.0.20"
 kotlinPoet = "1.15.2"
 kotlinterGradlePlugin = "3.12.0"
 kotlinxDatetime = "0.5.0"
@@ -40,7 +41,7 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 flexmark = { module = "com.vladsch.flexmark:flexmark-all", version.ref = "flexmark" }
 foojay-resolver-gradle-plugin = { module = "org.gradle.toolchains:foojay-resolver", version.ref = "foojay" }
-gradle-intellij-platform-plugin = { module = "org.jetbrains.intellij.plugins:gradle-intellij-plugin", version.ref = "ideaGradlePlugin" }
+gradle-intellij-platform-plugin = { module = "org.jetbrains.intellij.platform:intellij-platform-gradle-plugin", version.ref = "newIdeaGradlePlugin" }
 ide-starter-junit5 = { module = "com.jetbrains.intellij.tools:ide-starter-junit5", version.ref = "ideStarter" }
 ide-starter-squashed = { module = "com.jetbrains.intellij.tools:ide-starter-squashed", version.ref = "ideStarter" }
 ij-platform-core-ui = { module = "com.jetbrains.intellij.platform:core-ui", version.ref = "idea" }
@@ -92,7 +93,7 @@ xmlutils-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", 
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinter-gradle-plugin = { module = "org.jmailen.gradle:kotlinter-gradle", version.ref = "kotlinterGradlePlugin" }
-shadow-gradle-plugin = { module = "com.github.johnrengelman:shadow", version = "8.1.1" }
+shadow-gradle-plugin = { module = "com.gradleup.shadow:shadow-gradle-plugin", version = "8.3.3" }
 
 [bundles]
 idea = ["ij-platform-ide-core", "ij-platform-ide-impl", "ij-platform-core-ui"]
@@ -103,8 +104,13 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 foojay-resolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay" }
 gradle-publish-plugin = { id = "com.gradle.plugin-publish", version.ref = "gradlePublishPlugin" }
-idea-gradle-plugin = { id = "org.jetbrains.intellij", version.ref = "ideaGradlePlugin" }
+idea-gradle-plugin = { id = "org.jetbrains.intellij.platform", version.ref = "newIdeaGradlePlugin" }
+idea-gradle-plugin-platform = { id = "org.jetbrains.intellij.platform", version.ref = "newIdeaGradlePlugin" }
+idea-gradle-plugin-module = { id = "org.jetbrains.intellij.platform.module", version.ref = "newIdeaGradlePlugin" }
+idea-gradle-plugin-base = { id = "org.jetbrains.intellij.platform.base", version.ref = "newIdeaGradlePlugin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-plugin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinterGradlePlugin" }
+shadow = { id = "com.gradleup.shadow", version = "8.3.3" }

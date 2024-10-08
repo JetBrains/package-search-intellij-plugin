@@ -3,37 +3,40 @@ package com.intellij.packageSearch.mppDependencyUpdater.dsl
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
-import com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap
+import com.android.tools.idea.gradle.dsl.model.BlockModelBuilder
+import com.android.tools.idea.gradle.dsl.model.BlockModelProvider
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.packageSearch.mppDependencyUpdater.dsl.elements.KotlinDslElement
 import com.intellij.packageSearch.mppDependencyUpdater.dsl.models.KotlinDslModel
 
-class KotlinDslProvider : GradleBlockModelMap.BlockModelProvider<GradleBuildModel, GradleDslFile> {
+class KotlinDslProvider : BlockModelProvider<GradleBuildModel, GradleDslFile> {
   private val KOTLIN_ELEMENTS = mapOf(
     "kotlin" to KotlinDslElement.KOTLIN
   )
 
-  private val KOTLIN_MODELS = listOf<GradleBlockModelMap.BlockModelBuilder<*, GradleDslFile>>(
+  private val KOTLIN_MODELS = listOf<BlockModelBuilder<*, GradleDslFile>>(
     KotlinDslModel::class.java from {
       KotlinDslModel(it.ensurePropertyElement(KotlinDslElement.KOTLIN))
     },
   )
 
-  override fun getParentClass() = GradleBuildModel::class.java
+  override val parentClass: Class<GradleBuildModel>
+    get() = GradleBuildModel::class.java
+  override val parentDslClass: Class<GradleDslFile>
+    get() = GradleDslFile::class.java
 
-  override fun availableModels(): List<GradleBlockModelMap.BlockModelBuilder<*, GradleDslFile>> {
-    return KOTLIN_MODELS
-  }
+  override fun availableModels(kind: GradleDslNameConverter.Kind): List<BlockModelBuilder<*, GradleDslFile>> =
+    KOTLIN_MODELS
 
-  override fun elementsMap(): Map<String, PropertiesElementDescription<*>> {
-    return KOTLIN_ELEMENTS
-  }
+  override fun elementsMap(kind: GradleDslNameConverter.Kind): Map<String, PropertiesElementDescription<*>> =
+    KOTLIN_ELEMENTS
 }
 
-private infix fun <M, P> Class<M>.from(action: (P) -> M): GradleBlockModelMap.BlockModelBuilder<M, P> where M : GradleDslModel, P : GradlePropertiesDslElement {
-  return object : GradleBlockModelMap.BlockModelBuilder<M, P> {
+private infix fun <M, P> Class<M>.from(action: (P) -> M): BlockModelBuilder<M, P> where M : GradleDslModel, P : GradlePropertiesDslElement {
+  return object : BlockModelBuilder<M, P> {
     override fun modelClass() = this@from
     override fun create(p: P): M = action(p)
   }

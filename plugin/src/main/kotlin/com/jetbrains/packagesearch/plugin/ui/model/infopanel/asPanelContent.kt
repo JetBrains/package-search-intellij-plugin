@@ -10,16 +10,16 @@ import com.jetbrains.packagesearch.plugin.core.utils.parseAttributesFromRawStrin
 import com.jetbrains.packagesearch.plugin.ui.model.getLatestVersion
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpointPaths.knownRepositories
 
-context(PackageSearchKnownRepositoriesContext)
-fun ApiPackage.repositories() =
+fun ApiPackage.repositories(context: PackageSearchKnownRepositoriesContext) =
     versions.latest
         .repositoryIds
-        .mapNotNull { knownRepositories[it] }
+        .mapNotNull { context.knownRepositories[it] }
         .map { InfoPanelContent.PackageInfo.Repository(it.name, it.url) }
 
-context(PackageSearchKnownRepositoriesContext)
 internal fun InfoPanelContentEvent.Package.Declared.Base.asPanelContent(
+    context: PackageSearchKnownRepositoriesContext,
     onlyStable: Boolean,
     isLoading: Boolean,
 ) = buildList {
@@ -39,7 +39,7 @@ internal fun InfoPanelContentEvent.Package.Declared.Base.asPanelContent(
                 ?.sanitizeDescription(),
             scm = declaredPackage.remoteInfo?.scm?.asInfoPanelScm(),
             readmeUrl = declaredPackage.remoteInfo?.scm?.readme?.htmlUrl ?: declaredPackage.remoteInfo?.scm?.readmeUrl,
-            repositories = declaredPackage.remoteInfo?.repositories() ?: emptyList(),
+            repositories = declaredPackage.remoteInfo?.repositories(context) ?: emptyList(),
             latestVersion = declaredPackage.getLatestVersion(onlyStable)?.versionName,
             declaredVersion = declaredPackage.declaredVersion
                 ?.versionName
@@ -66,7 +66,7 @@ internal val PackageSearchDeclaredPackage.typeInfo: InfoPanelContent.PackageInfo
         return InfoPanelContent.PackageInfo.Type(
             name = when (remoteInfo) {
                 is ApiMavenPackage -> message("packagesearch.configuration.maven.title")
-                null -> when (icon) {
+                else -> when (icon) {
                     IconProvider.Icons.MAVEN -> message("packagesearch.configuration.maven.title")
                     IconProvider.Icons.NPM -> message("packagesearch.configuration.npm.title")
                     IconProvider.Icons.COCOAPODS -> message("packagesearch.configuration.cocoapods.title")
@@ -93,8 +93,8 @@ private fun String.sanitizeDescription() =
         .joinToString("\n") { it.trimStart() }
 
 
-context(PackageSearchKnownRepositoriesContext)
 internal fun InfoPanelContentEvent.Package.Declared.WithVariant.asPanelContent(
+    context: PackageSearchKnownRepositoriesContext,
     onlyStable: Boolean,
     isLoading: Boolean,
 ) = buildList {
@@ -114,7 +114,7 @@ internal fun InfoPanelContentEvent.Package.Declared.WithVariant.asPanelContent(
                 ?.sanitizeDescription(),
             scm = declaredPackage.remoteInfo?.scm?.asInfoPanelScm(),
             readmeUrl = declaredPackage.remoteInfo?.scm?.readme?.htmlUrl ?: declaredPackage.remoteInfo?.scm?.readmeUrl,
-            repositories = declaredPackage.remoteInfo?.repositories() ?: emptyList(),
+            repositories = declaredPackage.remoteInfo?.repositories(context) ?: emptyList(),
             latestVersion = declaredPackage.getLatestVersion(onlyStable)?.versionName,
             declaredVersion = declaredPackage.declaredVersion
                 ?.versionName
@@ -138,8 +138,8 @@ internal fun InfoPanelContentEvent.Package.Declared.WithVariant.asPanelContent(
     addAttributesFromNames(declaredPackage.listKMPAttributesNames(onlyStable))
 }
 
-context(PackageSearchKnownRepositoriesContext)
 internal fun InfoPanelContentEvent.Package.Remote.WithVariants.asPanelContent(
+    context: PackageSearchKnownRepositoriesContext,
     onlyStable: Boolean,
     isLoading: Boolean,
 ) = buildList {
@@ -159,7 +159,7 @@ internal fun InfoPanelContentEvent.Package.Remote.WithVariants.asPanelContent(
             readmeUrl = apiPackage.scm?.readme?.htmlUrl ?: apiPackage.scm?.readmeUrl,
             primaryVariant = primaryVariantName,
             additionalVariants = compatibleVariantNames.sorted() - primaryVariantName,
-            repositories = apiPackage.repositories(),
+            repositories = apiPackage.repositories(context),
             isLoading = isLoading,
             isInstalledInPrimaryVariant = module.variants.getValue(primaryVariantName).declaredDependencies
                 .any { it.id == apiPackage.id }
@@ -167,8 +167,8 @@ internal fun InfoPanelContentEvent.Package.Remote.WithVariants.asPanelContent(
     addAttributesFromNames(apiPackage.listKMPAttributesNames(onlyStable))
 }
 
-context(PackageSearchKnownRepositoriesContext)
 internal fun InfoPanelContentEvent.Package.Remote.Base.asPanelContent(
+    context: PackageSearchKnownRepositoriesContext,
     onlyStable: Boolean,
     isLoading: Boolean,
 ) = buildList {
@@ -186,7 +186,7 @@ internal fun InfoPanelContentEvent.Package.Remote.Base.asPanelContent(
             description = apiPackage.description?.sanitizeDescription(),
             scm = apiPackage.scm?.asInfoPanelScm(),
             readmeUrl = apiPackage.scm?.readme?.htmlUrl ?: apiPackage.scm?.readmeUrl,
-            repositories = apiPackage.repositories(),
+            repositories = apiPackage.repositories(context),
             isLoading = isLoading
         )
     )

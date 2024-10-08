@@ -1,4 +1,5 @@
 @file:Suppress("UnstableApiUsage")
+@file:OptIn(ExperimentalContracts::class, ExperimentalContracts::class)
 
 package com.jetbrains.packagesearch.plugin.core.utils
 
@@ -42,8 +43,8 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.path.createDirectories
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose

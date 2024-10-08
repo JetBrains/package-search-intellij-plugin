@@ -1,4 +1,5 @@
 @file:Suppress("UnstableApiUsage")
+@file:OptIn(ExperimentalContracts::class)
 
 package com.jetbrains.packagesearch.plugin.maven
 
@@ -28,6 +29,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.io.path.Path
 import kotlin.io.path.name
@@ -75,11 +77,10 @@ val Project.mavenImportFlow
         }
     }
 
-context(ProjectContext)
-fun getModuleChangesFlow(pomPath: Path): Flow<Unit> = merge(
+fun getModuleChangesFlow(context: ProjectContext, pomPath: Path): Flow<Unit> = merge(
     watchExternalFileChanges(mavenSettingsFilePath),
-    project.mavenImportFlow,
-    project.smartModeFlow.mapUnit(),
+    context.project.mavenImportFlow,
+    context.project.smartModeFlow.mapUnit(),
     filesChangedEventFlow
         .map { it.mapNotNull { it.file?.toNioPathOrNull() } }
         .filter { it.any { it.isSameFileAsSafe(pomPath) } }
@@ -102,11 +103,11 @@ private fun buildMavenParentHierarchy(pomFile: File): String {
     return parentHierarchy.suffixIfNot(":") + projectName
 }
 
-context(PackageSearchModuleBuilderContext)
 suspend fun Module.toPackageSearch(
+    context: PackageSearchModuleBuilderContext,
     mavenProject: MavenProject,
 ): PackageSearchMavenModule {
-    val declaredDependencies = getDeclaredDependencies()
+    val declaredDependencies = getDeclaredDependencies(context)
     val pomPath = Path(mavenProject.file.path)
     return PackageSearchMavenModule(
         name = mavenProject.mavenId.artifactId ?: mavenProject.name ?: pomPath.parent.name,
@@ -116,7 +117,7 @@ suspend fun Module.toPackageSearch(
             projectDir = pomPath.parent,
         ),
         buildFilePath = pomPath,
-        declaredRepositories = getDeclaredRepositories(),
+        declaredRepositories = getDeclaredRepositories(context),
         declaredDependencies = declaredDependencies,
         availableScopes = commonScopes.plus(declaredDependencies.mapNotNull { it.declaredScope }).distinct(),
         compatiblePackageTypes = buildPackageTypes {
@@ -126,20 +127,18 @@ suspend fun Module.toPackageSearch(
     )
 }
 
-context(PackageSearchModuleBuilderContext)
-private suspend fun Module.getDeclaredRepositories() =
+private suspend fun Module.getDeclaredRepositories(context: PackageSearchModuleBuilderContext) =
     readAction { DependencyModifierService.getInstance(project).declaredRepositories(this) }
         .mapNotNull { unifiedRepository ->
             PackageSearchDeclaredMavenRepository(
                 url = unifiedRepository.url ?: return@mapNotNull null,
-                remoteInfo = knownRepositories.values.firstOrNull { it.url == unifiedRepository.url } as? ApiMavenRepository,
+                remoteInfo = context.knownRepositories.values.firstOrNull { it.url == unifiedRepository.url } as? ApiMavenRepository,
                 name = unifiedRepository.name,
                 id = unifiedRepository.id ?: return@mapNotNull null,
             )
         }
 
-context(PackageSearchModuleBuilderContext)
-suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredMavenPackage> {
+suspend fun Module.getDeclaredDependencies(context: PackageSearchModuleBuilderContext): List<PackageSearchDeclaredMavenPackage> {
     val declaredDependencies = readAction {
         MavenProjectsManager.getInstance(project)
             .findProject(this@getDeclaredDependencies)
@@ -169,7 +168,7 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredMavenPac
         .map { it.packageId }
         .distinct()
 
-    val remoteInfo = getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
+    val remoteInfo = context.getPackageInfoByIdHashes(distinctIds.map { ApiPackage.hashPackageId(it) }.toSet())
 
     return declaredDependencies
         .associateBy { it.packageId }
@@ -187,17 +186,16 @@ suspend fun Module.getDeclaredDependencies(): List<PackageSearchDeclaredMavenPac
         }
 }
 
-context(EditModuleContext)
-fun validateContextType(): MavenDependencyModificator {
+
+fun EditModuleContext.validate(): MavenDependencyModificator {
     require(data is MavenDependencyModificator) {
         "Context must be EditMavenModuleContext"
     }
     return data as MavenDependencyModificator
 }
 
-context(EditModuleContext)
-val modificator
-    get() = validateContextType()
+val EditModuleContext.modificator
+    get() = validate()
 
 fun validateRepositoryType(repository: PackageSearchDeclaredRepository) {
     contract {

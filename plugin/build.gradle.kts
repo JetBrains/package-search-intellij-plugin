@@ -4,56 +4,22 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import java.lang.System.getenv
 import kotlin.math.max
-import org.jetbrains.intellij.tasks.PublishPluginTask
-import org.jetbrains.kotlin.util.prefixIfNot
-import org.jetbrains.kotlin.util.suffixIfNot
-import org.jetbrains.packagesearch.gradle.lafFile
-import org.jetbrains.packagesearch.gradle.logCategoriesFile
-import org.jetbrains.packagesearch.gradle.patchLafFile
-import org.jetbrains.packagesearch.gradle.patchLogFile
-import org.jetbrains.packagesearch.gradle.patchSettingsFile
-import org.jetbrains.packagesearch.gradle.patchTextRegistryFile
-import org.jetbrains.packagesearch.gradle.registryTextFile
-import org.jetbrains.packagesearch.gradle.settingsFile
+import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 
 
-repositories {
-    maven {
-        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-        name = "Ktor EAP"
-    }
-}
 plugins {
-    id(packageSearchCatalog.plugins.kotlin.jvm)
-    id(packageSearchCatalog.plugins.idea.gradle.plugin)
-    id(packageSearchCatalog.plugins.dokka)
+    alias(packageSearchCatalog.plugins.kotlin.jvm)
+    id(packageSearchCatalog.plugins.idea.gradle.plugin.platform)
+    alias(packageSearchCatalog.plugins.dokka)
     alias(packageSearchCatalog.plugins.compose.desktop)
+    alias(packageSearchCatalog.plugins.kotlin.plugin.compose)
     alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
-    `build-config`
+    alias(packageSearchCatalog.plugins.shadow)
     `maven-publish`
 }
 
-packagesearch {
-    publication {
-        isEnabled = true
-        artifactId = "packagesearch-plugin"
-    }
-    optIns.addAll(
-        "androidx.compose.ui.ExperimentalComposeUiApi",
-        "org.jetbrains.compose.splitpane.ExperimentalSplitPaneApi",
-        "org.jetbrains.jewel.ExperimentalJewelApi",
-        "androidx.compose.foundation.ExperimentalFoundationApi",
-        "kotlin.io.encoding.ExperimentalEncodingApi",
-        "kotlin.ExperimentalStdlibApi",
-        "kotlin.io.path.ExperimentalPathApi",
-        "org.jetbrains.jewel.foundation.ExperimentalJewelApi"
-    )
-    isRunIdeEnabled = true
-}
-
-intellij {
-    plugins.add("org.jetbrains.idea.reposearch")
-    plugins.add("com.jetbrains.performancePlugin")
+intellijPlatform {
+    instrumentCode = false
 }
 
 val tooling: Configuration by configurations.creating {
@@ -61,6 +27,15 @@ val tooling: Configuration by configurations.creating {
 }
 
 dependencies {
+
+    intellijPlatform {
+        intellijIdeaCommunity(INTELLIJ_VERSION)
+        bundledPlugins(
+            "org.jetbrains.idea.reposearch",
+            "com.jetbrains.performancePlugin"
+        )
+    }
+
     implementation(compose.desktop.linux_arm64)
     implementation(compose.desktop.linux_x64)
     implementation(compose.desktop.macos_arm64)
@@ -80,13 +55,6 @@ dependencies {
     implementation(projects.plugin.maven)
     implementation(projects.plugin.utils)
 
-    sourceElements(projects.plugin.core)
-    sourceElements(projects.plugin.gradle)
-    sourceElements(projects.plugin.gradle.base)
-    sourceElements(projects.plugin.gradle.kmp)
-    sourceElements(projects.plugin.maven)
-    sourceElements(projects.plugin.utils)
-
     tooling(projects.plugin.gradle.tooling)
 
     testImplementation(kotlin("test-junit5"))
@@ -100,27 +68,10 @@ dependencies {
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
 }
 
-val pkgsPluginId: String by project
-
 tasks {
-    val patchIdeSettings by registering {
-        dependsOn(prepareSandbox)
-        doLast {
-            prepareSandbox.registryTextFile.get()
-                .patchTextRegistryFile()
-            prepareSandbox.lafFile.get()
-                .patchLafFile()
-            prepareSandbox.settingsFile.get()
-                .patchSettingsFile()
-            prepareSandbox.logCategoriesFile.get()
-                .patchLogFile(pkgsPluginId)
-        }
-    }
-    runIde {
-        dependsOn(patchIdeSettings)
-    }
     prepareSandbox {
-        runtimeClasspathFiles = tooling
+        runtimeClasspath = tooling
+        pluginJar = shadowJar.flatMap { it.archiveFile }
     }
 
     val runNumber = getenv("RUN_NUMBER")?.toInt() ?: 0
@@ -129,14 +80,18 @@ tasks {
     val versionString = project.version.toString()
 
     patchPluginXml {
-        pluginId = pkgsPluginId
+        pluginId = PACKAGE_SEARCH_PLUGIN_ID
         version = versionString.replace("-SNAPSHOT", ".$snapshotMinorVersion")
         changeNotes = getenv("CHANGE_NOTES")
             ?.let { Parser.builder().build().parse(it) }
             ?.let { HtmlRenderer.builder().build().render(it) }
-            ?.prefixIfNot("<![CDATA[")
-            ?.suffixIfNot("]]>")
 
+    }
+
+    shadowJar {
+        exclude { it.name.containsAny(JAR_NAMES_TO_REMOVE) }
+        exclude { it.name == "module-info.class" }
+        exclude { it.name.endsWith("kotlin_module") }
     }
 
     val buildShadowPlugin by registering(Zip::class) {
@@ -147,7 +102,7 @@ tasks {
         from(tooling) {
             rename { "gradle-tooling.jar" }
         }
-        into("$pkgsPluginId/lib")
+        into("$PACKAGE_SEARCH_PLUGIN_ID/lib")
         archiveFileName = "packageSearch-${project.version}.zip"
             .replace("-SNAPSHOT", ".$snapshotMinorVersion")
         destinationDirectory = layout.buildDirectory.dir("distributions")
@@ -159,7 +114,7 @@ tasks {
 
     test {
         dependsOn(buildShadowPlugin)
-        environment("PKGS_PLUGIN_ID", pkgsPluginId)
+        environment("PKGS_PLUGIN_ID", PACKAGE_SEARCH_PLUGIN_ID)
         environment("PKGS_TEST_DATA_OUTPUT_DIR", testDataDirectoryPath.get())
         environment("KMP", true)
         val pluginArtifactDirectoryPath = buildShadowPlugin.get()
@@ -180,9 +135,9 @@ tasks {
     }
 
     register<PublishPluginTask>("publishSnapshotPluginToTBE") {
+        ideServices = true
         group = "publishing"
-        distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
-        toolboxEnterprise = true
+        archiveFile = buildShadowPlugin.flatMap { it.archiveFile }
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
             ?: getenv("TOOLBOX_ENTERPRISE_TOKEN")
@@ -190,9 +145,9 @@ tasks {
     }
 
     register<PublishPluginTask>("publishReleasePluginToTBE") {
+        ideServices = true
         group = "publishing"
-        distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
-        toolboxEnterprise = true
+        archiveFile = buildShadowPlugin.flatMap { it.archiveFile }
         host = "https://tbe.labs.jb.gg/"
         token = project.properties["toolboxEnterpriseToken"]?.toString()
             ?: getenv("TOOLBOX_ENTERPRISE_TOKEN")
@@ -201,9 +156,10 @@ tasks {
 
     register<PublishPluginTask>("publishPluginToMarketplace") {
         group = "publishing"
-        distributionFile = buildShadowPlugin.flatMap { it.archiveFile }
+        archiveFile = buildShadowPlugin.flatMap { it.archiveFile }
         token = project.properties["marketplaceToken"]?.toString()
             ?: getenv("MARKETPLACE_TOKEN")
     }
 
 }
+

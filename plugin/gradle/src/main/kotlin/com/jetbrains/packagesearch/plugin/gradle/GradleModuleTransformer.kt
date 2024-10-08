@@ -45,11 +45,11 @@ typealias BaseGradleModuleProvider = AbstractGradleModuleProvider
 
 abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
 
-    context(PackageSearchModuleBuilderContext)
     override fun provideModule(
+        context: PackageSearchModuleBuilderContext,
         nativeModule: NativeModule,
     ): Flow<PackageSearchModule?> =
-        merge(project.smartModeFlow, project.isProjectImportingFlow, project.initializeProjectFlow)
+        merge(context.project.smartModeFlow, context.project.isProjectImportingFlow, context.project.initializeProjectFlow)
             .filter { nativeModule.isGradle }
             .mapNotNull {
                 findGradleModuleData(nativeModule)
@@ -62,11 +62,11 @@ abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
                     .onStart { emit(model) }
             }
             .transformLatest { model ->
-                transform(nativeModule, model)
+                transform(context, nativeModule, model)
             }
 
-    context(PackageSearchModuleBuilderContext)
     abstract suspend fun FlowCollector<PackageSearchModule?>.transform(
+        context: PackageSearchModuleBuilderContext,
         module: Module,
         model: PackageSearchGradleModel,
     )

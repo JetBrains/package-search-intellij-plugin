@@ -9,18 +9,20 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradle
 import kotlinx.coroutines.flow.FlowCollector
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpointPaths.knownRepositories
 
 class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
 
-    context(PackageSearchModuleBuilderContext)
     override suspend fun FlowCollector<PackageSearchModule?>.transform(
+        context: PackageSearchModuleBuilderContext,
         module: Module,
         model: PackageSearchGradleModel,
     ) {
         if (PackageSearch.isKMPEnabled && model.isKotlinMultiplatformApplied && !model.isAmperApplied)
-            MppCompilationInfoProvider.sourceSetsMap(project, model.projectDir)
+            MppCompilationInfoProvider.sourceSetsMap(context.project, model.projectDir)
                 .collect { compilationModel ->
                     val variants = module.getKMPVariants(
+                        context = context,
                         compilationModel = compilationModel,
                         buildFilePath = model.buildFilePath,
                         availableScopes = model.configurations
@@ -35,10 +37,10 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                             projectDir = model.projectDir,
                         ),
                         buildFilePath = model.buildFilePath,
-                        declaredRepositories = model.declaredRepositories.toGradle(),
+                        declaredRepositories = model.declaredRepositories.toGradle(context),
                         variants = variants,
                         packageSearchModel = model,
-                        availableKnownRepositories = knownRepositories,
+                        availableKnownRepositories = context.knownRepositories,
                         nativeModule = module
                     )
                     emit(pkgsModule)

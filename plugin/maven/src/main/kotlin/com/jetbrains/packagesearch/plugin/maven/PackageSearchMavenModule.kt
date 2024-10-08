@@ -43,12 +43,12 @@ data class PackageSearchMavenModule(
     override val icon
         get() = Icons.MAVEN
 
-    override suspend fun editModule(action: context(EditModuleContext) () -> Unit) {
+    override suspend fun editModule(action: EditModuleContext.() -> Unit) {
         writeAction { action(EditMavenModuleContext(MavenDependencyModificator(nativeModule.project))) }
     }
 
-    context(EditModuleContext)
     override fun updateDependency(
+        context: EditModuleContext,
         declaredPackage: PackageSearchDeclaredPackage,
         newVersion: String?,
         newScope: String?,
@@ -61,21 +61,21 @@ data class PackageSearchMavenModule(
                 .copy(version = newVersion ?: oldDescriptor.coordinates.version),
             scope = newScope
         )
-        modificator.updateDependency(
+        context.modificator.updateDependency(
             module = nativeModule,
             oldDescriptor = oldDescriptor,
             newDescriptor = newDescriptor
         )
     }
 
-    context(EditModuleContext)
     override fun addDependency(
+        context: EditModuleContext,
         apiPackage: ApiPackage,
         selectedVersion: String,
         selectedScope: String?,
     ) {
         validateMavenPackageType(apiPackage)
-        modificator.addDependency(
+        context.modificator.addDependency(
             module = nativeModule,
             descriptor = UnifiedDependency(
                 groupId = apiPackage.groupId,
@@ -86,30 +86,36 @@ data class PackageSearchMavenModule(
         )
     }
 
-    context(EditModuleContext)
-    override fun removeDependency(declaredPackage: PackageSearchDeclaredPackage) {
+    override fun removeDependency(
+        context: EditModuleContext,
+        declaredPackage: PackageSearchDeclaredPackage,
+    ) {
         validateMavenDeclaredPackageType(declaredPackage)
-        modificator.removeDependency(
+        context.modificator.removeDependency(
             module = nativeModule,
             descriptor = declaredPackage.toUnifiedDependency()
         )
     }
 
-    context(EditModuleContext)
-    override fun addRepository(repository: ApiRepository) {
+    override fun addRepository(
+        context: EditModuleContext,
+        repository: ApiRepository,
+    ) {
         validateRepositoryType(repository)
         if (repository.url !in CommonRepositories.entries.flatMap { it.urls }) {
-            modificator.addRepository(
+            context.modificator.addRepository(
                 module = nativeModule,
                 repository = repository.toUnifiedRepository()
             )
         }
     }
 
-    context(EditModuleContext)
-    override fun removeRepository(repository: PackageSearchDeclaredRepository) {
+    override fun removeRepository(
+        context: EditModuleContext,
+        repository: PackageSearchDeclaredRepository,
+    ) {
         validateRepositoryType(repository)
-        modificator.deleteRepository(
+        context.modificator.deleteRepository(
             module = nativeModule,
             repository = repository.toUnifiedRepository()
         )

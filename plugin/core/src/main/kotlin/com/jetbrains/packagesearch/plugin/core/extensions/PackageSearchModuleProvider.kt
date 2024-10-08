@@ -7,8 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface PackageSearchModuleProvider {
 
-    context(PackageSearchModuleBuilderContext)
-    fun provideModule(nativeModule: Module): Flow<PackageSearchModule?>
+    fun provideModule(context: PackageSearchModuleBuilderContext, nativeModule: Module): Flow<PackageSearchModule?>
 
     fun getSyncStateFlow(project: Project): Flow<Boolean>
 

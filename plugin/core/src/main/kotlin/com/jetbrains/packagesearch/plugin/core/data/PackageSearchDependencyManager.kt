@@ -5,18 +5,24 @@ import org.jetbrains.packagesearch.api.v3.ApiRepository
 
 interface PackageSearchDependencyManager {
 
-    context(EditModuleContext)
     fun updateDependency(
+        context: EditModuleContext,
         declaredPackage: PackageSearchDeclaredPackage,
         newVersion: String?,
         newScope: String?
     )
 
-    context(EditModuleContext)
-    fun addDependency(apiPackage: ApiPackage, selectedVersion: String, selectedScope: String?)
+    fun addDependency(
+        context: EditModuleContext,
+        apiPackage: ApiPackage,
+        selectedVersion: String,
+        selectedScope: String?,
+    )
 
-    context(EditModuleContext)
-    fun removeDependency(declaredPackage: PackageSearchDeclaredPackage)
+    fun removeDependency(
+        context: EditModuleContext,
+        declaredPackage: PackageSearchDeclaredPackage
+    )
 
 }
 
@@ -25,8 +31,15 @@ interface EditModuleContext {
 }
 
 interface PackageSearchModuleEditor {
-    suspend fun editModule(action: context(EditModuleContext) () -> Unit)
+    suspend fun editModule(action: EditModuleContext.() -> Unit)
 
-    context(EditModuleContext) fun addRepository(repository: ApiRepository)
-    context(EditModuleContext)  fun removeRepository(repository: PackageSearchDeclaredRepository)
+    fun addRepository(
+        context: EditModuleContext,
+        repository: ApiRepository
+    )
+
+    fun removeRepository(
+        context: EditModuleContext,
+        repository: PackageSearchDeclaredRepository
+    )
 }
