@@ -40,7 +40,6 @@ import com.intellij.util.messages.Topic
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredMavenPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
-import com.jetbrains.packagesearch.plugin.core.services.PackageSearchProjectCachesService
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.contracts.ExperimentalContracts
@@ -193,9 +192,6 @@ fun Application.registryFlow(key: String, defaultValue: Boolean = false) =
             }
         }
     }.withInitialValue(Registry.`is`(key, defaultValue))
-
-val Project.PackageSearchProjectCachesService
-    get() = service<PackageSearchProjectCachesService>()
 
 fun ApiPackage.asMavenApiPackage() =
     this as? ApiMavenPackage ?: error(

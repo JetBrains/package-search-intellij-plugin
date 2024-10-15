@@ -2,14 +2,8 @@
 
 package com.jetbrains.packagesearch.plugin.gradle
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.Service.Level
-import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.refreshAndFindVirtualFile
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependency
 import com.intellij.packageSearch.mppDependencyUpdater.MppDependencyModifier
 import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationInfoModel
@@ -18,25 +12,17 @@ import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredPackage
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModuleVariant
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.parseAttributesFromRawStrings
-import com.jetbrains.packagesearch.plugin.gradle.utils.GradleDependencyModelCacheEntry
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradleDependencyModel
 import java.nio.file.Path
-import korlibs.crypto.sha512
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.io.path.absolutePathString
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.dizitart.kno2.filters.eq
-import org.dizitart.no2.collection.UpdateOptions
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
@@ -151,7 +137,7 @@ suspend fun Module.getKMPVariants(
     if (buildFilePath == null) return@coroutineScope emptyList()
 
     val dependenciesBlockVariant = async {
-        val declaredDependencies = getDeclaredDependencies(context, buildFilePath)
+        val declaredDependencies = getDeclaredDependencies(context)
         PackageSearchKotlinMultiplatformVariant.DependenciesBlock(
             declaredDependencies = declaredDependencies.asKmpVariantDependencies(),
             compatiblePackageTypes = buildPackageTypes {
@@ -172,7 +158,7 @@ suspend fun Module.getKMPVariants(
         )
     }
 
-    val rawDeclaredSourceSetDependencies = getDependenciesBySourceSet(buildFilePath)
+    val rawDeclaredSourceSetDependencies = getDependenciesBySourceSet()
 
     val packageIds = rawDeclaredSourceSetDependencies
         .values
@@ -236,55 +222,8 @@ suspend fun Module.getKMPVariants(
     sourceSetVariants + dependenciesBlockVariant.await()
 }
 
-@Serializable
-data class GradleKMPDependencyModelCacheEntry(
-    @SerialName("_id") val id: Long? = null,
-    val buildFile: String,
-    val buildFileSha: String,
-    val dependencies: Map<String, List<GradleDependencyModel>>,
-)
 
-@Service(Level.PROJECT)
-class GradleKMPCacheService(project: Project) : Disposable {
-    val kmpDependencyRepository =
-        project.PackageSearchProjectCachesService.getRepository<GradleKMPDependencyModelCacheEntry>("gradle-kmp-dependencies")
-
-    override fun dispose() = kmpDependencyRepository.close()
-}
-
-private suspend fun Module.getDependenciesBySourceSet(
-    buildFilePath: Path
-): Map<String, List<GradleDependencyModel>> {
-    val vf = buildFilePath.refreshAndFindVirtualFile() ?: return emptyMap()
-
-    val buildFileHash = vf.contentsToByteArray().sha512().hex
-
-    val entry = withContext(Dispatchers.IO) {
-        project.service<GradleKMPCacheService>()
-            .kmpDependencyRepository
-            .find(GradleDependencyModelCacheEntry::buildFile eq buildFilePath.absolutePathString())
-            .singleOrNull()
-    }
-
-    if (entry?.buildFileSha == buildFileHash) return entry.dependencies
-
-    val filteredDependenciesBySourceSet =
-        MppDependencyModifier.dependenciesBySourceSet(this)
-            ?.filterNotNullValues()
-            ?.mapValues { readAction { it.value.artifacts().map { it.toGradleDependencyModel() } }.distinct() }
-            ?: emptyMap()
-
-    project.service<GradleKMPCacheService>()
-        .kmpDependencyRepository
-        .update(
-            /* filter = */ GradleDependencyModelCacheEntry::buildFile eq buildFilePath.absolutePathString(),
-            /* update = */ GradleKMPDependencyModelCacheEntry(
-                buildFile = buildFilePath.absolutePathString(),
-                buildFileSha = buildFileHash,
-                dependencies = filteredDependenciesBySourceSet
-            ),
-            /* updateOptions = */ UpdateOptions.updateOptions(true)
-        )
-
-    return filteredDependenciesBySourceSet
-}
+private suspend fun Module.getDependenciesBySourceSet(): Map<String, List<GradleDependencyModel>> = MppDependencyModifier.dependenciesBySourceSet(this)
+    ?.filterNotNullValues()
+    ?.mapValues { readAction { it.value.artifacts().map { it.toGradleDependencyModel() } }.distinct() }
+    ?: emptyMap()

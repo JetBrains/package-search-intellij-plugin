@@ -5,18 +5,13 @@ package com.jetbrains.packagesearch.plugin.gradle.utils
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.buildsystem.model.unified.UnifiedDependencyRepository
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.readAction
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.refreshAndFindVirtualFile
 import com.intellij.openapi.vfs.toNioPathOrNull
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredRepository
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
-import com.jetbrains.packagesearch.plugin.core.utils.PackageSearchProjectCachesService
 import com.jetbrains.packagesearch.plugin.core.utils.filesChangedEventFlow
 import com.jetbrains.packagesearch.plugin.core.utils.icon
 import com.jetbrains.packagesearch.plugin.core.utils.isSameFileAsSafe
@@ -25,25 +20,19 @@ import com.jetbrains.packagesearch.plugin.core.utils.watchExternalFileChanges
 import com.jetbrains.packagesearch.plugin.gradle.GradleDependencyModel
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredPackage
 import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleDeclaredRepository
-import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel
 import com.jetbrains.packagesearch.plugin.gradle.packageId
-import java.nio.file.Path
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
 import java.nio.file.Paths
-import korlibs.crypto.sha512
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-import kotlin.io.path.absolutePathString
-import kotlinx.coroutines.Dispatchers
+import kotlin.io.path.Path
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.dizitart.kno2.filters.eq
-import org.dizitart.no2.collection.UpdateOptions
 import org.jetbrains.packagesearch.api.v3.ApiMavenPackage
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
 import org.jetbrains.packagesearch.api.v3.ApiPackage
@@ -61,16 +50,16 @@ val globalGradlePropertiesPath
 val knownGradleAncillaryFilesFiles
     get() = listOf("gradle.properties", "local.properties", "gradle/libs.versions.toml")
 
-fun getModuleChangesFlow(model: PackageSearchGradleModel): Flow<Unit> {
+fun getModuleChangesFlow(model: PackageSearchGradleJavaModel): Flow<Unit> {
     val knownFiles = buildSet {
         if (model.buildFilePath != null) {
-            add(model.buildFilePath)
+            add(Path(model.buildFilePath))
         }
         addAll(
             knownGradleAncillaryFilesFiles.flatMap {
                 listOf(
-                    model.rootProjectPath.resolve(it),
-                    model.projectDir.resolve(it),
+                    Path(model.rootProjectPath).resolve(it),
+                    Path(model.projectDir).resolve(it),
                 )
             }
         )
@@ -87,64 +76,18 @@ fun getModuleChangesFlow(model: PackageSearchGradleModel): Flow<Unit> {
     )
 }
 
-@Serializable
-data class GradleDependencyModelCacheEntry(
-    @SerialName("_id") val id: String? = null,
-    val buildFile: String,
-    val buildFileSha: String,
-    val dependencies: List<GradleDependencyModel>,
-)
-
-suspend fun PackageSearchModuleBuilderContext.retrieveGradleDependencyModel(nativeModule: Module, buildFile: Path): List<GradleDependencyModel> {
-    val vf = buildFile.refreshAndFindVirtualFile() ?: return emptyList()
-
-    val buildFileSha = vf.contentsToByteArray().sha512().hex
-
-    val cache = withContext(Dispatchers.IO) {
-        project.service<GradleCacheService>()
-            .dependencyRepository
-            .find(GradleDependencyModelCacheEntry::buildFile eq buildFile.absolutePathString())
-            .singleOrNull()
-    }
-
-    if (cache?.buildFileSha == buildFileSha) return cache.dependencies
-
-    val dependencies = readAction {
-        ProjectBuildModel.get(nativeModule.project).getModuleBuildModel(nativeModule)
-            ?.dependencies()
-            ?.artifacts()
-            ?.map { it.toGradleDependencyModel() }
-            ?: emptyList()
-    }
-
-    project.service<GradleCacheService>()
-        .dependencyRepository
-        .update(
-            /* filter = */ GradleDependencyModelCacheEntry::buildFile eq buildFile.absolutePathString(),
-            /* update = */ GradleDependencyModelCacheEntry(
-                buildFile = buildFile.absolutePathString(),
-                buildFileSha = buildFileSha,
-                dependencies = dependencies
-            ),
-            /* updateOptions = */ UpdateOptions.updateOptions(true)
-        )
-
-    return dependencies
-}
-
-@Service(Service.Level.PROJECT)
-class GradleCacheService(project: Project) : Disposable {
-    val dependencyRepository =
-        project.PackageSearchProjectCachesService.getRepository<GradleDependencyModelCacheEntry>("gradle-dependencies")
-
-    override fun dispose() = dependencyRepository.close()
+suspend fun Module.retrieveGradleDependencyModel(): List<GradleDependencyModel> = readAction {
+    ProjectBuildModel.get(this.project).getModuleBuildModel(this)
+        ?.dependencies()
+        ?.artifacts()
+        ?.map { it.toGradleDependencyModel() }
+        ?: emptyList()
 }
 
 suspend fun Module.getDeclaredDependencies(
     context: PackageSearchModuleBuilderContext,
-    buildFile: Path
 ): List<PackageSearchGradleDeclaredPackage> {
-    val declaredDependencies = context.retrieveGradleDependencyModel(this, buildFile)
+    val declaredDependencies = retrieveGradleDependencyModel()
 
     val distinctIds = declaredDependencies
         .asSequence()
@@ -175,7 +118,7 @@ internal val Project.initializeProjectFlow
         emit(Unit)
     }
 
-fun List<PackageSearchGradleModel.DeclaredRepository>.toGradle(context: PackageSearchModuleBuilderContext) =
+fun List<PackageSearchGradleJavaModel.DeclaredRepository>.toGradle(context: PackageSearchModuleBuilderContext) =
     map {
         PackageSearchGradleDeclaredRepository(
             url = it.url,

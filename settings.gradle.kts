@@ -52,14 +52,6 @@ include(
     ":kmp-modifier",
 )
 
-includeBuild("nitrite-java") {
-    dependencySubstitution {
-        substitute(module("org.dizitart:nitrite-java")).using(project(":nitrite"))
-        substitute(module("org.dizitart:potassium-nitrite")).using(project(":potassium-nitrite"))
-        substitute(module("org.dizitart:nitrite-mvstore-adapter")).using(project(":nitrite-mvstore-adapter"))
-    }
-}
-
 val isCi
     get() = System.getenv("CI") == "true"
 

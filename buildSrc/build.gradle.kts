@@ -11,4 +11,5 @@ dependencies {
     implementation(libs.poet.kotlin)
     implementation(libs.flexmark)
     implementation(libs.gradle.intellij.platform.plugin)
+    implementation(libs.kotlin.serialization.gradle.plugin)
 }

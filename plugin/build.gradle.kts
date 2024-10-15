@@ -4,6 +4,7 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import java.lang.System.getenv
 import kotlin.math.max
+import org.jetbrains.intellij.platform.gradle.tasks.GenerateManifestTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 
 
@@ -13,11 +14,10 @@ plugins {
     alias(packageSearchCatalog.plugins.dokka)
     alias(packageSearchCatalog.plugins.compose.desktop)
     alias(packageSearchCatalog.plugins.kotlin.plugin.compose)
-    alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
+    id(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     alias(packageSearchCatalog.plugins.shadow)
     `maven-publish`
 }
-
 intellijPlatform {
     instrumentCode = false
 }
@@ -49,7 +49,6 @@ dependencies {
     }
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.ktor.client.java)
-    implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
     implementation(projects.plugin.maven)
@@ -89,6 +88,9 @@ tasks {
     }
 
     shadowJar {
+        val generateManifestTask = named<GenerateManifestTask>("generateManifest")
+        dependsOn(generateManifestTask)
+        manifest.from(generateManifestTask.flatMap<RegularFile> { it.generatedManifest })
         exclude { it.name.containsAny(JAR_NAMES_TO_REMOVE) }
         exclude { it.name == "module-info.class" }
         exclude { it.name.endsWith("kotlin_module") }

@@ -2,11 +2,9 @@ package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
-import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel.Configuration
-import com.jetbrains.packagesearch.plugin.gradle.PackageSearchGradleModel.Dependency
 import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
 import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleModelBuilder
-import java.nio.file.Paths
+import com.jetbrains.packagesearch.plugin.gradle.utils.GRADLE_MODEL_DATA_NODE_KEY
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 
@@ -23,39 +21,7 @@ class PackageSearchProjectResolverExtension : AbstractProjectResolverExtension()
 
     override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
         gradleModule.getExtraProject<PackageSearchGradleJavaModel>()
-            ?.toPackageSearchModel()
-            ?.also { ideModule.createChild(PackageSearchGradleModel.DATA_NODE_KEY, it) }
+            ?.also { ideModule.createChild(GRADLE_MODEL_DATA_NODE_KEY, it) }
         super.populateModuleExtraModels(gradleModule, ideModule)
     }
 }
-
-internal fun PackageSearchGradleJavaModel.toPackageSearchModel() =
-    PackageSearchGradleModel(
-        projectDir = Paths.get(projectDir),
-        projectName = projectName,
-        projectIdentityPath = projectIdentityPath,
-        configurations = configurations.map {
-            Configuration(
-                name = it.name,
-                dependencies = it.dependencies.map { Dependency(it.groupId, it.artifactId, it.version) },
-                canBeResolved = it.isCanBeResolved,
-                canBeDeclared = it.isCanBeDeclared,
-                canBeConsumed = it.isCanBeConsumed
-            )
-        },
-        declaredRepositories = declaredRepositories.map {
-            PackageSearchGradleModel.DeclaredRepository(
-                url = it.url,
-                name = it.name
-            )
-        },
-        isJavaApplied = isJavaApplied,
-        isAmperApplied = isAmperApplied,
-        isKotlinAndroidApplied = isKotlinAndroidApplied,
-        isKotlinMultiplatformApplied = isKotlinMultiplatformApplied,
-        rootProjectName = rootProjectName,
-        buildFilePath = buildFilePath?.let { Paths.get(it) },
-        rootProjectPath = Paths.get(rootProjectPath),
-        gradleVersion = gradleVersion
-    )
-

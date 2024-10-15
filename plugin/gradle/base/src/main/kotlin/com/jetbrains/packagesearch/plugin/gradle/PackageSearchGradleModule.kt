@@ -3,7 +3,6 @@
 package com.jetbrains.packagesearch.plugin.gradle
 
 import com.intellij.buildsystem.model.unified.UnifiedDependency
-import com.intellij.buildsystem.model.unified.UnifiedDependencyRepository
 import com.intellij.externalSystem.DependencyModifierService
 import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.module.Module
@@ -17,6 +16,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.toUnifiedRepository
 import com.jetbrains.packagesearch.plugin.core.utils.validateMavenDeclaredPackageType
 import com.jetbrains.packagesearch.plugin.core.utils.validateMavenPackageType
 import com.jetbrains.packagesearch.plugin.core.utils.validateRepositoryType
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
 import com.jetbrains.packagesearch.plugin.gradle.utils.toUnifiedRepository
 import com.jetbrains.packagesearch.plugin.gradle.utils.validateRepositoryType
 import java.nio.file.Path
@@ -41,7 +41,7 @@ data class PackageSearchGradleModule(
     override val defaultScope: String?,
     override val availableScopes: List<String>,
     override val compatiblePackageTypes: List<PackagesType>,
-    val packageSearchModel: PackageSearchGradleModel,
+    val packageSearchModel: PackageSearchGradleJavaModel,
     val availableKnownRepositories: Map<String, ApiRepository>,
     val nativeModule: Module,
 ) : PackageSearchModule.Base {

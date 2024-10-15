@@ -27,11 +27,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
+import org.jetbrains.packagesearch.api.v3.http.PackageSearchApiClient
 
 class WindowedModuleBuilderContext(
     override val project: Project,
     private val knownRepositoriesGetter: () -> Map<String, ApiRepository>,
-    private val packagesCache: PackageSearchApiPackageCache,
+    private val packageSearchApiClient: PackageSearchApiClient,
     override val coroutineScope: CoroutineScope,
 ) : PackageSearchModuleBuilderContext {
 
@@ -41,10 +42,10 @@ class WindowedModuleBuilderContext(
     private val idRequestsChannel = Channel<Request>()
     private val hashRequestsChannel = Channel<Request>()
     private val idResultsFlow = idRequestsChannel
-        .responseFlow("idResultsFlow") { packagesCache.getPackageInfoByIds(it) }
+        .responseFlow("idResultsFlow") { packageSearchApiClient.getPackageInfoByIds(it) }
 
     private val hashResultsFlow = hashRequestsChannel
-        .responseFlow("hashResultsFlow") { packagesCache.getPackageInfoByIdHashes(it) }
+        .responseFlow("hashResultsFlow") { packageSearchApiClient.getPackageInfoByIdHashes(it) }
 
     override suspend fun getPackageInfoByIds(packageIds: Set<String>) =
         idResultsFlow.awaitResponse(packageIds, idRequestsChannel)

@@ -7,26 +7,27 @@ import com.intellij.packageSearch.mppDependencyUpdater.resolved.MppCompilationIn
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradle
+import kotlin.io.path.Path
 import kotlinx.coroutines.flow.FlowCollector
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpointPaths.knownRepositories
 
 class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
 
     override suspend fun FlowCollector<PackageSearchModule?>.transform(
         context: PackageSearchModuleBuilderContext,
         module: Module,
-        model: PackageSearchGradleModel,
+        model: PackageSearchGradleJavaModel,
     ) {
         if (PackageSearch.isKMPEnabled && model.isKotlinMultiplatformApplied && !model.isAmperApplied)
-            MppCompilationInfoProvider.sourceSetsMap(context.project, model.projectDir)
+            MppCompilationInfoProvider.sourceSetsMap(context.project, Path(model.projectDir))
                 .collect { compilationModel ->
                     val variants = module.getKMPVariants(
                         context = context,
                         compilationModel = compilationModel,
-                        buildFilePath = model.buildFilePath,
+                        buildFilePath = Path(model.buildFilePath),
                         availableScopes = model.configurations
-                            .filter { it.canBeDeclared }
+                            .filter { it.isCanBeDeclared }
                             .map { it.name }
                     ).associateBy { it.name }
                     val pkgsModule = PackageSearchKotlinMultiplatformModule(
@@ -34,9 +35,9 @@ class KotlinMultiplatformModuleProvider : AbstractGradleModuleProvider() {
                         identity = PackageSearchModule.Identity(
                             group = "gradle",
                             path = model.projectIdentityPath,
-                            projectDir = model.projectDir,
+                            projectDir = Path(model.projectDir),
                         ),
-                        buildFilePath = model.buildFilePath,
+                        buildFilePath = Path(model.buildFilePath),
                         declaredRepositories = model.declaredRepositories.toGradle(context),
                         variants = variants,
                         packageSearchModel = model,

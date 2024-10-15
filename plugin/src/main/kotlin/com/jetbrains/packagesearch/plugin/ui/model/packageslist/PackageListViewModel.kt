@@ -21,7 +21,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.hasUpdates
 import com.jetbrains.packagesearch.plugin.ui.model.infopanel.InfoPanelViewModel
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.SetHeaderState.TargetState
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.SetHeaderState.TargetState.OPEN
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
@@ -63,9 +63,7 @@ class PackageListViewModel(
     private val viewModelScope: CoroutineScope,
 ) {
 
-    private val isOnline
-        get() = IntelliJApplication.PackageSearchApplicationCachesService
-            .isOnlineFlow
+    private val isOnlineFlow = IntelliJApplication.PackageSearchApiClientService.client.onlineStateFlow
 
     val isCompactFlow
         get() = project.PackageSearchSettingsService.isInfoPanelOpenFlow
@@ -78,7 +76,7 @@ class PackageListViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     val isOnlineSearchEnabledFlow =
-        combine(listOf(selectedModuleIdsSharedFlow.map { it.size == 1 }, isOnline)) {
+        combine(listOf(selectedModuleIdsSharedFlow.map { it.size == 1 }, isOnlineFlow)) {
             it.all { it }
         }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), true)
@@ -216,7 +214,7 @@ class PackageListViewModel(
                 this.searchQuery = searchQuery
                 packagesType = compatiblePackageTypes
             },
-            apis = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
+            apis = IntelliJApplication.PackageSearchApiClientService.client,
         ).execute()
         headerCollapsedStatesFlow.update { current ->
             when (headerId) {
@@ -251,7 +249,7 @@ class PackageListViewModel(
                                 this.searchQuery = searchQuery
                                 this.packagesType = packagesType
                             },
-                            apis = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
+                            apis = IntelliJApplication.PackageSearchApiClientService.client,
                             attributes = attributes,
                             primaryVariantName = primaryVariantName,
                             additionalVariants = additionalVariants,
@@ -271,7 +269,7 @@ class PackageListViewModel(
                             this.searchQuery = searchQuery
                             this.packagesType = packagesType
                         },
-                        apis = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
+                        apis = IntelliJApplication.PackageSearchApiClientService.client,
                         attributes = attributes,
                         primaryVariantName = primaryVariantName,
                         additionalVariants = additionalVariants,
@@ -324,16 +322,19 @@ class PackageListViewModel(
         }
     }
 
+    @Suppress("unused")
     private suspend fun handle(event: PackageListItemEvent.OnRetryPackageSearch) {
         restartSearchChannel.send(Unit)
     }
 
+    @Suppress("unused")
     private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderVariantsClick) {
         PackageSearchLogger.logTODO()
         logFUSEvent(PackageSearchFUSEvent.InfoPanelOpened)
     }
 
-    private suspend fun handle(event: PackageListItemEvent.InfoPanelEvent.OnPackageDoubleClick) {
+    @Suppress("unused")
+    private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnPackageDoubleClick) {
         project.PackageSearchSettingsService.isInfoPanelOpenFlow.value = true
         logFUSEvent(PackageSearchFUSEvent.InfoPanelOpened)
     }
@@ -663,7 +664,7 @@ class PackageListViewModel(
             }
     }
 
-    private suspend fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick) {
+    private fun handle(event: PackageListItemEvent.InfoPanelEvent.OnHeaderAttributesClick) {
         logFUSEvent(PackageSearchFUSEvent.HeaderAttributesClick(event.eventId is PackageListItem.Header.Id.Remote))
         val infoPanelViewModel = project.service<InfoPanelViewModel>()
 
@@ -702,7 +703,7 @@ class PackageListViewModel(
 
     }
 
-
+    @Suppress("unused")
     private suspend fun handle(event: PackageListItemEvent.EditPackageEvent.SetVariant) {
         val module = event.eventId
             .getModule() as? PackageSearchModule.WithVariants

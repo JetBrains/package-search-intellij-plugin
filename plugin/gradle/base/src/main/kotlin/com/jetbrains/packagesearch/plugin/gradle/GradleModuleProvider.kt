@@ -6,11 +6,12 @@ import com.intellij.openapi.module.Module
 import com.jetbrains.packagesearch.plugin.core.PackageSearch
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBuilderContext
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
 import com.jetbrains.packagesearch.plugin.gradle.utils.getDeclaredDependencies
 import com.jetbrains.packagesearch.plugin.gradle.utils.toGradle
+import kotlin.io.path.Path
 import kotlinx.coroutines.flow.FlowCollector
 import org.jetbrains.packagesearch.api.v3.ApiMavenRepository
-import org.jetbrains.packagesearch.api.v3.http.PackageSearchEndpointPaths.knownRepositories
 import org.jetbrains.packagesearch.api.v3.search.androidPackages
 import org.jetbrains.packagesearch.api.v3.search.buildPackageTypes
 import org.jetbrains.packagesearch.api.v3.search.jvmGradlePackages
@@ -20,7 +21,7 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
     override suspend fun FlowCollector<PackageSearchModule?>.transform(
         context: PackageSearchModuleBuilderContext,
         module: Module,
-        model: PackageSearchGradleModel,
+        model: PackageSearchGradleJavaModel,
     ) {
         if (!PackageSearch.isKMPEnabled || !model.isKotlinMultiplatformApplied) {
             val availableKnownRepositories =
@@ -31,19 +32,19 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
                 }
 
             val configurationNames = model.configurations
-                .filter { it.canBeDeclared }
+                .filter { it.isCanBeDeclared }
                 .map { it.name }
             val declaredDependencies = model.buildFilePath
-                ?.let { module.getDeclaredDependencies(context, it) }
+                ?.let { module.getDeclaredDependencies(context) }
                 ?: emptyList()
             val packageSearchGradleModule = PackageSearchGradleModule(
                 name = model.projectName,
                 identity = PackageSearchModule.Identity(
                     group = "gradle",
                     path = model.projectIdentityPath.fixBuildSrc(model),
-                    projectDir = model.projectDir,
+                    projectDir = Path(model.projectDir),
                 ),
-                buildFilePath = model.buildFilePath,
+                buildFilePath =  Path(model.buildFilePath),
                 declaredRepositories = model.declaredRepositories.toGradle(context),
                 declaredDependencies = declaredDependencies,
                 availableKnownRepositories = availableKnownRepositories,
@@ -67,9 +68,10 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
     }
 
 
+
 }
 
-private fun String.fixBuildSrc(model: PackageSearchGradleModel) = when {
+private fun String.fixBuildSrc(model: PackageSearchGradleJavaModel) = when {
     model.projectName == "buildSrc" && this == ":" -> ":buildSrc"
     else -> this
 }

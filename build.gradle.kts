@@ -6,7 +6,6 @@ plugins {
     alias(packageSearchCatalog.plugins.shadow) apply false
     alias(packageSearchCatalog.plugins.dokka) apply false
     alias(packageSearchCatalog.plugins.kotlin.jvm) apply false
-    alias(packageSearchCatalog.plugins.kotlin.plugin.serialization) apply false
     alias(packageSearchCatalog.plugins.kotlin.plugin.compose) apply false
     alias(packageSearchCatalog.plugins.compose.desktop) apply false
     alias(packageSearchCatalog.plugins.kotlinter) apply false
@@ -14,7 +13,7 @@ plugins {
 
 allprojects {
     group = "org.jetbrains.packagesearch"
-    val baseVersion = "242-SNAPSHOT"
+    val baseVersion = "243-SNAPSHOT"
 
     version = when (val ref = getenv("GITHUB_REF")) {
         null -> baseVersion

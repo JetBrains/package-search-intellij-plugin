@@ -15,6 +15,8 @@ import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleBui
 import com.jetbrains.packagesearch.plugin.core.extensions.PackageSearchModuleProvider
 import com.jetbrains.packagesearch.plugin.core.utils.isProjectImportingFlow
 import com.jetbrains.packagesearch.plugin.core.utils.smartModeFlow
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
+import com.jetbrains.packagesearch.plugin.gradle.utils.GRADLE_MODEL_DATA_NODE_KEY
 import com.jetbrains.packagesearch.plugin.gradle.utils.awaitExternalSystemInitialization
 import com.jetbrains.packagesearch.plugin.gradle.utils.getModuleChangesFlow
 import com.jetbrains.packagesearch.plugin.gradle.utils.initializeProjectFlow
@@ -53,7 +55,7 @@ abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
             .filter { nativeModule.isGradle }
             .mapNotNull {
                 findGradleModuleData(nativeModule)
-                    ?.let { ExternalSystemApiUtil.find(it, PackageSearchGradleModel.DATA_NODE_KEY) }
+                    ?.let { ExternalSystemApiUtil.find(it, GRADLE_MODEL_DATA_NODE_KEY) }
                     ?.data
             }
             .flatMapLatest { model ->
@@ -68,7 +70,7 @@ abstract class AbstractGradleModuleProvider : PackageSearchModuleProvider {
     abstract suspend fun FlowCollector<PackageSearchModule?>.transform(
         context: PackageSearchModuleBuilderContext,
         module: Module,
-        model: PackageSearchGradleModel,
+        model: PackageSearchGradleJavaModel,
     )
 
     override fun getSyncStateFlow(project: Project) = flow {

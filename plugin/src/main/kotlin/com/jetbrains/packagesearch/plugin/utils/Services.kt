@@ -5,14 +5,14 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.fus.PackageSearchFUSEvent
-import com.jetbrains.packagesearch.plugin.services.PackageSearchApplicationCachesService
 import com.jetbrains.packagesearch.plugin.services.PackageSearchFUSService
 import com.jetbrains.packagesearch.plugin.services.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.services.PackageSearchSettingsService
+import org.jetbrains.idea.packagesearch.api.PackageSearchApiClientService
 
 
-val Application.PackageSearchApplicationCachesService
-    get() = service<PackageSearchApplicationCachesService>()
+val Application.PackageSearchApiClientService
+    get() = service< PackageSearchApiClientService>()
 
 val Project.PackageSearchProjectService
     get() = service<PackageSearchProjectService>()
