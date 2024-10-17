@@ -34,7 +34,7 @@ Supports Maven and Gradle projects.
                     anchor="bottom"
                     secondary="false"
                     canCloseContents="true"
-                    icon="PlatformDependencyToolwindowIcons.ArtifactSmall" <!-- TODO -->
+                    icon="PlatformDependencyToolwindowIcons.ArtifactSmall"
                     factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory">
         </toolWindow>
         <registryKey id="packagesearch.plugin.debug.logging"

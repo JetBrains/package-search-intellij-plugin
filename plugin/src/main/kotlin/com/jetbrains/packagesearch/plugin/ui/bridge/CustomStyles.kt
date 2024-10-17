@@ -19,8 +19,10 @@ import org.jetbrains.jewel.ui.component.styling.LazyTreeMetrics
 import org.jetbrains.jewel.ui.component.styling.LazyTreeStyle
 import org.jetbrains.jewel.ui.component.styling.LinkColors
 import org.jetbrains.jewel.ui.component.styling.LinkStyle
+import org.jetbrains.jewel.ui.component.styling.LinkUnderlineBehavior
 import org.jetbrains.jewel.ui.component.styling.LocalDefaultTabStyle
 import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
+import org.jetbrains.jewel.ui.component.styling.LocalScrollbarStyle
 import org.jetbrains.jewel.ui.component.styling.TabMetrics
 import org.jetbrains.jewel.ui.component.styling.TabStyle
 import org.jetbrains.jewel.ui.theme.linkStyle
@@ -41,7 +43,7 @@ internal fun PackageSearchDropdownLinkStyle(): LinkStyle {
         ),
         metrics = currentStyle.metrics,
         icons = currentStyle.icons,
-        textStyles = currentStyle.textStyles,
+        underlineBehavior = LinkUnderlineBehavior.ShowOnHover
     )
 }
 
@@ -59,7 +61,8 @@ internal fun PackageSearchTabStyle(): TabStyle {
             tabContentSpacing = current.metrics.tabContentSpacing,
         ),
         icons = current.icons,
-        contentAlpha = current.contentAlpha
+        contentAlpha = current.contentAlpha,
+        scrollbarStyle = LocalScrollbarStyle.current,
     )
 }
 

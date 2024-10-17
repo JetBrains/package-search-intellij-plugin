@@ -10,6 +10,7 @@ import kotlin.io.path.listDirectoryEntries
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
+//todo delete if not useful
 val domFileName = "builtinRegistry"
 
 println("Scouting registry files")

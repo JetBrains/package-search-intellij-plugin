@@ -45,8 +45,8 @@ fun PackageSearchCentralPanel(
                     onPackageEvent = viewModel::onPackageListItemEvent,
                 )
                 VerticalScrollbar(
-                    adapter = rememberScrollbarAdapter(scrollState = viewModel.selectableLazyListState.lazyListState),
                     modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+                    scrollState = viewModel.selectableLazyListState.lazyListState,
                 )
             }
         }

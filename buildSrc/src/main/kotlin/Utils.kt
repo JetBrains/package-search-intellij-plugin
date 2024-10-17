@@ -15,6 +15,7 @@ fun PluginDependenciesSpecScope.id(plugin: Provider<PluginDependency>) =
 
 const val PACKAGE_SEARCH_PLUGIN_ID = "com.jetbrains.packagesearch.intellij-plugin"
 const val INTELLIJ_VERSION = "243.19420.21"
+//const val INTELLIJ_VERSION = "243.20847.18"
 
 fun String.containsAny(toDelete: List<String>) =
     toDelete.any { it in this }

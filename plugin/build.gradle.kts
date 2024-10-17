@@ -6,6 +6,7 @@ import java.lang.System.getenv
 import kotlin.math.max
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateManifestTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
+import org.jetbrains.kotlin.util.prefixIfNot
 
 
 plugins {
@@ -36,12 +37,11 @@ dependencies {
         )
     }
 
-    implementation(compose.desktop.linux_arm64)
-    implementation(compose.desktop.linux_x64)
-    implementation(compose.desktop.macos_arm64)
-    implementation(compose.desktop.macos_x64)
-    implementation(compose.desktop.windows_x64)
-    implementation(packageSearchCatalog.jewel.bridge.ij241)
+    implementation(compose.desktop.currentOs) {
+        exclude(group = "org.jetbrains.compose.material")
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    implementation(packageSearchCatalog.jewel.bridge.ij243)
     implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.compose.desktop.components.splitpane) {
         exclude(group = "org.jetbrains.compose.runtime")
@@ -84,6 +84,8 @@ tasks {
         changeNotes = getenv("CHANGE_NOTES")
             ?.let { Parser.builder().build().parse(it) }
             ?.let { HtmlRenderer.builder().build().render(it) }
+            ?.prefixIfNot("<![CDATA[")
+//            ?.suffixIfNot("]]>")
 
     }
 
