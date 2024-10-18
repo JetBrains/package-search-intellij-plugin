@@ -96,9 +96,10 @@ fun PackageSearchModulesTree(
             TreeItem(item)
         }
         VerticalScrollbar(
-            adapter = rememberScrollbarAdapter(scrollState = viewModel.lazyListState),
             modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+            scrollState = viewModel.lazyListState,
         )
+
     }
 
 

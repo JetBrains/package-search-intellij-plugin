@@ -26,6 +26,8 @@ import org.jetbrains.jewel.ui.component.SimpleTabContent
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
+import org.jetbrains.jewel.ui.component.styling.LocalDefaultTabStyle
+import org.jetbrains.jewel.ui.component.styling.LocalEditorTabStyle
 
 @Composable
 fun PackageSearchInfoPanel(
@@ -43,6 +45,7 @@ fun PackageSearchInfoPanel(
         else -> Column(modifier = Modifier.fillMaxSize()) {
             TabStrip(
                 modifier = Modifier.fillMaxWidth(),
+                style = LocalDefaultTabStyle.current,
                 tabs = tabs.map { infoPanelContent ->
                     TabData.Default(
                         selected = activeTabTitle == infoPanelContent.tabTitleData.tabTitle,
@@ -85,8 +88,8 @@ fun PackageSearchInfoPanel(
                     }
                 }
                 VerticalScrollbar(
-                    adapter = rememberScrollbarAdapter(scrollState = viewModel.scrollState),
                     modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+                    scrollState = viewModel.scrollState,
                 )
             }
         }

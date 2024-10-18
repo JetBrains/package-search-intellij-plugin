@@ -58,8 +58,12 @@ import org.jetbrains.jewel.ui.component.CircularProgressIndicator
 import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
+import org.jetbrains.jewel.ui.component.SelectableLazyColumn
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
+import org.jetbrains.jewel.ui.icon.PathIconKey
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
+import org.jetbrains.jewel.ui.painter.PainterHint
 
 @Composable
 fun PackageSearchPackageList(
@@ -320,12 +324,14 @@ private fun RowScope.PackageTitle(item: PackageListItem.Package) {
         modifier = Modifier.weight(2f, fill = true),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        val iconPath = if (JewelTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath
         Icon(
-            resource = if (JewelTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath,
+            key = PathIconKey(iconPath, IconProvider::class.java),
             modifier = Modifier.size(16.dp),
             contentDescription = null,
-            iconClass = IconProvider::class.java
+            hint = PainterHint.None
         )
+
         Text(text = item.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
         LabelInfo(text = item.subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
@@ -409,9 +415,8 @@ internal fun DeclaredPackageActionPopup(
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(
-                        resource = "expui/general/delete.svg",
+                        key = AllIconsKeys.Actions.GC,
                         contentDescription = null,
-                        iconClass = AllIcons::class.java,
                     )
                     Text(text = message("packagesearch.ui.toolwindow.packages.actions.remove"))
                 }
@@ -425,9 +430,8 @@ internal fun DeclaredPackageActionPopup(
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(
-                        resource = "actions/edit.svg",
+                        key = AllIconsKeys.Actions.Edit,
                         contentDescription = null,
-                        iconClass = AllIcons::class.java,
                     )
                     Text(text = message("packagesearch.ui.toolwindow.packages.actions.gotToSource"))
                 }
