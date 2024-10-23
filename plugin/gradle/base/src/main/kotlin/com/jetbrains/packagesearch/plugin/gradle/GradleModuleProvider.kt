@@ -37,36 +37,41 @@ class GradleModuleProvider : AbstractGradleModuleProvider() {
             val declaredDependencies = model.buildFilePath
                 ?.let { module.getDeclaredDependencies(context) }
                 ?: emptyList()
-            val packageSearchGradleModule = PackageSearchGradleModule(
-                name = model.projectName,
-                identity = PackageSearchModule.Identity(
-                    group = "gradle",
-                    path = model.projectIdentityPath.fixBuildSrc(model),
-                    projectDir = Path(model.projectDir),
-                ),
-                buildFilePath =  model.buildFilePath?.let{Path(it)},
-                declaredRepositories = model.declaredRepositories.toGradle(context),
+            val packageTypes = buildPackageTypes {
+                mavenPackages()
+                when {
+                    model.isKotlinAndroidApplied -> androidPackages()
+                    model.isJavaApplied -> jvmGradlePackages("jar")
+                    else -> gradlePackages {
+                        isRootPublication = true
+                    }
+                }
+            }
+            val identity = PackageSearchModule.Identity(
+                group = "gradle",
+                path = model.projectIdentityPath.fixBuildSrc(model),
+                projectDir = Path(model.projectDir),
+            )
+            val buildFilePath = model.buildFilePath?.let { Path(it) }
+            val declaredRepositories = model.declaredRepositories.toGradle(context)
+            val defaultScope = "implementation".takeIf { it in configurationNames } ?: configurationNames.firstOrNull()
+            val projectName = model.projectName
+            val packageSearchGradleModule: PackageSearchGradleModule = PackageSearchGradleModule(
+                name = projectName,
+                identity = identity,
+                buildFilePath = buildFilePath,
+                declaredRepositories = declaredRepositories,
                 declaredDependencies = declaredDependencies,
                 availableKnownRepositories = availableKnownRepositories,
                 packageSearchModel = model,
-                defaultScope = "implementation".takeIf { it in configurationNames } ?: configurationNames.firstOrNull(),
+                defaultScope = defaultScope,
                 availableScopes = configurationNames,
-                compatiblePackageTypes = buildPackageTypes {
-                    mavenPackages()
-                    when {
-                        model.isKotlinAndroidApplied -> androidPackages()
-                        model.isJavaApplied -> jvmGradlePackages("jar")
-                        else -> gradlePackages {
-                            isRootPublication = true
-                        }
-                    }
-                },
+                compatiblePackageTypes = packageTypes,
                 nativeModule = module,
             )
             emit(packageSearchGradleModule)
         }
     }
-
 
 
 }

@@ -33,7 +33,10 @@ dependencies {
         intellijIdeaCommunity(INTELLIJ_VERSION)
         bundledPlugins(
             "org.jetbrains.idea.reposearch",
-            "com.jetbrains.performancePlugin"
+            "com.jetbrains.performancePlugin",
+        )
+        bundledModule(
+            "intellij.platform.compose"
         )
     }
 
@@ -41,7 +44,7 @@ dependencies {
         exclude(group = "org.jetbrains.compose.material")
         exclude(group = "org.jetbrains.kotlinx")
     }
-    implementation(packageSearchCatalog.jewel.bridge.ij243)
+    implementation(packageSearchCatalog.jewel.bridge.ij243) //compileonly???
     implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.compose.desktop.components.splitpane) {
         exclude(group = "org.jetbrains.compose.runtime")
