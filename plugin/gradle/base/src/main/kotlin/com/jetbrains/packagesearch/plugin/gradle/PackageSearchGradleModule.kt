@@ -24,14 +24,10 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.writeText
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import org.jetbrains.packagesearch.api.v3.ApiPackage
 import org.jetbrains.packagesearch.api.v3.ApiRepository
 import org.jetbrains.packagesearch.api.v3.search.PackagesType
 
-@Serializable
-@SerialName("gradle")
 data class PackageSearchGradleModule(
     override val name: String,
     override val identity: PackageSearchModule.Identity,
