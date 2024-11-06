@@ -20,10 +20,10 @@ jobs:
         with:
           submodules: true
       - uses: gradle/gradle-build-action@v3
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: 17
           distribution: 'temurin'
       - name: Run GRADLE tests
         continue-on-error: true
@@ -71,10 +71,10 @@ jobs:
         with:
           submodules: true
       - uses: gradle/gradle-build-action@v3
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: 17
           distribution: 'temurin'
       - name: Run MAVEN tests
         id: simple-build
@@ -123,10 +123,10 @@ jobs:
         with:
           submodules: true
       - uses: gradle/gradle-build-action@v3
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: 17
           distribution: 'temurin'
       - name: Run KMP tests
         id: simple-build
@@ -179,10 +179,10 @@ jobs:
         with:
           submodules: true
       - uses: gradle/gradle-build-action@v3
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: 17
           distribution: 'temurin'
       - name: Run VERSION CATALOG tests
         continue-on-error: true
@@ -226,10 +226,10 @@ jobs:
         with:
           submodules: true
       - uses: gradle/gradle-build-action@v3
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 11
+          java-version: 17
           distribution: 'temurin'
       - name: Run UNIT tests
         id: simple-build
