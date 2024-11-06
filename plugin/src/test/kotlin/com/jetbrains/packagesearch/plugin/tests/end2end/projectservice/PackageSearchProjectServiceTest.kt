@@ -11,6 +11,7 @@ import com.jetbrains.packagesearch.plugin.tests.extractInto
 import com.jetbrains.packagesearch.plugin.tests.getResourceAbsolutePath
 import com.jetbrains.packagesearch.plugin.tests.verifyEnvironmentAndFiles
 import java.nio.file.Path
+import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.PathWalkOption
 import kotlin.io.path.deleteRecursively
 import kotlin.io.path.isDirectory
@@ -29,6 +30,7 @@ abstract class PackageSearchProjectServiceTest {
 
     abstract val resourcePath: String
 
+    @OptIn(ExperimentalPathApi::class)
     private fun getProjects() =
         getResourceAbsolutePath(resourcePath)
             ?.walk(PathWalkOption.BREADTH_FIRST)
@@ -45,6 +47,7 @@ abstract class PackageSearchProjectServiceTest {
     /**
      * Cleanup data output dir from project's folders before artifact upload
      */
+    @OptIn(ExperimentalPathApi::class)
     @AfterEach
     fun `cleanup data outpdir from project's folders before artifact upload`() {
         PKGS_TEST_DATA_OUTPUT_DIR.listDirectoryEntries()

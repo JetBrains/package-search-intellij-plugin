@@ -87,7 +87,7 @@ tasks {
         changeNotes = getenv("CHANGE_NOTES")
             ?.let { Parser.builder().build().parse(it) }
             ?.let { HtmlRenderer.builder().build().render(it) }
-            ?.prefixIfNot("<![CDATA[")
+//            ?.prefixIfNot("<![CDATA[")
 //            ?.suffixIfNot("]]>")
 
     }
