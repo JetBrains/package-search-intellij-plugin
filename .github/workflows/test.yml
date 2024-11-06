@@ -37,22 +37,7 @@ jobs:
           SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
           SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
           SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.GradleProjectTest"
-      - name: Patch IDE config files
-        if: steps.simple-build.outcome == 'failure'
-        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
-      - name: Run GRADLE tests PATCHED
-        if: steps.simple-build.outcome == 'failure'
-        env:
-          KMP: true
-          GRADLE_VERSION: ${{ matrix.gradle-version }}
-          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          JAVA_VERSION: ${{matrix.jdk-version}}
-          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
-          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
-          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
-          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.GradleProjectTest"
+        run: ./gradlew :plugin:test --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.GradleProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
@@ -87,21 +72,7 @@ jobs:
           SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
           SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
           SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.MavenProjectTest"
-      - name: Patch IDE config files
-        if: steps.simple-build.outcome == 'failure'
-        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
-      - name: Run MAVEN tests Patched
-        if: steps.simple-build.outcome == 'failure'
-        env:
-          KMP: true
-          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          JAVA_VERSION: ${{matrix.jdk-version}}
-          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
-          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
-          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
-          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.MavenProjectTest"
+        run: ./gradlew :plugin:test --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.MavenProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
@@ -140,22 +111,7 @@ jobs:
           SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
           SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
           SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.KMPGradleProjectTest"
-      - name: Patch IDE config files
-        if: steps.simple-build.outcome == 'failure'
-        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
-      - name: Run KMP tests
-        if: steps.simple-build.outcome == 'failure'
-        env:
-          KMP: true
-          GRADLE_VERSION: ${{ matrix.gradle-version }}
-          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          JAVA_VERSION: ${{matrix.jdk-version}}
-          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
-          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
-          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
-          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.KMPGradleProjectTest"
+        run: ./gradlew :plugin:test --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.KMPGradleProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
@@ -197,21 +153,6 @@ jobs:
           SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
           SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
         run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.CatalogProjectTest"
-      - name: Patch IDE config files
-        if: steps.simple-build.outcome == 'failure'
-        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
-      - name: Run VERSION CATALOG tests PATCHED
-        if: steps.simple-build.outcome == 'failure'
-        env:
-          KMP: true
-          GRADLE_VERSION: ${{ matrix.gradle-version }}
-          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          JAVA_VERSION: ${{matrix.jdk-version}}
-          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
-          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
-          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
-          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-        run: ./gradlew :plugin:test --continue --tests "com.jetbrains.packagesearch.plugin.tests.end2end.projectservice.CatalogProjectTest"
       - name: Upload test result
         if: always()
         uses: actions/upload-artifact@v4
@@ -234,18 +175,6 @@ jobs:
       - name: Run UNIT tests
         id: simple-build
         continue-on-error: true
-        env:
-          GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
-          SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
-          SPACE_INTELLIJ_NIGHTLIES_USERNAME: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_USERNAME }}
-          SPACE_PACKAGE_SEARCH_TOKEN: ${{ secrets.SPACE_PACKAGE_SEARCH_TOKEN }}
-          SPACE_PACKAGE_SEARCH_USERNAME: ${{ secrets.SPACE_PACKAGE_SEARCH_USERNAME }}
-        run: ./gradlew :plugin:utils:test
-      - name: Patch IDE config files
-        if: steps.simple-build.outcome == 'failure'
-        run: kotlinc -script ./.github/workflows/TrustKotlinGradlePluginPatch.main.kts
-      - name: Run UNIT tests
-        if: steps.simple-build.outcome == 'failure'
         env:
           GRADLE_ENTERPRISE_KEY: ${{ secrets.GRADLE_ENTERPRISE_KEY }}
           SPACE_INTELLIJ_NIGHTLIES_TOKEN: ${{ secrets.SPACE_INTELLIJ_NIGHTLIES_TOKEN }}
