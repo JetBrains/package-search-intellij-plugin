@@ -2,7 +2,7 @@
 assertk = "0.28.1"
 caffeine = "3.1.6"
 commonsCodec = "1.16.0"
-composeDesktop = "1.6.11"
+composeDesktop = "1.7.0"
 coroutines = "1.8.0"
 detekt = "1.23.6"
 dokka = "1.9.20"
@@ -10,20 +10,20 @@ flexmark = "0.64.8"
 foojay = "0.5.0"
 gradlePublishPlugin = "1.1.0"
 ideStarter = "LATEST-EAP-SNAPSHOT"
-idea = "2024.2"
+idea = "2024.3"
 ideaGradlePlugin = "1.17.3"
-newIdeaGradlePlugin = "2.1.0"
-jewel = "0.19.6"
+jewel = "0.26"
+jewelSnapshot = "1.0.0-SNAPSHOT"
 junit = "5.10.2"
 junit4 = "4.13.2"
-kotlin = "2.0.20"
+kotlin = "2.0.21"
 kotlinPoet = "1.15.2"
 kotlinterGradlePlugin = "3.12.0"
 kotlinxDatetime = "0.5.0"
-kotlinxSerialization = "1.6.3"
+kotlinxSerialization = "1.7.3"
 ktor = "2.3.5"
-logback = "1.4.11"
-nitrite = "3.4.4"
+logback = "1.4.12"
+newIdeaGradlePlugin = "2.1.0"
 packagesearchApiModels = "3.1.0"
 xmlutilsSerialization = "0.86.2"
 
@@ -50,6 +50,7 @@ ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", ve
 jewel-bridge-ij232 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-232", version.ref = "jewel" }
 jewel-bridge-ij233 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-233", version.ref = "jewel" }
 jewel-bridge-ij241 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-241", version.ref = "jewel" }
+jewel-bridge-ij243 = { module= "org.jetbrains.jewel:jewel-ide-laf-bridge-243", version.ref = "jewelSnapshot"}
 jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
 jewel-standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
 jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
@@ -58,6 +59,7 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
 junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine", version.ref = "junit" }
 junit4-base = { module = "junit:junit", version.ref = "junit4" }
+kotlin-serialization-gradle-plugin = {module="org.jetbrains.kotlin:kotlin-serialization", version.ref="kotlin"}
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
@@ -78,14 +80,9 @@ ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-nitrite = { module = "org.dizitart:nitrite", version.ref = "nitrite" }
-nitrite-mvstore-adapter = { module = "org.dizitart:nitrite-mvstore-adapter", version.ref = "nitrite" }
-packagesearch-api-client = { module = "org.jetbrains.packagesearch:packagesearch-api-client", version.ref = "packagesearchApiModels" }
-packagesearch-api-models = { module = "org.jetbrains.packagesearch:packagesearch-api-models", version.ref = "packagesearchApiModels" }
 packagesearch-build-systems-models = { module = "org.jetbrains.packagesearch:packagesearch-build-systems-models", version.ref = "packagesearchApiModels" }
 packagesearch-http-models = { module = "org.jetbrains.packagesearch:packagesearch-http-models", version.ref = "packagesearchApiModels" }
 poet-kotlin = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }
-potassium-nitrite = { module = "org.dizitart:potassium-nitrite", version.ref = "nitrite" }
 xmlutils-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutilsSerialization" }
 
 
@@ -105,12 +102,12 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 foojay-resolver = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay" }
 gradle-publish-plugin = { id = "com.gradle.plugin-publish", version.ref = "gradlePublishPlugin" }
 idea-gradle-plugin = { id = "org.jetbrains.intellij.platform", version.ref = "newIdeaGradlePlugin" }
-idea-gradle-plugin-platform = { id = "org.jetbrains.intellij.platform", version.ref = "newIdeaGradlePlugin" }
-idea-gradle-plugin-module = { id = "org.jetbrains.intellij.platform.module", version.ref = "newIdeaGradlePlugin" }
 idea-gradle-plugin-base = { id = "org.jetbrains.intellij.platform.base", version.ref = "newIdeaGradlePlugin" }
+idea-gradle-plugin-module = { id = "org.jetbrains.intellij.platform.module", version.ref = "newIdeaGradlePlugin" }
+idea-gradle-plugin-platform = { id = "org.jetbrains.intellij.platform", version.ref = "newIdeaGradlePlugin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-plugin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-plugin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinterGradlePlugin" }
 shadow = { id = "com.gradleup.shadow", version = "8.3.3" }

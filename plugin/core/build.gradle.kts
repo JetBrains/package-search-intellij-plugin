@@ -6,7 +6,7 @@ import org.jetbrains.packagesearch.gradle.GeneratePackageSearchObject
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     alias(packageSearchCatalog.plugins.dokka)
-    alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
+    id(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     id(packageSearchCatalog.plugins.idea.gradle.plugin.base)
     `maven-publish`
 }
@@ -14,18 +14,12 @@ plugins {
 dependencies {
     intellijPlatform {
         intellijIdeaCommunity(INTELLIJ_VERSION)
+        bundledPlugins(
+            "org.jetbrains.idea.reposearch",
+            "com.jetbrains.performancePlugin"
+        )
     }
-    api(packageSearchCatalog.potassium.nitrite) {
-        exclude(group = "com.fasterxml.jackson")
-        exclude(group = "com.fasterxml.jackson.core")
-        exclude(group = "com.fasterxml.jackson.datatype")
-        exclude(group = "com.squareup.okhttp3")
-        exclude(group = "org.slf4j")
-    }
-    api(packageSearchCatalog.nitrite.mvstore.adapter) {
-        exclude(group = "org.slf4j")
-    }
-    api(packageSearchCatalog.packagesearch.api.client)
+    api(packageSearchCatalog.kotlinx.serialization.core)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.api)
     testRuntimeOnly(packageSearchCatalog.junit.jupiter.engine)
     testImplementation(packageSearchCatalog.kotlinx.coroutines.test)

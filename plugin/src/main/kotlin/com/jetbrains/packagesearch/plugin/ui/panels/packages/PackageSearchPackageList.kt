@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.externalSystem.service.ui.completion.collector.TextCompletionCollector.Companion.async
 import com.jetbrains.packagesearch.plugin.PackageSearchBundle.message
 import com.jetbrains.packagesearch.plugin.core.data.IconProvider
 import com.jetbrains.packagesearch.plugin.ui.LearnMoreLink
@@ -49,21 +51,7 @@ import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemE
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Install
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListItemEvent.OnPackageAction.Remove
 import com.jetbrains.packagesearch.plugin.ui.panels.packages.items.PackageListHeader
-import java.net.Socket
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.yield
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.protobuf.ProtoBuf
+import kotlinx.coroutines.awaitAll
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyItemScope
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyListState
@@ -76,6 +64,9 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Link
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.styling.LocalLazyTreeStyle
+import org.jetbrains.jewel.ui.icon.PathIconKey
+import org.jetbrains.jewel.ui.icons.AllIconsKeys
+import org.jetbrains.jewel.ui.painter.PainterHint
 
 @Composable
 fun PackageSearchPackageList(
@@ -336,12 +327,14 @@ private fun RowScope.PackageTitle(item: PackageListItem.Package) {
         modifier = Modifier.weight(2f, fill = true),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        val iconPath = if (JewelTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath
         Icon(
-            resource = if (JewelTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath,
+            key = PathIconKey(iconPath, IconProvider::class.java),
             modifier = Modifier.size(16.dp),
             contentDescription = null,
-            iconClass = IconProvider::class.java
+            hint = PainterHint.None
         )
+
         Text(text = item.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
         LabelInfo(text = item.subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
@@ -425,9 +418,8 @@ internal fun DeclaredPackageActionPopup(
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(
-                        resource = "expui/general/delete.svg",
+                        key = AllIconsKeys.Actions.GC,
                         contentDescription = null,
-                        iconClass = AllIcons::class.java,
                     )
                     Text(text = message("packagesearch.ui.toolwindow.packages.actions.remove"))
                 }
@@ -441,9 +433,8 @@ internal fun DeclaredPackageActionPopup(
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(
-                        resource = "actions/edit.svg",
+                        key = AllIconsKeys.Actions.Edit,
                         contentDescription = null,
-                        iconClass = AllIcons::class.java,
                     )
                     Text(text = message("packagesearch.ui.toolwindow.packages.actions.gotToSource"))
                 }

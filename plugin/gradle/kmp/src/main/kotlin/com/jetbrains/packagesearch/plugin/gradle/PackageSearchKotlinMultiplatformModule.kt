@@ -12,6 +12,7 @@ import com.jetbrains.packagesearch.plugin.core.data.PackageSearchDeclaredReposit
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.utils.toUnifiedRepository
 import com.jetbrains.packagesearch.plugin.core.utils.validateRepositoryType
+import com.jetbrains.packagesearch.plugin.gradle.tooling.PackageSearchGradleJavaModel
 import com.jetbrains.packagesearch.plugin.gradle.utils.toUnifiedRepository
 import com.jetbrains.packagesearch.plugin.gradle.utils.validateRepositoryType
 import java.nio.file.Path
@@ -28,7 +29,7 @@ data class PackageSearchKotlinMultiplatformModule(
     override val buildFilePath: Path?,
     override val declaredRepositories: List<PackageSearchGradleDeclaredRepository>,
     override val variants: Map<String, PackageSearchKotlinMultiplatformVariant>,
-    val packageSearchModel: PackageSearchGradleModel,
+    val packageSearchModel: PackageSearchGradleJavaModel,
     val availableKnownRepositories: Map<String, ApiRepository>,
     val nativeModule: Module,
 ) : PackageSearchModule.WithVariants {

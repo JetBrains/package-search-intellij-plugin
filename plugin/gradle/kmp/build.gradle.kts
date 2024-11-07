@@ -4,7 +4,7 @@ plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
     id(packageSearchCatalog.plugins.idea.gradle.plugin.base)
     alias(packageSearchCatalog.plugins.dokka)
-    alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
+    id(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     `maven-publish`
 }
 
@@ -20,4 +20,5 @@ dependencies {
 
     api(projects.plugin.gradle)
     api(projects.kmpModifier)
+    compileOnly(projects.plugin.gradle.tooling)
 }

@@ -6,7 +6,7 @@ import com.intellij.openapi.components.Service.Level
 import com.intellij.openapi.project.Project
 import com.jetbrains.packagesearch.plugin.core.data.PackageSearchModule
 import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchProjectService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
@@ -52,7 +52,7 @@ internal class TreeViewModel(
     internal val treeState = TreeState(SelectableLazyListState(lazyListState))
 
     val isOnline
-        get() = IntelliJApplication.PackageSearchApplicationCachesService.isOnlineFlow
+        get() = IntelliJApplication.PackageSearchApiClientService.client.onlineStateFlow
 
     fun expandAll() {
         treeState.openNodes = treeStateFlow.value.walkBreadthFirst().map { it.id }.toSet()

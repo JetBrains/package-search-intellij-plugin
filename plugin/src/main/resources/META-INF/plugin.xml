@@ -30,13 +30,11 @@ Supports Maven and Gradle projects.
     <extensions defaultExtensionNs="com.intellij">
         <statistics.counterUsagesCollector
                 implementationClass="com.jetbrains.packagesearch.plugin.fus.PackageSearchEventsLogger"/>
-        <recoveryAction
-                implementation="com.jetbrains.packagesearch.plugin.services.CleanPackageSearchApplicationCacheAction"/>
         <toolWindow id="PackageSearch"
                     anchor="bottom"
                     secondary="false"
                     canCloseContents="true"
-                    icon="PlatformDependencyToolwindowIcons.ArtifactSmall"
+                    icon="AllIcons.Toolwindows.Dependencies"
                     factoryClass="com.jetbrains.packagesearch.plugin.PackageSearchToolWindowFactory">
         </toolWindow>
         <registryKey id="packagesearch.plugin.debug.logging"

@@ -13,14 +13,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.intellij.openapi.components.service
 import com.intellij.ui.JBColor
 import com.jetbrains.packagesearch.plugin.ui.bridge.LabelInfo
 import com.jetbrains.packagesearch.plugin.ui.model.PackageSearchToolWindowState
 import com.jetbrains.packagesearch.plugin.ui.model.ToolWindowViewModel
 import com.jetbrains.packagesearch.plugin.ui.model.packageslist.PackageListViewModel
+import org.jetbrains.idea.packagesearch.api.PackageSearchApiClientService
 import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.IndeterminateHorizontalProgressBar
+import org.jetbrains.packagesearch.api.PackageSearchApiClientObject
 
 @Composable
 fun PackageSearchToolwindow() {

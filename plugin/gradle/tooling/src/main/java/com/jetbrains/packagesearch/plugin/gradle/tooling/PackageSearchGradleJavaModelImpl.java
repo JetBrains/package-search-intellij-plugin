@@ -1,6 +1,7 @@
 package com.jetbrains.packagesearch.plugin.gradle.tooling;
 
-import org.gradle.util.GradleVersion;
+import com.intellij.serialization.PropertyMapping;
+import kotlinx.serialization.Serializable;
 
 import java.util.List;
 
@@ -21,6 +22,21 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
     private final String buildFilePath;
     private final String rootProjectPath;
 
+    @PropertyMapping({
+            "projectDir",
+            "projectName",
+            "rootProjectName",
+            "projectIdentityPath",
+            "configurations",
+            "repositories",
+            "isJavaApplied",
+            "isAmperApplied",
+            "isKotlinMultiplatformApplied",
+            "isKotlinAndroidApplied",
+            "buildFilePath",
+            "rootProjectPath",
+            "gradleVersion"
+    })
     public PackageSearchGradleJavaModelImpl(
             String projectDir,
             String projectName,
@@ -120,6 +136,7 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         private final String url;
         private final String name;
 
+        @PropertyMapping({"url", "name"})
         public DeclaredRepositoryImpl(String url, String name) {
             this.url = url;
             this.name = name;
@@ -142,6 +159,7 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         private final String artifact;
         private final String version;
 
+        @PropertyMapping({"group", "artifact", "version"})
         public DependencyImpl(String group, String artifact, String version) {
             this.group = group;
             this.artifact = artifact;
@@ -173,6 +191,13 @@ public class PackageSearchGradleJavaModelImpl implements PackageSearchGradleJava
         private final boolean canBeDeclared;
         private final boolean canBeConsumed;
 
+        @PropertyMapping({
+                "name",
+                "dependencies",
+                "canBeResolved",
+                "canBeDeclared",
+                "canBeConsumed"
+        })
         public ConfigurationImpl(
                 String name,
                 List<Dependency> dependencies,

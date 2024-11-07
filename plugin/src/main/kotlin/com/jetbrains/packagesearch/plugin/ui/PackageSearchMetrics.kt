@@ -14,8 +14,8 @@ object PackageSearchMetrics {
     val scrollbarWidth: Dp
         @Composable
         get() {
-            val metrics = JewelTheme.scrollbarStyle.metrics
-            return metrics.thumbThickness +
+            val metrics = JewelTheme.scrollbarStyle.scrollbarVisibility
+            return metrics.trackThicknessExpanded +
                     metrics.trackPadding.calculateEndPadding(LocalLayoutDirection.current)
         }
 

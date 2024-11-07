@@ -15,7 +15,7 @@ import com.jetbrains.packagesearch.plugin.core.utils.IntelliJApplication
 import com.jetbrains.packagesearch.plugin.core.utils.fileOpenedFlow
 import com.jetbrains.packagesearch.plugin.core.utils.replayOn
 import com.jetbrains.packagesearch.plugin.core.utils.toolWindowOpenedFlow
-import com.jetbrains.packagesearch.plugin.utils.PackageSearchApplicationCachesService
+import com.jetbrains.packagesearch.plugin.utils.PackageSearchApiClientService
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchLogger
 import com.jetbrains.packagesearch.plugin.utils.PackageSearchSettingsService
 import com.jetbrains.packagesearch.plugin.utils.WindowedModuleBuilderContext
@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
@@ -67,8 +66,8 @@ class PackageSearchProjectService(
         .stateIn(coroutineScope, SharingStarted.Lazily, false)
 
     private val knownRepositoriesStateFlow = timer(12.hours) {
-        IntelliJApplication.PackageSearchApplicationCachesService
-            .apiPackageCache
+        IntelliJApplication.PackageSearchApiClientService
+            .client
             .getKnownRepositories()
             .associateBy { it.id }
     }
@@ -87,7 +86,7 @@ class PackageSearchProjectService(
     private val context = WindowedModuleBuilderContext(
         project = project,
         knownRepositoriesGetter = { knownRepositories },
-        packagesCache = IntelliJApplication.PackageSearchApplicationCachesService.apiPackageCache,
+        packageSearchApiClient = IntelliJApplication.PackageSearchApiClientService.client,
         coroutineScope = coroutineScope,
     )
 
@@ -142,16 +141,9 @@ class PackageSearchProjectService(
 
         combine(
             openedBuildFiles.map { it.isEmpty() },
-            project.toolWindowOpenedFlow("Package Search")
-        ) { noOpenedFiles, toolWindowOpened -> noOpenedFiles || !toolWindowOpened }
-            .flatMapLatest {
-                // if the tool window is not opened and there are no opened build files,
-                // we don't need to do anything, and we turn off the isOnlineFlow
-                when {
-                    it -> IntelliJApplication.PackageSearchApplicationCachesService.isOnlineFlow
-                    else -> emptyFlow()
-                }
-            }
+            project.toolWindowOpenedFlow("Package Search"),
+            IntelliJApplication.PackageSearchApiClientService.client.onlineStateFlow
+        ) { noOpenedFiles, toolWindowOpened, isOnline -> noOpenedFiles || !toolWindowOpened || isOnline }
             .distinctUntilChanged()
             .filter { it }
             .throttle(30.minutes)

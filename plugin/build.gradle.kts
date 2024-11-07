@@ -4,7 +4,9 @@ import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
 import java.lang.System.getenv
 import kotlin.math.max
+import org.jetbrains.intellij.platform.gradle.tasks.GenerateManifestTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
+import org.jetbrains.kotlin.util.prefixIfNot
 
 
 plugins {
@@ -13,11 +15,10 @@ plugins {
     alias(packageSearchCatalog.plugins.dokka)
     alias(packageSearchCatalog.plugins.compose.desktop)
     alias(packageSearchCatalog.plugins.kotlin.plugin.compose)
-    alias(packageSearchCatalog.plugins.kotlin.plugin.serialization)
+    id(packageSearchCatalog.plugins.kotlin.plugin.serialization)
     alias(packageSearchCatalog.plugins.shadow)
     `maven-publish`
 }
-
 intellijPlatform {
     instrumentCode = false
 }
@@ -32,16 +33,18 @@ dependencies {
         intellijIdeaCommunity(INTELLIJ_VERSION)
         bundledPlugins(
             "org.jetbrains.idea.reposearch",
-            "com.jetbrains.performancePlugin"
+            "com.jetbrains.performancePlugin",
+        )
+        bundledModule(
+            "intellij.platform.compose"
         )
     }
 
-    implementation(compose.desktop.linux_arm64)
-    implementation(compose.desktop.linux_x64)
-    implementation(compose.desktop.macos_arm64)
-    implementation(compose.desktop.macos_x64)
-    implementation(compose.desktop.windows_x64)
-    implementation(packageSearchCatalog.jewel.bridge.ij241)
+    implementation(compose.desktop.currentOs) {
+        exclude(group = "org.jetbrains.compose.material")
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    implementation(packageSearchCatalog.jewel.bridge.ij243) //compileonly???
     implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.compose.desktop.components.splitpane) {
         exclude(group = "org.jetbrains.compose.runtime")
@@ -49,7 +52,6 @@ dependencies {
     }
     implementation(packageSearchCatalog.ktor.client.logging)
     implementation(packageSearchCatalog.ktor.client.java)
-    implementation(packageSearchCatalog.packagesearch.api.models)
     implementation(projects.plugin.gradle.base)
     implementation(projects.plugin.gradle.kmp)
     implementation(projects.plugin.maven)
@@ -85,10 +87,15 @@ tasks {
         changeNotes = getenv("CHANGE_NOTES")
             ?.let { Parser.builder().build().parse(it) }
             ?.let { HtmlRenderer.builder().build().render(it) }
+//            ?.prefixIfNot("<![CDATA[")
+//            ?.suffixIfNot("]]>")
 
     }
 
     shadowJar {
+        val generateManifestTask = named<GenerateManifestTask>("generateManifest")
+        dependsOn(generateManifestTask)
+        manifest.from(generateManifestTask.flatMap<RegularFile> { it.generatedManifest })
         exclude { it.name.containsAny(JAR_NAMES_TO_REMOVE) }
         exclude { it.name == "module-info.class" }
         exclude { it.name.endsWith("kotlin_module") }
