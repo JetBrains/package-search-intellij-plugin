@@ -6,8 +6,6 @@ import java.lang.System.getenv
 import kotlin.math.max
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateManifestTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
-import org.jetbrains.kotlin.util.prefixIfNot
-
 
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
