@@ -30,8 +30,6 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
       - uses: gradle/gradle-build-action@v3
-      - name: Publish libraries
-        run: ./gradlew publishAllPublicationsToSpaceRepository
       - name: Publish release plugin to TBE
         env:
           KMP: true
