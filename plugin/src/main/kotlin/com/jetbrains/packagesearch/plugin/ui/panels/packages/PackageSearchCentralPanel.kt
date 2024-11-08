@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,7 +46,7 @@ fun PackageSearchCentralPanel(
                 )
                 VerticalScrollbar(
                     modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-                    adapter = viewModel.selectableLazyListState.lazyListState,
+                    scrollState = viewModel.selectableLazyListState.lazyListState,
                 )
             }
         }

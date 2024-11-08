@@ -62,6 +62,7 @@ internal fun PackageSearchTabStyle(): TabStyle {
         ),
         icons = current.icons,
         contentAlpha = current.contentAlpha,
+        scrollbarStyle = LocalScrollbarStyle.current,
     )
 }
 

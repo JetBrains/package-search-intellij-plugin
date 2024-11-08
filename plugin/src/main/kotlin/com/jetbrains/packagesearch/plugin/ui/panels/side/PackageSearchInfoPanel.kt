@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,6 +26,8 @@ import org.jetbrains.jewel.ui.component.SimpleTabContent
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
+import org.jetbrains.jewel.ui.component.styling.LocalDefaultTabStyle
+import org.jetbrains.jewel.ui.component.styling.LocalEditorTabStyle
 
 @Composable
 fun PackageSearchInfoPanel(
@@ -42,6 +45,7 @@ fun PackageSearchInfoPanel(
         else -> Column(modifier = Modifier.fillMaxSize()) {
             TabStrip(
                 modifier = Modifier.fillMaxWidth(),
+                style = LocalDefaultTabStyle.current,
                 tabs = tabs.map { infoPanelContent ->
                     TabData.Default(
                         selected = activeTabTitle == infoPanelContent.tabTitleData.tabTitle,

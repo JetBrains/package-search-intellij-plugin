@@ -153,7 +153,7 @@ internal fun PackageActionPopup(
 
 
 internal fun SplitPaneScope.packageSearchSplitter(
-    cursor: PointerIcon = androidx.compose.ui.input.pointer.PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)),
+    cursor: PointerIcon = PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)),
 ) {
     splitter {
         visiblePart {

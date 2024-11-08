@@ -329,7 +329,7 @@ private fun RowScope.PackageTitle(item: PackageListItem.Package) {
     ) {
         val iconPath = if (JewelTheme.isDark) item.icon.darkIconPath else item.icon.lightIconPath
         Icon(
-            key = PathIconKey(iconPath),
+            key = PathIconKey(iconPath, IconProvider::class.java),
             modifier = Modifier.size(16.dp),
             contentDescription = null,
             hint = PainterHint.None

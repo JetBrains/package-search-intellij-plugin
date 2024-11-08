@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.v2.ScrollbarAdapter
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,7 +32,6 @@ import com.jetbrains.packagesearch.plugin.ui.PackageSearchMetrics
 import com.jetbrains.packagesearch.plugin.ui.model.tree.TreeItemModel
 import com.jetbrains.packagesearch.plugin.ui.model.tree.TreeViewModel
 import com.jetbrains.packagesearch.plugin.ui.viewModel
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.lazy.tree.Tree
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.Orientation
@@ -44,7 +43,6 @@ import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip
 import org.jetbrains.jewel.ui.component.VerticalScrollbar
 
-@OptIn(ExperimentalJewelApi::class)
 @Composable
 fun PackageSearchModulesTree(
     modifier: Modifier,
@@ -98,8 +96,8 @@ fun PackageSearchModulesTree(
             TreeItem(item)
         }
         VerticalScrollbar(
-            adapter = rememberScrollbarAdapter(scrollState = viewModel.lazyListState),
             modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+            scrollState = viewModel.lazyListState,
         )
 
     }
