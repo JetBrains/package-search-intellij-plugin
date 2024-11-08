@@ -34,15 +34,15 @@ dependencies {
             "com.jetbrains.performancePlugin",
         )
         bundledModule(
-            "intellij.platform.compose"
+            "intellij.libraries.compose.desktop"
         )
     }
 
-    implementation(compose.desktop.currentOs) {
-        exclude(group = "org.jetbrains.compose.material")
-        exclude(group = "org.jetbrains.kotlinx")
-    }
-    implementation(packageSearchCatalog.jewel.bridge.ij243) //compileonly???
+//    runtimeOnly(compose.desktop.currentOs) {
+//        exclude(group = "org.jetbrains.compose.material")
+//        exclude(group = "org.jetbrains.kotlinx")
+//    }
+//    compileOnly(packageSearchCatalog.jewel.bridge.ij243)
     implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.compose.desktop.components.splitpane) {
         exclude(group = "org.jetbrains.compose.runtime")

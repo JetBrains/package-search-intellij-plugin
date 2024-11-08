@@ -3,7 +3,6 @@ package com.jetbrains.packagesearch.plugin.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.jetbrains.jewel.foundation.theme.JewelTheme
@@ -14,9 +13,7 @@ object PackageSearchMetrics {
     val scrollbarWidth: Dp
         @Composable
         get() {
-            val metrics = JewelTheme.scrollbarStyle.scrollbarVisibility
-            return metrics.trackThicknessExpanded +
-                    metrics.trackPadding.calculateEndPadding(LocalLayoutDirection.current)
+            return JewelTheme.scrollbarStyle.metrics.thumbThickness + JewelTheme.scrollbarStyle.metrics.trackPadding.calculateRightPadding(LocalLayoutDirection.current)
         }
 
     object Splitpanes {
