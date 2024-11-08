@@ -6,8 +6,6 @@ import java.lang.System.getenv
 import kotlin.math.max
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateManifestTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
-import org.jetbrains.kotlin.util.prefixIfNot
-
 
 plugins {
     alias(packageSearchCatalog.plugins.kotlin.jvm)
@@ -35,15 +33,32 @@ dependencies {
             "org.jetbrains.idea.reposearch",
             "com.jetbrains.performancePlugin",
         )
-        bundledModule(
-            "intellij.platform.compose"
-        )
+//        bundledModule(
+//            "intellij.platform.compose"
+//        )
     }
 
-    implementation(compose.desktop.currentOs) {
+    implementation(compose.desktop.linux_x64) {
         exclude(group = "org.jetbrains.compose.material")
         exclude(group = "org.jetbrains.kotlinx")
     }
+    implementation(compose.desktop.linux_arm64) {
+        exclude(group = "org.jetbrains.compose.material")
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    implementation(compose.desktop.windows_x64) {
+        exclude(group = "org.jetbrains.compose.material")
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    implementation(compose.desktop.macos_arm64) {
+        exclude(group = "org.jetbrains.compose.material")
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+    implementation(compose.desktop.macos_x64) {
+        exclude(group = "org.jetbrains.compose.material")
+        exclude(group = "org.jetbrains.kotlinx")
+    }
+
     implementation(packageSearchCatalog.jewel.bridge.ij243) //compileonly???
     implementation(packageSearchCatalog.kotlinx.serialization.core)
     implementation(packageSearchCatalog.compose.desktop.components.splitpane) {
@@ -99,6 +114,9 @@ tasks {
         exclude { it.name.containsAny(JAR_NAMES_TO_REMOVE) }
         exclude { it.name == "module-info.class" }
         exclude { it.name.endsWith("kotlin_module") }
+        relocate("androidx", "shadow.androidx")
+        relocate("org.jetbrains.jewel", "shadow.org.jetbrains.jewel")
+        relocate("org.jetbrains.compose", "shadow.org.jetbrains.compose")
     }
 
     val buildShadowPlugin by registering(Zip::class) {
