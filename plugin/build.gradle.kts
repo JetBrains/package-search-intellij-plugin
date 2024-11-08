@@ -114,10 +114,9 @@ tasks {
         exclude { it.name.containsAny(JAR_NAMES_TO_REMOVE) }
         exclude { it.name == "module-info.class" }
         exclude { it.name.endsWith("kotlin_module") }
-        relocate("androidx.*", "shadow.androidx.*")
-        relocate("org.jetbrains.jewel.*", "shadow.org.jetbrains.jewel.*")
-        relocate("org.jetbrains.compose.*", "shadow.org.jetbrains.compose.*")
-        relocate("com.jetbrains.compose.*", "shadow.com.jetbrains.compose.*")
+        relocate("androidx", "shadow.androidx")
+        relocate("org.jetbrains.jewel", "shadow.org.jetbrains.jewel")
+        relocate("org.jetbrains.compose", "shadow.org.jetbrains.compose")
     }
 
     val buildShadowPlugin by registering(Zip::class) {
