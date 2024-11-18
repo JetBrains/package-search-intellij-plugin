@@ -1,10 +1,10 @@
 <idea-plugin package="com.jetbrains.packagesearch" require-restart="false">
-    <name>Package Search</name>
+    <name>[DEPRECATED] Package Search</name>
     <vendor>JetBrains</vendor>
     <resource-bundle>messages.packageSearchBundle</resource-bundle>
 
     <description><![CDATA[
-Find and manage dependencies for JVM and Kotlin Multiplatform projects.
+[DEPRECATED] Find and manage dependencies for JVM and Kotlin Multiplatform projects.
 <br>
 Supports Maven and Gradle projects.
 <br>
