@@ -4,11 +4,35 @@
     <resource-bundle>messages.packageSearchBundle</resource-bundle>
 
     <description><![CDATA[
-[DEPRECATED] Find and manage dependencies for JVM and Kotlin Multiplatform projects.
-<br>
-Supports Maven and Gradle projects.
-<br>
-<a href="https://package-search.jetbrains.com">Package Search on the web</a><br>
+<h2>Plugin Deprecation Timeline</h2>
+<p>
+    <b>Version for IntelliJ IDEA 2024.3:</b> is the last functional version of the plugin.
+    There will be no version for IntelliJ IDEA 2025.1 or further. The Package Search Plugin
+    and its associated services will be discontinued.
+</p>
+<p>
+    The Package Search web service, including the website and API, will be shut down
+    on <b>April 1, 2025</b>. This means that all older versions of plugins will cease
+    functioning after this date. Please plan your transition accordingly.
+</p>
+<h3>Alternatives</h3>
+<p>
+    IntelliJ IDEA provides some built-in features that can be used instead of the Package Search plugin:
+</p>
+<ul>
+    <li>
+        <b>Dependency Analyzer</b> helps you visualize and understand the dependencies in your project.
+    </li>
+    <li>
+        IntelliJ IDEA provides auto-completion for dependency coordinates in your Maven build scripts
+        using information from your local Maven repository (<code>~/.m2/repository</code>). This allows
+        the IDE to suggest and autocomplete dependencies already present in your local environment
+        or have been used in your projects. It is also possible to download the index of Maven Central
+        locally to get even more options in completion. More details can be found in the documentation
+        on <a href="https://www.jetbrains.com/help/idea/maven.html">Maven dependency management</a>.
+    </li>
+</ul>
+<p>Thank you for your support over the years.</p>
 ]]></description>
 
     <depends optional="true" config-file="maven.xml">org.jetbrains.idea.maven</depends>
