@@ -11,9 +11,7 @@ foojay = "0.5.0"
 gradlePublishPlugin = "1.1.0"
 ideStarter = "LATEST-EAP-SNAPSHOT"
 idea = "2024.3"
-ideaGradlePlugin = "1.17.3"
-jewel = "0.26"
-jewelSnapshot = "1.0.0-SNAPSHOT"
+jewel = "0.26.0"
 junit = "5.10.2"
 junit4 = "4.13.2"
 kotlin = "2.0.21"
@@ -47,13 +45,7 @@ ide-starter-squashed = { module = "com.jetbrains.intellij.tools:ide-starter-squa
 ij-platform-core-ui = { module = "com.jetbrains.intellij.platform:core-ui", version.ref = "idea" }
 ij-platform-ide-core = { module = "com.jetbrains.intellij.platform:ide-core", version.ref = "idea" }
 ij-platform-ide-impl = { module = "com.jetbrains.intellij.platform:ide-impl", version.ref = "idea" }
-jewel-bridge-ij232 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-232", version.ref = "jewel" }
-jewel-bridge-ij233 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-233", version.ref = "jewel" }
-jewel-bridge-ij241 = { module = "org.jetbrains.jewel:jewel-ide-laf-bridge-241", version.ref = "jewel" }
-jewel-bridge-ij243 = { module= "org.jetbrains.jewel:jewel-ide-laf-bridge-243", version.ref = "jewelSnapshot"}
-jewel-foundation = { module = "org.jetbrains.jewel:jewel-foundation", version.ref = "jewel" }
-jewel-standalone = { module = "org.jetbrains.jewel:jewel-int-ui-standalone", version.ref = "jewel" }
-jewel-ui = { module = "org.jetbrains.jewel:jewel-ui", version.ref = "jewel" }
+jewel-bridge-ij243 = { module= "org.jetbrains.jewel:jewel-ide-laf-bridge-243", version.ref = "jewel"}
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }

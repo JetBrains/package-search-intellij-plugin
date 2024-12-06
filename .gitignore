@@ -5,6 +5,7 @@ out/
 .gradle/
 .gitsubmoduleinit
 allure-results/
+.kotlin/
 
 !.idea/codeStyles/*
 !.idea/dictionaries/*
